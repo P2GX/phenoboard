@@ -11,11 +11,11 @@ export class ConfigService {
     return await invoke<string | null>('get_saved_download_path');
   }
 
-  async saveDownloadPath(path: string): Promise<void> {
-    await invoke('save_download_path', { path });
+  async saveHpJsonPath(path: string): Promise<void> {
+    await invoke('save_hp_json_path', { path });
   }
 
-  async selectDownloadDirectory(): Promise<string | null> {
-    return await invoke<string | null>('select_download_directory');
+  async selectHpJsonFile(): Promise<string | null> {
+    return await invoke<string | null>('select_hp_json_download_path');
   }
 }

@@ -10,20 +10,22 @@ import { ConfigService } from '../services/config.service';
   styleUrls: ['./settings.component.css']
 })
 export class SettingsComponent implements OnInit {
-  downloadPath: string | null = null;
+  hpoJsonPath: string | null = null;
+  hpocuratorSettingsPath: string | null = null;
 
   constructor(private configService: ConfigService) {}
 
   async ngOnInit() {
     console.log("ngOnInit");
-    this.downloadPath = await this.configService.getSavedDownloadPath();
+    this.hpocuratorSettingsPath = await this.configService.getSavedDownloadPath();
   }
 
-  async chooseDownloadFolder() {
-    const path = await this.configService.selectDownloadDirectory();
+  async chooseHpJsonFile() {
+    const path = await this.configService.selectHpJsonFile();
     if (path) {
-      this.downloadPath = path;
-      await this.configService.saveDownloadPath(path);
+      console.log("We got the path settings.component.ts=", path);
+      this.hpoJsonPath = path;
+      await this.configService.saveHpJsonPath(path);
     }
   }
 }

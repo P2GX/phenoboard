@@ -1,6 +1,6 @@
-<div>
-    <h3>Download Folder</h3>
-    <p *ngIf="downloadPath">Current Path: {{ downloadPath }}</p>
-    <button (click)="chooseDownloadFolder()">Select Download Folder</button>
+<div class="top-settings">
+    <button (click)="chooseHpJsonFile()" class="settings-button">Select hp.json file</button>
+    <p *ngIf="hpoJsonPath" class="settings-test">{{ hpoJsonPath }}</p>
+    
   </div>
   

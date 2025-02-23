@@ -17,7 +17,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet,
                                                 hpo_mining::run_text_mining,
-                                                settings::select_download_directory])
+                                                settings::select_hp_json_download_path,
+                                                settings::save_hp_json_path])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

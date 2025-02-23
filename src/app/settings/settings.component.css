@@ -1,0 +1,31 @@
+/* Position the stripe at the top of the window */
+.top-settings {
+    position: fixed;       /* Fix the position at the top */
+    top: 0;                /* Align to the top of the viewport */
+    left: 0;               /* Align to the left side */
+    width: 100%;           /* Make it span the full width */
+    height: 40px;          /* Set the height for the stripe (adjust as needed) */
+    background-color: #4CAF50; /* Example background color (green) */
+    color: white;          /* Text color */
+    display: flex;         /* Use flex to center content horizontally */
+    align-items: center;   /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    font-size: 16px;       /* Adjust font size as needed */
+    z-index: 1000;         /* Ensure it stays on top of other content */
+  }
+
+  /* Style for the button */
+.settings-button {
+    background-color: white; /* Button background */
+    color: #4CAF50;          /* Text color */
+    border: none;            /* Remove border */
+    padding: 8px 16px;       /* Button padding */
+    font-size: 16px;         /* Font size */
+    cursor: pointer;        /* Pointer cursor on hover */
+    border-radius: 4px;      /* Rounded corners */
+  }
+
+  /* Style for the text strings */
+.settings-text {
+    margin-left: 10px;       /* Space between text elements */
+  }
