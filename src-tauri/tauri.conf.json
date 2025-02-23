@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "hpocurator",
-        "width": 800,
-        "height": 600
+        "title": "HPO Curator",
+        "width": 1400,
+        "height": 900
       }
     ],
     "security": {

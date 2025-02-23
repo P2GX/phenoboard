@@ -1,14 +1,17 @@
 <main class="container">
   <h1>HPO Curation Prototype</h1>
-
   <div class="row">
+    <app-settings></app-settings>
+  </div>
+
+  <!-- <div class="row">
     <a href="https://tauri.app" target="_blank">
       <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
     </a>
     <a href="https://angular.io" target="_blank">
       <img src="/assets/angular.svg" class="logo angular" alt="Angular logo" />
     </a>
-  </div>
+  </div> -->
   <p>Use Control-V to paste text from the system clipboard.</p>
 
   <form class="row" (submit)="greet($event, greetInput.value)">
