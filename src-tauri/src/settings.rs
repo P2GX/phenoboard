@@ -2,7 +2,11 @@ use std::fs;
 use std::path::PathBuf;
 use std::io::{Read, Write};
 use dirs::home_dir;
+use tauri::utils::resources::resource_relpath;
 use tauri_plugin_dialog::{FileDialogBuilder, FilePath};
+use tauri_plugin_dialog::DialogExt;
+
+use rfd::FileDialog;
 
 
 /// Settings to persist between sessions.
@@ -77,34 +81,39 @@ pub fn load_config() -> Option<String> {
 
 
 
-use tauri_plugin_dialog::DialogExt;
+
 
 #[tauri::command]
-pub async fn select_hp_json_download_path(app: tauri::AppHandle)-> Option<String> {
-    println!("BLABLA");
-    let file_path = app.dialog()
-        .file()
-        .add_filter("HPO JSON file", &["json"])
-        .pick_file(|file|{
-            match file {
-                Some(hp_file) => {
-                    println!("got hp file {}", hp_file); 
-                    Some(hp_file.to_string())
-                },
-                _ => {println!("Could not retrieve hp.json file NO"); 
-                    None
-            } 
-            };            
-        }); // blocking call to pick a file
-
+pub fn select_hp_json_download_path(app: tauri::AppHandle)-> Option<String> {
    
+// synchronous (blocking) file chooser
+let result = FileDialog::new()
+    .add_filter("HPO JSON", &["json"])
+    .set_directory("/")
+    .pick_file();
+println!("files {:?}", result);
+match result {
+    Some(file) =>  {
+        let pbresult = file.canonicalize();
+        match pbresult {
+            Ok(abspath) => {
+                let hpj_path = abspath.canonicalize().unwrap().display().to_string();
+                save_hp_json_path(&hpj_path);
+                return Some(hpj_path);
+            },
+            Err(e) => {
+                println!("Could not get path: {:?}", e)
+            }
+        }
+    },
+    None => {}
+}
     Some("None".to_string())   
 }
 
 #[tauri::command]
-pub async fn save_hp_json_path(hp_json_path: &str)-> Result<String,String> {
+pub fn save_hp_json_path(hp_json_path: &str) {
    let hp_settings = HpoCuratorSettings::new(hp_json_path);
    hp_settings.save_settings();
-   Ok("None".to_ascii_lowercase())
 }
 
