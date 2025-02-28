@@ -12,6 +12,7 @@ import { ConfigService } from '../services/config.service';
 export class SettingsComponent implements OnInit {
   hpoJsonPath: string | null = null;
   hpocuratorSettingsPath: string | null = null;
+  hpoVersion: string | null = null;
 
   constructor(private configService: ConfigService) {}
 
@@ -25,7 +26,12 @@ export class SettingsComponent implements OnInit {
     if (path) {
       console.log("We got the path settings.component.ts=", path);
       this.hpoJsonPath = path;
+      console.log("We got the path 2 settings.component.ts=", path);
+      
+      this.hpoVersion = await this.configService.loadOntologyAndGetVersion();
+      console.log("version ", this.hpoVersion);
       await this.configService.saveHpJsonPath(path);
+      console.log("We saved=", path);
     }
   }
 }

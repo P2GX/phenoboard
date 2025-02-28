@@ -2,14 +2,22 @@ use std::fs;
 use std::path::PathBuf;
 use std::io::{Read, Write};
 use dirs::home_dir;
+use ontolius::prelude::*;
+
+use ontolius::io::OntologyLoaderBuilder;
+use ontolius::ontology::csr::MinimalCsrOntology;
 use tauri::utils::resources::resource_relpath;
 use tauri_plugin_dialog::{FileDialogBuilder, FilePath};
 use tauri_plugin_dialog::DialogExt;
-
+use tauri::State;
+use std::sync::Mutex;
 use rfd::FileDialog;
+
+use crate::hpo_curator::HpoCuratorSingleton;
 
 
 /// Settings to persist between sessions.
+
 pub struct HpoCuratorSettings {
     hp_json_file: String,
 
@@ -46,7 +54,18 @@ impl HpoCuratorSettings {
             Err(format!("hp_json_path not found at {:?}", get_config_file()))
         }
     }
+
+
 }
+
+impl Default for HpoCuratorSettings {
+    fn default() -> Self {
+        HpoCuratorSettings {
+            hp_json_file: String::default(),
+        }
+    }
+}
+
 
 
 fn get_config_path() -> PathBuf {
@@ -81,31 +100,54 @@ pub fn load_config() -> Option<String> {
 
 
 
+#[tauri::command]
+pub fn load_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> Result<String, String> {
+    let mut singleton = singleton.lock().unwrap();
+    let hpo_json = singleton.hp_json_path();
+    println!("LOADING ONTO");
+    match hpo_json {
+        None => {return Err("HPO JSON file not loaded".to_string());},
+        Some(hp_json) => {
+            println!("LOADING ONTO2");
+            let loader = OntologyLoaderBuilder::new()
+                .obographs_parser()
+                .build();
+
+            let hpo: MinimalCsrOntology = loader.load_from_path(hp_json).expect("could not unwapr");
+            let version = hpo.version().to_string();
+            println!("LOADING ONTO2 version {}", &version);
+            singleton.set_hpo(hpo);
+            return Ok(version);  
+            }
+        }
+}
+    
 
 
 #[tauri::command]
-pub fn select_hp_json_download_path(app: tauri::AppHandle)-> Option<String> {
-   
-// synchronous (blocking) file chooser
-let result = FileDialog::new()
-    .add_filter("HPO JSON", &["json"])
-    .set_directory("/")
-    .pick_file();
-println!("files {:?}", result);
-match result {
-    Some(file) =>  {
-        let pbresult = file.canonicalize();
-        match pbresult {
-            Ok(abspath) => {
-                let hpj_path = abspath.canonicalize().unwrap().display().to_string();
-                save_hp_json_path(&hpj_path);
-                return Some(hpj_path);
-            },
-            Err(e) => {
-                println!("Could not get path: {:?}", e)
+pub fn select_hp_json_download_path(singleton: State<Mutex<HpoCuratorSingleton>>)-> Option<String> {
+    let mut singleton = singleton.lock().unwrap();
+    // synchronous (blocking) file chooser
+    let result = FileDialog::new()
+        .add_filter("HPO JSON", &["json"])
+        .set_directory("/")
+        .pick_file();
+    println!("files {:?}", result);
+    match result {
+        Some(file) =>  {
+            let pbresult = file.canonicalize();
+            match pbresult {
+                Ok(abspath) => {
+                    let hpj_path = abspath.canonicalize().unwrap().display().to_string();
+                    save_hp_json_path(&hpj_path);
+                    singleton.set_hp_hson(&hpj_path);
+                    return Some(hpj_path);
+                },
+                Err(e) => {
+                    println!("Could not get path: {:?}", e)
+                }
             }
-        }
-    },
+        },
     None => {}
 }
     Some("None".to_string())   
