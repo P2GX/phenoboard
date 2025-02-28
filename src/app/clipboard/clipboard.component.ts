@@ -1,32 +1,29 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
 
 @Component({
   selector: 'app-clipboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './clipboard.component.html', 
    styleUrl: './clipboard.component.css'
 })
 export class ClipboardComponent {
   clipboardContent: string | null = null;
   jsonData: any[] = [ ]; 
+  predefinedOptions: string[] = ["observed", "excluded", "na"];
+  selectedOptions: string[] = []; // Stores selected radio button values
+  customOptions: string[] = []; // Stores manually entered custom options
+
+
   async readClipboard(): Promise<void> {
-    console.log("readClipboard() called"); 
     try {
-      console.log("readClipboard() Top of Try"); 
       const text = await navigator.clipboard.readText();
-      console.log("readClipboard() text=", text); 
       invoke<string>("run_text_mining", { inputText: text }).then((output) => {
-        this.clipboardContent = output;
-        console.log("readClipboard() output=", output); 
         try {
-          console.log("text")
-          console.log(text)
           this.jsonData = JSON.parse(output);
-          console.log("json")
-          console.log(this.jsonData)
         } catch (error) {
           // If parsing fails, set clipboardContent to the raw text
           this.clipboardContent = text;
@@ -35,10 +32,17 @@ export class ClipboardComponent {
     }).catch((error) => {
       console.error("Tauri invoke failed:", error);
     });
-      console.log('Clipboard Content BTOOM:', text);
       this.clipboardContent = text;
     } catch (err) {
       console.error('Failed to read clipboard', err);
+    }
+  }
+
+  addCustomOption(index: number) {
+    const customValue = this.customOptions[index]?.trim();
+    if (customValue && !this.predefinedOptions.includes(customValue)) {
+      this.predefinedOptions.push(customValue); // Add new option
+      this.selectedOptions[index] = customValue; // Select it
     }
   }
 

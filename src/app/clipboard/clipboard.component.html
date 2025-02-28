@@ -1,8 +1,7 @@
-<p>SOMETHING</p>
-<button (click)="readClipboard()">Copy clinical text from system clipboard</button>
-<button (click)="readClipboard()">Copy clinical text from system clipboard 2</button>
+<p>Copy clinical text into the system clipboard and paste it into the app.</p>
+<button (click)="readClipboard()">Paste clinical text from system clipboard</button>
 
-<p *ngIf="clipboardContent">Clipboard: {{ clipboardContent }}</p>
+<p *ngIf="clipboardContent">Original text: {{ clipboardContent }}</p>
 <!-- Add a section to display the table if jsonData is available -->
 <table *ngIf="jsonData.length">
   <thead>
@@ -12,10 +11,24 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of jsonData" [ngClass]="{'highlight': item.status === 'active'}">
+    <tr *ngFor="let item of jsonData; let i = index" [ngClass]="{'highlight': item.status === 'active'}">
       <td *ngFor="let key of getObjectKeys(item)">
         {{ item[key] }}
+      </td>
+      <!-- New Column with Radio Buttons and Input -->
+      <td>
+        <div *ngFor="let option of predefinedOptions">
+          <input type="radio" [name]="'option_' + i" [(ngModel)]="selectedOptions[i]" [value]="option">
+          {{ option }}
+        </div>
+
+        <!-- Input Field for Custom Option -->
+        <input type="text" [(ngModel)]="customOptions[i]" placeholder="Enter custom option">
+        <button (click)="addCustomOption(i)">Add</button>
       </td>
     </tr>
   </tbody>
 </table>
+
+<p>Selected Options: {{ selectedOptions | json }}</p>
+

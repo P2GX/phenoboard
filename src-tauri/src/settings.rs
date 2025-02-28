@@ -6,9 +6,6 @@ use ontolius::prelude::*;
 
 use ontolius::io::OntologyLoaderBuilder;
 use ontolius::ontology::csr::MinimalCsrOntology;
-use tauri::utils::resources::resource_relpath;
-use tauri_plugin_dialog::{FileDialogBuilder, FilePath};
-use tauri_plugin_dialog::DialogExt;
 use tauri::State;
 use std::sync::Mutex;
 use rfd::FileDialog;
@@ -107,18 +104,15 @@ pub fn load_config() -> Option<String> {
 pub fn load_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> Result<String, String> {
     let mut singleton = singleton.lock().unwrap();
     let hpo_json = singleton.hp_json_path();
-    println!("LOADING ONTO");
     match hpo_json {
         None => {return Err("HPO JSON file not loaded".to_string());},
         Some(hp_json) => {
-            println!("LOADING ONTO2");
             let loader = OntologyLoaderBuilder::new()
                 .obographs_parser()
                 .build();
 
-            let hpo: MinimalCsrOntology = loader.load_from_path(hp_json).expect("could not unwapr");
+            let hpo: MinimalCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
             let version = hpo.version().to_string();
-            println!("LOADING ONTO2 version {}", &version);
             singleton.set_hpo(hpo);
             return Ok(version);  
             }

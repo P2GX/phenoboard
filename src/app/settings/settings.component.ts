@@ -23,14 +23,10 @@ export class SettingsComponent implements OnInit {
   async chooseHpJsonFile() {
     const path = await this.configService.selectHpJsonFile();
     if (path) {
-      console.log("We got the path settings.component.ts=", path);
       this.hpoJsonPath = path;
-      console.log("We got the path 2 settings.component.ts=", path);
-      
       this.hpoVersion = await this.configService.loadOntologyAndGetVersion();
       console.log("version ", this.hpoVersion);
       await this.configService.saveHpJsonPath(path);
-      console.log("We saved=", path);
     }
   }
 }
