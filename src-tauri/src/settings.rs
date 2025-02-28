@@ -100,6 +100,9 @@ pub fn load_config() -> Option<String> {
 
 
 
+
+
+
 #[tauri::command]
 pub fn load_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> Result<String, String> {
     let mut singleton = singleton.lock().unwrap();

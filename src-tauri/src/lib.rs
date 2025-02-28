@@ -19,6 +19,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet,
                                                 hpo_mining::run_text_mining,
+                                                hpo_curator::initialize_hpo_and_get_version,
                                                 settings::select_hp_json_download_path,
                                                 settings::load_hpo_and_get_version,
                                                 settings::save_hp_json_path])

@@ -7,12 +7,12 @@ import { invoke } from "@tauri-apps/api/core";
 export class ConfigService {
   constructor() {}
 
-  async getSavedDownloadPath(): Promise<string | null> {
+  /*async getSavedDownloadPath(): Promise<string | null> {
     return await invoke<string | null>('get_saved_download_path');
-  }
+  }*/
 
   async saveHpJsonPath(path: string): Promise<void> {
-    await invoke('save_hp_json_path', { path });
+    await invoke('save_hp_json_path', { hpJsonPath:  path });
   }
 
   async selectHpJsonFile(): Promise<string | null> {

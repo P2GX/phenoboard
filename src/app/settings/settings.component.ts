@@ -18,7 +18,6 @@ export class SettingsComponent implements OnInit {
 
   async ngOnInit() {
     console.log("ngOnInit");
-    this.hpocuratorSettingsPath = await this.configService.getSavedDownloadPath();
   }
 
   async chooseHpJsonFile() {

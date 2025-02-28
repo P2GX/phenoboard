@@ -1,1 +1,21 @@
-<p>clipboard works!</p>
+<p>SOMETHING</p>
+<button (click)="readClipboard()">Copy clinical text from system clipboard</button>
+<button (click)="readClipboard()">Copy clinical text from system clipboard 2</button>
+
+<p *ngIf="clipboardContent">Clipboard: {{ clipboardContent }}</p>
+<!-- Add a section to display the table if jsonData is available -->
+<table *ngIf="jsonData.length">
+  <thead>
+    <tr>
+      <!-- Create table headers dynamically -->
+      <th *ngFor="let key of getObjectKeys(jsonData[0])">{{ key }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let item of jsonData" [ngClass]="{'highlight': item.status === 'active'}">
+      <td *ngFor="let key of getObjectKeys(item)">
+        {{ item[key] }}
+      </td>
+    </tr>
+  </tbody>
+</table>

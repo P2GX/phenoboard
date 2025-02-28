@@ -6,7 +6,8 @@
 
 use ferriphene::fenominal::Fenominal;
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
-
+use tauri::State;
+use std::sync::Mutex;
 use crate::settings::HpoCuratorSettings;
 
 /// A singleton
@@ -21,7 +22,7 @@ pub struct HpoCuratorSingleton {
 impl HpoCuratorSingleton {
     pub fn new() -> Self {
         HpoCuratorSingleton {
-            settings: HpoCuratorSettings::default(),
+            settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
             ontology: None,
             hp_json_path: None,
             fenominal: None
@@ -29,7 +30,7 @@ impl HpoCuratorSingleton {
     }
 
     pub fn set_hpo(&mut self, ontology: MinimalCsrOntology) {
-        self.ontology = Some(ontology)
+        self.ontology = Some(ontology);
     }
 
     pub fn set_hp_hson(&mut self, hp_json: &str) {
@@ -66,6 +67,7 @@ impl HpoCuratorSingleton {
         match &self.fenominal {
             Some(fenominal) => {
                 let json_string = fenominal.map_text_to_json(&input_text);
+                println!("{}", &json_string);
                 json_string
             },
             None => {
@@ -75,6 +77,14 @@ impl HpoCuratorSingleton {
 
       
     }
+   
+}
 
-    
+
+#[tauri::command]
+pub fn initialize_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> Result<String, String> {
+    let mut singleton = singleton.lock().unwrap();
+    let result: Result<String, String> = singleton.initialize_hpo_and_get_version();
+
+    result
 }
