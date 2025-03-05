@@ -23,3 +23,8 @@ npm run tauri dev
 ```bash 
 ng generate component <name> --standalone
 ```
+
+### Added routing
+```bash
+ng add @angular/router
+```
