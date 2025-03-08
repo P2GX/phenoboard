@@ -7,5 +7,4 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withHashLocation()) // 👈 Use hash-based routing for Tauri
   ]
-})
-  .catch(err => console.error(err));
+}).catch(err => console.error(err));

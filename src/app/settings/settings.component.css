@@ -1,8 +1,8 @@
 /* Position the stripe at the top of the window */
 .top-settings {
-    position: fixed;       /* Fix the position at the top */
-    top: 0;                /* Align to the top of the viewport */
-    left: 0;               /* Align to the left side */
+   /* position: fixed;        Fix the position at the top */
+  /*  top: 0;                /* Align to the top of the viewport */
+  /*  left: 0;               /* Align to the left side */
     width: 100%;           /* Make it span the full width */
     height: 40px;          /* Set the height for the stripe (adjust as needed) */
     background-color: #4CAF50; /* Example background color (green) */

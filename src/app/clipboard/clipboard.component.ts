@@ -23,6 +23,8 @@ export class ClipboardComponent {
       const text = await navigator.clipboard.readText();
       invoke<string>("run_text_mining", { inputText: text }).then((output) => {
         try {
+          console.log("output");
+          console.log(output);
           this.jsonData = JSON.parse(output);
         } catch (error) {
           // If parsing fails, set clipboardContent to the raw text
