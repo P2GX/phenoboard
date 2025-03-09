@@ -2,7 +2,7 @@
 <button (click)="readClipboard()">Paste clinical text from system clipboard</button>
 
 <p *ngIf="clipboardContent">Original text: {{ clipboardContent }}</p>
-<p *ngIf="clipboardContent">JSON text: {{ jsonData }}</p>
+
 <!-- Add a section to display the table if jsonData is available -->
 <table *ngIf="jsonData.length">
   <thead>
