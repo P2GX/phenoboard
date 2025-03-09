@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ClipboardComponent } from './clipboard.component';
+import { ClipboardComponent } from './textmining.component';
 
 describe('ClipboardComponent', () => {
   let component: ClipboardComponent;

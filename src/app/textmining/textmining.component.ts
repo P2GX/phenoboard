@@ -7,10 +7,10 @@ import { invoke } from "@tauri-apps/api/core";
   selector: 'app-clipboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './clipboard.component.html', 
-   styleUrl: './clipboard.component.css'
+  templateUrl: './textmining.component.html', 
+   styleUrl: './textmining.component.css'
 })
-export class ClipboardComponent {
+export class TextminingComponent {
   clipboardContent: string | null = null;
   jsonData: any[] = [ ]; 
   predefinedOptions: string[] = ["observed", "excluded", "na"];

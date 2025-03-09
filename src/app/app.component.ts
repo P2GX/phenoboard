@@ -4,14 +4,14 @@ import { RouterOutlet } from '@angular/router';
 import { invoke } from "@tauri-apps/api/core";
 import { NavbarComponent } from './navbar/navbar.component';
 import { FooterComponent } from './footer/footer.component';
-import { ClipboardComponent } from './clipboard/clipboard.component';
+import { TextminingComponent } from './textmining/textmining.component';
 import { SettingsComponent } from './settings/settings.component';
 
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ClipboardComponent, SettingsComponent, NavbarComponent, FooterComponent],
+  imports: [CommonModule, RouterOutlet, TextminingComponent, SettingsComponent, NavbarComponent, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
