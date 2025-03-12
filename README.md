@@ -28,3 +28,6 @@ ng generate component <name> --standalone
 ```bash
 ng add @angular/router
 ```
+
+
+ng add @angular/material

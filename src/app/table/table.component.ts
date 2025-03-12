@@ -3,25 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
 
+
 @Component({
-  selector: 'app-textmining',
+  selector: 'app-table',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './textmining.component.html', 
-   styleUrl: './textmining.component.css'
+  imports: [],
+  templateUrl: './table.component.html',
+  styleUrl: './table.component.scss'
 })
-export class TextminingComponent {
+export class TableComponent {
   clipboardContent: string | null = null;
   jsonData: any[] = [ ]; 
-  predefinedOptions: string[] = ["observed", "excluded", "na"];
-  selectedOptions: string[] = []; // Stores selected radio button values
-  customOptions: string[] = []; // Stores manually entered custom options
-
 
   async readClipboard(): Promise<void> {
     try {
       const text = await navigator.clipboard.readText();
-      invoke<string>("run_text_mining", { inputText: text }).then((output) => {
+      // attempt to get a matrix of Strings representing a new pyphetools tempalte
+      invoke<string>("get_table_columns_from_seeds", { inputText: text }).then((output) => {
         try {
           console.log("output");
           console.log(output);
@@ -40,15 +38,4 @@ export class TextminingComponent {
     }
   }
 
-  addCustomOption(index: number) {
-    const customValue = this.customOptions[index]?.trim();
-    if (customValue && !this.predefinedOptions.includes(customValue)) {
-      this.predefinedOptions.push(customValue); // Add new option
-      this.selectedOptions[index] = customValue; // Select it
-    }
-  }
-
-  getObjectKeys(obj: any): string[] {
-    return obj ? Object.keys(obj) : [];
-  }
 }

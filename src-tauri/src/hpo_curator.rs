@@ -4,8 +4,9 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 
-use ferriphene::fenominal::Fenominal;
-use ontolius::{io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
+use rfenominal::fenominal::Fenominal;
+use ontolius::{base::TermId, io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
+use rphetools::{hpo::hpo_term_arranger::HpoTermArranger, template_creator::TemplateCreator, rphetools_traits::PyphetoolsTemplateCreator};
 use tauri::State;
 use std::sync::Mutex;
 use crate::settings::HpoCuratorSettings;
@@ -74,10 +75,38 @@ impl HpoCuratorSingleton {
                 "No mapper found".to_ascii_lowercase()
             }
         }
-
-      
     }
-   
+
+    /// Get an ordered list of HPO terms ids
+    /// 
+    /// The intended use case is when we are initializing a new Pyphetools template and we
+    /// want to prepopulate the template with HPO terms weare likely to curate.
+    /// 
+    /// # Arguments
+    ///
+    /// * `input_text` - A string reference with clinical descriptions
+    ///
+    /// # Returns
+    /// 
+    /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
+    pub fn map_text_to_term_list(&self, input_text: &str) -> Vec<TermId> {
+        match &self.fenominal {
+            Some(fenominal) => {
+                let fenom_hits = fenominal.map_text_to_term_id_set(input_text);
+                match &self.ontology {
+                    Some(hpo) => {
+                        let hpo_ids = fenom_hits.into_iter().collect();
+                        let mut arranger = HpoTermArranger::new(&hpo);
+                        let ordered_hpo_ids = arranger.arrange_terms(&hpo_ids);
+                        return ordered_hpo_ids;
+                    },
+                    None => vec![]
+                }
+            },
+            None => vec![]  
+        }
+    }
+
 }
 
 
@@ -87,4 +116,47 @@ pub fn initialize_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton
     let result: Result<String, String> = singleton.initialize_hpo_and_get_version();
 
     result
+}
+
+
+
+/// When we initialize a new Table (Excel file) for curation, we start with
+/// a text that contains candidate HPO terms for curation.
+/// This function performs text mining on that text and creates
+/// a Matrix of Strings with which we initialize the table in the GUI
+/// TODO: better documentation
+#[tauri::command]
+pub fn get_table_columns_from_seeds(singleton: State<Mutex<HpoCuratorSingleton>>,
+                                    disease_id: &str,
+                                    disease_name: &str,
+                                    hgnc_id: &str,
+                                    gene_symbol: &str,
+                                    transcript_id: &str,
+                                    input_text: &str) -> Result<String, String> {
+    let mut singleton = singleton.lock().unwrap();
+    match &singleton.ontology {
+        Some(hpo) => {
+            let result = TemplateCreator::create_pyphetools_template(
+                disease_id,
+                disease_name,
+                hgnc_id,
+                gene_symbol,
+                transcript_id,
+                vec![],
+                &hpo
+            );
+            match result {
+                Ok(matrix) => { 
+                    let json_string = serde_json::to_string(&matrix).unwrap();
+                    return Ok(json_string);
+                },
+                Err(e) => {
+                    return Err(format!("Could not create matrix: {}", e));
+                }
+            }
+        }, 
+        None => {
+            return Err(format!("Could not retrieve ontology"));
+        }
+    }
 }

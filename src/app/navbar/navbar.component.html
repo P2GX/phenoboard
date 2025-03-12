@@ -2,5 +2,16 @@
     <a routerLink="/">Home</a>
     <a routerLink="/settings">Settings</a>
     <a routerLink="/textmining">Text mining</a>
+    <a routerLink="/table">New Template</a>
+    <!-- Help Dropdown -->
+     <!-- Help Dropdown -->
+     <button [matMenuTriggerFor]="helpMenu" class="help-button">
+        Help
+    </button>
+    <mat-menu #helpMenu="matMenu">
+        <button mat-menu-item *ngFor="let item of helpItems" [routerLink]="['/help', item.key]">
+            {{ item.label }}
+        </button>
+    </mat-menu>
 </nav>
   

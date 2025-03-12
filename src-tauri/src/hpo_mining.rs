@@ -1,6 +1,6 @@
 
 
-use ferriphene::fenominal::Fenominal;
+use rfenominal::fenominal::Fenominal;
 
 use tauri::State;
 use std::sync::Mutex;

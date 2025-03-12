@@ -20,6 +20,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![greet,
                                                 hpo_mining::run_text_mining,
                                                 hpo_curator::initialize_hpo_and_get_version,
+                                                hpo_curator::get_table_columns_from_seeds,
                                                 settings::select_hp_json_download_path,
                                                 settings::load_hpo_and_get_version,
                                                 settings::save_hp_json_path])
