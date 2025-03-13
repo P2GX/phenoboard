@@ -4,12 +4,13 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
 import { AppComponent } from './app.component';
 import { routes } from './app.routes';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { importProvidersFrom } from '@angular/core';
 
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(BrowserAnimationsModule),  
-    importProvidersFrom(CommonModule),  
+    importProvidersFrom(CommonModule, ReactiveFormsModule, FormsModule),  
     provideRouter(routes, withHashLocation()),// 👈 Use hash-based routing for Tauri
     { provide: BrowserAnimationsModule, useValue: BrowserAnimationsModule }
   ]

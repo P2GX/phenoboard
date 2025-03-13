@@ -5,7 +5,7 @@
 
 
 use rfenominal::fenominal::Fenominal;
-use ontolius::{base::TermId, io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
+use ontolius::{base::{term::simple::SimpleMinimalTerm, TermId}, io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
 use rphetools::{hpo::hpo_term_arranger::HpoTermArranger, template_creator::TemplateCreator, rphetools_traits::PyphetoolsTemplateCreator};
 use tauri::State;
 use std::sync::Mutex;
@@ -134,15 +134,28 @@ pub fn get_table_columns_from_seeds(singleton: State<Mutex<HpoCuratorSingleton>>
                                     transcript_id: &str,
                                     input_text: &str) -> Result<String, String> {
     let mut singleton = singleton.lock().unwrap();
+    let fresult = singleton.map_text_to_term_list(input_text);
+    let term_list: Vec<SimpleMinimalTerm> = vec![];
+    for hpo_tid in fresult {
+
+    }
+
     match &singleton.ontology {
         Some(hpo) => {
+            // Get list of HPO term ids
+            let term_list: Vec<SimpleMinimalTerm> = vec![];
+            for hpo_tid in fresult {
+                //let hpo_term = hpo.i
+            }
+
+
             let result = TemplateCreator::create_pyphetools_template(
                 disease_id,
                 disease_name,
                 hgnc_id,
                 gene_symbol,
                 transcript_id,
-                vec![],
+                term_list,
                 &hpo
             );
             match result {

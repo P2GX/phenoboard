@@ -1,1 +1,97 @@
-<p>table works!</p>
+<h3>Create new phenopacket cohort template</h3>
+<!-- Either show the form or the table -->
+  <form [formGroup]="dataForm" (ngSubmit)="onSubmit()" class="form-container" *ngIf="!showTable">
+    <div class="form-column">
+        <div class="form-group">
+            <label for="diseaseId" class="form-label">Disease identifier</label>
+            <input 
+                id="diseaseId" 
+                type="text" 
+                formControlName="diseaseId" 
+                [ngClass]="{ 'error-border': hasError('diseaseId') }"
+                placeholder="Enter disease ID"
+                class="form-input"
+                >
+            <div *ngIf="dataForm.get('diseaseId')?.touched && dataForm.get('diseaseId')?.invalid" class="error-message">
+                <span *ngIf="dataForm.get('diseaseId')?.hasError('required')" class="error-message">Disease ID is required.</span>
+                <span *ngIf="dataForm.get('diseaseId')?.hasError('pattern')" class="error-message">Disease ID must follow the pattern "OMIM:123456".</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="diseaseName" class="form-label">Disease name</label>
+            <input 
+                id="diseaseName" 
+                type="text" 
+                formControlName="diseaseName"
+                class="form-input"
+                >
+            <div *ngIf="dataForm.get('diseaseName')?.touched && dataForm.get('diseaseName')?.invalid" class="error-message">
+                    <span *ngIf="dataForm.get('diseaseName')?.hasError('required')" class="error-message">Disease Name is required.</span>
+                    <span *ngIf="dataForm.get('diseaseName')?.hasError('pattern')" class="error-message">Disease name must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="hgnc" class="form-label">HGNC identifier</label>
+            <input id="hgnc" type="text" formControlName="hgnc" class="form-input">
+            <div *ngIf="dataForm.get('hgnc')?.touched && dataForm.get('hgnc')?.invalid" class="error-message">
+                <span *ngIf="dataForm.get('hgnc')?.hasError('required')" class="error-message">HGNC ID is required.</span>
+                <span *ngIf="dataForm.get('hgnc')?.hasError('pattern')" class="error-message">HGNC ID must follow the pattern "HGNC:123456".</span>
+            </div>
+        </div>
+        <div class="form-group">
+        <label for="hgnc" class="form-label">Gene symbol</label>
+        <input 
+            id="symbol" 
+            type="text" 
+            formControlName="symbol"
+            placeholder="Enter HGNC-approved gene symbol"
+            class="form-input">
+            <div *ngIf="dataForm.get('symbol')?.touched && dataForm.get('symbol')?.invalid" class="error-message">
+                <span *ngIf="dataForm.get('symbol')?.hasError('required')" class="error-message">Gene symbol is required.</span>
+                <span *ngIf="dataForm.get('symbol')?.hasError('pattern')" class="error-message">Gene symbol must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+            </div>
+        </div>
+        <div class="form-group">
+        <label for="transcript" class="form-label">Transcript</label>
+        <input 
+            id="transcript" 
+            type="text" 
+            formControlName="transcript"
+            placeholder="Enter MANE transcript including version number"
+            class="form-input">
+            <div *ngIf="dataForm.get('transcript')?.touched && dataForm.get('transcript')?.invalid" class="error-message">
+                <span *ngIf="dataForm.get('transcript')?.hasError('required')" class="error-message">Transcript is required.</span>
+                <span *ngIf="dataForm.get('transcript')?.hasError('pattern')" class="error-message">Transcript must include version number and may not contain leading or trailing whitespace.</span>
+            </div>
+        </div>
+        <button type="submit" class="primary" [disabled]="dataForm.invalid">Create template</button>
+    </div>
+    <!-- Right Column: Text Area for the 'seed text' that should contain HPO terms we might want to curate -->
+  <div class="text-area-column">
+    <label for="multiText">Seed text</label>
+    <textarea id="multiText" formControlName="multiText" rows="10" class="text-area"></textarea>
+    <div *ngIf="dataForm.get('multiText')?.touched && dataForm.get('multiText')?.invalid" class="error-message">
+        <span *ngIf="dataForm.get('multiText')?.hasError('required')" class="error-message">Seed text is required.</span>
+    </div>
+  </div>
+  </form>
+  
+ 
+
+  <!-- Display the table with pyphetools template (waiting to be completed) if jsonData is available -->
+<div class="table-container" *ngIf="showTable">
+<table >
+    <thead>
+      <tr>
+        <!-- Create table headers dynamically from the first row -->
+        <th *ngFor="let header of jsonData[0]">{{ header }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Iterate over the remaining rows to fill table data -->
+      <tr *ngFor="let row of jsonData.slice(1)">
+        <td *ngFor="let cell of row">{{ cell }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
