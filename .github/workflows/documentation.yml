@@ -16,10 +16,12 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
-          key: ${{ github.ref }}
           path: .cache
+          key: ${{ runner.os }}-cache-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-cache-
 
       - name: Install docs dependencies
         run: |
