@@ -40,10 +40,11 @@ impl HpoCuratorSingleton {
         self.hp_json_path = Some(hp_json.to_string());
     }
 
-    pub fn initialize_hpo_and_get_version(&mut self) -> Result<String,String> {
+    pub fn initialize_hpo_and_get_version(&mut self, hp_json: &str) -> Result<String,String> {
         let loader = OntologyLoaderBuilder::new()
             .obographs_parser()
             .build();
+        self.set_hp_hson(hp_json);
         match &self.hp_json_path {
             Some(hp_json) => {
                 let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
@@ -108,9 +109,9 @@ impl HpoCuratorSingleton {
 
 
 #[tauri::command]
-pub fn initialize_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> Result<String, String> {
+pub fn initialize_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>, hpo_json_path: &str)-> Result<String, String> {
     let mut singleton = singleton.lock().unwrap();
-    let result: Result<String, String> = singleton.initialize_hpo_and_get_version();
+    let result: Result<String, String> = singleton.initialize_hpo_and_get_version(hpo_json_path);
 
     result
 }

@@ -24,7 +24,7 @@ export class SettingsComponent implements OnInit {
     const path = await this.configService.selectHpJsonFile();
     if (path) {
       this.hpoJsonPath = path;
-      this.hpoVersion = await this.configService.loadOntologyAndGetVersion();
+      this.hpoVersion = await this.configService.loadOntologyAndGetVersion(path);
       console.log("version ", this.hpoVersion);
       await this.configService.saveHpJsonPath(path);
     }

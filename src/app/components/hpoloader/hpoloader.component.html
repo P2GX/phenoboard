@@ -1,0 +1,6 @@
+<p>hpoloader component!</p>
+<div class="file-loader">
+    <input type="file" (change)="onFileSelected($event)" />
+    <div *ngIf="isLoading" class="loader">Loading...</div>
+    <p *ngIf="filePath">File: {{ filePath }}</p>
+  </div>

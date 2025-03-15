@@ -1,0 +1,31 @@
+name: Deploy documentation
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install docs dependencies
+        run: |
+          python3 -m pip install phenopacket-store-toolkit[release] mkdocstrings[python] mkdocs-material[imaging] mkdocs-material-extensions pillow cairosvg
+
+      - name: Deploy docs
+        run: |
+          mkdocs gh-deploy --force
+  
