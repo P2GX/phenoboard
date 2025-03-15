@@ -22,5 +22,10 @@
       "default"
     ]
   },
-  "nxCloudId": "67d529ba9137da28072dee37"
+  "nxCloudId": "67d529ba9137da28072dee37",
+  "generators": {
+    "@nx/angular:component": {
+      "style": "css"
+    }
+  }
 }

@@ -19,7 +19,7 @@ export class ConfigService {
     return await invoke<string | null>('select_hp_json_download_path');
   }
 
-  async loadOntologyAndGetVersion(): Promise<string> {
-    return await invoke<string | string>("initialize_hpo_and_get_version");
+  async loadOntologyAndGetVersion(path: string): Promise<string> {
+    return await invoke<string | string>("initialize_hpo_and_get_version", { hpJsonPath:  path });
   }
 }
