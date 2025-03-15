@@ -1,5 +1,26 @@
 .loader {
-    margin-top: 10px;
+    margin: 20px;
     color: blue;
     font-weight: bold;
+}
+
+mat-progress-bar {
+    margin: 20px;
+    width: 80%;
+  }
+
+
+
+ 
+  
+.progress-container {
+    margin-top: 20px;
+}
+
+pre {
+    white-space: pre-wrap;
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 20px;
 }

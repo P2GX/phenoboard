@@ -56,5 +56,9 @@ This will initialize the typical four files for an angular component.
 ng add @angular/router
 ```
 
+### Angular material
+To install
+```bash
+npm install @angular/material
+```
 
-ng add @angular/material

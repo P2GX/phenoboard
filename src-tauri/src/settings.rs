@@ -7,7 +7,7 @@ use std::io::{Read, Write};
 use dirs::home_dir;
 use ontolius::ontology::MetadataAware;
 use ontolius::io::OntologyLoaderBuilder;
-use ontolius::ontology::csr::{FullCsrOntology, MinimalCsrOntology};
+use ontolius::ontology::csr::FullCsrOntology;
 use tauri::State;
 use std::sync::Mutex;
 use rfd::FileDialog;
