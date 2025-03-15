@@ -4,21 +4,24 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 
-use rfenominal::fenominal::Fenominal;
-use ontolius::{base::TermId, io::OntologyLoaderBuilder, ontology::csr::MinimalCsrOntology, prelude::MetadataAware};
-use rphetools::{hpo::hpo_term_arranger::HpoTermArranger, template_creator::TemplateCreator, rphetools_traits::PyphetoolsTemplateCreator};
+use rfenominal::{fenominal::{self, Fenominal, FenominalHit}, TextMiner};
+use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, term::{simple::{SimpleMinimalTerm, SimpleTerm}, MinimalTerm}};
+use ontolius::TermId;
+use rphetools::PheTools;
 use tauri::State;
 use std::sync::Mutex;
 use crate::settings::HpoCuratorSettings;
+use std::sync::Arc;
+
 
 /// A singleton
 pub struct HpoCuratorSingleton {
     settings: HpoCuratorSettings,
-    ontology: Option<MinimalCsrOntology>,
+    ontology: Option<FullCsrOntology>,
     hp_json_path: Option<String>,
-    fenominal: Option<Fenominal>
-    
 }
+
+
 
 impl HpoCuratorSingleton {
     pub fn new() -> Self {
@@ -26,11 +29,10 @@ impl HpoCuratorSingleton {
             settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
             ontology: None,
             hp_json_path: None,
-            fenominal: None
         }
     }
 
-    pub fn set_hpo(&mut self, ontology: MinimalCsrOntology) {
+    pub fn set_hpo(&mut self, ontology: FullCsrOntology) {
         self.ontology = Some(ontology);
     }
 
@@ -44,11 +46,9 @@ impl HpoCuratorSingleton {
             .build();
         match &self.hp_json_path {
             Some(hp_json) => {
-                let hpo: MinimalCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
+                let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
                 let version =  hpo.version().to_string();
-                let fenominal = Fenominal::new(hp_json);
                 self.ontology = Some(hpo);
-                self.fenominal = Some(fenominal);
                 Ok(version) 
             },
             None => {
@@ -62,20 +62,20 @@ impl HpoCuratorSingleton {
     }
 
 
+
     /// TODO figure out error handling
     pub fn map_text(&self, input_text: &str) -> String {
-
-        match &self.fenominal {
-            Some(fenominal) => {
-                let json_string = fenominal.map_text_to_json(&input_text);
-                println!("{}", &json_string);
+        match &self.ontology {
+            Some(hpo) => {
+                let fenominal = Fenominal::from(hpo);
+                let fenominal_hits: Vec<FenominalHit> = fenominal.process(&input_text);
+                let json_string = serde_json::to_string(&fenominal_hits).unwrap();
                 json_string
             },
-            None => {
-                "No mapper found".to_ascii_lowercase()
-            }
+            None => format!("Could not initialize hpo")
         }
     }
+
 
     /// Get an ordered list of HPO terms ids
     /// 
@@ -90,20 +90,17 @@ impl HpoCuratorSingleton {
     /// 
     /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
     pub fn map_text_to_term_list(&self, input_text: &str) -> Vec<TermId> {
-        match &self.fenominal {
-            Some(fenominal) => {
-                let fenom_hits = fenominal.map_text_to_term_id_set(input_text);
-                match &self.ontology {
-                    Some(hpo) => {
-                        let hpo_ids = fenom_hits.into_iter().collect();
-                        let mut arranger = HpoTermArranger::new(&hpo);
-                        let ordered_hpo_ids = arranger.arrange_terms(&hpo_ids);
-                        return ordered_hpo_ids;
-                    },
-                    None => vec![]
-                }
+        match &self.ontology {
+            Some(hpo) => {
+                let fenominal = Fenominal::from(hpo);
+                let fenom_hits: Vec<TermId> = fenominal.process(input_text);
+                let phetools = PheTools::new(hpo);
+                let ordered_hpo_ids = phetools.arrange_terms(&fenom_hits);
+                return ordered_hpo_ids;
             },
-            None => vec![]  
+            None => {
+                vec![]
+            }
         }
     }
 
@@ -133,17 +130,18 @@ pub fn get_table_columns_from_seeds(singleton: State<Mutex<HpoCuratorSingleton>>
                                     gene_symbol: &str,
                                     transcript_id: &str,
                                     input_text: &str) -> Result<String, String> {
-    let mut singleton = singleton.lock().unwrap();
+    let singleton = singleton.lock().unwrap();
+    let fresult = singleton.map_text_to_term_list(input_text);
     match &singleton.ontology {
         Some(hpo) => {
-            let result = TemplateCreator::create_pyphetools_template(
+            let phetools = PheTools::new(&hpo);
+           let result = phetools.create_pyphetools_template(
                 disease_id,
                 disease_name,
                 hgnc_id,
                 gene_symbol,
                 transcript_id,
-                vec![],
-                &hpo
+                fresult
             );
             match result {
                 Ok(matrix) => { 

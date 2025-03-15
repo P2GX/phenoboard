@@ -14,6 +14,6 @@ import { MatButtonModule } from '@angular/material/button';
 export class NavbarComponent {
   helpItems = [
     { key: 'about', label: 'About' },
-    { key: 'newtemplate', label: 'New Pyphetools Template' },
+    { key: 'w', label: 'New Pyphetools Template' },
   ];
 }

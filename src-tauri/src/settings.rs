@@ -1,11 +1,13 @@
+//! Module to persist settings including the location of the hp.json file
+//! 
+
 use std::fs;
 use std::path::PathBuf;
 use std::io::{Read, Write};
 use dirs::home_dir;
-use ontolius::prelude::*;
-
+use ontolius::ontology::MetadataAware;
 use ontolius::io::OntologyLoaderBuilder;
-use ontolius::ontology::csr::MinimalCsrOntology;
+use ontolius::ontology::csr::{FullCsrOntology, MinimalCsrOntology};
 use tauri::State;
 use std::sync::Mutex;
 use rfd::FileDialog;
@@ -111,7 +113,7 @@ pub fn load_hpo_and_get_version(singleton: State<Mutex<HpoCuratorSingleton>>)-> 
                 .obographs_parser()
                 .build();
 
-            let hpo: MinimalCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
+            let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
             let version = hpo.version().to_string();
             singleton.set_hpo(hpo);
             return Ok(version);  
