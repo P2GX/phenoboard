@@ -62,3 +62,34 @@ To install
 npm install @angular/material
 ```
 
+## Set up file system access
+At the top level of the project, enter
+```bash
+npm install @tauri-apps/api
+```
+
+in the src-tauri folder, enter
+```bash
+cargo add tauri-plugin-fs
+```
+
+In the angular component, add 
+```javascript
+import { open } from '@tauri-apps/api/dialog';
+import { readTextFile } from '@tauri-apps/api/fs';
+
+```
+
+
+## Port issues
+If one gets the error message: ``Port 1420 is already in use``, then use the following command to obtain the process ID:
+```bash
+lsof -i :1420
+COMMAND   PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+node    32315 <user>   49u  IPv4 0xd9cc1bb0104a525f      0t0  TCP localhost:timbuktu-srv4 (LISTEN)
+```
+then end the process with
+```bash
+kill -9 <PID>
+```
+.

@@ -28,6 +28,7 @@ ontolius = "0.5.1"
 rphetools = { git = 'https://github.com/P2GX/rphetools.git', tag = '0.1.9' }
 dirs = "6.0"
 rfd = "0.15.3"
+tauri-plugin-fs = "2.2.0"
 
 
 

@@ -1,7 +1,7 @@
 <h3>HPO Loader</h3>
 <p color="primary">Choose the hp.json file to initialize the ontology.</p>
 <div class="file-loader">
-<input type="file" (change)="onFileSelected($event)" />
+<input type="file" (change)="onFileSelected()" />
   <div *ngIf="isLoading" class="loader">Loading...</div>
     <h3>File Content:</h3>
     <pre>{{ filePath }}</pre>

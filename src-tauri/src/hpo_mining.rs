@@ -1,7 +1,5 @@
 
 
-use rfenominal::fenominal::Fenominal;
-
 use tauri::State;
 use std::sync::Mutex;
 use crate::hpo_curator::HpoCuratorSingleton;

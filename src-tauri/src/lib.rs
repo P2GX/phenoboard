@@ -4,6 +4,7 @@ mod settings;
 
 use std::sync::Mutex;
 use hpo_curator::HpoCuratorSingleton;
+use tauri_plugin_fs::init;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -17,6 +18,7 @@ pub fn run() {
         .manage(Mutex::new(HpoCuratorSingleton::new()))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(init())
         .invoke_handler(tauri::generate_handler![greet,
                                                 hpo_mining::run_text_mining,
                                                 hpo_curator::initialize_hpo_and_get_version,
