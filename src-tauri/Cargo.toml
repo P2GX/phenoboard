@@ -23,7 +23,7 @@ tauri-plugin-opener = "2.2.6"
 tauri-plugin-dialog = "2"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-rfenominal = { git = 'https://github.com/P2GX/rfenominal.git', branch = "main" }
+rfenominal = { git = 'https://github.com/P2GX/rfenominal.git',  tag = '0.1.9' }
 ontolius = "0.5.2" 
 rphetools = { git = 'https://github.com/P2GX/rphetools.git', tag = '0.1.9' }
 dirs = "6.0"

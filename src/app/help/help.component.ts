@@ -26,12 +26,13 @@ export class HelpComponent {
     const helpTexts: { [key: string]: string } = {
       introduction: `
         <h3>Introduction</h3>
-        <p>Welcome to the application! This tool helps you perform text mining and analysis efficiently.</p>
+        <p>Welcome to the HPO Curator! This tool helps you perform text mining and analysis efficiently.</p>
         <p>Key features include:</p>
         <ul>
-          <li>High-speed text processing</li>
-          <li>Data visualization</li>
-          <li>Customizable settings</li>
+          <li>Creation of new phenopacket cohort templates</li>
+          <li>Named entity recognition (mining) of clinical texts</li>
+          <li>Editing templates</li>
+          <li>GA4GH Phenopacket Q/C and export</li>
         </ul>
       `,
       newtemplate: `
