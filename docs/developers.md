@@ -92,4 +92,24 @@ then end the process with
 ```bash
 kill -9 <PID>
 ```
+
+## Problems with tauri.conf.json
+
+Try to get the latest version
+```bash
+cargo install tauri-cli --locked
+npm install @tauri-apps/cli@latest
+``` 
+generate a new file
+```bash
+cargo tauri init
+``` 
+
+
+## file system (tauri v2)
+
+npm run tauri add fs
+
+npm run tauri add dialog
+
 .

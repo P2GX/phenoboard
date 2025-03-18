@@ -1,26 +1,32 @@
-.loader {
-    margin: 20px;
-    color: blue;
-    font-weight: bold;
-}
-
-mat-progress-bar {
-    margin: 20px;
-    width: 80%;
+.file-loader {
+    margin: 10px;
   }
-
-
-
- 
   
-.progress-container {
-    margin-top: 20px;
-}
-
-pre {
-    white-space: pre-wrap;
-    background-color: #f4f4f4;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 20px;
-}
+  .progress-bar {
+    width: 20%;
+    background-color: #f3f3f3;
+    border-radius: 8px;
+    margin: 10px 0;
+    height: 24px;
+    position: relative;
+  }
+  
+  .progress {
+    height: 100%;
+    background-color: #2196f3;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+    transition: width 0.3s ease;
+  }
+  
+  .success-message {
+    color: green;
+    margin: 10px 0;
+  }
+  
+  .error-message {
+    color: red;
+    margin: 10px 0;
+  }
+  
