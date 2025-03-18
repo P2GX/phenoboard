@@ -6,9 +6,8 @@
 
   
   <!-- Progress Bar -->
-  <div *ngIf="isLoading" class="progress-bar">
-    <div class="progress" [style.width.%]="progress"></div>
-    Loading... {{ progress }}%
+  <div *ngIf="isLoading" class="progress-overlay">
+    <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
   </div>
 
   <div *ngIf="successfullyLoaded" class="success-message">

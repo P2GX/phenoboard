@@ -53,7 +53,7 @@ impl HpoCuratorSingleton {
             Some(hp_json) => {
                 let hpo: FullCsrOntology =
                     loader.load_from_path(hp_json).expect("could not unwrap");
-                let version = hpo.version().to_string();
+                let version = "update after ontolius update".to_string();//hpo.version().to_string();
                 self.ontology = Some(hpo);
                 Ok(version)
             }

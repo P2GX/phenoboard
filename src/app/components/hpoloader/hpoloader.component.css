@@ -2,13 +2,21 @@
     margin: 10px;
   }
   
-  .progress-bar {
-    width: 20%;
-    background-color: #f3f3f3;
-    border-radius: 8px;
-    margin: 10px 0;
-    height: 24px;
-    position: relative;
+  .progress-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Make sure it overlays other content */
+  }
+  
+  mat-spinner {
+    color: #3f51b5; /* Primary color, change to suit your theme */
   }
   
   .progress {
