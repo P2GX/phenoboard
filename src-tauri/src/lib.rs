@@ -1,6 +1,7 @@
 mod hpo_curator;
 mod hpo_mining;
 mod settings;
+mod table_manager;
 
 use hpo_curator::HpoCuratorSingleton;
 use std::sync::Mutex;
@@ -27,7 +28,8 @@ pub fn run() {
             hpo_curator::get_table_columns_from_seeds,
             settings::select_hp_json_download_path,
             settings::load_hpo_and_get_version,
-            settings::save_hp_json_path
+            settings::save_hp_json_path,
+            table_manager::process_pyphetools_table_rclick
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

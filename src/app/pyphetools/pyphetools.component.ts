@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
+import { invoke } from '@tauri-apps/api/core';
 
 @Component({
   selector: 'app-hpoloader',
@@ -32,6 +33,10 @@ export class PyphetoolsComponent {
     console.log('Selected:', item);
     this.showContextMenu = false;
     // Implement your backend call or further processing here
+// Call the Rust function with the selected item as a parameter
+    invoke('process_pyphetools_table_rclick', { parameter: item })
+      .then(response => console.log('Response from Rust:', response))
+      .catch(err => console.error('Error calling Rust function:', err));
   }
 
   getMenuItems(column: string, element: any): string[] {
