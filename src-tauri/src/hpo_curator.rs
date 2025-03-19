@@ -90,19 +90,8 @@ impl HpoCuratorSingleton {
             Some(hpo) => {
                 let fenominal = Fenominal::from(hpo);
                 let fenom_hits: Vec<TermId> = fenominal.process(input_text);
-                println!("map_text_to_term_list - input {}", input_text);
-                println!("#######################################");
-                println!("### 1 ");
-                for h in &fenom_hits {
-                    println!("HIT -  {}", h.to_string());
-                }
-                println!("### 2 ");
-                print!("fenom hits {:?}", fenom_hits.len());
                 let phetools = PheTools::new(hpo);
-                println!("### 3 ");
                 let ordered_hpo_ids = phetools.arrange_terms(&fenom_hits);
-                println!("### 4 ");
-                print!("ordered hits {:?}", ordered_hpo_ids.len());
                 return ordered_hpo_ids;
             }
             None => {
