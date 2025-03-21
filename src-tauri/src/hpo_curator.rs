@@ -3,6 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
+use crate::ppt_table::PptEditTable;
 use crate::settings::HpoCuratorSettings;
 use ontolius::TermId;
 use ontolius::{
@@ -22,6 +23,7 @@ pub struct HpoCuratorSingleton {
     settings: HpoCuratorSettings,
     ontology: Option<FullCsrOntology>,
     hp_json_path: Option<String>,
+    edit_table: Option<PptEditTable>
 }
 
 impl HpoCuratorSingleton {
@@ -30,6 +32,7 @@ impl HpoCuratorSingleton {
             settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
             ontology: None,
             hp_json_path: None,
+            edit_table: None,
         }
     }
 
@@ -58,6 +61,10 @@ impl HpoCuratorSingleton {
 
     pub fn hp_json_path(&self) -> Option<&str> {
         self.hp_json_path.as_deref()
+    }
+
+    pub fn edit_table(&mut self) -> Option<&mut PptEditTable> {
+        self.edit_table.as_mut()
     }
 
     /// TODO figure out error handling
@@ -99,6 +106,29 @@ impl HpoCuratorSingleton {
             }
         }
     }
+
+    pub fn set_edit_table(&mut self, table: Vec<Vec<String>>) {
+        let result = PptEditTable::new(table);
+        match result {
+            Ok(table) =>  {self.edit_table = Some(table); },
+            Err(e) => { eprint!("Could not create PPT Edit table {:?}", e); }
+        } 
+    }
+
+    /// The GUI will allow the user to set the value of a specific cell.
+    pub fn set_table_cell<T>(&mut self, r: usize, c: usize, val: T) -> Result<(), String>
+        where T: Into<String> {
+        match self.edit_table.as_mut() {
+            Some(table) => {
+                table.set_value(r,c,val);
+                Ok(())
+            },
+            None => {
+                Err(format!("Attempt to set uninitialized table"))
+            }
+        } 
+    }
+
 }
 
 #[tauri::command]
@@ -127,7 +157,7 @@ pub fn get_table_columns_from_seeds(
     transcript_id: &str,
     input_text: &str,
 ) -> Result<String, String> {
-    let singleton = singleton.lock().unwrap();
+    let mut singleton = singleton.lock().unwrap();
     let fresult = singleton.map_text_to_term_list(input_text);
     print!("hpo_curator: We got {} term ids from seed", fresult.len());
     match &singleton.ontology {
@@ -144,6 +174,7 @@ pub fn get_table_columns_from_seeds(
             match result {
                 Ok(matrix) => {
                     let json_string = serde_json::to_string(&matrix).unwrap();
+                    singleton.set_edit_table(matrix);
                     return Ok(json_string);
                 }
                 Err(e) => {

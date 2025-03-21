@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { invoke } from '@tauri-apps/api/core';
+import { Router } from '@angular/router';
 
 
 
@@ -19,8 +20,9 @@ export class TableComponent {
   jsonData: string = '';
   showTable: boolean = false;
   errorMessage: string = '';
+  
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router) {
     this.dataForm = this.fb.group({
       diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
       diseaseName: ['', [Validators.required, this.noLeadingOrTrailingWhitespace]],
@@ -100,6 +102,16 @@ export class TableComponent {
 
   getObjectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
+  }
+
+  // This button is clicked when the user wants to edit the new table
+  async onEditButtonClick() {
+    try {
+      this.router.navigate(["/table"]);
+      console.log("navigating to table");
+    } catch (error) {
+      console.error('Error invoking onEditButtonClick:', error);
+    }
   }
 
 }

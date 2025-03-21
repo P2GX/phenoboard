@@ -46,8 +46,7 @@ onRightClick(event: MouseEvent, rowIndex: number, colIndex: number): void {
   this.showContextMenu = true;
   this.contextMenuRow = rowIndex;
   this.contextMenuCol = colIndex;
-  this.cdr.detectChanges();  // Force Angular to update the view
-  console.log("show ctm ",this.showContextMenu);
+  this.cdr.detectChanges();  // Force update of view
 }
 
 hideContextMenu(): void {
@@ -61,7 +60,10 @@ onMenuItemClick(item: string): void {
   this.showContextMenu = false;
   // Implement your backend call or further processing here
 // Call the Rust function with the selected item as a parameter
-  invoke('process_pyphetools_table_rclick', { parameter: item })
+  invoke('process_pyphetools_table_rclick', { 
+          parameter: item, 
+          row: this.contextMenuRow,
+          col: this.contextMenuCol })
     .then(response => console.log('Response from Rust:', response))
     .catch(err => console.error('Error calling Rust function:', err));
 }

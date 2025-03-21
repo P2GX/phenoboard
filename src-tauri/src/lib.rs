@@ -1,6 +1,7 @@
 mod hpo_curator;
 mod hpo_mining;
 mod settings;
+mod ppt_table;
 mod table_manager;
 
 use hpo_curator::HpoCuratorSingleton;
