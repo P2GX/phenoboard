@@ -1,4 +1,4 @@
-import { Routes, withRouterConfig } from "@angular/router";
+import { Routes, withComponentInputBinding, withHashLocation } from "@angular/router";
 import { provideRouter } from "@angular/router";
 import { HomeComponent } from "./home/home.component";
 import { TextminingComponent } from "./textmining/textmining.component";
@@ -16,7 +16,12 @@ export const routes: Routes = [
     { path: 'help/:topic', component: HelpComponent },
 ];
 
-// Provide router in `main.ts`
+/* Provide router in `main.ts`
 export const appConfig = [
     provideRouter(routes )
   ];
+
+ export const appConfig = [
+    provideRouter(routes, withComponentInputBinding(), withHashLocation())
+];
+*/

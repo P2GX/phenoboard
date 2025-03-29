@@ -26,7 +26,7 @@ export class HelpComponent {
     const helpTexts: { [key: string]: string } = {
       introduction: `
         <h3>Introduction</h3>
-        <p>Welcome to the HPO Curator! This tool helps you perform text mining and analysis efficiently.</p>
+        <p>Welcome to FTC2! This tool helps you perform text mining and analysis efficiently.</p>
         <p>Key features include:</p>
         <ul>
           <li>Creation of new phenopacket cohort templates</li>
@@ -41,7 +41,7 @@ export class HelpComponent {
         <p>For advanced configuration, visit the <strong>Settings</strong> page.</p>
       `,
       about: `
-        <h3>HPO Curator</h3>
+        <h3>Phenotype Template Cohort Curator (FTC2)</h3>
         <p>Create pyphetools templates for curating literature and creating GA4GH phenopackets.</p>
         <p>Start by creating or loading a pyphetools template. </p>
         <p>Version: 0.1.8</p>

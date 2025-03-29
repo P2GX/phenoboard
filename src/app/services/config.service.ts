@@ -20,6 +20,6 @@ export class ConfigService {
   }
 
   async loadOntologyAndGetVersion(path: string): Promise<string> {
-    return await invoke<string | string>("initialize_hpo_and_get_version", { hpJsonPath:  path });
+    return await invoke<string | string>("initialize_hpo_and_get_version", { hpoJsonPath:  path });
   }
 }

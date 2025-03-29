@@ -93,6 +93,13 @@ then end the process with
 kill -9 <PID>
 ```
 
+## Run in browser
+Can be useful with the DevTools panel
+```bash
+npm run start
+```
+
+
 ## Problems with tauri.conf.json
 
 Try to get the latest version

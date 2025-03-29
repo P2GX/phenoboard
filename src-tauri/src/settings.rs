@@ -33,7 +33,10 @@ impl HpoCuratorSettings {
         let config_file = get_config_file();
         let mut file = fs::File::create(config_file).expect("Failed to create config file");
         let settings_data = format!("hp_json_path: {}\n", self.hp_json_file);
-        file.write_all(settings_data.as_bytes());
+        let result = file.write_all(settings_data.as_bytes());
+        if result.is_err() {
+            print!("Could not save settings file"); // TODO
+        }
         Some("saved".to_string())
     }
 
