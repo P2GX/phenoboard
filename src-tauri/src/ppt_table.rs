@@ -23,7 +23,7 @@ pub struct PptEditTable {
 
 impl PptEditTable {
     pub fn new(table: Vec<Vec<String>>) -> Result<Self, String> {
-        let mut all_same_size;
+        let all_same_size;
         let ncols: usize;
         if let Some(first_row) = table.get(0) {
             ncols = first_row.len();
@@ -78,8 +78,7 @@ impl PptEditTable {
         }
     } 
 
-    pub fn set_current_operation<T>(&mut self, op: &str) -> Result<(), String> 
-        where T: Into<String>{
+    pub fn set_current_operation(&mut self, op: &str) -> Result<(), String> {
             match op {
                 "show_column"=> {
                     self.current_operation = PptOperation::ShowColumn;

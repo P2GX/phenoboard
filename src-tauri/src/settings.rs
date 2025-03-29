@@ -28,7 +28,7 @@ impl HpoCuratorSettings {
     }
 
     pub fn save_settings(&self) -> Option<String> {
-        let config_file = get_config_file();
+        let _config_file = get_config_file(); // TODO
         ensure_config_directory();
         let config_file = get_config_file();
         let mut file = fs::File::create(config_file).expect("Failed to create config file");

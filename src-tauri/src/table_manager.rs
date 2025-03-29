@@ -52,7 +52,8 @@ pub fn process_pyphetools_table_rclick(
         Some(table) => {
             table.set_current_column(col);
             table.set_current_row(row);
-            table.set_current_operation(value);
+            table.set_current_operation(&value);
+            Ok(())
         },
         None => { return Err(format!("Could not retrieve edit table")); }
     }
