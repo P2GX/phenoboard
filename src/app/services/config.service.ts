@@ -19,7 +19,19 @@ export class ConfigService {
     return await invoke<string | null>('select_hp_json_download_path');
   }
 
-  async loadOntologyAndGetVersion(path: string): Promise<string> {
-    return await invoke<string | string>("initialize_hpo_and_get_version", { hpoJsonPath:  path });
+  async loadHumanPhenotypeOntology(hpJsonPath: string): Promise<void> {
+    return await invoke("load_hpo_from_hp_json", { hpoJsonPath:  hpJsonPath });
+  }
+
+  async getHpoVersion(): Promise<string | string > {
+    return await invoke<string | string>("get_hpo_version");
+  }
+
+  async getHpJsonPath(): Promise<string | string> {
+    return await invoke<string | string>("get_hp_json_path");
+  }
+
+  async hpoInitialized(): Promise<boolean > {
+    return await invoke<boolean>("hpo_initialized");
   }
 }

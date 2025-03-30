@@ -44,27 +44,36 @@ impl HpoCuratorSingleton {
         self.hp_json_path = Some(hp_json.to_string());
     }
 
-    pub fn load_hpo_and_get_version(&mut self, hp_json: &str) -> Result<String, String> {
+    pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
         let loader = OntologyLoaderBuilder::new().obographs_parser().build();
         self.set_hp_hson(hp_json);
         match &self.hp_json_path {
             Some(hp_json) => {
                 let hpo: FullCsrOntology =
-                    loader.load_from_path(hp_json).expect("could not unwrap");
-                let version = "update after ontolius update".to_string();//hpo.version().to_string();
+                    loader.load_from_path(hp_json).expect("Ontolius HPO loader failed");
                 self.ontology = Some(hpo);
-                Ok(version)
+                Ok(())
             }
             None => Err("Could not load ontology".to_string()),
         }
     }
 
-    pub fn hp_json_path(&self) -> Option<&str> {
-        self.hp_json_path.as_deref()
+    pub fn hp_json_path(&self) -> Result<String, String> {
+        match &self.hp_json_path {
+            Some(hp_json) => Ok(hp_json.to_string()),
+            None => Err("hp.json not initialized".to_string())
+        }
     }
 
     pub fn edit_table(&mut self) -> Option<&mut PptEditTable> {
         self.edit_table.as_mut()
+    }
+
+    pub fn get_hpo_version(&self) -> Result<String, String> {
+        match &self.ontology {
+            Some(hpo) => Ok("hpo_curator (l. 72) needs update (ontolius)".to_string()),
+            None => Err("HPO not initialized".to_string())
+        }
     }
 
     /// TODO figure out error handling
@@ -129,18 +138,15 @@ impl HpoCuratorSingleton {
         } 
     }
 
+    pub fn hpo_initialized(&self) -> bool {
+        match &self.ontology {
+            Some(hpo) => true,
+            None => false     
+        }
+    }
+
 }
 
-#[tauri::command]
-pub fn initialize_hpo_and_get_version(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-    hpo_json_path: &str,
-) -> Result<String, String> {
-    let mut singleton = singleton.lock().unwrap();
-    let result: Result<String, String> = singleton.load_hpo_and_get_version(hpo_json_path);
-
-    result
-}
 
 /// When we initialize a new Table (Excel file) for curation, we start with
 /// a text that contains candidate HPO terms for curation.

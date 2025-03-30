@@ -1,40 +1,30 @@
-.file-loader {
-    margin: 10px;
-  }
-  
-  .progress-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000; /* Make sure it overlays other content */
-  }
-  
-  mat-spinner {
-    color: #3f51b5; /* Primary color, change to suit your theme */
-  }
-  
-  .progress {
-    height: 100%;
-    background-color: #2196f3;
-    border-radius: 8px;
-    text-align: center;
-    color: white;
-    transition: width 0.3s ease;
-  }
-  
-  .success-message {
-    color: green;
-    margin: 10px 0;
-  }
-  
-  .error-message {
-    color: red;
-    margin: 10px 0;
-  }
-  
+/* Container for centering the progress bar */
+.progress-container {
+  width: 95%;
+  max-width: 600px; /* Optional: Set a max width */
+  margin: 20px auto; /* Centers it horizontally */
+  padding: 4px;
+  background-color: #f0f0f0; /* Light gray background */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
+  text-align: center;
+}
+
+/* Progress bar styling */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #ddd; /* Light gray background */
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Inner progress bar */
+.progress-bar-fill {
+  height: 100%;
+  width: 0%; /* Will be dynamically updated */
+  background-color: #007bff; /* Blue progress bar */
+  border-radius: 2px;
+  transition: width 0.25s ease-in-out; /* Smooth transition */
+}

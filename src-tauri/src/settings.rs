@@ -4,7 +4,6 @@
 use dirs::home_dir;
 use ontolius::io::OntologyLoaderBuilder;
 use ontolius::ontology::csr::FullCsrOntology;
-use ontolius::ontology::MetadataAware;
 use rfd::FileDialog;
 use std::fs;
 use std::io::{Read, Write};
@@ -95,22 +94,20 @@ pub fn load_config() -> Option<String> {
 }
 
 #[tauri::command]
-pub fn load_hpo_and_get_version(
+pub fn load_hpo_from_hp_json(
     singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<String, String> {
+) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     let hpo_json = singleton.hp_json_path();
     match hpo_json {
-        None => {
-            return Err("HPO JSON file not loaded".to_string());
+        Err(e) => {
+            return Err("Could not find hp.json file".to_string());
         }
-        Some(hp_json) => {
+        Ok(hp_json) => {
             let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-
-            let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("could not unwrap");
-            let version = hpo.version().to_string();
+            let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("Ontolius: Could not load hp.json");
             singleton.set_hpo(hpo);
-            return Ok(version);
+            return Ok(());
         }
     }
 }
@@ -151,3 +148,29 @@ pub fn save_hp_json_path(hp_json_path: &str) {
     let hp_settings = HpoCuratorSettings::new(hp_json_path);
     hp_settings.save_settings();
 }
+
+#[tauri::command]
+pub fn get_hpo_version(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<String, String> {
+    let singleton = singleton.lock().unwrap();
+    singleton.get_hpo_version()
+}
+
+#[tauri::command]
+pub fn get_hp_json_path(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<String, String> {
+    let singleton = singleton.lock().unwrap();
+    singleton.hp_json_path()
+}
+
+
+#[tauri::command]
+pub fn hpo_initialized(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> bool {
+    let singleton = singleton.lock().unwrap();
+    singleton.hpo_initialized()
+}
+

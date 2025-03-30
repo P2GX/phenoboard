@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
+import { ConfigService } from '../services/config.service';
 
 @Component({
   selector: 'app-textmining',
@@ -16,7 +17,27 @@ export class TextminingComponent {
   predefinedOptions: string[] = ["observed", "excluded", "na"];
   selectedOptions: string[] = []; // Stores selected radio button values
   customOptions: string[] = []; // Stores manually entered custom options
+  hpoInitialized: boolean = false;
+  loadError: string | null = null;
 
+  constructor(private configService: ConfigService, private cd: ChangeDetectorRef) {}
+
+  async ngOnInit() {
+    console.log("ngOnInit");
+    this.checkHpoInitialized();
+  }
+
+  async checkHpoInitialized(): Promise<void> {
+    try {
+      this.hpoInitialized = await this.configService.hpoInitialized();
+    }  catch (err) {
+        console.error('Error hp.json path:', err);
+        this.hpoInitialized =false;
+        this.loadError = "Could not load hp.json path" 
+      } finally {
+        this.cd.detectChanges(); 
+      }
+  }
 
   async readClipboard(): Promise<void> {
     try {

@@ -2,12 +2,23 @@
 <p color="primary">Choose the hp.json file to initialize the ontology.</p>
 <div class="file-loader">
   <!-- <input type="file" (change)="onFileSelected($event)" /> -->
-  <button (click)="onFileSelected($event)">Open File</button>
+  <button (click)="onFileSelected($event)">Select hp.json</button>
 
   
-  <!-- Progress Bar -->
-  <div *ngIf="isLoading" class="progress-overlay">
-    <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
+  <!-- Progress Bar 
+  <div *ngIf="isLoading" class="progress-container">
+  
+    <div class="progress-bar">
+      <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
+      <p *ngIf="isLoading">Loading... {{ progress }}%</p>
+    </div>
+  </div>-->
+
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
+    </div>
+   
   </div>
 
   <div *ngIf="successfullyLoaded" class="success-message">

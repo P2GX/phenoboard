@@ -1,0 +1,10 @@
+.hpoloader-container {
+    width: 95%; /* 95% of the parent/container width */
+    /*max-width: 800px;  Optional: Set a max width to prevent it from being too wide on large screens */
+    margin: 0 auto; /* Centers the div horizontally */
+    border: 2px solid #888; /* Medium gray border */
+    border-radius: 10px; /* Rounded corners */
+    padding: 15px; /* Inner spacing */
+    background-color: #f8f8f8; /* Light gray background (optional) */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
+  }
