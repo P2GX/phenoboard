@@ -1,0 +1,33 @@
+<div class="hpo-loader-container">
+
+    <div class="file-loader">
+      <button (click)="onFileSelected($event)">
+        {{ successfullyLoaded ? 'Select new phetools template file' : 'Select phetools template file' }}
+      </button>
+  
+      <div *ngIf="isLoading" class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
+        </div>
+      </div>
+  
+      <div *ngIf="successfullyLoaded" class="success-message">
+        File loaded successfully!
+      </div>
+  
+      <div *ngIf="loadError" class="error-message">
+        Error loading file: {{ loadError }}
+      </div>
+  
+      <div class="file-info">
+        <div>
+          <h3>File Path:</h3>
+          <pre>{{ filePath }}</pre>
+        </div>
+        <div>
+          <h3>HPO Version:</h3>
+         
+        </div>
+      </div>
+    </div>
+  </div>

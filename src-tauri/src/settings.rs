@@ -167,10 +167,64 @@ pub fn get_hp_json_path(
 
 
 #[tauri::command]
+pub fn get_pt_template_path(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<String, String> {
+    let singleton = singleton.lock().unwrap();
+    singleton.pt_template_path()
+}
+
+
+
+/// TODO 
+#[tauri::command]
+pub fn pt_template_initialized(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> bool {
+    let singleton = singleton.lock().unwrap();
+    false
+}
+
+
+#[tauri::command]
 pub fn hpo_initialized(
     singleton: State<Mutex<HpoCuratorSingleton>>,
 ) -> bool {
     let singleton = singleton.lock().unwrap();
     singleton.hpo_initialized()
 }
+
+
+#[tauri::command]
+pub fn select_phetools_template_path(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<String, String> {
+    let mut singleton = singleton.lock().unwrap();
+    // synchronous (blocking) file chooser
+    let result = FileDialog::new()
+        .add_filter("Phetools template file", &["xlsx"])
+       // .set_directory("/")
+        .pick_file();
+    println!("select_phetools_template_path - files {:?}", result);
+    match result {
+        Some(file) => {
+            let pbresult = file.canonicalize();
+            match pbresult {
+                Ok(abspath) => {
+                    let pt_path = abspath.canonicalize().unwrap().display().to_string();
+                    singleton.set_pt_template_path(&pt_path);
+                    return Ok(pt_path);
+                }
+                Err(e) => {
+                    Err(format!("Could not get path: {:?}", e))
+                }
+            }
+        }
+        None => {
+            Err(format!("Could not get path from file dialog"))
+        }
+    }
+}
+
+
 

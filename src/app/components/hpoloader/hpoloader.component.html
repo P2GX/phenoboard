@@ -1,37 +1,33 @@
-<h3>HPO Loader</h3>
-<p color="primary">Choose the hp.json file to initialize the ontology.</p>
-<div class="file-loader">
-  <!-- <input type="file" (change)="onFileSelected($event)" /> -->
-  <button (click)="onFileSelected($event)">Select hp.json</button>
+<div class="hpo-loader-container">
 
-  
-  <!-- Progress Bar 
-  <div *ngIf="isLoading" class="progress-container">
-  
-    <div class="progress-bar">
-      <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
-      <p *ngIf="isLoading">Loading... {{ progress }}%</p>
+  <div class="file-loader">
+    <button (click)="onFileSelected($event)">
+      {{ successfullyLoaded ? 'Reload hp.json' : 'Select hp.json' }}
+    </button>
+
+    <div *ngIf="isLoading" class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
+      </div>
     </div>
-  </div>-->
 
-  <div class="progress-container">
-    <div class="progress-bar">
-      <div class="progress-bar-fill" [ngStyle]="{'width': progress + '%'}"></div>
+    <div *ngIf="successfullyLoaded" class="success-message">
+      File loaded successfully!
     </div>
-   
-  </div>
 
-  <div *ngIf="successfullyLoaded" class="success-message">
-    File loaded successfully!
+    <div *ngIf="loadError" class="error-message">
+      Error loading file: {{ loadError }}
+    </div>
+
+    <div class="file-info">
+      <div>
+        <h3>File Path:</h3>
+        <pre>{{ filePath }}</pre>
+      </div>
+      <div>
+        <h3>HPO Version:</h3>
+        <pre>{{ hpoVersion }}</pre>
+      </div>
+    </div>
   </div>
-  
-  <div *ngIf="loadError" class="error-message">
-    Error loading file: {{ loadError }}
-  </div>
-  
-  <h3>File Content:</h3>
-  <pre>{{ filePath }}</pre>
-  
-  <h3>HPO Version:</h3>
-  <pre>{{ hpoVersion }}</pre>
 </div>

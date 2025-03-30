@@ -1,30 +1,69 @@
-/* Container for centering the progress bar */
-.progress-container {
-  width: 95%;
-  max-width: 600px; /* Optional: Set a max width */
-  margin: 20px auto; /* Centers it horizontally */
-  padding: 4px;
-  background-color: #f0f0f0; /* Light gray background */
-  border-radius: 10px; /* Rounded corners */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
-  text-align: center;
+.hpo-loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f4f4f4;
+  height: 80px; /* Adjust as needed */
+  width: 98%;
 }
 
-/* Progress bar styling */
+h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.instruction {
+  color: #333;
+  margin: 0 20px;
+}
+
+.file-loader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+button {
+  padding: 5px 10px;
+  font-size: 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.progress-container {
+  width: 100px;
+  height: 10px;
+  background: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
 .progress-bar {
   width: 100%;
-  height: 10px;
-  background-color: #ddd; /* Light gray background */
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
+  height: 100%;
 }
 
-/* Inner progress bar */
 .progress-bar-fill {
   height: 100%;
-  width: 0%; /* Will be dynamically updated */
-  background-color: #007bff; /* Blue progress bar */
-  border-radius: 2px;
-  transition: width 0.25s ease-in-out; /* Smooth transition */
+  background: #4caf50;
+  transition: width 0.3s ease-in-out;
+}
+
+.success-message {
+  color: green;
+  font-weight: bold;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+.file-info {
+  display: flex;
+  gap: 20px;
 }

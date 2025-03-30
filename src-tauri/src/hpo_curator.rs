@@ -23,6 +23,7 @@ pub struct HpoCuratorSingleton {
     settings: HpoCuratorSettings,
     ontology: Option<FullCsrOntology>,
     hp_json_path: Option<String>,
+    pt_template_path: Option<String>,
     edit_table: Option<PptEditTable>
 }
 
@@ -32,6 +33,7 @@ impl HpoCuratorSingleton {
             settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
             ontology: None,
             hp_json_path: None,
+            pt_template_path: None,
             edit_table: None,
         }
     }
@@ -42,6 +44,11 @@ impl HpoCuratorSingleton {
 
     pub fn set_hp_hson(&mut self, hp_json: &str) {
         self.hp_json_path = Some(hp_json.to_string());
+    }
+
+    /// Set the path to the phenotools template we will input or create
+    pub fn set_pt_template_path(&mut self, template_path: &str) {
+        self.pt_template_path = Some(template_path.to_string());
     }
 
     pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
@@ -62,6 +69,13 @@ impl HpoCuratorSingleton {
         match &self.hp_json_path {
             Some(hp_json) => Ok(hp_json.to_string()),
             None => Err("hp.json not initialized".to_string())
+        }
+    }
+
+    pub fn pt_template_path(&self) -> Result<String, String> {
+        match &self.pt_template_path {
+            Some(pt_template) => Ok(pt_template.to_string()),
+            None => Err("phenotype template path not initialized".to_string())
         }
     }
 

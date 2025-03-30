@@ -31,6 +31,10 @@ export class ConfigService {
     return await invoke<string | string>("get_hp_json_path");
   }
 
+  async selectPhetoolsTemplatePath(): Promise<string|string> {
+    return await invoke<string|string>("select_phetools_template_path");
+  }
+
   async hpoInitialized(): Promise<boolean > {
     return await invoke<boolean>("hpo_initialized");
   }

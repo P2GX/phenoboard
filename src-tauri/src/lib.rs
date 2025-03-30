@@ -32,6 +32,8 @@ pub fn run() {
             settings::get_hp_json_path,
             settings::get_hpo_version,
             settings::hpo_initialized,
+            settings::select_phetools_template_path,
+            settings::get_pt_template_path,
             table_manager::process_pyphetools_table_rclick
         ])
         .run(tauri::generate_context!())
