@@ -8,8 +8,11 @@
   </div>
   
   
-  <div *ngIf="successfullyLoaded" class="success-message">
-    Loaded {{ filePath }}
+  <div *ngIf="templateLoaded" class="success-message">
+    Loaded {{ templateFilePath }}
+  </div>
+  <div *ngIf="newFileCreated" class="success-message">
+    Created file at {{ newFilePath }}
   </div>
   
   <div *ngIf="loadError" class="error-message">

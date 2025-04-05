@@ -5,7 +5,6 @@ import { interval, Subscription } from 'rxjs';
 import { open, save } from '@tauri-apps/plugin-dialog';
 
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { invoke } from '@tauri-apps/api/core';
 
 @Component({
   selector: 'app-phetoolsloader',
@@ -19,6 +18,8 @@ export class PhetoolsloaderComponent {
   successfullyLoaded: boolean = false;
   filePath: string = "";
   templateFilePath: string = "";
+  newFilePath: string = "";
+  newFileCreated: boolean = false;
   templateLoaded: boolean = false;
   hpoInitialized: boolean = false;
   phetoolsCohortTemplatePath: string = "";
@@ -62,7 +63,7 @@ export class PhetoolsloaderComponent {
       this.cd.detectChanges(); 
     }
   }
-*/
+
   async onFileSelected(event: Event) {
     if (this.isLoading) {
       console.log("File currently being loaded.");
@@ -115,7 +116,7 @@ export class PhetoolsloaderComponent {
 
   ngOnDestroy() {
     this.progressSub?.unsubscribe();
-  }
+  }*/
 
   async chooseExistingTemplateFile() {
     const path = await this.configService.selectPhetoolsTemplatePath();
@@ -152,9 +153,19 @@ export class PhetoolsloaderComponent {
       console.log("Template save canceled");
       return;
     }
+    try {
   
-    console.log("Saving file at:", path);
-    await this.configService.loadExistingPhetoolsTemplate(path);
+      console.log("Saving file at:", path);
+      await this.configService.loadExistingPhetoolsTemplate(path);
+      this.newFilePath = path;
+      this.newFileCreated = true;
+    } catch(error) {
+      this.newFilePath = "";
+      this.newFileCreated = false;
+      console.error("Could not create new file: ", error);
+    } finally {
+      this.isLoading = false;
+    }
     //await invoke("create_new_file", { path });  // Send path to Rust
   }
 
