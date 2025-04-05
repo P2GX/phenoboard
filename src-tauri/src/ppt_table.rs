@@ -1,6 +1,17 @@
 //! A table to edit the PyPheTools matrix
 //! 
+//! We rely on the PheTools struct from the rphetools library to hold the current
+//! validated template data. There are several operations that we perform on the template.
+//! 
+//! - add new empty row for editing. This requires the **PMID**, **title**, and **individual id**
+//! - add an entry at cell (i,j). This operation returns a Result<Vec<String,String>,String>
+//! - edit an entry at cell (i,j). This operation returns a Result<(),String>
+//! - delete a row
+//! 
+//! Note that each row has the same Disease/Gene/Transcript and so when we add a new row, this information
+//! is added automatically.
 
+use rphetools::PheTools;
 
 enum PptOperation {
     ShowColumn,
@@ -12,16 +23,17 @@ enum PptOperation {
 /// 
 /// The table is a matrix of string entries that may be in an intermediate state
 /// We will use rphetools to validate the table prior to saving to disk or exporting GA4GH Phenopackets.
-pub struct PptEditTable {
+pub struct PptEditTable<'a> {
     matrix: Vec<Vec<String>>,
     current_row: Option<usize>, 
     current_column: Option<usize>, 
     current_operation: PptOperation,
     ncols: usize,
     unsaved: bool,
+    phetools: Option<PheTools<'a>>
 }
 
-impl PptEditTable {
+impl<'a> PptEditTable<'a> {
     pub fn new(table: Vec<Vec<String>>) -> Result<Self, String> {
         let all_same_size;
         let ncols: usize;
@@ -40,7 +52,8 @@ impl PptEditTable {
             current_column: None, 
             current_operation: PptOperation::EntireTable,
             ncols: ncols,
-            unsaved: false 
+            unsaved: false,
+            phetools: None,
         })
     }
 
@@ -50,6 +63,38 @@ impl PptEditTable {
             None => None
         }
     }
+
+    pub fn new_row(&mut self, 
+                    pmid: impl Into<String>, 
+                    title: impl Into<String>, 
+                    individual_id: impl Into<String>) -> Result<(), String> {
+        match &self.phetools {
+            Some(ptools) => {
+               /* match ptools.new_row(pmid, title, individual_id) {
+                    Ok(()) => Ok(()),
+                    Err(e) => Err(e.to_string())
+                } */
+               Ok(())
+            },
+            None => {Err(format!("Attempt to add new row, but phetools not initialized"))}
+        }
+    }
+
+    pub fn new_row_with_pt(&mut self, 
+        pmid: impl Into<String>, 
+        title: impl Into<String>, 
+        individual_id: impl Into<String>) -> Result<(), String> {
+        match &self.phetools {
+        Some(ptools) => {
+        /* match ptools.new_row(pmid, title, individual_id) {
+                Ok(()) => Ok(()),
+                Err(e) => Err(e.to_string())
+            } */
+        Ok(())
+        },
+        None => {Err(format!("Attempt to add new row, but phetools not initialized"))}
+        }
+}
 
     pub fn get_column(&self, col: usize) -> Result<Vec<String>, String> {
         if col >= self.ncols {
@@ -78,6 +123,14 @@ impl PptEditTable {
         }
     } 
 
+    pub fn set_current_column(&mut self, col: usize) {
+        if col >= self.ncols {
+            self.current_column = None
+        } else {
+            self.current_column = Some(col)
+        }
+    } 
+
     pub fn set_current_operation(&mut self, op: &str) -> Result<(), String> {
             match op {
                 "show_column"=> {
@@ -96,14 +149,6 @@ impl PptEditTable {
             }
             Ok(())
     }
-
-    pub fn set_current_column(&mut self, col: usize) {
-        if col >= self.ncols {
-            self.current_column = None
-        } else {
-            self.current_column = Some(col)
-        }
-    } 
 
     pub fn set_value<T>(&mut self, r: usize, c: usize, value: T) -> Result<(), String>
     where T: Into<String>
@@ -124,7 +169,7 @@ impl PptEditTable {
 mod tests {
     use super::*;
 
-    fn get_test_matrix() -> PptEditTable {
+    fn get_test_matrix<'a>() -> PptEditTable<'a> {
         let mut matrix: Vec<Vec<String>> = Vec::new();
         matrix.push(get_vec(1,2,3));
         matrix.push(get_vec(4,5,6));

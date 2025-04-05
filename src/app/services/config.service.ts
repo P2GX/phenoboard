@@ -7,14 +7,6 @@ import { invoke } from "@tauri-apps/api/core";
 export class ConfigService {
   constructor() {}
 
-  /*async getSavedDownloadPath(): Promise<string | null> {
-    return await invoke<string | null>('get_saved_download_path');
-  }*/
-
-  async saveHpJsonPath(path: string): Promise<void> {
-    await invoke('save_hp_json_path', { hpJsonPath:  path });
-  }
-
   async selectHpJsonFile(): Promise<string | null> {
     return await invoke<string | null>('select_hp_json_download_path');
   }
@@ -33,6 +25,10 @@ export class ConfigService {
 
   async selectPhetoolsTemplatePath(): Promise<string|string> {
     return await invoke<string|string>("select_phetools_template_path");
+  }
+
+  async loadPhetoolsTemplate(ptTemplatePath: string): Promise<void> {
+    //return await invoke();
   }
 
   async hpoInitialized(): Promise<boolean > {

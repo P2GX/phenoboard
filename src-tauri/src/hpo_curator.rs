@@ -19,15 +19,15 @@ use std::sync::Mutex;
 use tauri::State;
 
 /// A singleton
-pub struct HpoCuratorSingleton {
+pub struct HpoCuratorSingleton<'a> {
     settings: HpoCuratorSettings,
     ontology: Option<FullCsrOntology>,
     hp_json_path: Option<String>,
     pt_template_path: Option<String>,
-    edit_table: Option<PptEditTable>
+    edit_table: Option<PptEditTable<'a>>
 }
 
-impl HpoCuratorSingleton {
+impl<'a> HpoCuratorSingleton<'a> {
     pub fn new() -> Self {
         HpoCuratorSingleton {
             settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
@@ -79,7 +79,7 @@ impl HpoCuratorSingleton {
         }
     }
 
-    pub fn edit_table(&mut self) -> Option<&mut PptEditTable> {
+    pub fn edit_table(&mut self) -> Option<&mut PptEditTable<'a>> {
         self.edit_table.as_mut()
     }
 
@@ -177,12 +177,12 @@ pub fn get_table_columns_from_seeds(
     transcript_id: &str,
     input_text: &str,
 ) -> Result<String, String> {
-    let mut singleton = singleton.lock().unwrap();
+    let singleton = singleton.lock().unwrap();
     let fresult = singleton.map_text_to_term_list(input_text);
     print!("hpo_curator: We got {} term ids from seed", fresult.len());
     match &singleton.ontology {
         Some(hpo) => {
-            let phetools = PheTools::new(&hpo);
+            let mut phetools = PheTools::new(&hpo);
             let result = phetools.create_pyphetools_template(
                 disease_id,
                 disease_name,
@@ -194,7 +194,8 @@ pub fn get_table_columns_from_seeds(
             match result {
                 Ok(matrix) => {
                     let json_string = serde_json::to_string(&matrix).unwrap();
-                    singleton.set_edit_table(matrix);
+                    //singleton.set_edit_table(matrix);
+                    println!("TODO UPDATE");
                     return Ok(json_string);
                 }
                 Err(e) => {
@@ -206,4 +207,22 @@ pub fn get_table_columns_from_seeds(
             return Err(format!("Could not retrieve ontology"));
         }
     }
+}
+
+/// When we initialize a new Table (Excel file) for curation, we start with
+/// a text that contains candidate HPO terms for curation.
+/// This function performs text mining on that text and creates
+/// a Matrix of Strings with which we initialize the table in the GUI
+/// TODO: better documentation
+#[tauri::command]
+pub fn get_pt_table(singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<String, String> {
+    let mut singleton = singleton.lock().unwrap();
+    /*match singleton.edit_table {
+        Some(table) => {
+            singleton.
+        },
+        None => {Err("Phenotype template path not initialized!")}
+    }*/
+    Err("ups".to_string())
 }

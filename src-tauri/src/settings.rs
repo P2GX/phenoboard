@@ -105,8 +105,9 @@ pub fn load_hpo_from_hp_json(
         }
         Ok(hp_json) => {
             let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-            let hpo: FullCsrOntology = loader.load_from_path(hp_json).expect("Ontolius: Could not load hp.json");
+            let hpo: FullCsrOntology = loader.load_from_path(&hp_json).expect("Ontolius: Could not load hp.json");
             singleton.set_hpo(hpo);
+            singleton.set_hp_hson(&hp_json);
             return Ok(());
         }
     }
@@ -129,7 +130,6 @@ pub fn select_hp_json_download_path(
             match pbresult {
                 Ok(abspath) => {
                     let hpj_path = abspath.canonicalize().unwrap().display().to_string();
-                    save_hp_json_path(&hpj_path);
                     singleton.set_hp_hson(&hpj_path);
                     return Some(hpj_path);
                 }
@@ -143,11 +143,6 @@ pub fn select_hp_json_download_path(
     Some("None".to_string())
 }
 
-#[tauri::command]
-pub fn save_hp_json_path(hp_json_path: &str) {
-    let hp_settings = HpoCuratorSettings::new(hp_json_path);
-    hp_settings.save_settings();
-}
 
 #[tauri::command]
 pub fn get_hpo_version(

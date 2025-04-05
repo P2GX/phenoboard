@@ -67,3 +67,16 @@ button {
   display: flex;
   gap: 20px;
 }
+
+
+.spinner {
+  animation: spin 1s linear infinite;
+  height: 40px;
+  width: 40px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

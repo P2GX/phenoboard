@@ -58,6 +58,30 @@ export class HpoloaderComponent {
     }
   }
 
+  async chooseHpJsonFile() {
+    const path = await this.configService.selectHpJsonFile();
+    
+    if (path) {
+      try {
+        this.isLoading = true;
+        console.log("Loading HPO ");
+        this.cd.detectChanges()
+        // Give GUI time to paint before continuing
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await this.configService.loadHumanPhenotypeOntology(path);
+        console.log("version ", this.hpoVersion);
+        this.hpJsonPath = path;
+      } catch (error) {
+        console.error("Error loading HPO JSON:", error);
+      } finally {
+        this.isLoading = false;
+        this.loadHpoVersion();
+      }
+    }
+  }
+
+
+  /*
   async onFileSelected(event: Event) {
     if (this.isLoading) {
       console.log("File currently being loaded.");
@@ -111,4 +135,5 @@ export class HpoloaderComponent {
   ngOnDestroy() {
     this.progressSub?.unsubscribe();
   }
+    */
 }

@@ -26,11 +26,12 @@ export class PhetoolsloaderComponent {
 
 
   ngOnInit(): void {
-    this.checkHpoInitialized();
+   this.checkHpoInitialized();
    }
+   
 
   async checkHpoInitialized(): Promise<void> {
-    console.log("LOADING HPO VERSION")
+    console.log("LOADING phetools template")
     try {
       this.hpoInitialized = await this.configService.hpoInitialized();
       console.log("phetoolsloader: hpo initialized", this.hpoInitialized);
@@ -43,6 +44,7 @@ export class PhetoolsloaderComponent {
     }
   }
 
+  /*
   async loadPheToolsCohortPath(): Promise<void> {
     console.log("Loading phetools template file")
     try {
@@ -56,7 +58,7 @@ export class PhetoolsloaderComponent {
       this.cd.detectChanges(); 
     }
   }
-
+*/
   async onFileSelected(event: Event) {
     if (this.isLoading) {
       console.log("File currently being loaded.");
@@ -69,7 +71,7 @@ export class PhetoolsloaderComponent {
 
     try {
       // Open file dialog
-      const result = open({ multiple: false, directory: false });
+      const result = await open({ multiple: false, directory: false });
       if (!result) {
         this.isLoading = false;
         return;
@@ -91,7 +93,7 @@ export class PhetoolsloaderComponent {
       this.isLoading = false;
       this.progressSub?.unsubscribe(); // Stop progress update
     
-      this.loadPheToolsCohortPath();
+      //this.loadPheToolsCohortPath();
     }
   }
 

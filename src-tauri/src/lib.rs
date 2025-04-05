@@ -28,7 +28,6 @@ pub fn run() {
             hpo_curator::get_table_columns_from_seeds,
             settings::select_hp_json_download_path,
             settings::load_hpo_from_hp_json,
-            settings::save_hp_json_path,
             settings::get_hp_json_path,
             settings::get_hpo_version,
             settings::hpo_initialized,
