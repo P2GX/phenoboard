@@ -2,8 +2,10 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../../services/config.service';
 import { interval, Subscription } from 'rxjs';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
+
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { invoke } from '@tauri-apps/api/core';
 
 @Component({
   selector: 'app-phetoolsloader',
@@ -16,6 +18,8 @@ export class PhetoolsloaderComponent {
   isLoading: boolean = false;
   successfullyLoaded: boolean = false;
   filePath: string = "";
+  templateFilePath: string = "";
+  templateLoaded: boolean = false;
   hpoInitialized: boolean = false;
   phetoolsCohortTemplatePath: string = "";
   loadError: string | null = null;
@@ -112,4 +116,46 @@ export class PhetoolsloaderComponent {
   ngOnDestroy() {
     this.progressSub?.unsubscribe();
   }
+
+  async chooseExistingTemplateFile() {
+    const path = await this.configService.selectPhetoolsTemplatePath();
+    if (path) {
+      console.log("Selected template file: ", path);
+      try {
+        this.isLoading = true;
+        console.log("Loading phetools template ");
+        this.cd.detectChanges();
+        await this.configService.loadExistingPhetoolsTemplate(path);
+        this.templateFilePath = path;
+        this.templateLoaded = true;
+      } catch(error) {
+        console.error("Error loading phetools template:", error);
+        this.templateLoaded = false;
+        this.templateFilePath = "";
+      } finally {
+        this.isLoading = false;
+      }
+    }
+  }
+
+  async chooseNewPhetoolsFile() {
+    const path = await save({
+      title: "Save new PheTools template file",
+      defaultPath: "phetools-individuals.xlsx",
+      filters: [
+        { name: "Excel Files", extensions: ["xlsx"] },
+        { name: "All Files", extensions: ["*"] }
+      ]
+    });
+  
+    if (!path) {
+      console.log("Template save canceled");
+      return;
+    }
+  
+    console.log("Saving file at:", path);
+    await this.configService.loadExistingPhetoolsTemplate(path);
+    //await invoke("create_new_file", { path });  // Send path to Rust
+  }
+
 }

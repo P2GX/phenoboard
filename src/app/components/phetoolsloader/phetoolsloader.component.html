@@ -1,10 +1,10 @@
 <div class="phetools-loader-container">
 
   <div class="button-stack">
-      <button (click)="onFileSelected($event)">
+      <button (click)="chooseExistingTemplateFile()">
         {{ successfullyLoaded ? 'Select phetools template file' : 'Select phetools template file' }}
       </button>
-      <button (click)="onFileSelected($event)">Create new template</button>
+      <button (click)="chooseNewPhetoolsFile()">Create new template</button>
   </div>
   
   

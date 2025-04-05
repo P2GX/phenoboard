@@ -27,7 +27,7 @@ export class ConfigService {
     return await invoke<string|string>("select_phetools_template_path");
   }
 
-  async loadPhetoolsTemplate(ptTemplatePath: string): Promise<void> {
+  async loadExistingPhetoolsTemplate(ptTemplatePath: string): Promise<void> {
     //return await invoke();
   }
 
