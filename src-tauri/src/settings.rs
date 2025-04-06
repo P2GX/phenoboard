@@ -8,7 +8,7 @@ use rfd::FileDialog;
 use std::fs;
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{State, AppHandle, Emitter};
 
 use crate::hpo_curator::HpoCuratorSingleton;
@@ -106,7 +106,8 @@ pub fn load_hpo_from_hp_json(
         Ok(hp_json) => {
             let loader = OntologyLoaderBuilder::new().obographs_parser().build();
             let hpo: FullCsrOntology = loader.load_from_path(&hp_json).expect("Ontolius: Could not load hp.json");
-            singleton.set_hpo(hpo);
+            let hpo_arc = Arc::new(hpo);
+            singleton.set_hpo(hpo_arc);
             singleton.set_hp_hson(&hp_json);
             return Ok(());
         }
