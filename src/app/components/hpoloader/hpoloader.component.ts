@@ -40,6 +40,7 @@ export class HpoloaderComponent {
       this.hpoVersion = err instanceof Error ? err.message : 'Unknown error'; 
       this.loadError = "Could not load HPO version" 
     } finally {
+      await this.configService.checkReadiness();
       this.cd.detectChanges(); 
     }
   }
@@ -54,6 +55,7 @@ export class HpoloaderComponent {
       this.hpJsonPath = err instanceof Error ? err.message : 'Unknown error'; 
       this.loadError = "Could not load hp.json path" 
     } finally {
+      await this.configService.checkReadiness();
       this.cd.detectChanges(); 
     }
   }
@@ -76,6 +78,7 @@ export class HpoloaderComponent {
       } finally {
         this.isLoading = false;
         this.loadHpoVersion();
+        await this.configService.checkReadiness();
       }
     }
   }

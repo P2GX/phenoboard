@@ -118,6 +118,7 @@ export class PhetoolsloaderComponent {
     this.progressSub?.unsubscribe();
   }*/
 
+  // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
     const path = await this.configService.selectPhetoolsTemplatePath();
     if (path) {
@@ -135,6 +136,7 @@ export class PhetoolsloaderComponent {
         this.templateFilePath = "";
       } finally {
         this.isLoading = false;
+        this.configService.checkReadiness();
       }
     }
   }
@@ -165,6 +167,7 @@ export class PhetoolsloaderComponent {
       console.error("Could not create new file: ", error);
     } finally {
       this.isLoading = false;
+      await this.configService.checkReadiness();
     }
     //await invoke("create_new_file", { path });  // Send path to Rust
   }

@@ -9,7 +9,7 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{State, AppHandle, Emitter};
 
 use crate::hpo_curator::HpoCuratorSingleton;
 
@@ -171,13 +171,19 @@ pub fn get_pt_template_path(
 
 
 
-/// TODO 
+
+
 #[tauri::command]
-pub fn pt_template_initialized(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> bool {
+pub fn check_if_phetools_is_ready(app: AppHandle, singleton: State<Mutex<HpoCuratorSingleton>>) -> bool {
     let singleton = singleton.lock().unwrap();
-    false
+    let tool_ready = singleton.check_readiness();
+    if tool_ready {
+       let _ = app.emit("ready", true);
+    } else {
+        let _ =  app.emit("ready", false);
+    }
+    
+    tool_ready
 }
 
 
@@ -200,14 +206,13 @@ pub fn select_phetools_template_path(
         .add_filter("Phetools template file", &["xlsx"])
        // .set_directory("/")
         .pick_file();
-    println!("select_phetools_template_path - files {:?}", result);
     match result {
         Some(file) => {
             let pbresult = file.canonicalize();
             match pbresult {
                 Ok(abspath) => {
                     let pt_path = abspath.canonicalize().unwrap().display().to_string();
-                    singleton.set_pt_template_path(&pt_path);
+                    singleton.set_pt_template_path(&pt_path)?;
                     return Ok(pt_path);
                 }
                 Err(e) => {

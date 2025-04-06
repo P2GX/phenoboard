@@ -30,15 +30,18 @@ pub fn edit_pyphetools_table_cell(
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
-    match singleton.edit_table() {
+    singleton.set_table_cell(row, col, value);
+    /*match singleton.edit_table() {
         Some(table) => {
             table.set_value(row, col, value)
         },
         None => { return Err(format!("Could not retrieve edit table")); }
-    }
+    }*/
+    Ok(())
 }
 
-
+/// TODO What about values we do not want to process? Should these be errors or do we need a switch
+/// for values such as "do something else"
 #[tauri::command]
 pub fn process_pyphetools_table_rclick(
     singleton: State<Mutex<HpoCuratorSingleton>>,
@@ -48,13 +51,6 @@ pub fn process_pyphetools_table_rclick(
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
-    match singleton.edit_table() {
-        Some(table) => {
-            table.set_current_column(col);
-            table.set_current_row(row);
-            table.set_current_operation(&value);
-            Ok(())
-        },
-        None => { return Err(format!("Could not retrieve edit table")); }
-    }
+    let result = singleton.set_table_cell(row, col, value);
+    Ok(())
 }

@@ -26,6 +26,7 @@ pub fn run() {
             greet,
             hpo_mining::run_text_mining,
             hpo_curator::get_table_columns_from_seeds,
+            hpo_curator::get_phetools_table,
             settings::select_hp_json_download_path,
             settings::load_hpo_from_hp_json,
             settings::get_hp_json_path,
@@ -33,6 +34,7 @@ pub fn run() {
             settings::hpo_initialized,
             settings::select_phetools_template_path,
             settings::get_pt_template_path,
+            settings::check_if_phetools_is_ready,
             table_manager::process_pyphetools_table_rclick
         ])
         .run(tauri::generate_context!())

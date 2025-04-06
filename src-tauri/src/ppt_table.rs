@@ -11,6 +11,7 @@
 //! Note that each row has the same Disease/Gene/Transcript and so when we add a new row, this information
 //! is added automatically.
 
+use ontolius::ontology::csr::FullCsrOntology;
 use rphetools::PheTools;
 
 enum PptOperation {
@@ -24,17 +25,18 @@ enum PptOperation {
 /// The table is a matrix of string entries that may be in an intermediate state
 /// We will use rphetools to validate the table prior to saving to disk or exporting GA4GH Phenopackets.
 pub struct PptEditTable<'a> {
-    matrix: Vec<Vec<String>>,
     current_row: Option<usize>, 
     current_column: Option<usize>, 
     current_operation: PptOperation,
     ncols: usize,
     unsaved: bool,
-    phetools: Option<PheTools<'a>>
+    phetools: PheTools<'a>
 }
 
-impl<'a> PptEditTable<'a> {
-    pub fn new(table: Vec<Vec<String>>) -> Result<Self, String> {
+impl<'a> PptEditTable<'a>{
+    pub fn new(
+        table: Vec<Vec<String>>,
+        hpo: &'a FullCsrOntology) -> Result<Self, String> {
         let all_same_size;
         let ncols: usize;
         if let Some(first_row) = table.get(0) {
@@ -46,64 +48,74 @@ impl<'a> PptEditTable<'a> {
         if ! all_same_size {
             return Err(format!("Attempt to create Ppt edit table with rows of different size"));
         }
+        let phetools = PheTools::new(&hpo);
         Ok(PptEditTable { 
-            matrix: table, 
             current_row: None, 
             current_column: None, 
             current_operation: PptOperation::EntireTable,
             ncols: ncols,
             unsaved: false,
-            phetools: None,
+            phetools: phetools
         })
     }
 
-    pub fn get_row(&self, row: usize) -> Option<Vec<String>> {
-        match self.matrix.get(row) {
-            Some(row) => Some(row.clone()),
-            None => None
+    /// Load an edit table object from a pre-existing Excel template file
+    /// todo - better error handling
+    pub fn from_path(
+        pt_template_path: String,
+        hpo: &'a FullCsrOntology
+    ) -> Result<PptEditTable<'a>, String> {
+        let mut phetools = PheTools::new(&hpo);
+        match phetools.load_excel_template(&pt_template_path) {
+            Ok(_) => {
+                let ncols = phetools.ncols();
+                return Ok(PptEditTable { 
+                    current_row: None, 
+                    current_column: None, 
+                    current_operation: PptOperation::EntireTable, 
+                    ncols: ncols, 
+                    unsaved: false, 
+                    phetools: phetools,
+                     });
+            }
+            Err(e) => Err(format!("Could not load template: {:#?}", e))
         }
+        
+    }
+
+    pub fn get_row(&self, row: usize) -> Result<Vec<String>, String> {
+        let row = self.phetools.get_string_row(row)?;
+        Ok(row)
     }
 
     pub fn new_row(&mut self, 
                     pmid: impl Into<String>, 
                     title: impl Into<String>, 
                     individual_id: impl Into<String>) -> Result<(), String> {
-        match &self.phetools {
-            Some(ptools) => {
-               /* match ptools.new_row(pmid, title, individual_id) {
-                    Ok(()) => Ok(()),
-                    Err(e) => Err(e.to_string())
-                } */
-               Ok(())
-            },
-            None => {Err(format!("Attempt to add new row, but phetools not initialized"))}
-        }
+       self.phetools.add_row(pmid, title, individual_id)?;
+       Ok(())
+    }
+
+    /// return a cloned copy of the entire table.
+    pub fn get_matrix(&self) -> Vec<Vec<String>> {
+        //self.phetools.get_matrix(); TODO
+        vec![]
     }
 
     pub fn new_row_with_pt(&mut self, 
         pmid: impl Into<String>, 
         title: impl Into<String>, 
-        individual_id: impl Into<String>) -> Result<(), String> {
-        match &self.phetools {
-        Some(ptools) => {
-        /* match ptools.new_row(pmid, title, individual_id) {
-                Ok(()) => Ok(()),
-                Err(e) => Err(e.to_string())
-            } */
-        Ok(())
-        },
-        None => {Err(format!("Attempt to add new row, but phetools not initialized"))}
+        individual_id: impl Into<String>) 
+            -> Result<(), String> {
+            self.phetools.add_row(pmid, title, individual_id)?;
+            Ok(())
         }
-}
 
     pub fn get_column(&self, col: usize) -> Result<Vec<String>, String> {
         if col >= self.ncols {
             return Err(format!("request to get row {} from table with only {} rows", col, self.ncols));
         }
-        let mut column = Vec::new();
-        for i in 0..self.ncols {
-            column.push(self.matrix[i][col].clone());
-        }
+        let column = self.phetools.get_string_column(col)?;
         Ok(column)
     }
 
@@ -116,12 +128,16 @@ impl<'a> PptEditTable<'a> {
     }
 
     pub fn set_current_row(&mut self, row: usize) {
-        if row > self.matrix.len() {
+        if row >= self.phetools.nrows() {
             self.current_row = None
         } else {
             self.current_row = Some(row)
         }
     } 
+
+    pub fn phetools(&self) -> &PheTools {
+        &self.phetools
+    }
 
     pub fn set_current_column(&mut self, col: usize) {
         if col >= self.ncols {
@@ -150,26 +166,32 @@ impl<'a> PptEditTable<'a> {
             Ok(())
     }
 
-    pub fn set_value<T>(&mut self, r: usize, c: usize, value: T) -> Result<(), String>
-    where T: Into<String>
+    pub fn set_value<T>(&mut self, r: usize, c: usize, value: T) 
+        -> Result<(), String>
+        where T: Into<String>
     {
-        if r > self.matrix.len() {
-            return Err(format!("attempt to set row {} with nrows={}", r, self.matrix.len()));
-        }
-        if c > self.ncols {
-            return Err(format!("attempt to set col {} with ncol={}", c, self.ncols));
-        }
-        self.matrix[r][c] = value.into();
+        self.phetools.set_value(r, c, value)?;
         Ok(())
+    }
+
+
+    pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String>{
+        match self.phetools.load_excel_template(excel_file) {
+            Ok(_) => { Ok(())},
+            Err(evec) => {
+                let msg = evec.join("; ");
+                Err(msg)
+            }
+        }
     }
 
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
-    fn get_test_matrix<'a>() -> PptEditTable<'a> {
+ /*   fn get_test_matrix<'a>() -> PptEditTable<'a> {
         let mut matrix: Vec<Vec<String>> = Vec::new();
         matrix.push(get_vec(1,2,3));
         matrix.push(get_vec(4,5,6));
@@ -215,5 +237,5 @@ mod tests {
         let col = edit_table.get_current_column();
         assert!(col.is_none());
     }
-
+ */
 }

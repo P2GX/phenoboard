@@ -5,10 +5,10 @@
 
 use crate::ppt_table::PptEditTable;
 use crate::settings::HpoCuratorSettings;
-use ontolius::TermId;
+
 use ontolius::{
     io::OntologyLoaderBuilder,
-    ontology::csr::FullCsrOntology
+    ontology::csr::FullCsrOntology, TermId
 };
 use rfenominal::{
     fenominal::{Fenominal, FenominalHit},
@@ -47,8 +47,19 @@ impl<'a> HpoCuratorSingleton<'a> {
     }
 
     /// Set the path to the phenotools template we will input or create
-    pub fn set_pt_template_path(&mut self, template_path: &str) {
+    pub fn set_pt_template_path<'b>(&'b mut self, template_path: &str) 
+        -> Result<(), String> 
+        where 'b: 'a {
         self.pt_template_path = Some(template_path.to_string());
+        match &self.ontology {
+            Some(hpo) => {
+                let table: PptEditTable<'a> = PptEditTable::from_path(template_path.to_string(), hpo)?;
+                self.edit_table = Some(table);
+               Ok(())
+            },
+            None => {Err(format!("HPO not initialized"))}
+        }
+       
     }
 
     pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
@@ -83,11 +94,45 @@ impl<'a> HpoCuratorSingleton<'a> {
         self.edit_table.as_mut()
     }
 
+    pub fn get_matrix(&self) -> Result<Vec<Vec<String>>, String> {
+        match &self.edit_table {
+            Some(matrix) => Ok(matrix.get_matrix()),
+            None => Err(format!("Table not initialized"))
+        }
+    }
+
     pub fn get_hpo_version(&self) -> Result<String, String> {
         match &self.ontology {
-            Some(hpo) => Ok("hpo_curator (l. 72) needs update (ontolius)".to_string()),
+            Some(_hpo) => Ok("hpo_curator (l. 72) needs update (ontolius)".to_string()),
             None => Err("HPO not initialized".to_string())
         }
+    }
+
+    /* Initialize an existing phetools template, that must have at least one phenopacket row
+    pub fn initialize_existing_template() -> Result<(), String> {
+        match &self.pt_template_path {
+            Some(tplt_file) => {
+                match &self.ontology {
+                    Some(hpo) => {
+                        let result = PptEditTable::from_path(tplt_file, hpo);
+                        match result {
+                            Ok(table) => {  
+                                Ok(table)
+                            },
+                            Err(e) => Err(format!("Could not init edit table: {}", e.to_string()))
+                        }
+                    },
+                    None => Err(format!("HPO not initialized"))
+                }
+            },
+            None => {
+                Err(format!("phetools template path not initialized"))
+            }
+        }
+    }
+*/
+    pub fn check_readiness(&self) -> bool {
+        return self.ontology.is_some() && self.pt_template_path.is_some();
     }
 
     /// TODO figure out error handling
@@ -115,32 +160,43 @@ impl<'a> HpoCuratorSingleton<'a> {
     /// # Returns
     ///
     /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
-    pub fn map_text_to_term_list(&self, input_text: &str) -> Vec<TermId> {
+    pub fn map_text_to_term_list(&mut self, input_text: &str) -> Vec<TermId> {
+        match &self.ontology {
+            Some(hpo) => {
+                let fenominal = Fenominal::from(hpo);
+                let phetools = PheTools::new(&hpo);
+                
+                let fenom_hits: Vec<TermId> = fenominal.process(input_text);
+                let ordered_hpo_ids = phetools.arrange_terms(&fenom_hits);
+                return ordered_hpo_ids;
+            },
+            None => {
+                return vec![];
+            }
+        }
+/* 
         match &self.ontology {
             Some(hpo) => {
                 let fenominal = Fenominal::from(hpo);
                 let fenom_hits: Vec<TermId> = fenominal.process(input_text);
-                let phetools = PheTools::new(hpo);
-                let ordered_hpo_ids = phetools.arrange_terms(&fenom_hits);
-                return ordered_hpo_ids;
-            }
+                match self.edit_table() {
+                    Some(table) => {
+                        let ordered_hpo_ids = table.phetools().arrange_terms(&fenom_hits);
+                        return ordered_hpo_ids;
+                    },
+                    None => { vec![]}
+                }
+            },
             None => {
                 vec![]
             }
-        }
-    }
-
-    pub fn set_edit_table(&mut self, table: Vec<Vec<String>>) {
-        let result = PptEditTable::new(table);
-        match result {
-            Ok(table) =>  {self.edit_table = Some(table); },
-            Err(e) => { eprint!("Could not create PPT Edit table {:?}", e); }
-        } 
+        }*/
     }
 
     /// The GUI will allow the user to set the value of a specific cell.
-    pub fn set_table_cell<T>(&mut self, r: usize, c: usize, val: T) -> Result<(), String>
-        where T: Into<String> {
+    pub fn set_table_cell(&mut self, r: usize, c: usize, val: impl Into<String>) 
+        -> Result<(), String>
+    {
         match self.edit_table.as_mut() {
             Some(table) => {
                 table.set_value(r,c,val);
@@ -154,7 +210,7 @@ impl<'a> HpoCuratorSingleton<'a> {
 
     pub fn hpo_initialized(&self) -> bool {
         match &self.ontology {
-            Some(hpo) => true,
+            Some(_) => true,
             None => false     
         }
     }
@@ -167,6 +223,7 @@ impl<'a> HpoCuratorSingleton<'a> {
 /// This function performs text mining on that text and creates
 /// a Matrix of Strings with which we initialize the table in the GUI
 /// TODO: better documentation
+
 #[tauri::command]
 pub fn get_table_columns_from_seeds(
     singleton: State<Mutex<HpoCuratorSingleton>>,
@@ -177,7 +234,8 @@ pub fn get_table_columns_from_seeds(
     transcript_id: &str,
     input_text: &str,
 ) -> Result<String, String> {
-    let singleton = singleton.lock().unwrap();
+    // TODO does this really need to be mut?
+    let mut singleton = singleton.lock().unwrap();
     let fresult = singleton.map_text_to_term_list(input_text);
     print!("hpo_curator: We got {} term ids from seed", fresult.len());
     match &singleton.ontology {
@@ -215,14 +273,8 @@ pub fn get_table_columns_from_seeds(
 /// a Matrix of Strings with which we initialize the table in the GUI
 /// TODO: better documentation
 #[tauri::command]
-pub fn get_pt_table(singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<String, String> {
-    let mut singleton = singleton.lock().unwrap();
-    /*match singleton.edit_table {
-        Some(table) => {
-            singleton.
-        },
-        None => {Err("Phenotype template path not initialized!")}
-    }*/
-    Err("ups".to_string())
+pub fn get_phetools_table(singleton: State<Mutex<HpoCuratorSingleton>>,
+) -> Result<Vec<Vec<String>>, String> {
+    let singleton = singleton.lock().unwrap();
+    return singleton.get_matrix();
 }
