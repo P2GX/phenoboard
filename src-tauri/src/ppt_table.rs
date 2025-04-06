@@ -14,7 +14,7 @@
 use ontolius::ontology::csr::FullCsrOntology;
 use rphetools::PheTools;
 
-enum PptOperation {
+pub enum PptOperation {
     ShowColumn,
     ShowRow,
     EntireTable,

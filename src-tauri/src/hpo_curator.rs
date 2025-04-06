@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::ppt_table::PptEditTable;
+use crate::ppt_table::{PptEditTable, PptOperation};
 use crate::settings::HpoCuratorSettings;
 
 use ontolius::{
@@ -24,7 +24,12 @@ pub struct HpoCuratorSingleton<'a> {
     ontology: Option<FullCsrOntology>,
     hp_json_path: Option<String>,
     pt_template_path: Option<String>,
-    edit_table: Option<PptEditTable<'a>>
+    edit_table: Option<PptEditTable<'a>>,
+    phetools: Option<PheTools<'a>>,
+    current_row: Option<usize>, 
+    current_column: Option<usize>, 
+    current_operation: PptOperation,
+    unsaved: bool,
 }
 
 impl<'a> HpoCuratorSingleton<'a> {
@@ -35,6 +40,11 @@ impl<'a> HpoCuratorSingleton<'a> {
             hp_json_path: None,
             pt_template_path: None,
             edit_table: None,
+            phetools: None,
+            current_row: None,
+            current_column: None,
+            current_operation: PptOperation::EntireTable,
+            unsaved: false,
         }
     }
 
@@ -47,14 +57,17 @@ impl<'a> HpoCuratorSingleton<'a> {
     }
 
     /// Set the path to the phenotools template we will input or create
+    /// TODO better handling of vector of errors
     pub fn set_pt_template_path<'b>(&'b mut self, template_path: &str) 
         -> Result<(), String> 
         where 'b: 'a {
         self.pt_template_path = Some(template_path.to_string());
         match &self.ontology {
             Some(hpo) => {
-                let table: PptEditTable<'a> = PptEditTable::from_path(template_path.to_string(), hpo)?;
-                self.edit_table = Some(table);
+                let mut phetools = PheTools::new(&hpo);
+                phetools.load_excel_template(template_path)
+                    .map_err(|evec| evec.join("; "))?;
+                self.phetools = Some(phetools);
                Ok(())
             },
             None => {Err(format!("HPO not initialized"))}
