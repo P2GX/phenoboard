@@ -7,19 +7,39 @@ import { invoke } from "@tauri-apps/api/core";
 export class ConfigService {
   constructor() {}
 
-  /*async getSavedDownloadPath(): Promise<string | null> {
-    return await invoke<string | null>('get_saved_download_path');
-  }*/
-
-  async saveHpJsonPath(path: string): Promise<void> {
-    await invoke('save_hp_json_path', { hpJsonPath:  path });
-  }
-
   async selectHpJsonFile(): Promise<string | null> {
     return await invoke<string | null>('select_hp_json_download_path');
   }
 
-  async loadOntologyAndGetVersion(path: string): Promise<string> {
-    return await invoke<string | string>("initialize_hpo_and_get_version", { hpJsonPath:  path });
+  async loadHumanPhenotypeOntology(hpJsonPath: string): Promise<void> {
+    return await invoke("load_hpo_from_hp_json", { hpoJsonPath:  hpJsonPath });
+  }
+
+  async getHpoVersion(): Promise<string | string > {
+    return await invoke<string | string>("get_hpo_version");
+  }
+
+  async getHpJsonPath(): Promise<string | string> {
+    return await invoke<string | string>("get_hp_json_path");
+  }
+
+  async selectPhetoolsTemplatePath(): Promise<string|string> {
+    return await invoke<string|string>("select_phetools_template_path");
+  }
+
+  async getPhetoolsMatrix(): Promise<string[][]> {
+    return await invoke<string[][]>("get_phetools_table");
+  }
+
+  async loadExistingPhetoolsTemplate(ptTemplatePath: string): Promise<void> {
+    //return await invoke();
+  }
+
+  async hpoInitialized(): Promise<boolean > {
+    return await invoke<boolean>("hpo_initialized");
+  }
+
+  async checkReadiness(): Promise<boolean > {
+    return await invoke<boolean>("check_if_phetools_is_ready");
   }
 }

@@ -1,0 +1,59 @@
+
+.context-menu {
+    position: fixed;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    min-width: 100px;
+  }
+  
+  .context-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  .context-menu button:hover {
+    background-color: #eee;
+  }
+
+
+.context-menu ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.context-menu li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.context-menu li:hover {
+  background-color: #ddd;
+}
+
+.table-container {
+  position: relative;
+}
+
+  .ppt-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .ppt-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .ppt-table tr:hover {
+    background-color: #f1f1f1;
+  }

@@ -5,5 +5,29 @@ footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+    gap: 10px;
+    display: flex;
+  }
+  
+  
+  .led {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red;  /* Default state is red */
+    transition: background-color 0.3s ease;
+  }
+  
+  .led.green {
+    background-color: green;  /* Tool is ready */
+  }
+  
+  .led.red {
+    background-color: red;  /* Tool is not ready */
+  }
+  
+  span {
+    font-size: 16px;
+    font-weight: bold;
   }
   

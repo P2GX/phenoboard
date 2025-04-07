@@ -6,4 +6,5 @@ HPO Curation with Phenopackets
 npm run tauri dev
 ```
 
+Also see the [documention](https://p2gx.github.io/hpocurator/).
 
