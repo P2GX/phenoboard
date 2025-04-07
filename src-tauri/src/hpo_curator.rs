@@ -113,9 +113,11 @@ impl HpoCuratorSingleton {
    
 
     pub fn get_matrix(&self) -> Result<Vec<Vec<String>>, String> {
-
         match &self.phetools {
-            Some(ptools) => Ok(vec![]), // TODO
+            Some(ptools) => {
+                let matrix = ptools.get_string_matrix()?;
+                Ok(matrix)
+            },              
             None => Err(format!("Table not initialized"))
         }
     }

@@ -30,9 +30,13 @@ export class PyphetoolsComponent implements OnInit {
 
 
   async ngOnInit() {
-    this.tableData = await this.configService.getPhetoolsMatrix();
-    console.log("ini pyphetools component")
-    console.log(this.tableData)
+    try {
+      this.tableData = await this.configService.getPhetoolsMatrix();
+      console.log("ini pyphetools component")
+      console.log(this.tableData)
+    } catch (err) {
+      console.error("Failed to load table data", err);
+    }
   }
 
     
