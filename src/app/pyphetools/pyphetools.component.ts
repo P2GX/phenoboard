@@ -75,4 +75,33 @@ export class PyphetoolsComponent implements OnInit {
       .catch(err => console.error('Error calling Rust function:', err));
   }
 
+  formatCell(cell: string): string {
+    let displayValue = cell;
+  
+    // Highlight specific terms
+    if (cell === 'observed') {
+      displayValue = 'O';
+    } else if (cell == 'excluded') {
+      displayValue = 'X'
+    } 
+    // Truncate if necessary
+    if (cell.length > 20) {
+      const shortText = cell.slice(0, 17) + '...';
+      return `<span class="cell-ellipsis" title="${cell}">${shortText}</span>`;
+    }
+  
+    return displayValue;
+  }
+
+  getCellClass(value: string): string {
+    if (value === "observed") {
+      return "cell-observed";
+    } else if (value === "excluded") {
+      return "cell-excluded";
+    } else if (value == "na") {
+      return "cell-na";
+    }
+    return "";
+  }
+  
 }

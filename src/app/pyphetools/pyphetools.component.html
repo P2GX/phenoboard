@@ -1,17 +1,27 @@
-<p>This will be the pane that shows the entire table and enables individual columns or cells to be selected.</p>
+<p>phetools template</p>
 
 
-  <div (click)="hideContextMenu()" class="table-container">
-  <table class="ppt-table">
-    <tr *ngFor="let row of tableData; let rowIndex = index">
-      <td *ngFor="let key of getKeys(row); let colIndex = index"
-          (contextmenu)="onRightClick($event, rowIndex, colIndex)">
-          {{ getValue(row, key) }}
-      </td>
-    </tr>
-  </table>
+<div (click)="hideContextMenu()" class="table-container">
+  <div class="scroll-wrapper">
+    <table class="ppt-table">
+      <thead>
+        <tr>
+          <th *ngFor="let item of tableData[0]" class="angled-header">{{ item }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of tableData.slice(2); let rowIndex = index">
+          <td *ngFor="let key of getKeys(row); let colIndex = index"
+            [ngClass]="getCellClass(getValue(row, key))"
+              (contextmenu)="onRightClick($event, rowIndex, colIndex)"
+              [innerHTML]="formatCell(getValue(row,key))">
+          </td>
+        </tr>
+    </tbody>
+    </table>
+  </div>
 </div>
-<p>hello w</p>
+
 
 
 
@@ -20,10 +30,8 @@
     [style.left.px]="contextMenuPosition.x" 
     [style.top.px]="contextMenuPosition.y" 
     class="context-menu">
-    <button>Hardcoded Item</button>
-    <button *ngFor="let item of contextMenuItems" (click)="onMenuItemClick(item)">
-      {{ item }}
-    </button>
-   
-    
-  </div>  
+  <button>Hardcoded Item</button>
+  <button *ngFor="let item of contextMenuItems" (click)="onMenuItemClick(item)">
+    {{ item }}
+  </button>
+</div>  

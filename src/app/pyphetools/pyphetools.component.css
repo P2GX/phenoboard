@@ -44,16 +44,84 @@
   position: relative;
 }
 
-  .ppt-table {
-    border-collapse: collapse;
-    width: 100%;
-  }
+.ppt-table {
+  border-collapse: collapse;
+  width: max-content;
+  table-layout: auto;
+}
   
-  .ppt-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
+.ppt-table td, .ppt-table th {
+  border: 1px solid #ddd;
+  padding: 4px;
+  max-width: 80px;
+  white-space: nowrap;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ppt-table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
   
-  .ppt-table tr:hover {
-    background-color: #f1f1f1;
-  }
+.ppt-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.ppt-table th {
+  transform: rotate(-90deg);
+  transform-origin: left bottom;
+  white-space: nowrap;
+  width: 40px;
+  height: 100px;
+  padding: 5px;
+  vertical-align: bottom;
+  position: relative;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+
+}
+
+.table-scroll-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+
+::ng-deep .cell-observed {
+  color: black;
+  background-color: #88e788;
+  font-weight: bold;
+}
+
+::ng-deep .cell-excluded {
+  color: black;
+  background-color: #ffe6e6;
+  font-weight: bold;
+}
+
+::ng-deep .cell-na {
+  color: grey;
+  font-weight: normal;
+}
+
+.cell-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 200px;
+  vertical-align: bottom;
+}
+
+.angled-header {
+  transform: rotate(-45deg);
+  transform-origin: bottom left;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
