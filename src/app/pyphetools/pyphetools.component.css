@@ -46,46 +46,44 @@
 
 .ppt-table {
   border-collapse: collapse;
-  width: max-content;
-  table-layout: auto;
-}
-  
-.ppt-table td, .ppt-table th {
-  border: 1px solid #ddd;
-  padding: 4px;
-  max-width: 80px;
-  white-space: nowrap;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ppt-table thead th {
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 10;
+  width: auto;
+  table-layout: fixed;
 }
   
 .ppt-table tr:hover {
   background-color: #f1f1f1;
 }
+.ppt-table th,
+.ppt-table td {
+  border: 1px solid #ccc;
+  padding: 2px;
+  text-align: center;
+  vertical-align: bottom;
+  min-width: 30px;
+  max-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-.ppt-table th {
+/* Rotated header cell */
+.vertical-header {
+  position: relative;
+  height: 120px;
+  padding: 0;
+}
+
+/* Actual rotated text */
+.rotated-text {
   transform: rotate(-90deg);
   transform-origin: left bottom;
+  position: absolute;
+  bottom: 5px;
+  left: 25px;
   white-space: nowrap;
-  width: 40px;
-  height: 100px;
-  padding: 5px;
-  vertical-align: bottom;
-  position: relative;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-
+  font-size: 11px;
 }
+
 
 .table-scroll-wrapper {
   overflow-x: auto;
@@ -106,7 +104,8 @@
 }
 
 ::ng-deep .cell-na {
-  color: grey;
+  color: black;
+  background-color: #eeeeee;
   font-weight: normal;
 }
 
@@ -118,10 +117,3 @@
   vertical-align: bottom;
 }
 
-.angled-header {
-  transform: rotate(-45deg);
-  transform-origin: bottom left;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}

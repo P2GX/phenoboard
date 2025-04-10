@@ -6,7 +6,11 @@
     <table class="ppt-table">
       <thead>
         <tr>
-          <th *ngFor="let item of tableData[0]" class="angled-header">{{ item }}</th>
+          <th *ngFor="let item of tableData[0] let colIndex = index" 
+              (contextmenu)="onRightClick($event, 0, colIndex)"
+              class="vertical-header">
+            <div class="rotated-text" [title]="item">{{ item }}</div>
+          </th>
         </tr>
       </thead>
       <tbody>

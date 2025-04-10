@@ -67,12 +67,10 @@ export class PyphetoolsComponent implements OnInit {
     console.log(`Clicked: ${item} at row ${this.contextMenuRow}, col ${this.contextMenuCol}`);
 
     this.showContextMenu = false;
-    invoke('process_pyphetools_table_rclick', { 
-            parameter: item, 
-            row: this.contextMenuRow,
-            col: this.contextMenuCol })
-      .then(response => console.log('Response from Rust:', response))
-      .catch(err => console.error('Error calling Rust function:', err));
+    // value, row, col
+    if (this.contextMenuCol != null && this.contextMenuRow != null) {
+      this.configService.processRightClickPhetoolsMatrix(item, this.contextMenuRow, this.contextMenuCol);
+    }
   }
 
   formatCell(cell: string): string {
@@ -98,7 +96,7 @@ export class PyphetoolsComponent implements OnInit {
       return "cell-observed";
     } else if (value === "excluded") {
       return "cell-excluded";
-    } else if (value == "na") {
+    } else if (value == "na" || value=="") {
       return "cell-na";
     }
     return "";

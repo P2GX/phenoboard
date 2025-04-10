@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 
 @Injectable({
@@ -42,4 +42,12 @@ export class ConfigService {
   async checkReadiness(): Promise<boolean > {
     return await invoke<boolean>("check_if_phetools_is_ready");
   }
+
+  async processRightClickPhetoolsMatrix(item: string, row: number, col: number): Promise<boolean> {
+    return await invoke('process_pyphetools_table_rclick', { 
+      value: item, 
+      row: row,
+      col: col });
+  }
+
 }
