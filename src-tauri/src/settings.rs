@@ -101,7 +101,7 @@ pub fn load_hpo_from_hp_json(
     let hpo_json = singleton.hp_json_path();
     match hpo_json {
         Err(e) => {
-            return Err("Could not find hp.json file".to_string());
+            return Err(format!("Could not find hp.json file: {}", e));
         }
         Ok(hp_json) => {
             let loader = OntologyLoaderBuilder::new().obographs_parser().build();

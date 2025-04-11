@@ -117,3 +117,45 @@
   vertical-align: bottom;
 }
 
+
+
+
+.focus-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.focus-table th,
+.focus-table td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  vertical-align: bottom;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Limit all columns by default */
+.focus-table th:not(:nth-child(3)):not(:nth-child(4)),
+.focus-table td:not(:nth-child(3)):not(:nth-child(4)) {
+  max-width: 80px;
+}
+
+/* Allow 3rd and 4th columns to grow fully */
+.focus-table th:not(:nth-child(1)):not(:nth-child(2)),
+.focus-table td:not(:nth-child(1)):not(:nth-child(2)) {
+  max-width: none;
+  white-space: normal; /* Allows wrapping if needed */
+  text-overflow: initial;
+  overflow: visible;
+}
+
+.error-banner {
+  background-color: #ffe5e5;
+  color: #a00000;
+  border: 1px solid #a00000;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-weight: bold;
+}

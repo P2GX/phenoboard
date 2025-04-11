@@ -7,11 +7,7 @@ use hpo_curator::HpoCuratorSingleton;
 use std::sync::Mutex;
 use tauri_plugin_fs::init;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -22,19 +18,21 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(init())
         .invoke_handler(tauri::generate_handler![
-            greet,
-            hpo_mining::run_text_mining,
-            hpo_curator::get_table_columns_from_seeds,
             hpo_curator::get_phetools_table,
-            settings::select_hp_json_download_path,
-            settings::load_hpo_from_hp_json,
+            hpo_curator::get_table_columns_from_seeds,
+            hpo_mining::run_text_mining,
+            settings::check_if_phetools_is_ready,
             settings::get_hp_json_path,
             settings::get_hpo_version,
-            settings::hpo_initialized,
-            settings::select_phetools_template_path,
             settings::get_pt_template_path,
-            settings::check_if_phetools_is_ready,
-            table_manager::process_pyphetools_table_rclick
+            settings::hpo_initialized,
+            settings::load_hpo_from_hp_json,
+            settings::select_hp_json_download_path,
+            settings::select_phetools_template_path,
+            table_manager::edit_current_column,
+            table_manager::get_phetools_column,
+            table_manager::process_pyphetools_table_rclick,
+        
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

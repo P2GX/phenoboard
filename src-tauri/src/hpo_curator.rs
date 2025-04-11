@@ -4,7 +4,7 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 
-use std::{clone, fmt::format, sync::Arc};
+use std::sync::Arc;
 use crate::settings::HpoCuratorSettings;
 
 use ontolius::{
@@ -108,11 +108,10 @@ impl HpoCuratorSingleton {
             Some(pt_template) => Ok(pt_template.to_string()),
             None => Err("phenotype template path not initialized".to_string())
         }
-    }
-
-   
+    } 
 
     pub fn get_matrix(&self) -> Result<Vec<Vec<String>>, String> {
+        println!("hpo_curator::get_matrix");
         match &self.phetools {
             Some(ptools) => {
                 let matrix = ptools.get_string_matrix()?;
@@ -172,13 +171,14 @@ impl HpoCuratorSingleton {
         }
     }
 
-    pub fn get_column(&self, col: usize) -> Result<Vec<String>, String> {
+    pub fn get_column(&mut self, col: usize) -> Result<Vec<String>, String> {
         match &self.phetools {
             Some(ptools) => {
                 if col >= ptools.ncols() {
                     return Err(format!("request to get row {} from table with only {} rows", col, ptools.ncols()));
                 }
                 let column = ptools.get_string_column(col)?;
+                self.set_current_column(col);
                 Ok(column)
             },
             None => Err(format!("Could not get column because Phetools was null"))
@@ -243,9 +243,8 @@ impl HpoCuratorSingleton {
             Ok(())
     }
 
-    pub fn set_value<T>(&mut self, r: usize, c: usize, value: T) 
-        -> Result<(), String>
-        where T: Into<String>
+    pub fn set_value(&mut self, r: usize, c: usize, value: impl Into<String>) 
+        -> Result<(), String>  
     {
         match &mut self.phetools {
             Some(ptools) =>  {
@@ -271,30 +270,25 @@ impl HpoCuratorSingleton {
         }
     }
 
-
-    /* Initialize an existing phetools template, that must have at least one phenopacket row
-    pub fn initialize_existing_template() -> Result<(), String> {
-        match &self.pt_template_path {
-            Some(tplt_file) => {
-                match &self.ontology {
-                    Some(hpo) => {
-                        let result = PptEditTable::from_path(tplt_file, hpo);
-                        match result {
-                            Ok(table) => {  
-                                Ok(table)
-                            },
-                            Err(e) => Err(format!("Could not init edit table: {}", e.to_string()))
-                        }
-                    },
-                    None => Err(format!("HPO not initialized"))
+    /// This method can be used to retrieve a matrix of string with the first three
+    /// phetools columns (pmid, title, individual id) together with a specific HPO column
+    pub fn get_column_with_context(&mut self, col: usize)
+        -> Result<Vec<Vec<String>>, String> 
+    {
+        match &mut self.phetools {
+            Some(ptools) => {
+                if ptools.is_hpo_col(col) {
+                    let mat = ptools.get_hpo_col_with_context(col)?;
+                    return Ok(mat);
+                } else {
+                    return Err(format!("ONLY HPO columns supported right now"));
                 }
+                //ptools.get_column_with_context(col).map_error(|e| e.to_string())?;
             },
-            None => {
-                Err(format!("phetools template path not initialized"))
-            }
-        }
+            None => { return Err(format!("Phetools not intialized")); }
+        };
     }
-*/
+
     pub fn check_readiness(&self) -> bool {
         return self.ontology.is_some() && self.pt_template_path.is_some();
     }
@@ -342,23 +336,6 @@ impl HpoCuratorSingleton {
                 return vec![];
             }
         }
-/* 
-        match &self.ontology {
-            Some(hpo) => {
-                let fenominal = Fenominal::from(hpo);
-                let fenom_hits: Vec<TermId> = fenominal.process(input_text);
-                match self.edit_table() {
-                    Some(table) => {
-                        let ordered_hpo_ids = table.phetools().arrange_terms(&fenom_hits);
-                        return ordered_hpo_ids;
-                    },
-                    None => { vec![]}
-                }
-            },
-            None => {
-                vec![]
-            }
-        }*/
     }
 
     /// The GUI will allow the user to set the value of a specific cell.
@@ -421,7 +398,6 @@ pub fn get_table_columns_from_seeds(
             match result {
                 Ok(matrix) => {
                     let json_string = serde_json::to_string(&matrix).unwrap();
-                    //singleton.set_edit_table(matrix);
                     println!("TODO UPDATE");
                     return Ok(json_string);
                 }
@@ -446,5 +422,16 @@ pub fn get_phetools_table(singleton: State<Mutex<HpoCuratorSingleton>>,
 ) -> Result<Vec<Vec<String>>, String> 
 {
     let singleton = singleton.lock().unwrap();
+    println!("hpo_curator::get_phetools_table");
     return singleton.get_matrix();
+}
+
+#[tauri::command]
+pub fn set_value(singleton: State<Mutex<HpoCuratorSingleton>>,
+    r: usize, c: usize, value: impl Into<String>
+) -> Result<(), String> 
+{
+    let mut singleton = singleton.lock().unwrap();
+    singleton.set_value(r, c, value)?;
+    Ok(())
 }

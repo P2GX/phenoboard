@@ -51,6 +51,36 @@ pub fn process_pyphetools_table_rclick(
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
-    let result = singleton.set_table_cell(row, col, value);
+    let _ = singleton.set_table_cell(row, col, value);
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_phetools_column(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+    col: usize
+) -> Result<Vec<Vec<String>>, String> {
+    let mut singleton = singleton.lock().unwrap();
+    let mat =  singleton.get_column_with_context(col)?;
+    return Ok(mat);
+}
+
+
+
+
+#[tauri::command]
+pub fn edit_current_column(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+    value: &str,
+    row: usize
+) -> Result<(), String> {
+    println!("table_manager::edit_current col, value={}, row={}", value, row);
+    let mut singleton = singleton.lock().unwrap();
+    match singleton.get_current_column() {
+        Some(col) => {
+            let _ = singleton.set_value(row, col, value)?;
+        },
+        None => {return Err(format!("Current column not initialized"));}
+    }
+    return Ok(());
 }

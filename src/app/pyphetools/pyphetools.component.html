@@ -1,9 +1,16 @@
 <p>phetools template</p>
 
+<p>col table {{showColTable}} main table {{showMainTable }}</p>
+<div *ngIf="showColTable"><p>Inside ngIf</p></div>
+<div *ngIf="errorMessage" class="error-banner">
+  {{ errorMessage }}
+</div>
 
-<div (click)="hideContextMenu()" class="table-container">
+<div *ngIf="showMainTable" (click)="hideContextMenu()" class="table-container">
   <div class="scroll-wrapper">
-    <table class="ppt-table">
+    <!-- we show one of three table types main, row, and column-->
+     <!-- 1) main table -->
+    <table  class="ppt-table">
       <thead>
         <tr>
           <th *ngFor="let item of tableData[0] let colIndex = index" 
@@ -25,6 +32,32 @@
     </table>
   </div>
 </div>
+  <div *ngIf="showColTable" (click)="hideContextMenu()" class="table-container">
+  <p>Something</p>
+     <!-- 2) column table -->
+     <table class="focus-table">
+      <thead>
+        <tr>
+          <th *ngFor="let item of tableData[0] let colIndex = index" 
+              (contextmenu)="onRightClickHpo($event, 0, colIndex)"
+              class="vertical-header">
+            <div class="rotated-text" [title]="item">{{ item }}</div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of tableData.slice(2); let rowIndex = index">
+          <td *ngFor="let key of getKeys(row); let colIndex = index"
+            [ngClass]="getCellClass(getValue(row, key))"
+              (contextmenu)="onRightClickHpo($event, rowIndex, colIndex)"
+              [innerHTML]="formatCell(getValue(row,key))">
+          </td>
+        </tr>
+    </tbody>
+    </table>
+  </div>
+ 
+
 
 
 
@@ -39,3 +72,16 @@
     {{ item }}
   </button>
 </div>  
+
+<!-- Context Menu for HPO Column Table -->
+<div *ngIf="showHpoContextMenu" 
+    [style.left.px]="contextMenuPosition.x" 
+    [style.top.px]="contextMenuPosition.y" 
+    class="context-menu">
+  <button>Hardcoded Item</button>
+  <button *ngFor="let item of hpoContextMenuItems" (click)="onHpoMenuItemClick(item)">
+    {{ item }}
+  </button>
+</div>  
+
+
