@@ -13,6 +13,7 @@ import { ConfigService } from '../../services/config.service';
   styleUrls: ['./hpoloader.component.css']
 })
 export class HpoloaderComponent {
+  initialState: boolean = true;
   isLoading: boolean = false;
   successfullyLoaded: boolean = false;
   filePath: string = "";
@@ -31,12 +32,11 @@ export class HpoloaderComponent {
   }
 
   async loadHpoVersion(): Promise<void> {
-    console.log("LOADING HPO VERSION")
     try {
       this.hpoVersion = await this.configService.getHpoVersion();
-      console.log("got hpo version", this.hpoVersion);
+      console.log("Retrieved hpo version: ", this.hpoVersion);
     } catch (err) {
-      console.error('Error getting HPO version:', err);
+      console.error('Error getting HPO version: ', err);
       this.hpoVersion = err instanceof Error ? err.message : 'Unknown error'; 
       this.loadError = "Could not load HPO version" 
     } finally {
@@ -62,7 +62,6 @@ export class HpoloaderComponent {
 
   async chooseHpJsonFile() {
     const path = await this.configService.selectHpJsonFile();
-    
     if (path) {
       try {
         this.isLoading = true;
@@ -71,72 +70,16 @@ export class HpoloaderComponent {
         // Give GUI time to paint before continuing
         await new Promise(resolve => setTimeout(resolve, 100));
         await this.configService.loadHumanPhenotypeOntology(path);
-        console.log("version ", this.hpoVersion);
+        console.log("HPO version ", this.hpoVersion);
         this.hpJsonPath = path;
       } catch (error) {
         console.error("Error loading HPO JSON:", error);
       } finally {
         this.isLoading = false;
+        this.initialState = false;
         this.loadHpoVersion();
         await this.configService.checkReadiness();
       }
     }
   }
-
-
-  /*
-  async onFileSelected(event: Event) {
-    if (this.isLoading) {
-      console.log("File currently being loaded.");
-      return; 
-    }
-    this.isLoading = true;
-    this.successfullyLoaded = false;
-    this.loadError = null;
-    this.progress = 0;
-
-    try {
-      // Open file dialog
-      const result = await open({ multiple: false, directory: false });
-      if (!result) {
-        this.isLoading = false;
-        return;
-      }
-      this.filePath = result as string;
-      console.log("this.filePath: ", this.filePath);
-      this.isLoading = true;
-      this.progress = 5;
-      this.cd.detectChanges();
-      this.startProgress();
-      await this.configService.loadHumanPhenotypeOntology(this.filePath);
-      console.log("Loaded hp json");
-      this.successfullyLoaded = true;
-      this.progress = 100;
-    } catch (err) {
-      console.error('Error loading file:', err);
-      this.loadError = err instanceof Error ? err.message : 'Unknown error';
-    } finally {
-      this.isLoading = false;
-      this.progressSub?.unsubscribe(); // Stop progress update
-      this.loadHpoVersion();
-      this.loadHpJsonPath();
-    }
-  }
-
-  startProgress() {
-    this.progress = 10;
-    this.progressSub = interval(250).subscribe(() => {
-      if (this.progress < 90) {
-        this.progress += 20;
-        this.cd.detectChanges();
-      } else {
-        this.progressSub?.unsubscribe();
-      }
-    });
-  }
-
-  ngOnDestroy() {
-    this.progressSub?.unsubscribe();
-  }
-    */
 }

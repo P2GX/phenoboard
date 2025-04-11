@@ -136,7 +136,7 @@ export class PyphetoolsComponent implements OnInit {
           this.tableData = await this.configService.getPhetoolsColumn(this.contextMenuCol);
         } catch(err) {
           console.error("Could not set value:", err);
-          this.errorMessage = 'Could not set value: ' + (err || 'Unknown error');
+          this.errorMessage = 'Could not set value: ' + (err instanceof Error ? err.message : 'Unknown error');
         }
         this.cdr.detectChanges();
       } else if (item == "return to main") {

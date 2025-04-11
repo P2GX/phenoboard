@@ -9,7 +9,7 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use tauri::{State, AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::hpo_curator::HpoCuratorSingleton;
 
@@ -94,9 +94,7 @@ pub fn load_config() -> Option<String> {
 }
 
 #[tauri::command]
-pub fn load_hpo_from_hp_json(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<(), String> {
+pub fn load_hpo_from_hp_json(singleton: State<Mutex<HpoCuratorSingleton>>) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     let hpo_json = singleton.hp_json_path();
     match hpo_json {
@@ -105,7 +103,9 @@ pub fn load_hpo_from_hp_json(
         }
         Ok(hp_json) => {
             let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-            let hpo: FullCsrOntology = loader.load_from_path(&hp_json).expect("Ontolius: Could not load hp.json");
+            let hpo: FullCsrOntology = loader
+                .load_from_path(&hp_json)
+                .expect("Ontolius: Could not load hp.json");
             let hpo_arc = Arc::new(hpo);
             singleton.set_hpo(hpo_arc);
             singleton.set_hp_hson(&hp_json);
@@ -144,23 +144,17 @@ pub fn select_hp_json_download_path(
     Some("None".to_string())
 }
 
-
 #[tauri::command]
-pub fn get_hpo_version(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<String, String> {
+pub fn get_hpo_version(singleton: State<Mutex<HpoCuratorSingleton>>) -> Result<String, String> {
     let singleton = singleton.lock().unwrap();
     singleton.get_hpo_version()
 }
 
 #[tauri::command]
-pub fn get_hp_json_path(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<String, String> {
+pub fn get_hp_json_path(singleton: State<Mutex<HpoCuratorSingleton>>) -> Result<String, String> {
     let singleton = singleton.lock().unwrap();
     singleton.hp_json_path()
 }
-
 
 #[tauri::command]
 pub fn get_pt_template_path(
@@ -170,32 +164,27 @@ pub fn get_pt_template_path(
     singleton.pt_template_path()
 }
 
-
-
-
-
 #[tauri::command]
-pub fn check_if_phetools_is_ready(app: AppHandle, singleton: State<Mutex<HpoCuratorSingleton>>) -> bool {
-    let singleton = singleton.lock().unwrap();
-    let tool_ready = singleton.check_readiness();
-    if tool_ready {
-       let _ = app.emit("ready", true);
-    } else {
-        let _ =  app.emit("ready", false);
-    }
-    
-    tool_ready
-}
-
-
-#[tauri::command]
-pub fn hpo_initialized(
+pub fn check_if_phetools_is_ready(
+    app: AppHandle,
     singleton: State<Mutex<HpoCuratorSingleton>>,
 ) -> bool {
     let singleton = singleton.lock().unwrap();
-    singleton.hpo_initialized()
+    let tool_ready = singleton.check_readiness();
+    if tool_ready {
+        let _ = app.emit("ready", true);
+    } else {
+        let _ = app.emit("ready", false);
+    }
+
+    tool_ready
 }
 
+#[tauri::command]
+pub fn hpo_initialized(singleton: State<Mutex<HpoCuratorSingleton>>) -> bool {
+    let singleton = singleton.lock().unwrap();
+    singleton.hpo_initialized()
+}
 
 #[tauri::command]
 pub fn select_phetools_template_path(
@@ -205,7 +194,7 @@ pub fn select_phetools_template_path(
     // synchronous (blocking) file chooser
     let result = FileDialog::new()
         .add_filter("Phetools template file", &["xlsx"])
-       // .set_directory("/")
+        // .set_directory("/")
         .pick_file();
     match result {
         Some(file) => {
@@ -216,16 +205,9 @@ pub fn select_phetools_template_path(
                     singleton.set_pt_template_path(&pt_path)?;
                     return Ok(pt_path);
                 }
-                Err(e) => {
-                    Err(format!("Could not get path: {:?}", e))
-                }
+                Err(e) => Err(format!("Could not get path: {:?}", e)),
             }
         }
-        None => {
-            Err(format!("Could not get path from file dialog"))
-        }
+        None => Err(format!("Could not get path from file dialog")),
     }
 }
-
-
-

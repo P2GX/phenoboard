@@ -4,12 +4,9 @@ use tauri::State;
 
 use crate::hpo_curator::HpoCuratorSingleton;
 
-
-
-
 /// Process a right click on the pyphetools menu
-/// 
-/// The user may choose to edit a row (individual) or column 
+///
+/// The user may choose to edit a row (individual) or column
 /// (collection of data for an HPO term or other item). The app will then open another panel that
 /// focuses on that row or column for editing.
 /// # Arguments
@@ -26,7 +23,7 @@ pub fn edit_pyphetools_table_cell(
     singleton: State<Mutex<HpoCuratorSingleton>>,
     value: String,
     row: usize,
-    col: usize
+    col: usize,
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
@@ -47,7 +44,7 @@ pub fn process_pyphetools_table_rclick(
     singleton: State<Mutex<HpoCuratorSingleton>>,
     value: String,
     row: usize,
-    col: usize
+    col: usize,
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
@@ -58,29 +55,31 @@ pub fn process_pyphetools_table_rclick(
 #[tauri::command]
 pub fn get_phetools_column(
     singleton: State<Mutex<HpoCuratorSingleton>>,
-    col: usize
+    col: usize,
 ) -> Result<Vec<Vec<String>>, String> {
     let mut singleton = singleton.lock().unwrap();
-    let mat =  singleton.get_column_with_context(col)?;
+    let mat = singleton.get_column_with_context(col)?;
     return Ok(mat);
 }
-
-
-
 
 #[tauri::command]
 pub fn edit_current_column(
     singleton: State<Mutex<HpoCuratorSingleton>>,
     value: &str,
-    row: usize
+    row: usize,
 ) -> Result<(), String> {
-    println!("table_manager::edit_current col, value={}, row={}", value, row);
+    println!(
+        "table_manager::edit_current col, value={}, row={}",
+        value, row
+    );
     let mut singleton = singleton.lock().unwrap();
     match singleton.get_current_column() {
         Some(col) => {
             let _ = singleton.set_value(row, col, value)?;
-        },
-        None => {return Err(format!("Current column not initialized"));}
+        }
+        None => {
+            return Err(format!("Current column not initialized"));
+        }
     }
     return Ok(());
 }

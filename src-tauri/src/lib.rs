@@ -7,8 +7,6 @@ use hpo_curator::HpoCuratorSingleton;
 use std::sync::Mutex;
 use tauri_plugin_fs::init;
 
-
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -32,7 +30,6 @@ pub fn run() {
             table_manager::edit_current_column,
             table_manager::get_phetools_column,
             table_manager::process_pyphetools_table_rclick,
-        
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
