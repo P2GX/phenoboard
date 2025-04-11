@@ -28,12 +28,6 @@ pub fn edit_pyphetools_table_cell(
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
     singleton.set_table_cell(row, col, value);
-    /*match singleton.edit_table() {
-        Some(table) => {
-            table.set_value(row, col, value)
-        },
-        None => { return Err(format!("Could not retrieve edit table")); }
-    }*/
     Ok(())
 }
 
@@ -59,7 +53,24 @@ pub fn get_phetools_column(
 ) -> Result<Vec<Vec<String>>, String> {
     let mut singleton = singleton.lock().unwrap();
     let mat = singleton.get_column_with_context(col)?;
+    singleton.set_current_column(col);
     return Ok(mat);
+}
+
+#[tauri::command]
+pub fn get_selected_phetools_column(
+    singleton: State<Mutex<HpoCuratorSingleton>>
+) -> Result<Vec<Vec<String>>, String> {
+    let mut singleton = singleton.lock().unwrap();
+    match singleton.get_current_column() {
+        Some(col) => {
+            let mat = singleton.get_column_with_context(col)?;
+            return Ok(mat);
+        },
+        None => {
+            return Err(format!("No column selected"));
+        }
+    }
 }
 
 #[tauri::command]
@@ -75,6 +86,7 @@ pub fn edit_current_column(
     let mut singleton = singleton.lock().unwrap();
     match singleton.get_current_column() {
         Some(col) => {
+            println!("edit_current_column col={} value={}", col, value);
             let _ = singleton.set_value(row, col, value)?;
         }
         None => {

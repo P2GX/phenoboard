@@ -56,6 +56,11 @@ export class ConfigService {
       col: col });
   }
 
+  // Get a column together with context for editing
+  async getSelectedPhetoolsColumn(): Promise<string [][]> {
+    return await invoke('get_selected_phetools_column');
+  }
+
 
   // use when we are editing a specific column, the backend will know the current column
   // used when we have the GUI show us one specific column for editing

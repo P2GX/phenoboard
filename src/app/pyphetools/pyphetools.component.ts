@@ -116,13 +116,11 @@ export class PyphetoolsComponent implements OnInit {
   }
 
   async onHpoMenuItemClick(item: string): Promise<void> {
-    this.showContextMenu = false;
+    this.showHpoContextMenu = false;
     // value, row, col
     if (this.contextMenuCol != null && this.contextMenuRow != null) {
-      console.log("In onHpoMenuItemClick, item={",item,",}, row=",this.contextMenuRow)
       if (item =="edit column") {
         try {
-          console.log('onHpoMenuItemClick: Getting table:', item);
           console.log("todo -- what is the desired behavior?");
           this.showMainTableWithAllColumns();
         } catch (err) {
@@ -133,9 +131,8 @@ export class PyphetoolsComponent implements OnInit {
         // switch the cell value to observed. We know what column we are in and need to pass the row
         try {
           this.configService.editCellOfCurrentColumn("observed", this.contextMenuRow);
-          this.tableData = await this.configService.getPhetoolsColumn(this.contextMenuCol);
+          this.tableData = await this.configService.getSelectedPhetoolsColumn(); // show the currently selected column again (with changes)
         } catch(err) {
-          console.error("Could not set value:", err);
           this.errorMessage = 'Could not set value: ' + (err instanceof Error ? err.message : 'Unknown error');
         }
         this.cdr.detectChanges();

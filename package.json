@@ -1,6 +1,6 @@
 {
   "name": "hpocurator",
-  "version": "0.1.30",
+  "version": "0.1.32",
   "scripts": {
     "ng": "ng",
     "start": "nx serve",

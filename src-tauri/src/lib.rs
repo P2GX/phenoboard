@@ -29,6 +29,7 @@ pub fn run() {
             settings::select_phetools_template_path,
             table_manager::edit_current_column,
             table_manager::get_phetools_column,
+            table_manager::get_selected_phetools_column,
             table_manager::process_pyphetools_table_rclick,
         ])
         .run(tauri::generate_context!())

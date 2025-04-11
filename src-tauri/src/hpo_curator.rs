@@ -210,6 +210,7 @@ impl HpoCuratorSingleton {
                 if col >= ptools.ncols() {
                     self.current_column = None
                 } else {
+                    println!("Setting current column to {}", col);
                     self.current_column = Some(col)
                 }
             }
@@ -244,7 +245,11 @@ impl HpoCuratorSingleton {
     ) -> Result<(), String> {
         match &mut self.phetools {
             Some(ptools) => {
-                ptools.set_value(r, c, value)?;
+                println!("hpo_curator: set_value r={}. c={}, value=?", r,c);
+                match ptools.set_value(r, c, value) {
+                    Ok(_) => { println!("hpo_curaotr, set_value, OK"); },
+                    Err(e ) => { eprintln!()}
+                }
                 Ok(())
             }
             None => Err(format!("phetools not initialized")),
@@ -273,6 +278,7 @@ impl HpoCuratorSingleton {
             Some(ptools) => {
                 if ptools.is_hpo_col(col) {
                     let mat = ptools.get_hpo_col_with_context(col)?;
+                    self.set_current_column(col);
                     return Ok(mat);
                 } else {
                     let ctype = ptools.col_type_at(col);
