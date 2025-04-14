@@ -131,6 +131,7 @@
   text-align: center;
   vertical-align: bottom;
   max-width: 200px;
+  min-width: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

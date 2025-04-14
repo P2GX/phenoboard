@@ -127,11 +127,12 @@ export class PyphetoolsComponent implements OnInit {
           console.error("Failed to load table data", err);
           this.showMainTableWithAllColumns();
         }
-      } else if (item == "observed") {
+      } else if (item == "observed" || item == "excluded" || item == "na") {
         // switch the cell value to observed. We know what column we are in and need to pass the row
         try {
-          this.configService.editCellOfCurrentColumn("observed", this.contextMenuRow);
+          this.configService.editCellOfCurrentColumn(item, this.contextMenuRow);
           this.tableData = await this.configService.getSelectedPhetoolsColumn(); // show the currently selected column again (with changes)
+          this.cdr.detectChanges();
         } catch(err) {
           this.errorMessage = 'Could not set value: ' + (err instanceof Error ? err.message : 'Unknown error');
         }

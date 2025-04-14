@@ -5,6 +5,7 @@
 <div *ngIf="errorMessage" class="error-banner">
   {{ errorMessage }}
 </div>
+<div *ngIf="!tableData.length">No data loaded</div>
 
 <div *ngIf="showMainTable" (click)="hideContextMenu()" class="table-container">
   <div class="scroll-wrapper">
