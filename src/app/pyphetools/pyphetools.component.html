@@ -7,6 +7,14 @@
 </div>
 <div *ngIf="!tableData.length">No data loaded</div>
 
+<p *ngIf="summary['disease']">
+  The dataset includes <strong>{{ summary['n_ppkt'] }}</strong> phenopackets
+  annotated with <strong>{{ summary['hpo_term_count'] }}</strong> HPO terms for
+  <strong>{{ summary['disease'] }}</strong> ({{ summary['disease_id'] }}) associated
+  with gene <strong>{{ summary['gene_symbol'] }}</strong> (HGNC:{{ summary['hgnc_id'] }}),
+  transcript <strong>{{ summary['transcript'] }}</strong>.
+</p>
+
 <div *ngIf="showMainTable" (click)="hideContextMenu()" class="table-container">
   <div class="scroll-wrapper">
     <!-- we show one of three table types main, row, and column-->

@@ -31,6 +31,8 @@ export class PyphetoolsComponent implements OnInit {
   showMainTable: boolean = true;
   showRowTable: boolean = false;
   showColTable: boolean = false;
+
+  summary: Record<string, string> = {};
   
   errorMessage: string | null = null;
 
@@ -39,9 +41,15 @@ export class PyphetoolsComponent implements OnInit {
       this.tableData = await this.configService.getPhetoolsMatrix();
       console.log("ngOnInit-table length", this.tableData.length)
       console.log("ini pyphetools component")
-      console.log(this.tableData)
+      console.log(this.tableData);
     } catch (err) {
       console.error("Failed to load table data", err);
+      return;
+    }
+    try {
+      this.summary = await this.configService.getTemplateSummary();
+    } catch (err) {
+      console.error("Failed to load summary", err);
     }
   }
 

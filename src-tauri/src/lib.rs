@@ -18,6 +18,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             hpo_curator::get_phetools_table,
             hpo_curator::get_table_columns_from_seeds,
+            hpo_curator::get_template_summary,
             hpo_mining::run_text_mining,
             settings::check_if_phetools_is_ready,
             settings::get_hp_json_path,

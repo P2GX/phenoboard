@@ -4,7 +4,7 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 use crate::settings::HpoCuratorSettings;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology, TermId};
 use rfenominal::{
@@ -296,6 +296,8 @@ impl HpoCuratorSingleton {
         return self.ontology.is_some() && self.pt_template_path.is_some();
     }
 
+   
+
     /// TODO figure out error handling
     pub fn map_text(&self, input_text: &str) -> String {
         match &self.ontology {
@@ -435,4 +437,14 @@ pub fn set_value(
     let mut singleton = singleton.lock().unwrap();
     singleton.set_value(r, c, value)?;
     Ok(())
+}
+
+
+#[tauri::command]
+pub fn get_template_summary(singleton: State<Mutex<HpoCuratorSingleton>>) ->Result<HashMap<String,String>, String> {
+    let singleton = singleton.lock().unwrap();
+    match &singleton.phetools {
+        Some(ptools) => ptools.get_template_summary(),
+        None => Err(format!("Phetools template not initialized"))
+    }
 }

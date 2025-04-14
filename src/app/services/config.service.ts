@@ -68,4 +68,9 @@ export class ConfigService {
     return await invoke('edit_current_column', {value: value, row: row});
   }
 
+
+  async getTemplateSummary(): Promise<Record<string, string>> {
+    return await invoke('get_template_summary');
+  }
+
 }
