@@ -25,7 +25,6 @@ pub enum PptOperation {
 pub struct HpoCuratorSingleton {
     settings: HpoCuratorSettings,
     ontology: Option<Arc<FullCsrOntology>>,
-    hp_json_path: Option<String>,
     pt_template_path: Option<String>,
     phetools: Option<PheTools>,
     current_row: Option<usize>,
@@ -37,9 +36,8 @@ pub struct HpoCuratorSingleton {
 impl HpoCuratorSingleton {
     pub fn new() -> Self {
         HpoCuratorSingleton {
-            settings: HpoCuratorSettings::from_settings().unwrap(), // todo better error handling. Figure out what to do if file does not exist yet
+            settings: HpoCuratorSettings::load_settings(), 
             ontology: None,
-            hp_json_path: None,
             pt_template_path: None,
             phetools: None,
             current_row: None,
@@ -53,8 +51,9 @@ impl HpoCuratorSingleton {
         self.ontology = Some(ontology);
     }
 
-    pub fn set_hp_hson(&mut self, hp_json: &str) {
-        self.hp_json_path = Some(hp_json.to_string());
+    pub fn set_hp_json(&mut self, hp_json: &str) -> Result<(), String>{
+        self.settings.set_hp_json_path(hp_json)?;
+        Ok(())
     }
 
     /// Set the path to the phenotools template we will input or create
@@ -77,9 +76,9 @@ impl HpoCuratorSingleton {
 
     pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
         let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-        self.set_hp_hson(hp_json);
-        match &self.hp_json_path {
-            Some(hp_json) => {
+        self.set_hp_json(hp_json);
+        match &self.settings.get_hp_json_path() {
+            Ok(hp_json) => {
                 let hpo: FullCsrOntology = loader
                     .load_from_path(hp_json)
                     .expect("Ontolius HPO loader failed");
@@ -87,14 +86,14 @@ impl HpoCuratorSingleton {
                 self.ontology = Some(hpo_arc);
                 Ok(())
             }
-            None => Err("Could not load ontology".to_string()),
+            Err(e) => Err(e.clone()),
         }
     }
 
     pub fn hp_json_path(&self) -> Result<String, String> {
-        match &self.hp_json_path {
-            Some(hp_json) => Ok(hp_json.to_string()),
-            None => Err("hp.json not initialized".to_string()),
+        match &self.settings.get_hp_json_path() {
+            Ok(hp_json) =>  Ok(hp_json.clone()),
+            Err(e) => Err(e.clone()),
         }
     }
 
@@ -248,7 +247,7 @@ impl HpoCuratorSingleton {
                 println!("hpo_curator: set_value r={}. c={}, value=?", r,c);
                 match ptools.set_value(r, c, value) {
                     Ok(_) => { println!("hpo_curaotr, set_value, OK"); },
-                    Err(e ) => { eprintln!()}
+                    Err(e ) => { eprintln!("{:?}", e)}
                 }
                 Ok(())
             }
@@ -448,3 +447,16 @@ pub fn get_template_summary(singleton: State<Mutex<HpoCuratorSingleton>>) ->Resu
         None => Err(format!("Phetools template not initialized"))
     }
 }
+
+#[tauri::command]
+pub fn get_hpo_data(singleton: State<Mutex<HpoCuratorSingleton>>) ->Result<HashMap<String,String>, String> {
+    let singleton = singleton.lock().unwrap();
+    match &singleton.phetools {
+        Some(ptools) => {
+            let dat= ptools.get_hpo_data();
+            return Ok(dat);
+        },
+        None => Err(format!("Phetools template not initialized"))
+    }
+}
+
