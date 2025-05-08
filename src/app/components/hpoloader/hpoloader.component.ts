@@ -1,14 +1,13 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { interval, Subscription } from 'rxjs';
 import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-hpoloader',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule],
+  imports: [CommonModule],
   templateUrl: './hpoloader.component.html',
   styleUrls: ['./hpoloader.component.css']
 })

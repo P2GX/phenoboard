@@ -4,12 +4,10 @@ import { ConfigService } from '../../services/config.service';
 import { interval, Subscription } from 'rxjs';
 import { open, save } from '@tauri-apps/plugin-dialog';
 
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 @Component({
   selector: 'app-phetoolsloader',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule],
+  imports: [CommonModule],
   templateUrl: './phetoolsloader.component.html',
   styleUrl: './phetoolsloader.component.css'
 })

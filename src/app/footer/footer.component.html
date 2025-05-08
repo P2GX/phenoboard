@@ -1,6 +1,7 @@
-<footer>
-  <p>&copy; 2025 HPO Curator</p>
-  <div class="led" [ngClass]="isToolReady ? 'green' : 'red'"></div>
-  <span>{{ isToolReady ? 'Tool is ready' : 'Waiting for files...' }}</span>
+<footer class="flex">
+    <div class="led" [ngClass]="isToolReady ? 'green' : 'red'"></div>
+    <span>{{ isToolReady ? 'Ready To Curate' : 'Not Ready' }}</span>
+    <div class="flex-1 flex justify-end">
+        <p>&copy; 2025 HPO Curator</p>
+    </div>
 </footer>
-  

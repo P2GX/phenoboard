@@ -1,6 +1,36 @@
-@use "@angular/material" as mat;
+@layer tailwind-base, primeng, tailwind-utilities;
 
-@include mat.core();
-@include mat.all-component-themes();
+@layer tailwind-base {
+  @import "tailwindcss/base";
+}
 
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@layer tailwind-utilities {
+  @import "tailwindcss/components";
+  @import "tailwindcss/utilities";
+}
+
+@import "primeicons/primeicons.css";
+
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+html, body {
+  height: 100%;
+}
+
+
+app-header {
+  flex: 0 1 auto;
+}
+
+.app-body {
+  flex: 1 1 auto;
+}
+
+app-footer {
+  flex: 0 1 auto;
+}

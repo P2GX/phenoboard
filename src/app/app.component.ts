@@ -8,10 +8,8 @@ import { FooterComponent } from './footer/footer.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FooterComponent, NavbarComponent, RouterOutlet, ],
+  imports: [CommonModule, FooterComponent, NavbarComponent, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
-  
-}
+export class AppComponent {}

@@ -1,13 +1,12 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 
 
 @Component({
   selector: 'app-hpoloader',
   standalone: true,
-  imports: [CommonModule, MatTableModule],
+  imports: [CommonModule],
   templateUrl: './pyphetools.component.html',
   styleUrls: ['./pyphetools.component.css'],
 })

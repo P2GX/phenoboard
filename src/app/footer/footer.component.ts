@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event'; // Import listen from Tauri
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
@@ -10,11 +10,11 @@ import { ConfigService } from '../services/config.service';
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss'
 })
-export class FooterComponent implements OnInit{
+export class FooterComponent implements OnInit {
   isToolReady: boolean = false;
   private unlistenReady: UnlistenFn | null = null;
 
-  constructor(private cd: ChangeDetectorRef, private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {}
 
   
 

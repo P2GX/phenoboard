@@ -1,17 +1,15 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { AccordionModule } from "primeng/accordion";
 
 @Component({
   selector: 'app-help',
-  templateUrl: './help.component.html',
-  styleUrl: './help.component.scss',
-  standalone: true,
- // imports: [CommonModule, BrowserAnimationsModule],
-  //providers: [CommonModule, BrowserAnimationsModule],
+  templateUrl: './tutorial.component.html',
+  styleUrl: './tutorial.component.scss',
+  imports: [AccordionModule],
+  standalone: true
 })
-export class HelpComponent {
+export class TutorialComponent {
   topic = '';
   content = '';
 
@@ -25,15 +23,7 @@ export class HelpComponent {
   loadContent(topic: string) {
     const helpTexts: { [key: string]: string } = {
       introduction: `
-        <h3>Introduction</h3>
-        <p>Welcome to FTC2! This tool helps you perform text mining and analysis efficiently.</p>
-        <p>Key features include:</p>
-        <ul>
-          <li>Creation of new phenopacket cohort templates</li>
-          <li>Named entity recognition (mining) of clinical texts</li>
-          <li>Editing templates</li>
-          <li>GA4GH Phenopacket Q/C and export</li>
-        </ul>
+      
       `,
       newtemplate: `
         <h3>New Pyphetools Phenopacket Template</h3>

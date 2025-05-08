@@ -1,17 +1,8 @@
-<nav>
-    <a routerLink="/">Home</a>
-   <!-- <a routerLink="/settings">Settings</a> -->
-    <a routerLink="/table">New Template</a>
-    <a routerLink="/pyphetools">Pyphetools</a>
-    <a routerLink="/textmining">Text mining</a>
-    <!-- Help Dropdown -->
-     <button [matMenuTriggerFor]="helpMenu" class="help-button">
-        Help
-    </button>
-    <mat-menu #helpMenu="matMenu">
-        <button mat-menu-item *ngFor="let item of helpItems" [routerLink]="['/help', item.key]">
-            {{ item.label }}
-        </button>
-    </mat-menu>
-</nav>
-  
+<p-megamenu [model]="items" styleClass="bg-gray-300 flex items-center text-gray-900 h-20">
+    <ng-template #start>
+        <div class="cursor-pointer inline-flex hover:opacity-60" routerLink="/">
+            <span class="pi pi-palette" style="font-size: 1.6rem"></span>
+            <h1 class="text-xl ml-2">PhenopacketCurator</h1>
+        </div>
+    </ng-template>
+</p-megamenu>
