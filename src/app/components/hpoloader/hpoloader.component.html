@@ -3,6 +3,7 @@
 <button (click)="chooseHpJsonFile()" class="settings-button">Select hp.json file</button>
     <p *ngIf="!initialState" class="hp-text">{{ hpJsonPath }}</p>
     <p *ngIf="!initialState" class="hp-text">Version: {{ hpoVersion }}</p>  
+    < p *ngIf=""
     <div *ngIf="isLoading" class="spinner-container">
       <svg
       class="spinner"

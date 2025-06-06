@@ -14,6 +14,7 @@ import { ConfigService } from '../../services/config.service';
 })
 export class HpoloaderComponent {
   initialState: boolean = true;
+  hpoReady: boolean = false;
   isLoading: boolean = false;
   successfullyLoaded: boolean = false;
   filePath: string = "";
@@ -22,6 +23,7 @@ export class HpoloaderComponent {
   loadError: string | null = null;
   progress: number = 0;
   progressSub?: Subscription;
+  hpoData: Record<string, string> = {};
 
   constructor(private cd: ChangeDetectorRef, private configService: ConfigService) {}
 
@@ -34,10 +36,13 @@ export class HpoloaderComponent {
   async loadHpoVersion(): Promise<void> {
     try {
       this.hpoVersion = await this.configService.getHpoVersion();
+      this.hpoData = await this.configService.getHpoData();
       console.log("Retrieved hpo version: ", this.hpoVersion);
+      this.hpoReady = true;
     } catch (err) {
       console.error('Error getting HPO version: ', err);
       this.hpoVersion = err instanceof Error ? err.message : 'Unknown error'; 
+      this.hpoReady = false;
       this.loadError = "Could not load HPO version" 
     } finally {
       await this.configService.checkReadiness();

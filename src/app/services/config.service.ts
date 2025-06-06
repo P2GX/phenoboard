@@ -73,4 +73,8 @@ export class ConfigService {
     return await invoke('get_template_summary');
   }
 
+  async getHpoData(): Promise<Record<string, string>> {
+    return await invoke<string | string>("get_hpo_data");
+  }
+
 }
