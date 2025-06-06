@@ -1,5 +1,6 @@
 mod hpo_curator;
 mod hpo_mining;
+mod hpo_version_checker;
 mod settings;
 mod table_manager;
 

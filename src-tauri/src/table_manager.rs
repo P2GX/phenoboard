@@ -27,7 +27,7 @@ pub fn edit_pyphetools_table_cell(
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
-    singleton.set_table_cell(row, col, value);
+    let _ = singleton.set_table_cell(row, col, &value);
     Ok(())
 }
 
@@ -42,7 +42,7 @@ pub fn process_pyphetools_table_rclick(
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
-    let _ = singleton.set_table_cell(row, col, value);
+    let _ = singleton.set_table_cell(row, col, &value);
     Ok(())
 }
 

@@ -6,7 +6,6 @@ use ontolius::io::OntologyLoaderBuilder;
 use ontolius::ontology::csr::FullCsrOntology;
 use rfd::FileDialog;
 use serde::{Serialize, Deserialize};
-use tauri::utils::config::parse::ConfigFormat;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};

@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::settings::HpoCuratorSettings;
+use crate::{hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
 use std::{collections::HashMap, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology, TermId};
@@ -64,9 +64,7 @@ impl HpoCuratorSingleton {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
-                phetools
-                    .load_excel_template(template_path)
-                    .map_err(|evec| evec.join("; "))?;
+                phetools.load_excel_template(template_path)?;
                 self.phetools = Some(phetools);
                 Ok(())
             }
@@ -132,19 +130,24 @@ impl HpoCuratorSingleton {
         }
     }
 
+
+    
     pub fn new_row(
         &mut self,
         pmid: impl Into<String>,
         title: impl Into<String>,
         individual_id: impl Into<String>,
     ) -> Result<(), String> {
+        eprintln!("[ERROR] HpoCurator::new_row not implemented");
+        /* 
         match &mut self.phetools {
             Some(ptools) => {
                 ptools.add_row(pmid, title, individual_id)?;
                 Ok(())
             }
             None => Err(format!("Phetools object not initialized")),
-        }
+        }*/
+        Ok(())
     }
 
     pub fn new_row_with_pt(
@@ -155,7 +158,8 @@ impl HpoCuratorSingleton {
     ) -> Result<(), String> {
         match &mut self.phetools {
             Some(ptools) => {
-                ptools.add_row(pmid, title, individual_id)?;
+               // ptools.add_row(pmid, title, individual_id)?;
+                eprintln!("[ERROR] HpoCurator::add_row not implemented");
                 Ok(())
             }
             None => Err(format!("Phetools object not initialized")),
@@ -240,7 +244,7 @@ impl HpoCuratorSingleton {
         &mut self,
         r: usize,
         c: usize,
-        value: impl Into<String>,
+        value: &str,
     ) -> Result<(), String> {
         match &mut self.phetools {
             Some(ptools) => {
@@ -261,8 +265,7 @@ impl HpoCuratorSingleton {
                 Ok(_) => {
                     return Ok(());
                 }
-                Err(evec) => {
-                    let msg = evec.join("; ");
+                Err(msg) => {
                     return Err(msg);
                 }
             },
@@ -280,7 +283,7 @@ impl HpoCuratorSingleton {
                     self.set_current_column(col);
                     return Ok(mat);
                 } else {
-                    let ctype = ptools.col_type_at(col);
+                    let ctype = ptools.col_type_at(col)?;
                     return Err(format!("Column type {ctype} not supported."));
                 }
                 //ptools.get_column_with_context(col).map_error(|e| e.to_string())?;
@@ -347,7 +350,7 @@ impl HpoCuratorSingleton {
         &mut self,
         r: usize,
         c: usize,
-        val: impl Into<String>,
+        val: &str,
     ) -> Result<(), String> {
         match self.phetools.as_mut() {
             Some(table) => {
@@ -431,7 +434,7 @@ pub fn set_value(
     singleton: State<Mutex<HpoCuratorSingleton>>,
     r: usize,
     c: usize,
-    value: impl Into<String>,
+    value: &str,
 ) -> Result<(), String> {
     let mut singleton = singleton.lock().unwrap();
     singleton.set_value(r, c, value)?;
@@ -449,12 +452,32 @@ pub fn get_template_summary(singleton: State<Mutex<HpoCuratorSingleton>>) ->Resu
 }
 
 #[tauri::command]
-pub fn get_hpo_data(singleton: State<Mutex<HpoCuratorSingleton>>) ->Result<HashMap<String,String>, String> {
+pub fn get_hpo_data(
+    singleton: State<Mutex<HpoCuratorSingleton>>
+) ->Result<HashMap<String,String>, String> {
     let singleton = singleton.lock().unwrap();
     match &singleton.phetools {
         Some(ptools) => {
             let dat= ptools.get_hpo_data();
             return Ok(dat);
+        },
+        None => Err(format!("Phetools template not initialized"))
+    }
+}
+
+/// Check whether the HPO version we are using is the latest version
+/// by comparing the latest version online
+#[tauri::command]
+pub fn hpo_can_be_updated(
+    singleton: State<Mutex<HpoCuratorSingleton>>
+) ->Result<bool, String> {
+    let singleton = singleton.lock().unwrap();
+    match &singleton.ontology {
+        Some(hpo) => {
+            let hpo_arc = hpo.clone();
+            let hpo_update_checker = OntoliusHpoVersionChecker::new(&hpo_arc)?;
+            let updatable = hpo_update_checker.hp_json_can_be_updated();
+            return Ok(updatable);
         },
         None => Err(format!("Phetools template not initialized"))
     }
