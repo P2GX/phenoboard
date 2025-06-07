@@ -74,7 +74,11 @@ export class ConfigService {
   }
 
   async getHpoData(): Promise<Record<string, string>> {
-    return await invoke<string | string>("get_hpo_data");
+    return await invoke("get_hpo_data");
+  }
+
+  async getPhenopacketStoreStructure(): Promise<string | string> {
+    return await invoke("get_ppkt_store_json")
   }
 
 }

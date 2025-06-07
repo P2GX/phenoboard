@@ -3,8 +3,8 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
-use std::{collections::HashMap, sync::Arc};
+use crate::{directory_manager::DirectoryManager, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology, TermId};
 use rfenominal::{
@@ -482,4 +482,27 @@ pub fn hpo_can_be_updated(
         None => Err(format!("Phetools template not initialized"))
     }
 }
+
+
+#[tauri::command]
+pub fn get_ppkt_store_json(
+    singleton: State<Mutex<HpoCuratorSingleton>>,
+) ->  Result<serde_json::Value, String> {
+    let mut singleton = singleton.lock().unwrap();
+    let file_path = match &singleton.pt_template_path {
+        Some(path) => path,
+        None => {return Err(format!("Template path not initialized"));},
+    };
+    // synchronous (blocking) file chooser
+    let path = Path::new(&file_path);
+
+    let file_name = path.to_string_lossy(); 
+    let parent = match path.parent() {
+        Some(parent_path) => parent_path,
+        None => {return Err(format!("Template prent path not initialized"));},
+    };
+    let dirman = DirectoryManager::new(parent.to_string_lossy())?;
+    return dirman.get_json();
+}
+
 

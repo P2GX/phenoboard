@@ -1,3 +1,4 @@
+mod directory_manager;
 mod hpo_curator;
 mod hpo_mining;
 mod hpo_version_checker;
@@ -21,6 +22,7 @@ pub fn run() {
             hpo_curator::get_table_columns_from_seeds,
             hpo_curator::get_template_summary,
             hpo_curator::get_hpo_data,
+            hpo_curator::get_ppkt_store_json,
             hpo_mining::run_text_mining,
             settings::check_if_phetools_is_ready,
             settings::get_hp_json_path,
