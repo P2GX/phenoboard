@@ -1,18 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "hpocurator",
-  "version": "0.1.0",
-  "identifier": "com.hpocurator.app",
+  "productName": "phenoboard",
+  "version": "0.1.35",
+  "identifier": "org.p2gx.phenoboard",
   "build": {
     "beforeDevCommand": "npm run start",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist/hpocurator/browser"
+    "frontendDist": "../dist/phenoboard/browser"
   },
   "app": {
     "windows": [
       {
-        "title": "HPO Curator",
+        "title": "GA4GH Phenoboard",
         "width": 1400,
         "height": 900
       }

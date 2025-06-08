@@ -8,10 +8,7 @@
 //! - currently, Jupyter notebooks to create phenopackets from the input (this will be replaced once this software is mature)
 //!
 
-use std::{fmt, fs, path::{Path, PathBuf}, sync::Mutex};
-
-use tauri::State;
-
+use std::{fmt, fs, path::{Path, PathBuf}};
 
 
 /// Representation of one of the directories in Phenopacket Store (e.g., FBN1)
@@ -133,6 +130,15 @@ impl DirectoryManager {
         Ok(dir_list)
     }
 
+    /// Get a JSON representation of all input files currently in the Phenopacket Store
+    /// 
+    /// Assuming we point at the directory with all of the cohorts as subdirectory (currently, "notebooks"),
+    /// then there is one directory for each cohort (usually a gene). Each of these directories may have
+    /// a Jupyter notebook for the pyphetools project (which we ignore), as well as an 'input' directory with
+    /// Excel templates (or TSV). a directory called 'phenopackets' with the generate GA4GH phenopackets
+    /// 
+    /// - *Returns
+    ///    a JSON Value object representing the hierarchy of these files
     pub fn get_json(&self) -> Result<serde_json::Value, String> {
         serde_json::to_value(self).map_err(|e| e.to_string())
     }
@@ -146,14 +152,18 @@ impl DirectoryManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+    use serde_json::{json, to_string_pretty};
 
     #[test]
-    #[ignore = "directory path if phenopacket store is also in GIT local folder at same level"]
+    #[ignore = "directory path needs to be adjusted to visualize JSON (but function/test is working)"]
     fn show_ppkt_store_directories()  {
-        let dirpath = "../../../phenopacket-store/notebooks/"; // adjust as needed to test
+        let dirpath = "/../phenopacket-store/notebooks/"; // adjust as needed to test/visualize the JSON
         let dirman = DirectoryManager::new(dirpath).unwrap(); 
-        print!("{:?}",dirman.get_json());
+        let json = dirman.get_json();
+        assert!(json.is_ok());
+        let json = json.unwrap();
+        let pretty_json = to_string_pretty(&json).unwrap();
+        print!("{}", pretty_json);
     }
 
     

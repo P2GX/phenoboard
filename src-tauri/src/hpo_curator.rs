@@ -6,14 +6,14 @@
 use crate::{directory_manager::DirectoryManager, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
 use std::{collections::HashMap, path::Path, sync::Arc};
 
-use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology, TermId};
+use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
 use rfenominal::{
     fenominal::{Fenominal, FenominalHit},
     TextMiner,
 };
 use rphetools::PheTools;
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 
 pub enum PptOperation {
     ShowColumn,
@@ -30,6 +30,7 @@ pub struct HpoCuratorSingleton {
     current_row: Option<usize>,
     current_column: Option<usize>,
     current_operation: PptOperation,
+    /// this value is true if there are changes we have not yet saved to file
     unsaved: bool,
 }
 
@@ -74,7 +75,7 @@ impl HpoCuratorSingleton {
 
     pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
         let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-        self.set_hp_json(hp_json);
+        self.set_hp_json(hp_json)?;
         match &self.settings.get_hp_json_path() {
             Ok(hp_json) => {
                 let hpo: FullCsrOntology = loader
@@ -115,7 +116,7 @@ impl HpoCuratorSingleton {
 
     pub fn get_hpo_version(&self) -> Result<String, String> {
         match &self.ontology {
-            Some(_hpo) => Ok("hpo_curator (l. 72) needs update (ontolius)".to_string()),
+            Some(hpo) => Ok(hpo.version().to_string()),
             None => Err("HPO not initialized".to_string()),
         }
     }
@@ -298,8 +299,6 @@ impl HpoCuratorSingleton {
         return self.ontology.is_some() && self.pt_template_path.is_some();
     }
 
-   
-
     /// TODO figure out error handling
     pub fn map_text(&self, input_text: &str) -> String {
         match &self.ontology {
@@ -354,7 +353,7 @@ impl HpoCuratorSingleton {
     ) -> Result<(), String> {
         match self.phetools.as_mut() {
             Some(table) => {
-                table.set_value(r, c, val);
+                table.set_value(r, c, val)?;
                 Ok(())
             }
             None => Err(format!("Attempt to set uninitialized table")),
@@ -483,20 +482,17 @@ pub fn hpo_can_be_updated(
     }
 }
 
-
+/// Get a JSON object that represents the directory and file structure of the Phenopacket Store
 #[tauri::command]
 pub fn get_ppkt_store_json(
     singleton: State<Mutex<HpoCuratorSingleton>>,
 ) ->  Result<serde_json::Value, String> {
-    let mut singleton = singleton.lock().unwrap();
+    let singleton = singleton.lock().unwrap();
     let file_path = match &singleton.pt_template_path {
         Some(path) => path,
         None => {return Err(format!("Template path not initialized"));},
     };
-    // synchronous (blocking) file chooser
     let path = Path::new(&file_path);
-
-    let file_name = path.to_string_lossy(); 
     let parent = match path.parent() {
         Some(parent_path) => parent_path,
         None => {return Err(format!("Template prent path not initialized"));},
@@ -505,4 +501,21 @@ pub fn get_ppkt_store_json(
     return dirman.get_json();
 }
 
-
+#[tauri::command]
+pub async fn update_descriptive_stats(
+    app: AppHandle,
+    singleton: State<'_, Mutex<HpoCuratorSingleton>>,
+) -> Result<(), String> {
+    let singleton = singleton.lock().unwrap();
+    let hpo = match &singleton.ontology {
+        Some(hpo) => hpo,
+        None => {
+            return Err(format!("HPO not initialized"));
+        },
+    };
+    let n_hpo_terms = hpo.len();
+    let hpo_version = hpo.version();
+    let _ = app.emit("n_hpo_terms", format!("{}", n_hpo_terms));
+    let _ = app.emit("hpo_version", format!("{}", hpo_version));
+    Ok(())
+}

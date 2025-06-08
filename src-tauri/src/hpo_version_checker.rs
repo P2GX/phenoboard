@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use ontolius::ontology::csr::FullCsrOntology;
 use ontolius::ontology::MetadataAware;
-use serde::Deserialize;
+
 
 const REMOTE_HP_JSON_URL: &str = "https://purl.obolibrary.org/obo/hp/hp.json";
 
@@ -129,7 +129,7 @@ impl OntoliusHpoVersionChecker {
 
 impl HpoVersionChecker for OntoliusHpoVersionChecker {
     fn hp_json_can_be_updated(&self) -> bool {
-        return self.ontolius_hpo_version != self.remote_hpo_version;
+        return self.ontolius_hpo_version() != self.remote_hpo_version();
     }
     
     fn remote_hpo_version(&self) -> &str {

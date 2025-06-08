@@ -1,6 +1,6 @@
 {
-  "name": "hpocurator",
-  "version": "0.1.38",
+  "name": "phenoboard",
+  "version": "0.1.28",
   "scripts": {
     "ng": "ng",
     "start": "nx serve",

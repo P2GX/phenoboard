@@ -117,7 +117,7 @@ impl HpoCuratorSettings {
 fn get_config_path() -> Result<PathBuf, String> {
     match home_dir() {
         Some(mut home) => {
-            home.push(".hpocurator");
+            home.push(".phenoboard");
             Ok(home)
         }
         None => Err(format!("Could not determine home directory"))
@@ -126,7 +126,7 @@ fn get_config_path() -> Result<PathBuf, String> {
 
 fn get_config_file() -> Result<PathBuf, String> {
     let mut config_file = get_config_path()?;
-    config_file.push("settings.toml"); // ~/.hpocurator/settings.toml
+    config_file.push("settings.toml"); // ~/.phenoboard/settings.toml
     Ok(config_file)
 }
 
@@ -155,7 +155,7 @@ pub fn load_hpo_from_hp_json(singleton: State<Mutex<HpoCuratorSingleton>>) -> Re
                 .expect("Ontolius: Could not load hp.json");
             let hpo_arc = Arc::new(hpo);
             singleton.set_hpo(hpo_arc);
-            singleton.set_hp_json(&hp_json);
+            let _ = singleton.set_hp_json(&hp_json);
             return Ok(());
         }
     }
@@ -178,7 +178,7 @@ pub fn select_hp_json_download_path(
             match pbresult {
                 Ok(abspath) => {
                     let hpj_path = abspath.canonicalize().unwrap().display().to_string();
-                    singleton.set_hp_json(&hpj_path);
+                    let _ = singleton.set_hp_json(&hpj_path);
                     return Some(hpj_path);
                 }
                 Err(e) => {

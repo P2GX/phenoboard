@@ -78,7 +78,11 @@ export class ConfigService {
   }
 
   async getPhenopacketStoreStructure(): Promise<string | string> {
-    return await invoke("get_ppkt_store_json")
+    return await invoke("get_ppkt_store_json");
+  }
+
+  async updateDescriptiveStats(): Promise<void> {
+    return await invoke("update_descriptive_stats");
   }
 
 }

@@ -1,6 +1,6 @@
 [package]
-name = "hpocurator"
-version = "0.1.27"
+name = "phenoboard"
+version = "0.1.28"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -11,14 +11,14 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "hpocurator_lib"
+name = "phenoboard_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-toml = "0.8"
+toml = "0.8.23"
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2.2.6"
 tauri-plugin-dialog = "2"
@@ -26,10 +26,10 @@ reqwest = { version = "0.12.19", features = ["json", "blocking"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 rfenominal = { git = 'https://github.com/P2GX/rfenominal.git',  tag = '0.1.9' }
-ontolius = "0.5.2" 
+ontolius = "0.5.3" 
 rphetools = { git = 'https://github.com/P2GX/rphetools.git', tag = '0.2.11' }
 dirs = "6.0"
-rfd ={ version = "0.15.3", default-features = false}
+rfd = { version = "0.15.3", default-features = false}
 tauri-plugin-fs = "2"
 
 

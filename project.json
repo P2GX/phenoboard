@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/nx/schemas/project-schema.json",
-  "name": "hpocurator",
+  "name": "phenoboard",
   "projectType": "application",
   "sourceRoot": "src",
   "prefix": "app",
@@ -13,7 +13,7 @@
     "build": {
       "executor": "@angular-devkit/build-angular:application",
       "options": {
-        "outputPath": "dist/hpocurator",
+        "outputPath": "dist/phenoboard",
         "index": "src/index.html",
         "browser": "src/main.ts",
         "polyfills": [
@@ -58,10 +58,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "hpocurator:build:production"
+          "buildTarget": "phenoboard:build:production"
         },
         "development": {
-          "buildTarget": "hpocurator:build:development"
+          "buildTarget": "phenoboard:build:development"
         }
       },
       "defaultConfiguration": "development"

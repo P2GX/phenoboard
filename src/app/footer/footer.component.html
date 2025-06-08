@@ -1,6 +1,7 @@
 <footer>
-  <p>&copy; 2025 HPO Curator</p>
-  <div class="led" [ngClass]="isToolReady ? 'green' : 'red'"></div>
-  <span>{{ isToolReady ? 'Tool is ready' : 'Waiting for files...' }}</span>
+  <p>&copy; 2025 GA4GH Phenoboard</p>
+  <div class="led" [ngClass]="isToolReady ? 'green' : 'red'">
+    <span>{{ isToolReady ? statusMessage  : 'Waiting for files...' }}</span>
+  </div>
 </footer>
   
