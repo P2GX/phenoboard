@@ -49,8 +49,10 @@ impl PhenoboardSingleton {
     }
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
+        let hpo_clone = Arc::clone(&ontology);
         self.ontology = Some(ontology);
-        println!("phenoboard.rs:set_hpo - done");
+        let phetools = PheTools::new(hpo_clone);
+        self.phetools = Some(phetools);
     }
 
     pub fn set_hp_json(&mut self, hp_json: &str) -> Result<(), String>{
@@ -66,8 +68,8 @@ impl PhenoboardSingleton {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
-                phetools.load_excel_template(template_path)?;
                 self.phetools = Some(phetools);
+                self.load_excel_template(template_path)?;
                 Ok(())
             }
             None => Err(format!("HPO not initialized")),
@@ -262,6 +264,7 @@ impl PhenoboardSingleton {
     }
 
     pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
+        self.pt_template_path = Some(excel_file.to_string());
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(excel_file) {
                 Ok(_) => {
@@ -271,7 +274,7 @@ impl PhenoboardSingleton {
                     return Err(msg);
                 }
             },
-            None => return Err(format!("Could not load excel file since Phetools was null")),
+            None => return Err(format!("Could not load excel file since Phetools was not initialized. Did you load HPO?")),
         }
     }
 
