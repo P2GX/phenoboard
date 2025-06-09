@@ -5,13 +5,13 @@ import { ConfigService } from '../services/config.service';
 
 
 @Component({
-  selector: 'app-hpoloader',
+  selector: 'app-phetools',
   standalone: true,
   imports: [CommonModule, MatTableModule],
-  templateUrl: './pyphetools.component.html',
-  styleUrls: ['./pyphetools.component.css'],
+  templateUrl: './phetools.component.html',
+  styleUrls: ['./phetools.component.css'],
 })
-export class PyphetoolsComponent implements OnInit {
+export class PhetoolsComponent implements OnInit {
   objectKeys = Object.keys;
   constructor(private configService: ConfigService, private cdr: ChangeDetectorRef) {}
   

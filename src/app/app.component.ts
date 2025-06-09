@@ -6,15 +6,14 @@ import { TextminingComponent } from "./textmining/textmining.component";
 import { SettingsComponent } from "./settings/settings.component";
 import { TableComponent } from "./table/table.component";
 import { HelpComponent } from "./help/help.component";
-import { PyphetoolsComponent } from "./pyphetools/pyphetools.component";
-import { PhetoolsloaderComponent } from "./components/phetoolsloader/phetoolsloader.component";
+import { PhetoolsComponent } from "./phetools/phetools.component";
 import { NavbarComponent } from './navbar/navbar.component';
 import { Page, PageService } from './services/page.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, TextminingComponent, SettingsComponent, PyphetoolsComponent, PhetoolsloaderComponent, NavbarComponent],
+  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, TextminingComponent, SettingsComponent, PhetoolsComponent,  NavbarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

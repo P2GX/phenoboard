@@ -19,9 +19,9 @@ export class NavbarComponent {
 
   tabs = [
     { id: 'home', label: 'Home' },
-    { id: 'table', label: 'Table' },
+    { id: 'table', label: 'New PheTools Table' },
+    { id: 'phetools', label: 'Edit PheTools Table'},
     { id: 'textmining', label: 'Text mining' },
-    { id: 'pyphetoolsloader', label: 'Pyphetools loader' },
     { id: 'settings', label: 'Settings' },
     { id: 'help', label: 'Help' },
   ];

@@ -10,29 +10,58 @@
 
     <div class="flex flex-col space-y-4">
     <div class="flex items-center gap-3">
+      <div class="relative group">
     <button
         (click)="loadHpo()"
         class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
     >Load HPO
     </button>
+     <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Select the hp.json file
+    </div>
+    </div>
     <span class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
 </div>
 
 <div class="flex items-center gap-3">
+  <div class="relative group">
     <button
-        (click)="chooseExistingTemplateFile()"
-        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
-    >{{ successfullyLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
+      (click)="chooseExistingTemplateFile()"
+      [disabled]="!hpoLoaded"
+      class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >
+      {{ successfullyLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
     </button>
-    <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
+
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Select a phetools template file (enabled after HPO is loaded)
+    </div>
+  </div>
+
+  <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
 </div>
 
 <div class="flex items-center gap-3">
+  <div class="relative group">
     <button
         (click)="chooseNewPhetoolsFile()"
-        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+        [disabled]="!hpoLoaded"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >Create new template
     </button>
+     <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Create a new phetools template file (enabled after HPO is loaded)
+    </div>
+    </div>
     <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
 </div>
 </div>

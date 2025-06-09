@@ -1,6 +1,4 @@
 import { Component, NgZone, ViewChild } from '@angular/core';
-import { PhetoolsloaderComponent } from "../components/phetoolsloader/phetoolsloader.component";
-import { invoke } from '@tauri-apps/api/core';
 import { ConfigService } from '../services/config.service';
 import { listen } from '@tauri-apps/api/event';
 import { FooterComponent } from '../footer/footer.component';
@@ -14,6 +12,7 @@ import { CommonModule, NgIf } from '@angular/common';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
+
 
   constructor(private ngZone: NgZone, private configService: ConfigService) {}
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
@@ -30,23 +29,44 @@ export class HomeComponent {
   loadError: any;
   newTemplateMessage: string = "not initialized";
   templateFileMessage: string = "not initialized";
+  pendingHpoVersion: string | null = null;
+  pendingHpoNterms: string | null = null;
 
-  
+  ngAfterViewInit() {
+    if (this.pendingHpoVersion && this.footer_component) {
+      this.footer_component.setHpoVersion(this.pendingHpoVersion);
+      this.pendingHpoVersion = null;
+    }
+    if (this.pendingHpoNterms && this.footer_component) {
+      this.footer_component.setHpoVersion(this.pendingHpoNterms);
+      this.pendingHpoNterms = null;
+    }
+  }
 
   async ngOnInit() {
     listen('n_hpo_terms', (event) => {
       this.ngZone.run(() => {
         this.nHpoTerms = String(event.payload);
-        this.footer_component.setHpoNTerms(this.nHpoTerms);
+        if (this.footer_component) {
+          this.footer_component.setHpoNTerms(this.nHpoTerms);
+        } else {
+          this.pendingHpoNterms = this.nHpoTerms;
+        }
+        
       });
     });
     listen('hpo_version', (event) => {
       this.ngZone.run(() => {
         this.hpoVersion = String(event.payload);
         console.log("hpo_version =", this.hpoVersion);
-        this.hpoMessage = String(this.hpoVersion);
+        this.hpoMessage = this.hpoVersion;
         console.log("loaded HPO: hpoMessage=", this.hpoMessage);
-        this.footer_component.setHpoVersion(this.hpoVersion);
+        if (this.footer_component) {
+          this.footer_component.setHpoVersion(this.hpoVersion);
+        } else {
+          this.pendingHpoVersion = this.hpoVersion;
+        }
+        //this.footer_component.setHpoVersion(this.hpoVersion);
       });
     });
     listen("loadedHPO", (event) => {

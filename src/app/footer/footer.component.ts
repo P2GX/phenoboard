@@ -39,6 +39,7 @@ export class FooterComponent implements OnInit{
   }
 
   updateStatus() {
+    console.log("footcompon update");
     let msg = '';
     this.ngZone.run(() => {
       if (this.hpoVersion.length > 0) {
@@ -60,6 +61,7 @@ export class FooterComponent implements OnInit{
   }
 
   setHpoVersion(hpoVersion: string) {
+    console.log("setHpoVersion = ", hpoVersion);
     this.hpoVersion = hpoVersion;
     this.updateStatus();
   }
