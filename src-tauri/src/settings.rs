@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
 
-use crate::phenoboard::HpoCuratorSingleton;
+use crate::phenoboard::PhenoboardSingleton;
 
 /// Settings to persist between sessions.
 

@@ -1,16 +1,10 @@
-<nav>
-  <button (click)="setView('home')">Home</button>
-  <button (click)="setView('table')">Table</button>
-  <button (click)="setView('textmining')">Text mining</button>
-  <button (click)="setView('pyphetoolsloader')">Pyphetools loader</button>
-  <button (click)="setView('settings')">Settings</button>
-  <button (click)="setView('help')">Help</button>
-</nav>
+
+<app-navbar></app-navbar>
 <main>
   <app-home *ngIf="currentView === 'home'"></app-home>
   <app-table *ngIf="currentView === 'table'"></app-table>
   <app-textmining *ngIf="currentView === 'textmining'"></app-textmining>
-  <app-phetoolsloader *ngIf="currentView" === 'pyphetoolsloader'></app-phetoolsloader>
+  <app-phetoolsloader *ngIf="currentView === 'pyphetoolsloader'"></app-phetoolsloader>
   <app-settings *ngIf="currentView === 'settings'"></app-settings>
   <app-help *ngIf="currentView === 'help'"></app-help>
 </main>

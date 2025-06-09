@@ -22,7 +22,7 @@ pub enum PptOperation {
 }
 
 /// A singleton
-pub struct HpoCuratorSingleton {
+pub struct PhenoboardSingleton {
     settings: HpoCuratorSettings,
     ontology: Option<Arc<FullCsrOntology>>,
     pt_template_path: Option<String>,
@@ -34,9 +34,9 @@ pub struct HpoCuratorSingleton {
     unsaved: bool,
 }
 
-impl HpoCuratorSingleton {
+impl PhenoboardSingleton {
     pub fn new() -> Self {
-        HpoCuratorSingleton {
+        PhenoboardSingleton {
             settings: HpoCuratorSettings::load_settings(), 
             ontology: None,
             pt_template_path: None,
@@ -50,6 +50,7 @@ impl HpoCuratorSingleton {
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
         self.ontology = Some(ontology);
+        println!("phenoboard.rs:set_hpo - done");
     }
 
     pub fn set_hp_json(&mut self, hp_json: &str) -> Result<(), String>{

@@ -1,7 +1,7 @@
 [package]
 name = "phenoboard"
-version = "0.1.29"
-description = "A Tauri App"
+version = "0.1.30"
+description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
 

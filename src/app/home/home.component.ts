@@ -1,5 +1,4 @@
 import { Component, NgZone, ViewChild } from '@angular/core';
-import { HpoloaderComponent } from '../components/hpoloader/hpoloader.component';
 import { PhetoolsloaderComponent } from "../components/phetoolsloader/phetoolsloader.component";
 import { invoke } from '@tauri-apps/api/core';
 import { ConfigService } from '../services/config.service';
@@ -9,7 +8,7 @@ import { FooterComponent } from '../footer/footer.component';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [HpoloaderComponent, PhetoolsloaderComponent],
+  imports: [PhetoolsloaderComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -22,7 +21,7 @@ export class HomeComponent {
   hpoMessage: string = "not initialized";
 
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
- 
+
   async ngOnInit() {
     listen('n_hpo_terms', (event) => {
       this.ngZone.run(() => {
@@ -33,19 +32,38 @@ export class HomeComponent {
     listen('hpo_version', (event) => {
       this.ngZone.run(() => {
         this.hpoVersion = String(event.payload);
+        console.log("hpo_version =", this.hpoVersion);
+        this.hpoMessage = String(this.hpoVersion);
+        console.log("loaded HPO: hpoMessage=", this.hpoMessage);
         this.footer_component.setHpoVersion(this.hpoVersion);
+      });
+    });
+    listen("loadedHPO", (event) => {
+      this.ngZone.run(() => {
+        let message = String(event.payload);
+        if (message === "success") {
+          this.hpoLoaded = true; 
+        } else if (message === "failure") {
+          this.hpoLoaded = false;
+        } else if (message === "loading") {
+          this.hpoMessage = " loading ...";
+        }else {
+          console.error("did not recognize payload for hpoMessage: ", message);
+          this.hpoLoaded = false;
+        }
       });
     });
   }
 
   async loadHpo() {
+    console.log("loading HPO");
     try {
-      await invoke("load_hpo");
+      await this.configService.loadHPO();
     } catch (error) {
       console.error("Failed to call load_hpo:", error);
       this.hpoMessage = "Error calling load_hpo";
     }  finally {
-      this.configService.updateDescriptiveStats();
+      console.log("done loading HPO");
     }
   }
 

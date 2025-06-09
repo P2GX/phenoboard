@@ -15,6 +15,10 @@ export class ConfigService {
     return await invoke("load_hpo_from_hp_json", { hpoJsonPath:  hpJsonPath });
   }
 
+  async loadHPO(): Promise<void> {
+    return await invoke("load_hpo");
+  }
+
   async getHpoVersion(): Promise<string | string > {
     return await invoke<string | string>("get_hpo_version");
   }

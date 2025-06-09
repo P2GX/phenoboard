@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event'; // Import listen from Tauri
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
@@ -17,7 +17,7 @@ export class FooterComponent implements OnInit{
   statusMessage: string = '';
   private unlistenReady: UnlistenFn | null = null;
 
-  constructor(private cd: ChangeDetectorRef, private configService: ConfigService) {}
+  constructor(private ngZone: NgZone, private configService: ConfigService) {}
 
   
 
@@ -40,16 +40,18 @@ export class FooterComponent implements OnInit{
 
   updateStatus() {
     let msg = '';
-    if (this.hpoVersion.length > 0) {
-      msg = "version: " + this.hpoVersion;
-    }
-    if (this.nHpoTerms.length > 0) {
-      if (msg.length > 0) {
-        msg = msg + ". ";
-      }
-      msg = msg + "terms: " + this.nHpoTerms;
-    }
-    this.statusMessage = msg;
+    this.ngZone.run(() => {
+      if (this.hpoVersion.length > 0) {
+            msg = "version: " + this.hpoVersion;
+          }
+          if (this.nHpoTerms.length > 0) {
+            if (msg.length > 0) {
+              msg = msg + ". ";
+            }
+            msg = msg + "terms: " + this.nHpoTerms;
+          }
+          this.statusMessage = msg;
+    });
   }
 
   setHpoNTerms(nTerms: string) {

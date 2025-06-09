@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use tauri::State;
 
-use crate::phenoboard::HpoCuratorSingleton;
+use crate::phenoboard::PhenoboardSingleton;
 
 /// Process a right click on the pyphetools menu
 ///
@@ -20,12 +20,12 @@ use crate::phenoboard::HpoCuratorSingleton;
 /// A result. Ok(()) if the edit operation was successful, or an Err (string) otherwise.
 #[tauri::command]
 pub fn edit_pyphetools_table_cell(
-    singleton: State<'_, Arc<Mutex<HpoCuratorSingleton>>>,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     value: String,
     row: usize,
     col: usize,
 ) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<HpoCuratorSingleton>> = Arc::clone(&*singleton); 
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
     let _ = singleton.set_table_cell(row, col, &value);
@@ -36,12 +36,12 @@ pub fn edit_pyphetools_table_cell(
 /// for values such as "do something else"
 #[tauri::command]
 pub fn process_pyphetools_table_rclick(
-    singleton: State<'_, Arc<Mutex<HpoCuratorSingleton>>>,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     value: String,
     row: usize,
     col: usize,
 ) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<HpoCuratorSingleton>> = Arc::clone(&*singleton); 
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     println!("Received parameter: {} row {} col {}", value, row, col);
     let _ = singleton.set_table_cell(row, col, &value);
@@ -50,10 +50,10 @@ pub fn process_pyphetools_table_rclick(
 
 #[tauri::command]
 pub fn get_phetools_column(
-    singleton: State<'_, Arc<Mutex<HpoCuratorSingleton>>>,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     col: usize,
 ) -> Result<Vec<Vec<String>>, String> {
-    let singleton_arc: Arc<Mutex<HpoCuratorSingleton>> = Arc::clone(&*singleton); 
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     let mat = singleton.get_column_with_context(col)?;
     singleton.set_current_column(col);
@@ -62,9 +62,9 @@ pub fn get_phetools_column(
 
 #[tauri::command]
 pub fn get_selected_phetools_column(
-    singleton: State<'_, Arc<Mutex<HpoCuratorSingleton>>>,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
 ) -> Result<Vec<Vec<String>>, String> {
-    let singleton_arc: Arc<Mutex<HpoCuratorSingleton>> = Arc::clone(&*singleton); 
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     match singleton.get_current_column() {
         Some(col) => {
@@ -79,7 +79,7 @@ pub fn get_selected_phetools_column(
 
 #[tauri::command]
 pub fn edit_current_column(
-    singleton: State<'_, Arc<Mutex<HpoCuratorSingleton>>>,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     value: &str,
     row: usize,
 ) -> Result<(), String> {
@@ -87,7 +87,7 @@ pub fn edit_current_column(
         "table_manager::edit_current col, value={}, row={}",
         value, row
     );
-    let singleton_arc: Arc<Mutex<HpoCuratorSingleton>> = Arc::clone(&*singleton); 
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     match singleton.get_current_column() {
         Some(col) => {

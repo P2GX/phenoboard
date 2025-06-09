@@ -1,20 +1,35 @@
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
+import { Page, PageService } from '../services/page.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatMenuModule, MatButtonModule],
+  imports: [CommonModule],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.scss'
+  styleUrl: './navbar.component.css'
 })
+
+
+
 export class NavbarComponent {
-  helpItems = [
-    { key: 'introduction', label: 'Introduction' },
-    { key: 'newtemplate', label: 'New Pyphetools Template' },
-    { key: 'about', label: 'About' },
+  constructor(private pageService: PageService) {}
+
+  currentView: Page = 'home' as Page;
+
+  tabs = [
+    { id: 'home', label: 'Home' },
+    { id: 'table', label: 'Table' },
+    { id: 'textmining', label: 'Text mining' },
+    { id: 'pyphetoolsloader', label: 'Pyphetools loader' },
+    { id: 'settings', label: 'Settings' },
+    { id: 'help', label: 'Help' },
   ];
+
+
+
+  setView(page: string) {
+    this.pageService.setPage(page);
+    this.currentView = this.pageService.getPage();
+  }
 }
