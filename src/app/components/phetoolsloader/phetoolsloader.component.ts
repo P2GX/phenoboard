@@ -125,11 +125,7 @@ export class PhetoolsloaderComponent {
       console.log("Selected template file: ", path);
       try {
         this.isLoading = true;
-        console.log("Loading phetools template ");
-        this.cd.detectChanges();
-        await this.configService.loadExistingPhetoolsTemplate(path);
-        this.templateFilePath = path;
-        this.templateLoaded = true;
+      
       } catch(error) {
         console.error("Error loading phetools template:", error);
         this.templateLoaded = false;
@@ -150,26 +146,6 @@ export class PhetoolsloaderComponent {
         { name: "All Files", extensions: ["*"] }
       ]
     });
-  
-    if (!path) {
-      console.log("Template save canceled");
-      return;
-    }
-    try {
-  
-      console.log("Saving file at:", path);
-      await this.configService.loadExistingPhetoolsTemplate(path);
-      this.newFilePath = path;
-      this.newFileCreated = true;
-    } catch(error) {
-      this.newFilePath = "";
-      this.newFileCreated = false;
-      console.error("Could not create new file: ", error);
-    } finally {
-      this.isLoading = false;
-      await this.configService.checkReadiness();
-    }
-    //await invoke("create_new_file", { path });  // Send path to Rust
   }
 
   

@@ -30,6 +30,7 @@ pub fn run() {
             get_template_summary,
             hpo_can_be_updated,
             hpo_initialized,
+            load_existing_phetools_template,
             load_hpo,
             run_text_mining,
             set_value,
@@ -81,6 +82,37 @@ fn load_hpo(
             },
             None => {
                 let _ = app.emit("loadedHPO", "failure");
+            }
+        }
+    });
+    Ok(())
+}
+
+
+#[tauri::command]
+async fn load_existing_phetools_template(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+) -> Result<(), String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    std::thread::spawn(move || {
+        match app.dialog().file().blocking_pick_file() {
+            Some(file) => {
+                let mut singleton = phenoboard_arc.lock().unwrap();
+                let path_str = file.to_string();
+                match singleton.load_excel_template(&path_str) {
+                    Ok(_) => {
+                        let msg  = format!("success:{} phenopackets", singleton.phenopacket_count());
+                        let _ = app.emit("templateLoaded", msg);
+                    },
+                    Err(e) => {
+                        let msg  = format!("failure:{}", e);
+                        let _ = app.emit("templateLoaded", msg);
+                    },
+                };
+            },
+            None => {
+                let _ = app.emit("templateLoaded", "failure");
             }
         }
     });

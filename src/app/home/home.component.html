@@ -1,15 +1,52 @@
-<h1>GA4GH Phenoboard</h1>
-<p>This application is intended to support biocuration of GA4GH Phenopackets. For each disease to be curated, users should read or create an Excel curation template file. Use the x window to curate cohorts (from tabular data), and use the mining window to perform text mining on individual cases.</p>
+<div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">GA4GH Phenoboard</h1>
 
-<div class="flex items-center space-x-2">
+    <p class="text-gray-600 text-base leading-relaxed">
+    This application supports the biocuration of GA4GH Phenopackets.
+    For each disease to be curated, users should read or create an Excel curation template file.
+    Use the <strong class="font-medium text-gray-800">cohorts</strong> window to curate tabular data,
+    and the <strong class="font-medium text-gray-800">mining</strong> window to perform text mining on individual cases.
+    </p>
+
+    <div class="flex flex-col space-y-4">
+    <div class="flex items-center gap-3">
     <button
         (click)="loadHpo()"
-        class="w-32 px-2 py-1 bg-blue-500 text-white rounded text-sm"
-    >Load HPO</button>
-    <span class="text-xs text-gray-500">{{ hpoMessage }}</span>
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+    >Load HPO
+    </button>
+    <span class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
 </div>
 
-<div class="hpoloader-container">
-    <app-phetoolsloader></app-phetoolsloader>
+<div class="flex items-center gap-3">
+    <button
+        (click)="chooseExistingTemplateFile()"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+    >{{ successfullyLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
+    </button>
+    <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
 </div>
 
+<div class="flex items-center gap-3">
+    <button
+        (click)="chooseNewPhetoolsFile()"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+    >Create new template
+    </button>
+    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
+</div>
+</div>
+
+
+  <div *ngIf="templateLoaded" class="success-message">
+    Loaded {{ templateFilePath }}
+  </div>
+  <div *ngIf="newFileCreated" class="success-message">
+    Created file at {{ newFilePath }}
+  </div>
+  
+  <div *ngIf="loadError" class="error-message">
+    Error loading file: {{ loadError }}
+  </div>
+  
+</div>

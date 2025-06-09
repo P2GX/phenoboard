@@ -414,6 +414,13 @@ impl PhenoboardSingleton {
         }
     }
 
+    pub fn phenopacket_count(&self) -> usize {
+        match &self.phetools {
+            Some(ptools) => ptools.phenopacket_count(),
+            None => 0,
+        }
+    }
+
     pub fn get_table_columns_from_seeds(
         &mut self,
         disease_id: &str,
