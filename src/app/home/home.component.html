@@ -8,6 +8,13 @@
     segment changes included anterior stromal dystrophy, cataracts, and panuveitis. Fundal changes 
     included optic nerve head drusen, optic disc hypoplasia, colobomas, and myelinated nerve fiber layer.
 </pre>
+<div class="flex items-center space-x-2">
+    <button
+        (click)="loadHpo()"
+        class="w-32 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+    >Load HPO</button>
+    <span class="text-xs text-gray-500">{{ hpoMessage }}</span>
+</div>
 <div class="hpoloader-container">
     <app-hpoloader></app-hpoloader>
 </div>

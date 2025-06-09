@@ -1,8 +1,8 @@
 [package]
 name = "phenoboard"
-version = "0.1.28"
+version = "0.1.29"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["Peter N Robinson"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

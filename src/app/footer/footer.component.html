@@ -1,7 +1,7 @@
-<footer>
+<footer class="footer">
   <p>&copy; 2025 GA4GH Phenoboard</p>
   <div class="led" [ngClass]="isToolReady ? 'green' : 'red'">
-    <span>{{ isToolReady ? statusMessage  : 'Waiting for files...' }}</span>
   </div>
+  <span>{{ isToolReady ? statusMessage  : 'Waiting for files...' }}</span>
 </footer>
   

@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
+use crate::{directory_manager::DirectoryManager, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
 use std::{collections::HashMap, path::Path, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
@@ -13,7 +13,7 @@ use rfenominal::{
 };
 use rphetools::PheTools;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, State};
+
 
 pub enum PptOperation {
     ShowColumn,
@@ -274,6 +274,52 @@ impl HpoCuratorSingleton {
         }
     }
 
+    pub fn get_template_summary(&self) 
+        -> Result<HashMap<String,String>, String> 
+    {
+        match &self.phetools {
+            Some(ptools) => ptools.get_template_summary(),
+            None => Err(format!("Phetools template not initialized"))
+        }
+    }
+
+    pub fn get_hpo_data(&self) -> Result<HashMap<String,String>, String> {
+        match &self.phetools {
+            Some(ptools) => {
+                let dat= ptools.get_hpo_data();
+                return Ok(dat);
+            },
+            None => Err(format!("Phetools template not initialized"))
+        }
+    }
+
+    pub fn hpo_can_be_updated(&self) -> Result<bool, String> {
+        match &self.ontology {
+            Some(hpo) => {
+                let hpo_arc = hpo.clone();
+                let hpo_update_checker = OntoliusHpoVersionChecker::new(&hpo_arc)?;
+                let updatable = hpo_update_checker.hp_json_can_be_updated();
+                return Ok(updatable);
+            },
+            None => Err(format!("Phetools template not initialized"))
+        }
+    }
+
+    pub fn get_ppkt_store_json(&self) ->  Result<serde_json::Value, String> {
+        let file_path = match &self.pt_template_path {
+            Some(path) => path,
+            None => {return Err(format!("Template path not initialized"));},
+        };
+        let path = Path::new(&file_path);
+        let parent = match path.parent() {
+            Some(parent_path) => parent_path,
+            None => {return Err(format!("Template prent path not initialized"));},
+        };
+        let dirman = DirectoryManager::new(parent.to_string_lossy())?;
+        return dirman.get_json();
+    }
+
+
     /// This method can be used to retrieve a matrix of string with the first three
     /// phetools columns (pmid, title, individual id) together with a specific HPO column
     pub fn get_column_with_context(&mut self, col: usize) -> Result<Vec<Vec<String>>, String> {
@@ -366,156 +412,42 @@ impl HpoCuratorSingleton {
             None => false,
         }
     }
-}
 
-/// When we initialize a new Table (Excel file) for curation, we start with
-/// a text that contains candidate HPO terms for curation.
-/// This function performs text mining on that text and creates
-/// a Matrix of Strings with which we initialize the table in the GUI
-/// TODO: better documentation
-
-#[tauri::command]
-pub fn get_table_columns_from_seeds(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-    disease_id: &str,
-    disease_name: &str,
-    hgnc_id: &str,
-    gene_symbol: &str,
-    transcript_id: &str,
-    input_text: &str,
-) -> Result<String, String> {
-    // TODO does this really need to be mut?
-    let mut singleton = singleton.lock().unwrap();
-    let fresult = singleton.map_text_to_term_list(input_text);
-    match &singleton.ontology {
-        Some(hpo) => {
-            let hpo_arc = Arc::clone(hpo);
-            let mut phetools = PheTools::new(hpo_arc);
-            let result = phetools.create_pyphetools_template(
-                disease_id,
-                disease_name,
-                hgnc_id,
-                gene_symbol,
-                transcript_id,
-                fresult,
-            );
-            match result {
-                Ok(matrix) => {
-                    let json_string = serde_json::to_string(&matrix).unwrap();
-                    return Ok(json_string);
-                }
-                Err(e) => {
-                    return Err(format!("Could not create matrix: {}", e));
+    pub fn get_table_columns_from_seeds(
+        &mut self,
+        disease_id: &str,
+        disease_name: &str,
+        hgnc_id: &str,
+        gene_symbol: &str,
+        transcript_id: &str,
+        input_text: &str,
+    ) -> Result<String, String> {
+        let fresult = self.map_text_to_term_list(input_text);
+        match &self.ontology {
+            Some(hpo) => {
+                let hpo_arc = Arc::clone(hpo);
+                let mut phetools = PheTools::new(hpo_arc);
+                let result = phetools.create_pyphetools_template(
+                    disease_id,
+                    disease_name,
+                    hgnc_id,
+                    gene_symbol,
+                    transcript_id,
+                    fresult,
+                );
+                match result {
+                    Ok(matrix) => {
+                        let json_string = serde_json::to_string(&matrix).unwrap();
+                        return Ok(json_string);
+                    }
+                    Err(e) => {
+                        return Err(format!("Could not create matrix: {}", e));
+                    }
                 }
             }
-        }
-        None => {
-            return Err(format!("Could not retrieve ontology"));
-        }
+            None => { return Err(format!("Could not retrieve ontology")); }
+            }
     }
-}
-
-/// When we initialize a new Table (Excel file) for curation, we start with
-/// a text that contains candidate HPO terms for curation.
-/// This function performs text mining on that text and creates
-/// a Matrix of Strings with which we initialize the table in the GUI
-/// TODO: better documentation
-#[tauri::command]
-pub fn get_phetools_table(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) -> Result<Vec<Vec<String>>, String> {
-    let singleton = singleton.lock().unwrap();
-    return singleton.get_matrix();
-}
-
-#[tauri::command]
-pub fn set_value(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-    r: usize,
-    c: usize,
-    value: &str,
-) -> Result<(), String> {
-    let mut singleton = singleton.lock().unwrap();
-    singleton.set_value(r, c, value)?;
-    Ok(())
-}
 
 
-#[tauri::command]
-pub fn get_template_summary(singleton: State<Mutex<HpoCuratorSingleton>>) ->Result<HashMap<String,String>, String> {
-    let singleton = singleton.lock().unwrap();
-    match &singleton.phetools {
-        Some(ptools) => ptools.get_template_summary(),
-        None => Err(format!("Phetools template not initialized"))
-    }
-}
-
-#[tauri::command]
-pub fn get_hpo_data(
-    singleton: State<Mutex<HpoCuratorSingleton>>
-) ->Result<HashMap<String,String>, String> {
-    let singleton = singleton.lock().unwrap();
-    match &singleton.phetools {
-        Some(ptools) => {
-            let dat= ptools.get_hpo_data();
-            return Ok(dat);
-        },
-        None => Err(format!("Phetools template not initialized"))
-    }
-}
-
-/// Check whether the HPO version we are using is the latest version
-/// by comparing the latest version online
-#[tauri::command]
-pub fn hpo_can_be_updated(
-    singleton: State<Mutex<HpoCuratorSingleton>>
-) ->Result<bool, String> {
-    let singleton = singleton.lock().unwrap();
-    match &singleton.ontology {
-        Some(hpo) => {
-            let hpo_arc = hpo.clone();
-            let hpo_update_checker = OntoliusHpoVersionChecker::new(&hpo_arc)?;
-            let updatable = hpo_update_checker.hp_json_can_be_updated();
-            return Ok(updatable);
-        },
-        None => Err(format!("Phetools template not initialized"))
-    }
-}
-
-/// Get a JSON object that represents the directory and file structure of the Phenopacket Store
-#[tauri::command]
-pub fn get_ppkt_store_json(
-    singleton: State<Mutex<HpoCuratorSingleton>>,
-) ->  Result<serde_json::Value, String> {
-    let singleton = singleton.lock().unwrap();
-    let file_path = match &singleton.pt_template_path {
-        Some(path) => path,
-        None => {return Err(format!("Template path not initialized"));},
-    };
-    let path = Path::new(&file_path);
-    let parent = match path.parent() {
-        Some(parent_path) => parent_path,
-        None => {return Err(format!("Template prent path not initialized"));},
-    };
-    let dirman = DirectoryManager::new(parent.to_string_lossy())?;
-    return dirman.get_json();
-}
-
-#[tauri::command]
-pub async fn update_descriptive_stats(
-    app: AppHandle,
-    singleton: State<'_, Mutex<HpoCuratorSingleton>>,
-) -> Result<(), String> {
-    let singleton = singleton.lock().unwrap();
-    let hpo = match &singleton.ontology {
-        Some(hpo) => hpo,
-        None => {
-            return Err(format!("HPO not initialized"));
-        },
-    };
-    let n_hpo_terms = hpo.len();
-    let hpo_version = hpo.version();
-    let _ = app.emit("n_hpo_terms", format!("{}", n_hpo_terms));
-    let _ = app.emit("hpo_version", format!("{}", hpo_version));
-    Ok(())
 }
