@@ -1,5 +1,6 @@
 import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
+import { StatusDto } from '../models/status_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -19,9 +20,6 @@ export class ConfigService {
     return await invoke("load_hpo");
   }
 
-  async getHpoVersion(): Promise<string | string > {
-    return await invoke<string | string>("get_hpo_version");
-  }
 
   async getHpJsonPath(): Promise<string | string> {
     return await invoke<string | string>("get_hp_json_path");
@@ -39,13 +37,12 @@ export class ConfigService {
     return await invoke<void>("load_existing_phetools_template");
   }
 
-  async hpoInitialized(): Promise<boolean > {
-    return await invoke<boolean>("hpo_initialized");
+  async fetchStatus(): Promise<void> {
+    const status: StatusDto = await invoke('get_status');
+    console.log('Status received:', status);
   }
 
-  async checkReadiness(): Promise<boolean > {
-    return await invoke<boolean>("check_if_phetools_is_ready");
-  }
+
 
   async processRightClickPhetoolsMatrix(item: string, row: number, col: number): Promise<boolean> {
     return await invoke('process_pyphetools_table_rclick', { 

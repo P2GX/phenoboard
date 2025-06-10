@@ -1,0 +1,25 @@
+export interface StatusDto {
+    hpoLoaded: boolean;
+    hpoVersion: string;
+    nHpoTerms: number;
+    ptTemplatePath: string;
+    ptTemplateLoaded: boolean;
+    cohortName: string;
+    nPhenopackets: number;
+    newCohort: boolean;
+    unsavedChanges: boolean;
+}
+
+export function defaultStatusDto(): StatusDto {
+    return {
+        hpoLoaded: false,
+        hpoVersion: '',
+        nHpoTerms: 0,
+        ptTemplatePath: '',
+        ptTemplateLoaded: false,
+        cohortName: '',
+        nPhenopackets: 0,
+        newCohort: false,
+        unsavedChanges: false,
+    };
+}

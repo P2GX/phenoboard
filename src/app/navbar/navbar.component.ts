@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Page, PageService } from '../services/page.service';
 
@@ -20,8 +20,8 @@ export class NavbarComponent {
   tabs = [
     { id: 'home', label: 'Home' },
     { id: 'table', label: 'New PheTools Table' },
+    { id: 'addcase', label: 'Add case' },
     { id: 'phetools', label: 'Edit PheTools Table'},
-    { id: 'textmining', label: 'Text mining' },
     { id: 'settings', label: 'Settings' },
     { id: 'help', label: 'Help' },
   ];

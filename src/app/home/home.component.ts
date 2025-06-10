@@ -1,8 +1,13 @@
 import { Component, NgZone, ViewChild } from '@angular/core';
 import { ConfigService } from '../services/config.service';
-import { listen } from '@tauri-apps/api/event';
+import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { FooterComponent } from '../footer/footer.component';
 import { CommonModule, NgIf } from '@angular/common';
+import { defaultStatusDto, StatusDto } from '../models/status_dto';
+import { BackendStatusService } from '../services/backend_status_service'
+import { Subscription } from 'rxjs';
+import { PageService } from '../services/page.service';
+
 
 @Component({
   selector: 'app-home',
@@ -13,15 +18,23 @@ import { CommonModule, NgIf } from '@angular/common';
 })
 export class HomeComponent {
 
+  constructor(
+    private ngZone: NgZone, 
+    private configService: ConfigService,
+    private backendStatusService: BackendStatusService,
+    private pageService: PageService) {}
 
-  constructor(private ngZone: NgZone, private configService: ConfigService) {}
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
+  private unlisten: UnlistenFn | null = null;
 
-  hpoLoaded: boolean = false;
+  status: StatusDto = defaultStatusDto();
+  statusSubscription?: Subscription;
+  frontEndFailure = false;
+  failureMessage = '';
+ 
   templateLoaded: boolean = false;
   newFileCreated: boolean = false;
-  nHpoTerms: string = '';
-  hpoVersion: string = '';
+
   hpoMessage: string = "not initialized";
   successfullyLoaded: any;
   templateFilePath: any;
@@ -44,67 +57,78 @@ export class HomeComponent {
   }
 
   async ngOnInit() {
-    listen('n_hpo_terms', (event) => {
+    console.log("ngOnInit - TOP");
+    this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
-        this.nHpoTerms = String(event.payload);
-        if (this.footer_component) {
-          this.footer_component.setHpoNTerms(this.nHpoTerms);
-        } else {
-          this.pendingHpoNterms = this.nHpoTerms;
-        }
-        
+        const status = event.payload as StatusDto;
+        this.backendStatusService.setStatus(status);
+        this.status = event.payload as StatusDto;
+        this.update_gui_variables(status);
       });
     });
-    listen('hpo_version', (event) => {
-      this.ngZone.run(() => {
-        this.hpoVersion = String(event.payload);
-        console.log("hpo_version =", this.hpoVersion);
-        this.hpoMessage = this.hpoVersion;
-        console.log("loaded HPO: hpoMessage=", this.hpoMessage);
-        if (this.footer_component) {
-          this.footer_component.setHpoVersion(this.hpoVersion);
-        } else {
-          this.pendingHpoVersion = this.hpoVersion;
-        }
-        //this.footer_component.setHpoVersion(this.hpoVersion);
-      });
+    //  this will restore the status upon navigation:
+    this.statusSubscription = this.backendStatusService.status$.subscribe(status => {
+    if (status) {
+        this.update_gui_variables(status);
+      }
     });
-    listen("loadedHPO", (event) => {
-      this.ngZone.run(() => {
-        let message = String(event.payload);
-        if (message === "success") {
-          this.hpoLoaded = true; 
-        } else if (message === "failure") {
-          this.hpoLoaded = false;
-        } else if (message === "loading") {
-          this.hpoMessage = " loading ...";
-        }else {
-          console.error("did not recognize payload for hpoMessage: ", message);
-          this.hpoLoaded = false;
-        }
-      });
+    await listen('failure', (event) => {
+      this.frontEndFailure = true;
+      this.failureMessage = String(event.payload);
     });
-    listen("templateLoaded", (event) => {
-      this.ngZone.run(() => {
-        let message = String(event.payload);
-        const [status, detail] = message.split(":", 2);
-        console.log("template loaded: ", message);
-        if (status === "success") {
-          this.templateLoaded = true; 
-          this.templateFileMessage = detail;
-        } else if (status === "failure") {
-          this.templateLoaded = false;
-          this.templateFileMessage = detail;
-        } else {
-          console.error("did not recognize payload for templateLoaded: ", status);
-          this.templateLoaded = false;
-        }
-      });
+    await listen('hpoLoading', (event) => {
+      this.frontEndFailure = false;
+      this.failureMessage = '';
+      this.hpoMessage = "loading ...";
     });
+  }
 
+  async update_gui_variables(status: StatusDto) {
+
+    this.ngZone.run(() => {
+      this.frontEndFailure = false;
+      this.failureMessage = '';
+      let n_hpo = status.nHpoTerms ?? 0;
+      let n_hpo_str = String(n_hpo);
+      if (this.footer_component) {
+        this.footer_component.setHpoNTerms(n_hpo_str);
+      } else {
+        this.pendingHpoNterms = String(status.nHpoTerms);
+      }
+      console.log("in update_gui, status = ", status);
+      console.log("status.hpoLoaded =", status.hpoLoaded, typeof status.hpoLoaded);
+      if (status.hpoLoaded) {
+        console.log("status.hpoLoaded true ");
+        this.hpoMessage = status.hpoVersion;
+        console.log("hpo_version =", status.hpoVersion);
+      } else {
+       
+       
+        this.hpoMessage = "uninitialized";
+      }
+      console.log("loaded HPO: hpoMessage=", this.hpoMessage);
+       console.log("loaded HPO: Bottom=", this.hpoMessage);
+      if (status.ptTemplatePath) {
+         console.log("ptTemplatePath =", status.ptTemplatePath);
+        this.templateLoaded = true; 
+        this.templateFileMessage = status.ptTemplatePath;
+      } else {
+         console.log("ptTemplatePath = NIPE");
+        this.templateLoaded = false;
+        this.templateFileMessage = "not initialized";
+      }
+    });
+  }
+  
+  ngOnDestroy() {
+    if (this.unlisten) {
+      this.unlisten();
+      this.unlisten = null;
+    }
+    this.statusSubscription?.unsubscribe();
+  }
 
     
-  }
 
   async loadHpo() {
     console.log("loading HPO");
@@ -123,6 +147,7 @@ export class HomeComponent {
     console.log("chooseExistingTemplateFile");
     this.configService.loadExistingPhetoolsTemplate();
   }
+
 
 
   async chooseNewPhetoolsFile() {
@@ -158,6 +183,9 @@ export class HomeComponent {
     //await invoke("create_new_file", { path });  // Send path to Rust*/
   }
 
-  
+  /* switch to the addcase page */
+  goToAddCase() {
+    this.pageService.setPage("addcase");
+  }
 
 }

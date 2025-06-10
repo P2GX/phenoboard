@@ -1,6 +1,6 @@
 <p>Copy clinical text into the system clipboard and paste it into the app.</p>
 <button (click)="readClipboard()">Paste clinical text from system clipboard</button>
-<p>HPO INITIAILIZE {{hpoInitialized}}</p>
+<p>HPO INITIAILIZED {{hpoInitialized}}</p>
 
 <p *ngIf="clipboardContent">Original text: {{ clipboardContent }}</p>
 
@@ -34,6 +34,4 @@
 
 <p>Selected Options: {{ selectedOptions | json }}</p>
 
-
- 
 

@@ -16,21 +16,22 @@
         class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
     >Load HPO
     </button>
-     <!-- Tooltip -->
+    <!-- Tooltip -->
     <div
       class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
     >
       Select the hp.json file
     </div>
     </div>
-    <span class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
+    <span [ngClass]="{'text-red-600': hpoMessage === 'loading ...'}"
+      class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
 </div>
 
 <div class="flex items-center gap-3">
   <div class="relative group">
     <button
       (click)="chooseExistingTemplateFile()"
-      [disabled]="!hpoLoaded"
+      [disabled]="!status.hpoLoaded || !status.newCohort"
       class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >
       {{ successfullyLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
@@ -51,11 +52,11 @@
   <div class="relative group">
     <button
         (click)="chooseNewPhetoolsFile()"
-        [disabled]="!hpoLoaded"
+        [disabled]="!status.hpoLoaded || !status.ptTemplateLoaded"
         class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >Create new template
     </button>
-     <!-- Tooltip -->
+    <!-- Tooltip -->
     <div
       class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
     >
@@ -64,18 +65,31 @@
     </div>
     <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
 </div>
+
+
+<div class="flex items-center gap-3">
+  <div class="relative group">
+    <button
+        (click)="goToAddCase()"
+        [disabled]="!status.hpoLoaded && !status.ptTemplateLoaded && !status.newCohort"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >Add phenopacket
+    </button>
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Add a new case using text-mining and autocomplete
+    </div>
+    </div>
+    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
 </div>
-
-
-  <div *ngIf="templateLoaded" class="success-message">
-    Loaded {{ templateFilePath }}
-  </div>
-  <div *ngIf="newFileCreated" class="success-message">
-    Created file at {{ newFilePath }}
-  </div>
+</div>
   
-  <div *ngIf="loadError" class="error-message">
-    Error loading file: {{ loadError }}
+  <div *ngIf="frontEndFailure" class="error-message">
+    {{ failureMessage }}
   </div>
+
+  
   
 </div>

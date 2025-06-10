@@ -23,7 +23,7 @@ export class FooterComponent implements OnInit{
 
   async ngOnInit() {
     // Listen for the 'tool-ready' event from the backend
-    this.isToolReady = await this.configService.checkReadiness();
+    
 
     // Listen for readiness updates from backend
     this.unlistenReady = await listen<boolean>('ready', (event) => {

@@ -12,8 +12,7 @@ use rfenominal::{
     TextMiner,
 };
 use rphetools::PheTools;
-use std::sync::Mutex;
-
+use crate::dto::status_dto::StatusDto;
 
 pub enum PptOperation {
     ShowColumn,
@@ -120,6 +119,13 @@ impl PhenoboardSingleton {
     pub fn get_hpo_version(&self) -> Result<String, String> {
         match &self.ontology {
             Some(hpo) => Ok(hpo.version().to_string()),
+            None => Err("HPO not initialized".to_string()),
+        }
+    }
+
+    pub fn n_hpo_terms(&self) -> Result<usize, String> {
+        match &self.ontology {
+            Some(hpo) => Ok(hpo.len()),
             None => Err("HPO not initialized".to_string()),
         }
     }
@@ -297,6 +303,43 @@ impl PhenoboardSingleton {
         }
     }
 
+    /// Get a DTO that summarizes the status of the data in the backend
+    /// The DTO is synchronized with the corresponding tscript in app/models
+    pub fn get_status(&self) -> StatusDto {
+        let mut status = StatusDto::default(); 
+        match &self.ontology {
+            Some(hpo) => {
+                status.hpo_loaded = true;
+                status.hpo_version = hpo.version().to_string();
+                status.n_hpo_terms = hpo.len();
+            },
+            None => {
+                status.hpo_loaded = false;
+                status.hpo_version = String::default();
+                status.n_hpo_terms = 0 as usize;
+            },
+        }
+        match &self.pt_template_path {
+            Some(path) => {
+                status.pt_template_path = path.to_string();
+                let path2 = Path::new(&path);
+                let cohort_name =  path2.file_stem()
+                        .and_then(|stem| stem.to_str())
+                        .map(|s| s.to_string());
+                if cohort_name.is_some() {
+                    status.cohort_name = cohort_name.unwrap();
+                };
+            },
+            None => {
+                status.pt_template_path = String::default();
+            },
+        }
+        status.n_phenopackets = self.phenopacket_count();
+        status.new_cohort = false; // TODO
+        status.unsaved_changes = false; // TODO
+        return status;
+    }
+
     pub fn hpo_can_be_updated(&self) -> Result<bool, String> {
         match &self.ontology {
             Some(hpo) => {
@@ -347,6 +390,10 @@ impl PhenoboardSingleton {
 
     pub fn check_readiness(&self) -> bool {
         return self.ontology.is_some() && self.pt_template_path.is_some();
+    }
+
+    pub fn hpo_ready(&self) -> bool {
+        self.ontology.is_some()
     }
 
     /// TODO figure out error handling

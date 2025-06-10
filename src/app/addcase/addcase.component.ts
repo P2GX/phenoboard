@@ -3,15 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
 import { ConfigService } from '../services/config.service';
+import { defaultStatusDto, StatusDto } from '../models/status_dto';
+import { listen, UnlistenFn } from '@tauri-apps/api/event';
 
 @Component({
   selector: 'app-textmining',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './textmining.component.html', 
-   styleUrl: './textmining.component.css'
+  templateUrl: './addcase.component.html', 
+  styleUrl: './addcase.component.css'
 })
-export class TextminingComponent {
+export class AddcaseComponent {
   clipboardContent: string | null = null;
   jsonData: any[] = [ ]; 
   predefinedOptions: string[] = ["observed", "excluded", "na"];
@@ -19,24 +21,29 @@ export class TextminingComponent {
   customOptions: string[] = []; // Stores manually entered custom options
   hpoInitialized: boolean = false;
   loadError: string | null = null;
+  ngZone: any;
 
   constructor(private configService: ConfigService, private cd: ChangeDetectorRef) {}
+  backend_status: StatusDto = defaultStatusDto();
+  private unlisten: UnlistenFn | null = null;
+
+ 
 
   async ngOnInit() {
-    console.log("ngOnInit");
-    this.checkHpoInitialized();
+    this.unlisten = await listen('backend_status', (event) => {
+      this.ngZone.run(() => {
+        this.backend_status = event.payload as StatusDto;
+        console.log('Received backend status:', this.backend_status);
+        this.hpoInitialized = this.backend_status.hpoLoaded;
+      });
+    });
   }
-
-  async checkHpoInitialized(): Promise<void> {
-    try {
-      this.hpoInitialized = await this.configService.hpoInitialized();
-    }  catch (err) {
-        console.error('Error hp.json path:', err);
-        this.hpoInitialized =false;
-        this.loadError = "Could not load hp.json path" 
-      } finally {
-        this.cd.detectChanges(); 
-      }
+  
+  ngOnDestroy() {
+    if (this.unlisten) {
+      this.unlisten();
+      this.unlisten = null;
+    }
   }
 
   async readClipboard(): Promise<void> {

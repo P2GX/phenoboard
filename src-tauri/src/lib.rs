@@ -1,4 +1,5 @@
 mod directory_manager;
+mod dto;
 mod phenoboard;
 mod hpo;
 mod settings;
@@ -12,7 +13,7 @@ use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
 use tauri_plugin_fs::init;
 
-use crate::hpo::ontology_loader;
+use crate::{dto::status_dto::StatusDto, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -23,27 +24,23 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(init())
         .invoke_handler(tauri::generate_handler![
-            check_if_phetools_is_ready,
-            get_hpo_version,
+            emit_backend_status,
             get_ppkt_store_json,
             get_phetools_table,
             get_template_summary,
             hpo_can_be_updated,
-            hpo_initialized,
+            get_backend_status,
             load_existing_phetools_template,
             load_hpo,
             run_text_mining,
             set_value,
-            update_descriptive_stats,
             table_manager::edit_current_column,
             table_manager::get_phetools_column,
             table_manager::get_selected_phetools_column,
             table_manager::process_pyphetools_table_rclick,
             get_table_columns_from_seeds,
-            get_hpo_data,
             get_hp_json_path,
             get_pt_template_path,
-            select_hp_json_download_path,
             select_phetools_template_path,
         ])
         .run(tauri::generate_context!())
@@ -60,30 +57,28 @@ fn load_hpo(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
 ) -> Result<(), String> {
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let _ = app.emit("hpoLoading", "loading");
     std::thread::spawn(move || {
+        let mut singleton = phenoboard_arc.lock().unwrap(); 
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
                 let _ = app.emit("loadedHPO", "loading");
                 match ontology_loader::load_ontology(file) {
                     Ok(ontology) => {
                         let hpo_arc = Arc::new(ontology);
-                        let mut guard = phenoboard_arc.lock().unwrap(); 
-                        let hpo_v = hpo_arc.version().to_string();
-                        let n_hpo_terms = hpo_arc.len();
-                        guard.set_hpo(hpo_arc);
-                        let _ = app.emit("n_hpo_terms", format!("{}", n_hpo_terms));
-                        let _ = app.emit("hpo_version", hpo_v);
-                        let _ = app.emit("loadedHPO", "success");
+                        singleton.set_hpo(hpo_arc);
                     },
-                    Err(_) => {
-                        let _ = app.emit("loadedHPO", "failure");
+                    Err(e) => {
+                        let _ = app.emit("failure", format!("Failed to load HPO: {}", e));
                     }
                 }
             },
             None => {
-                let _ = app.emit("loadedHPO", "failure");
+                let _ = app.emit("failure", "Failed to load HPO");
             }
-        }
+        };
+        let status = singleton.get_status();
+        let _ = app.emit("backend_status", &status);
     });
     Ok(())
 }
@@ -102,8 +97,8 @@ async fn load_existing_phetools_template(
                 let path_str = file.to_string();
                 match singleton.load_excel_template(&path_str) {
                     Ok(_) => {
-                        let msg  = format!("success:{} phenopackets", singleton.phenopacket_count());
-                        let _ = app.emit("templateLoaded", msg);
+                        let status = singleton.get_status();
+                        let _ = app.emit("backend_status", &status);
                     },
                     Err(e) => {
                         let msg  = format!("failure:{}", e);
@@ -118,6 +113,8 @@ async fn load_existing_phetools_template(
     });
     Ok(())
 }
+
+
 
 
 #[tauri::command]
@@ -201,109 +198,18 @@ fn get_ppkt_store_json(
 
 
 #[tauri::command]
-fn check_if_phetools_is_ready(
-    app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> bool {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    let tool_ready = singleton.check_readiness();
-    if tool_ready {
-        let _ = app.emit("ready", true);
-    } else {
-        let _ = app.emit("ready", false);
-    }
-    tool_ready
-}
-
-#[tauri::command]
-async fn update_descriptive_stats(
+fn emit_backend_status(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
 ) -> Result<(), String> {
-    println!("update_descriptive_stats TOP");
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
-    println!("update_descriptive_stats A");
-    let hpo_map = singleton.get_hpo_data()?;
-    let hpo_version = match hpo_map.get("hpo_version"){
-        Some(hpo_version) => hpo_version,
-        None =>  { return Err(format!("Could not get HPO data map")); }
-    };
-    println!("update_descriptive_stats B");
-    let n_hpo_terms = match hpo_map.get("n_hpo_terms") {
-        Some(hpo_version) => hpo_version,
-        None => { return Err(format!("Could not get HPO data map")); }
-    };
-    let _ = app.emit("n_hpo_terms", format!("{}", n_hpo_terms));
-    let _ = app.emit("hpo_version", format!("{}", hpo_version));
-    println!("########  hpo bversion = {}", hpo_version);
+    let status = singleton.get_status();
+    let _ = app.emit("backend_status", &status);
     Ok(())
 }
 
-#[tauri::command]
-fn load_hpo_from_hp_json(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    let hpo_json = singleton.hp_json_path();
-    match hpo_json {
-        Err(e) => {
-            return Err(format!("Could not find hp.json file: {}", e));
-        }
-        Ok(hp_json) => {
-            let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-            let hpo: FullCsrOntology = loader
-                .load_from_path(&hp_json)
-                .expect("Ontolius: Could not load hp.json");
-            let hpo_arc = Arc::new(hpo);
-            singleton.set_hpo(hpo_arc);
-            let _ = singleton.set_hp_json(&hp_json);
-            return Ok(());
-        }
-    }
-}
 
-#[tauri::command]
-fn select_hp_json_download_path(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Option<String> {
-     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    // synchronous (blocking) file chooser
-    let result = FileDialog::new()
-        .add_filter("HPO JSON", &["json"])
-        .set_directory("/")
-        .pick_file();
-    println!("files {:?}", result);
-    match result {
-        Some(file) => {
-            let pbresult = file.canonicalize();
-            match pbresult {
-                Ok(abspath) => {
-                    let hpj_path = abspath.canonicalize().unwrap().display().to_string();
-                    let _ = singleton.set_hp_json(&hpj_path);
-                    return Some(hpj_path);
-                }
-                Err(e) => {
-                    println!("Could not get path: {:?}", e)
-                }
-            }
-        }
-        None => {}
-    }
-    Some("None".to_string())
-}
-
-#[tauri::command]
-fn get_hpo_version(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<String, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.get_hpo_version()
-}
 
 #[tauri::command]
 fn get_hp_json_path(
@@ -378,11 +284,11 @@ fn get_table_columns_from_seeds(
 
 /// TODO- this should be replaced by emitting signal after HPO is initialized
 #[tauri::command]
-fn hpo_initialized(
+fn get_backend_status(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<bool, String> {
+) -> Result<StatusDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    Ok(singleton.hpo_initialized())
+    let singleton = singleton_arc.lock().unwrap();
+    Ok(singleton.get_status())
 }
 

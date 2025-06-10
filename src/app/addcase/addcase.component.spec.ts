@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ClipboardComponent } from './textmining.component';
+import { AddcaseComponent } from './addcase.component';
 
-describe('ClipboardComponent', () => {
-  let component: ClipboardComponent;
-  let fixture: ComponentFixture<ClipboardComponent>;
+describe('AddcaseComponent', () => {
+  let component: AddcaseComponent;
+  let fixture: ComponentFixture<AddcaseComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ClipboardComponent]
+      imports: [AddcaseComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(ClipboardComponent);
+    fixture = TestBed.createComponent(AddcaseComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
