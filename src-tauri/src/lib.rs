@@ -30,7 +30,7 @@ pub fn run() {
             get_template_summary,
             hpo_can_be_updated,
             get_backend_status,
-            load_existing_phetools_template,
+            load_phetools_template,
             load_hpo,
             run_text_mining,
             set_value,
@@ -85,24 +85,29 @@ fn load_hpo(
 
 
 #[tauri::command]
-async fn load_existing_phetools_template(
+async fn load_phetools_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
 ) -> Result<(), String> {
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    println!("load_phetools_template");
     std::thread::spawn(move || {
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
+                println!("load_phetools_template got string: {}", &path_str);
                 match singleton.load_excel_template(&path_str) {
                     Ok(_) => {
                         let status = singleton.get_status();
+                        println!("load pt template: {:?}",&status);
                         let _ = app.emit("backend_status", &status);
                     },
                     Err(e) => {
-                        let msg  = format!("failure:{}", e);
-                        let _ = app.emit("templateLoaded", msg);
+                        let mut status = singleton.get_status();
+                        status.has_error = true;
+                        status.error_message = format!("{}", e);;
+                        let _ = app.emit("backend_status", &status);
                     },
                 };
             },

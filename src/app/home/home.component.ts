@@ -29,21 +29,20 @@ export class HomeComponent {
 
   status: StatusDto = defaultStatusDto();
   statusSubscription?: Subscription;
-  frontEndFailure = false;
-  failureMessage = '';
  
-  templateLoaded: boolean = false;
+  ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
-
+  hasError: boolean = false;
   hpoMessage: string = "not initialized";
-  successfullyLoaded: any;
-  templateFilePath: any;
+
   newFilePath: any;
   loadError: any;
   newTemplateMessage: string = "not initialized";
   templateFileMessage: string = "not initialized";
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
+
+  errorMessage: string | null = null;
 
   ngAfterViewInit() {
     if (this.pendingHpoVersion && this.footer_component) {
@@ -73,12 +72,12 @@ export class HomeComponent {
       }
     });
     await listen('failure', (event) => {
-      this.frontEndFailure = true;
-      this.failureMessage = String(event.payload);
+      this.hasError = true;
+      this.errorMessage = String(event.payload);
     });
     await listen('hpoLoading', (event) => {
-      this.frontEndFailure = false;
-      this.failureMessage = '';
+      this.hasError = false;
+      this.errorMessage = '';
       this.hpoMessage = "loading ...";
     });
   }
@@ -86,8 +85,6 @@ export class HomeComponent {
   async update_gui_variables(status: StatusDto) {
 
     this.ngZone.run(() => {
-      this.frontEndFailure = false;
-      this.failureMessage = '';
       let n_hpo = status.nHpoTerms ?? 0;
       let n_hpo_str = String(n_hpo);
       if (this.footer_component) {
@@ -102,19 +99,17 @@ export class HomeComponent {
         this.hpoMessage = status.hpoVersion;
         console.log("hpo_version =", status.hpoVersion);
       } else {
-       
-       
         this.hpoMessage = "uninitialized";
       }
       console.log("loaded HPO: hpoMessage=", this.hpoMessage);
-       console.log("loaded HPO: Bottom=", this.hpoMessage);
+      console.log("loaded HPO: Bottom=", this.hpoMessage);
       if (status.ptTemplatePath) {
-         console.log("ptTemplatePath =", status.ptTemplatePath);
-        this.templateLoaded = true; 
+        console.log("ptTemplatePath =", status.ptTemplatePath);
+        this.ptTemplateLoaded = true; 
         this.templateFileMessage = status.ptTemplatePath;
       } else {
-         console.log("ptTemplatePath = NIPE");
-        this.templateLoaded = false;
+        console.log("ptTemplatePath = NIPE");
+        this.ptTemplateLoaded = false;
         this.templateFileMessage = "not initialized";
       }
     });
@@ -144,15 +139,20 @@ export class HomeComponent {
 
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
-    console.log("chooseExistingTemplateFile");
-    this.configService.loadExistingPhetoolsTemplate();
+    this.errorMessage = null;
+    try {
+      await this.configService.loadPtTemplate();
+    } catch (error: any) {
+      this.errorMessage = error?.message || 'An unexpected error occurred';
+      console.error('Template load failed:', error);
+    }
   }
 
 
 
   async chooseNewPhetoolsFile() {
     console.log("chooseNewPhetoolsFile - not implemented");
-    this.configService.loadExistingPhetoolsTemplate();
+    this.configService.loadPtTemplate();
   /*  const path = await save({
       title: "Save new PheTools template file",
       defaultPath: "phetools-individuals.xlsx",

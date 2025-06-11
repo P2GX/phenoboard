@@ -8,6 +8,8 @@ export interface StatusDto {
     nPhenopackets: number;
     newCohort: boolean;
     unsavedChanges: boolean;
+    hasError: boolean;
+    errorMessage: string;
 }
 
 export function defaultStatusDto(): StatusDto {
@@ -21,5 +23,7 @@ export function defaultStatusDto(): StatusDto {
         nPhenopackets: 0,
         newCohort: false,
         unsavedChanges: false,
+        hasError: false,
+        errorMessage: ''
     };
 }

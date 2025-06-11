@@ -31,10 +31,10 @@
   <div class="relative group">
     <button
       (click)="chooseExistingTemplateFile()"
-      [disabled]="!status.hpoLoaded || !status.newCohort"
+      [disabled]="!status.hpoLoaded || status.newCohort"
       class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >
-      {{ successfullyLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
+      {{ ptTemplateLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
     </button>
 
     <!-- Tooltip -->
@@ -52,7 +52,7 @@
   <div class="relative group">
     <button
         (click)="chooseNewPhetoolsFile()"
-        [disabled]="!status.hpoLoaded || !status.ptTemplateLoaded"
+        [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
         class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >Create new template
     </button>
@@ -71,7 +71,7 @@
   <div class="relative group">
     <button
         (click)="goToAddCase()"
-        [disabled]="!status.hpoLoaded && !status.ptTemplateLoaded && !status.newCohort"
+        [disabled]="!status.hpoLoaded || (!status.ptTemplateLoaded && !status.newCohort)"
         class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
     >Add phenopacket
     </button>
@@ -85,11 +85,8 @@
     <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
 </div>
 </div>
-  
-  <div *ngIf="frontEndFailure" class="error-message">
-    {{ failureMessage }}
-  </div>
+</div>
 
-  
-  
+<div *ngIf="status.hasError" class="error-message">
+  {{ status.errorMessage }}
 </div>

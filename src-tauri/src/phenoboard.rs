@@ -270,10 +270,10 @@ impl PhenoboardSingleton {
     }
 
     pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
-        self.pt_template_path = Some(excel_file.to_string());
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(excel_file) {
                 Ok(_) => {
+                    self.pt_template_path = Some(excel_file.to_string());
                     return Ok(());
                 }
                 Err(msg) => {
@@ -329,6 +329,7 @@ impl PhenoboardSingleton {
                 if cohort_name.is_some() {
                     status.cohort_name = cohort_name.unwrap();
                 };
+                status.pt_template_loaded = true;
             },
             None => {
                 status.pt_template_path = String::default();

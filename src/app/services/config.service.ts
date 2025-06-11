@@ -33,8 +33,8 @@ export class ConfigService {
     return await invoke<string[][]>("get_phetools_table");
   }
 
-  async loadExistingPhetoolsTemplate(): Promise<void> {
-    return await invoke<void>("load_existing_phetools_template");
+  async loadPtTemplate(): Promise<void> {
+    return await invoke<void>("load_phetools_template");
   }
 
   async fetchStatus(): Promise<void> {
