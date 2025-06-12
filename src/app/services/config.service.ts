@@ -86,4 +86,8 @@ export class ConfigService {
     return await invoke("update_descriptive_stats");
   }
 
+  async highlight_hpo_mining(input_text: string): Promise<string> {
+    return await invoke("highlight_text_with_hits", {inputText: input_text});
+  }
+
 }

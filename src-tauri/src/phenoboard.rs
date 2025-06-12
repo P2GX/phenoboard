@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
+use crate::{directory_manager::DirectoryManager, dto::pmid_dto::PmidDto, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
 use std::{collections::HashMap, path::Path, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
@@ -13,6 +13,7 @@ use rfenominal::{
 };
 use rphetools::PheTools;
 use crate::dto::status_dto::StatusDto;
+use crate::util::pubmed_retrieval::PubmedRetriever;
 
 pub enum PptOperation {
     ShowColumn,
@@ -399,16 +400,27 @@ impl PhenoboardSingleton {
 
     /// TODO figure out error handling
     pub fn map_text(&self, input_text: &str) -> String {
+        match self.get_sorted_fenominal_hits(input_text) {
+            Ok(fenominal_hits) => {
+                return serde_json::to_string(&fenominal_hits).unwrap();
+            },
+            Err(e) => {return e.to_string() },
+        }
+    }
+
+    pub fn get_sorted_fenominal_hits(&self, input_text: &str) 
+        -> Result<Vec<FenominalHit>, String>
+    {
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let hpo_ref = hpo_arc.as_ref();
                 let fenominal = Fenominal::from(hpo_ref);
-                let fenominal_hits: Vec<FenominalHit> = fenominal.process(&input_text);
-                let json_string = serde_json::to_string(&fenominal_hits).unwrap();
-                json_string
+                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&input_text);
+                fenominal_hits.sort_by_key(|hit| hit.span.start);
+                return Ok(fenominal_hits);
             }
-            None => format!("Could not initialize hpo"),
+            None => Err(format!("Could not initialize hpo")),
         }
     }
 
@@ -506,6 +518,12 @@ impl PhenoboardSingleton {
             }
             None => { return Err(format!("Could not retrieve ontology")); }
             }
+    }
+
+
+    pub async fn get_pmid_dto(input: &str) -> Result<PmidDto, String> {
+        let retriever = PubmedRetriever::new(input)?;
+        retriever.get().await
     }
 
 

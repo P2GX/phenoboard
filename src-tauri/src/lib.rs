@@ -4,8 +4,8 @@ mod phenoboard;
 mod hpo;
 mod settings;
 mod table_manager;
+mod util;
 
-use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}};
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
@@ -13,7 +13,7 @@ use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
 use tauri_plugin_fs::init;
 
-use crate::{dto::status_dto::StatusDto, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -28,6 +28,7 @@ pub fn run() {
             get_ppkt_store_json,
             get_phetools_table,
             get_template_summary,
+            highlight_text_with_hits,
             hpo_can_be_updated,
             get_backend_status,
             load_phetools_template,
@@ -42,6 +43,7 @@ pub fn run() {
             get_hp_json_path,
             get_pt_template_path,
             select_phetools_template_path,
+            fetch_pmid_title,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -131,6 +133,41 @@ fn run_text_mining(
     let singleton = singleton_arc.lock().unwrap();
     let json = singleton.map_text(input_text);
     json
+}
+
+#[tauri::command]
+fn highlight_text_with_hits(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    input_text: &str) 
+    -> Result<String, String> 
+{
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    let sorted_hits = singleton.get_sorted_fenominal_hits(input_text)?;
+    let mut html = String::new();
+    html.push_str("<div class=\"hpominingbox\">");
+    let mut last_index = 0;
+
+    for hit in sorted_hits {
+        html.push_str(&html_escape::encode_text(&input_text[last_index..hit.span.start]));
+        let matched_text = &input_text[hit.span.clone()];
+        let class = if hit.is_observed { "observed" } else { "excluded" };
+        let annotated = format!(
+            r#"<span class="hpo-hit {}" title="{} [{}]">{}</span>"#,
+            class,
+            hit.label,
+            hit.term_id,
+            html_escape::encode_text(matched_text),
+        );
+        html.push_str(&annotated);
+
+        last_index = hit.span.end;
+    }
+    // Add any remaining text after last hit
+    html.push_str(&html_escape::encode_text(&input_text[last_index..]));
+    html.push_str("</div>");
+    println!("\n\n \n\n{}\n\n\n\n", &html);
+    Ok(html)
 }
 
 
@@ -296,4 +333,14 @@ fn get_backend_status(
     let singleton = singleton_arc.lock().unwrap();
     Ok(singleton.get_status())
 }
+
+
+#[tauri::command]
+async fn fetch_pmid_title(
+    input: &str
+) -> Result<PmidDto, String> {
+    PhenoboardSingleton::get_pmid_dto(input).await
+}
+
+
 

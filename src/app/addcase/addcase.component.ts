@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
@@ -14,20 +14,26 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-  clipboardContent: string | null = null;
+  constructor(
+    private ngZone: NgZone,
+    private configService: ConfigService
+  ) {}
+
+  pastedText: string = '';
+  showTextArea: boolean = true;
+
   jsonData: any[] = [ ]; 
+  htmlData: string = '';
   predefinedOptions: string[] = ["observed", "excluded", "na"];
   selectedOptions: string[] = []; // Stores selected radio button values
   customOptions: string[] = []; // Stores manually entered custom options
   hpoInitialized: boolean = false;
   loadError: string | null = null;
-  ngZone: any;
 
-  constructor(private configService: ConfigService, private cd: ChangeDetectorRef) {}
   backend_status: StatusDto = defaultStatusDto();
   private unlisten: UnlistenFn | null = null;
 
- 
+
 
   async ngOnInit() {
     this.unlisten = await listen('backend_status', (event) => {
@@ -46,26 +52,19 @@ export class AddcaseComponent {
     }
   }
 
-  async readClipboard(): Promise<void> {
+
+  async doHpoTextMining(): Promise<void> {
     try {
-      const text = await navigator.clipboard.readText();
-      invoke<string>("run_text_mining", { inputText: text }).then((output) => {
-        try {
-          console.log("output");
-          console.log(output);
-          this.jsonData = JSON.parse(output);
+      const output = await this.configService.highlight_hpo_mining(this.pastedText);
+          console.log("output",output);
+          this.htmlData = output;
+          this.showTextArea = false;
         } catch (error) {
           // If parsing fails, set clipboardContent to the raw text
-          this.clipboardContent = text;
+          //this.clipboardContent = text;
           console.error('Invalid JSON format:', error);
         }
-    }).catch((error) => {
-      console.error("Tauri invoke failed:", error);
-    });
-      this.clipboardContent = text;
-    } catch (err) {
-      console.error('Failed to read clipboard', err);
-    }
+    
   }
 
   addCustomOption(index: number) {
@@ -78,5 +77,12 @@ export class AddcaseComponent {
 
   getObjectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
+  }
+
+  resetWindow() {
+    this.ngZone.run(() => {
+      this.showTextArea = true;
+    });
+
   }
 }

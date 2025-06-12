@@ -42,3 +42,22 @@ table {
     cursor: pointer;
     border-radius: 4px;
   }
+
+
+  .hpo-hit {
+  background-color: #fef3c7; /* light amber */
+  padding: 0.1em 0.2em;
+  border-radius: 0.2em;
+  cursor: help;
+  border: 1px solid #fcd34d;
+}
+
+.hpo-hit.observed {
+  background-color: #d1fae5; /* greenish for observed */
+  border-color: #10b981;
+}
+
+.hpo-hit.excluded {
+  background-color: #fee2e2; /* reddish for excluded */
+  border-color: #ef4444;
+}
