@@ -1,6 +1,7 @@
 import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
+import { PmidDto } from '../models/pmid_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -88,6 +89,10 @@ export class ConfigService {
 
   async highlight_hpo_mining(input_text: string): Promise<string> {
     return await invoke("highlight_text_with_hits", {inputText: input_text});
+  }
+
+  async retrieve_pmid_title(input_pmid: string): Promise<PmidDto> {
+    return await invoke("fetch_pmid_title", {input: input_pmid});
   }
 
 }

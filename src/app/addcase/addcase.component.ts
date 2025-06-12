@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { PmidDto } from '../models/pmid_dto';
 
 @Component({
   selector: 'app-textmining',
@@ -14,6 +15,8 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+  pmidInput: any;
+retrievedTitle: any;
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService
@@ -21,6 +24,7 @@ export class AddcaseComponent {
 
   pastedText: string = '';
   showTextArea: boolean = true;
+  showDataEntryArea: boolean = false;
 
   jsonData: any[] = [ ]; 
   htmlData: string = '';
@@ -59,12 +63,25 @@ export class AddcaseComponent {
           console.log("output",output);
           this.htmlData = output;
           this.showTextArea = false;
+          this.showDataEntryArea = true;
         } catch (error) {
           // If parsing fails, set clipboardContent to the raw text
           //this.clipboardContent = text;
           console.error('Invalid JSON format:', error);
         }
-    
+  }
+
+
+  async retrieve_pmid_title() {
+    const input = this.pmidInput.trim();
+    try {
+      const result = await this.configService.retrieve_pmid_title(input);
+      this.pmidInput = result.pmid;
+      this.retrievedTitle = result.title;
+    } catch (error) {
+      console.error('PMID lookup failed:', error);
+      this.retrievedTitle = 'Error retrieving title';
+    }
   }
 
   addCustomOption(index: number) {

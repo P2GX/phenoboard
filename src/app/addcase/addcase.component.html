@@ -1,8 +1,8 @@
 
 <div class="max-w-xl mx-auto p-4">
-   <div *ngIf="showTextArea">
+  <div *ngIf="showTextArea">
   <label class="block mb-2 text-sm font-medium text-gray-700">
-    Paste clinical text
+      Paste clinical text
   </label>
 
   <textarea
@@ -21,9 +21,37 @@
   </button>
 
   </div>
-</div>
 
- 
+<div *ngIf="showDataEntryArea">
+
+
+
+
+ <div class="flex items-center gap-4 mt-6">
+  <!-- PMID Input -->
+  <input
+    type="text"
+    [(ngModel)]="pmidInput"
+    placeholder="Enter PMID"
+    class="border border-gray-400 rounded px-3 py-2 w-40"
+  />
+
+  <!-- Lookup Button -->
+  <button
+    (click)="retrieve_pmid_title()"
+    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+  >
+    Lookup
+  </button>
+
+  <!-- Title Output -->
+  <input
+    type="text"
+    [value]="retrievedTitle"
+    readonly
+    class="border border-gray-300 bg-gray-100 rounded px-3 py-2 flex-1"
+  />
+</div>
 <div [innerHTML]="htmlData" class="whitespace-pre-wrap text-sm font-mono mb-4"></div>
 
 <button
@@ -32,7 +60,8 @@
   >
     Reset
   </button>
-
+</div>
+</div>
 
 <!-- <p *ngIf="pastedText">Original text: {{ pastedText }}</p> -->
 
