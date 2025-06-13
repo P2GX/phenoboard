@@ -23,7 +23,7 @@ html-escape = "0.2.13"
 ontolius = "0.5.3" 
 reqwest = { version = "0.12.20", features = ["json", "blocking"] }
 rfd = { version = "0.15.3", default-features = false}
-rfenominal = { git = 'https://github.com/P2GX/rfenominal.git',  tag = '0.1.9' }
+fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.1.12' }
 rphetools = { git = 'https://github.com/P2GX/rphetools.git', tag = '0.2.11' }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"

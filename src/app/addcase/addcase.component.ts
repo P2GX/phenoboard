@@ -15,6 +15,8 @@ import { PmidDto } from '../models/pmid_dto';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+
+
   pmidInput: any;
 retrievedTitle: any;
   constructor(
@@ -25,6 +27,8 @@ retrievedTitle: any;
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
+  selectedText: string = '';
+  selectionRange: Range | null = null;
 
   jsonData: any[] = [ ]; 
   htmlData: string = '';
@@ -100,6 +104,46 @@ retrievedTitle: any;
     this.ngZone.run(() => {
       this.showTextArea = true;
     });
-
   }
+
+  handleTextSelection(event: MouseEvent): void {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      this.selectedText = selection.toString();
+      this.selectionRange = selection.getRangeAt(0);
+      console.log('selected text:', this.selectedText);
+    } else {
+      this.selectedText = '';
+      this.selectionRange = null;
+    }
+  }
+
+  deleteSelectedText(): void {
+  if (this.selectionRange) {
+    this.selectionRange.deleteContents();
+    
+    this.updateHtmlDataFromDom();
+  }
+}
+
+annotateSelectedText(): void {
+  if (this.selectionRange) {
+    const span = document.createElement('span');
+    span.className = 'hpo-hit observed'; // or custom
+    span.title = 'Custom Annotation';
+    span.textContent = this.selectedText;
+
+    this.selectionRange.deleteContents();
+    this.selectionRange.insertNode(span);
+    this.updateHtmlDataFromDom();
+  }
+}
+
+updateHtmlDataFromDom(): void {
+  const container = document.querySelector('[innerHTML]');
+  if (container) {
+    this.htmlData = container.innerHTML;
+  }
+}
+
 }

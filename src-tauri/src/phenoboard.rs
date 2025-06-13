@@ -7,7 +7,7 @@ use crate::{directory_manager::DirectoryManager, dto::pmid_dto::PmidDto, hpo::hp
 use std::{collections::HashMap, path::Path, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
-use rfenominal::{
+use fenominal::{
     fenominal::{Fenominal, FenominalHit},
     TextMiner,
 };
