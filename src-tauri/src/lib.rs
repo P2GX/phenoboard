@@ -153,9 +153,10 @@ fn highlight_text_with_hits(
         let matched_text = &input_text[hit.span.clone()];
         let class = if hit.is_observed { "observed" } else { "excluded" };
         let annotated = format!(
-            r#"<span class="hpo-hit {}" title="{} [{}]">{}</span>"#,
+            r#"<span class="hpo-hit {}" title="{} [{}]" data-id="{}">{}</span>"#,
             class,
             hit.label,
+            hit.term_id,
             hit.term_id,
             html_escape::encode_text(matched_text),
         );

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { invoke } from "@tauri-apps/api/core";
@@ -27,7 +27,7 @@ retrievedTitle: any;
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
-  selectedText: string = '';
+
   selectionRange: Range | null = null;
 
   jsonData: any[] = [ ]; 
@@ -37,6 +37,12 @@ retrievedTitle: any;
   customOptions: string[] = []; // Stores manually entered custom options
   hpoInitialized: boolean = false;
   loadError: string | null = null;
+
+  selectedHpoSpans: HTMLElement[] = [];
+  selectedText: string = '';
+  showAnnotationPopup = false;
+  popupX = 0;
+  popupY = 0;
 
   backend_status: StatusDto = defaultStatusDto();
   private unlisten: UnlistenFn | null = null;
@@ -106,16 +112,36 @@ retrievedTitle: any;
     });
   }
 
-  handleTextSelection(event: MouseEvent): void {
+  @HostListener('document:mouseup', [])
+    onMouseUp(): void {
+    this.handleTextSelection();
+  }
+
+  handleTextSelection(): void {
     const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      this.selectedText = selection.toString();
-      this.selectionRange = selection.getRangeAt(0);
-      console.log('selected text:', this.selectedText);
-    } else {
-      this.selectedText = '';
-      this.selectionRange = null;
-    }
+    if (! selection || selection.rangeCount == 0) return;
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString().trim();
+    if (selectedText.length == 0) return;
+    // collect all .hpo-hit elements
+    const container = document.createElement('div');
+    container.appendChild(range.cloneContents());
+    const spanNodes = container.querySelectorAll('.hpo-hit');
+    if (spanNodes.length == 0) return;
+
+    this.selectedHpoSpans = Array.from(spanNodes).map((span: any) => {
+      const dataId = span.getAttribute('data-id');
+      if (!dataId) return null;
+      const selector = `[data-id="${CSS.escape(dataId)}"]`;
+      const matching = document.querySelector(selector);
+      return matching as HTMLElement | null;
+    }).filter((el): el is HTMLElement => el !== null);
+
+    this.selectedText = selectedText;
+    const rect = range.getBoundingClientRect();
+    this.popupX = rect.left + window.scrollX;
+    this.popupY = rect.bottom + window.scrollY;
+    this.showAnnotationPopup = true;
   }
 
   deleteSelectedText(): void {
@@ -125,18 +151,20 @@ retrievedTitle: any;
     this.updateHtmlDataFromDom();
   }
 }
-
-annotateSelectedText(): void {
-  if (this.selectionRange) {
-    const span = document.createElement('span');
-    span.className = 'hpo-hit observed'; // or custom
-    span.title = 'Custom Annotation';
-    span.textContent = this.selectedText;
-
-    this.selectionRange.deleteContents();
-    this.selectionRange.insertNode(span);
-    this.updateHtmlDataFromDom();
+annotateSelection(annotation: string): void {
+  for (const span of this.selectedHpoSpans) {
+    const prev = span.getAttribute('data-annotation');
+    const updated = prev ? `${prev}, ${annotation}` : annotation;
+    span.setAttribute('data-annotation', updated);
+    span.title = updated;
   }
+  this.closePopup();
+}
+
+closePopup(): void {
+  this.showAnnotationPopup = false;
+  this.selectedText = '';
+  this.selectedHpoSpans = [];
 }
 
 updateHtmlDataFromDom(): void {

@@ -61,3 +61,16 @@ table {
   background-color: #fee2e2; /* reddish for excluded */
   border-color: #ef4444;
 }
+
+.hpo-hit[data-annotation]:hover::after {
+  content: attr(data-annotation);
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 0.2em 0.4em;
+  font-size: 0.75em;
+  border-radius: 0.2em;
+  z-index: 999;
+  white-space: nowrap;
+}
+

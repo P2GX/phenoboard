@@ -55,11 +55,22 @@
 <div class="whitespace-pre-wrap text-sm font-mono mb-4"
   [innerHTML]="htmlData"
   ></div>
-  <!--(mouseup)="handleTextSelection($event)"
-<div *ngIf="selectedText" class="mt-2">
+  (mouseup)="handleTextSelection($event)"
+<!-- <div *ngIf="selectedText" class="mt-2">
   <span class="text-green-600 font-bold">Selected: "{{ selectedText }}"</span>
   <button (click)="annotateSelectedText()" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Annotate</button>
-</div>-->
+</div> -->
+
+<div
+  *ngIf="showAnnotationPopup"
+  class="absolute bg-white border rounded shadow p-2"
+  [style.top.px]="popupY"
+  [style.left.px]="popupX">
+  <div class="text-sm font-medium mb-1">Annotate selection</div>
+  <button class="block w-full text-left" (click)="annotateSelection('P32Y')">Age: P32Y</button>
+  <button class="block w-full text-left" (click)="annotateSelection('CONGENITAL')">Age: Congenital</button>
+  <button class="block w-full text-left" (click)="closePopup()">Cancel</button>
+</div>
 
 <button
     (click)="resetWindow()"
