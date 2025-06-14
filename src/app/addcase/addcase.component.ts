@@ -23,6 +23,7 @@ export class AddcaseComponent {
     private configService: ConfigService
   ) {}
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
+  @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
@@ -31,6 +32,7 @@ export class AddcaseComponent {
 
   jsonData: any[] = [ ]; 
   htmlData: string = '';
+  rightClickOptions: string[] = [];
   predefinedOptions: string[] = ["observed", "excluded", "na"];
   selectedOptions: string[] = []; // Stores selected radio button values
   customOptions: string[] = []; // Stores manually entered custom options
@@ -106,6 +108,11 @@ export class AddcaseComponent {
   }
 
   handleTextSelection(): void {
+    this.rightClickOptions = [...this.predefinedOptions];
+    for (const item of this.addagesComponent.entries) {
+      this.rightClickOptions.push(item);
+    }
+    console.log("In this.rightClickOptions:", this.rightClickOptions);
     const selection = window.getSelection();
     if (! selection || selection.rangeCount == 0) return;
     const range = selection.getRangeAt(0);
@@ -140,6 +147,9 @@ export class AddcaseComponent {
   }
 }
 annotateSelection(annotation: string): void {
+  console.log("In annotateSelection");
+  this.rightClickOptions = [...this.predefinedOptions, ...this.addagesComponent.entries];
+  console.log("In this.rightClickOptions:", this.rightClickOptions);
   for (const span of this.selectedHpoSpans) {
     const prev = span.getAttribute('data-annotation');
     const updated = prev ? `${prev}, ${annotation}` : annotation;
