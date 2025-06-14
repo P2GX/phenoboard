@@ -83,8 +83,8 @@ export class ConfigService {
     return await invoke("get_ppkt_store_json");
   }
 
-  async updateDescriptiveStats(): Promise<void> {
-    return await invoke("update_descriptive_stats");
+  async emitStatusFromBackend(): Promise<void> {
+    return await invoke("emit_backend_status");
   }
 
   async highlight_hpo_mining(input_text: string): Promise<string> {

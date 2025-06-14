@@ -44,33 +44,3 @@ table {
   }
 
 
-  .hpo-hit {
-  background-color: #fef3c7; /* light amber */
-  padding: 0.1em 0.2em;
-  border-radius: 0.2em;
-  cursor: help;
-  border: 1px solid #fcd34d;
-}
-
-.hpo-hit.observed {
-  background-color: #d1fae5; /* greenish for observed */
-  border-color: #10b981;
-}
-
-.hpo-hit.excluded {
-  background-color: #fee2e2; /* reddish for excluded */
-  border-color: #ef4444;
-}
-
-.hpo-hit[data-annotation]:hover::after {
-  content: attr(data-annotation);
-  position: absolute;
-  background: #333;
-  color: white;
-  padding: 0.2em 0.4em;
-  font-size: 0.75em;
-  border-radius: 0.2em;
-  z-index: 999;
-  white-space: nowrap;
-}
-

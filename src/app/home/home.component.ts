@@ -29,7 +29,7 @@ export class HomeComponent {
 
   status: StatusDto = defaultStatusDto();
   statusSubscription?: Subscription;
- 
+
   ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
   hasError: boolean = false;
@@ -45,14 +45,8 @@ export class HomeComponent {
   errorMessage: string | null = null;
 
   ngAfterViewInit() {
-    if (this.pendingHpoVersion && this.footer_component) {
-      this.footer_component.setHpoVersion(this.pendingHpoVersion);
-      this.pendingHpoVersion = null;
-    }
-    if (this.pendingHpoNterms && this.footer_component) {
-      this.footer_component.setHpoVersion(this.pendingHpoNterms);
-      this.pendingHpoNterms = null;
-    }
+    console.log("ngAfterViewInit, about to emit backend status");
+    this.configService.emitStatusFromBackend();
   }
 
   async ngOnInit() {
@@ -60,6 +54,7 @@ export class HomeComponent {
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
+        console.log("got backend status: ", status);
         this.backendStatusService.setStatus(status);
         this.status = event.payload as StatusDto;
         this.update_gui_variables(status);

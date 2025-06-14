@@ -116,7 +116,6 @@ cargo tauri init
 ## file system (tauri v2)
 
 npm run tauri add fs
-
 npm run tauri add dialog
 
 .

@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology};
 use tauri_plugin_fs::FilePath;
 
@@ -16,4 +18,12 @@ pub fn load_ontology(file_path: FilePath) -> Result<FullCsrOntology, String> {
             return Err(format!("{file_path} is invalid"));
         },
     }
+}
+
+pub fn load_ontology_from_path(path: &Path) -> Result<FullCsrOntology, String> { 
+    let loader = OntologyLoaderBuilder::new().obographs_parser().build();
+    let ontology: FullCsrOntology = loader
+        .load_from_path(path)
+        .expect("Could not load {file_path}");
+        return Ok(ontology);
 }

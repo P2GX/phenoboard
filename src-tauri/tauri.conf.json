@@ -12,6 +12,17 @@
   "app": {
     "windows": [
       {
+        "label": "splashscreen",
+        "url": "splash.html",
+        "decorations": false,
+        "resizable": false,
+        "fullscreen": false,
+        "width": 400,
+        "height": 300,
+        "visible": false 
+      },
+      {
+        "label": "main",
         "title": "GA4GH Phenoboard",
         "width": 1400,
         "height": 900

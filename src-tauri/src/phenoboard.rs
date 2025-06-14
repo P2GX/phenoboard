@@ -35,18 +35,27 @@ pub struct PhenoboardSingleton {
 }
 
 impl PhenoboardSingleton {
+    /// Create a new instance of PhenoboardSingleton
+    /// 
+    /// The constructor will try to load the HPO from the settings file if available;
+    /// if something does not work, it will leave the ontology field as None
     pub fn new() -> Self {
-        PhenoboardSingleton {
-            settings: HpoCuratorSettings::load_settings(), 
-            ontology: None,
-            pt_template_path: None,
-            phetools: None,
-            current_row: None,
-            current_column: None,
-            current_operation: PptOperation::EntireTable,
-            unsaved: false,
+        let mut singleton = PhenoboardSingleton::default();
+        let hpo_json_result= singleton.settings.get_hp_json_path();
+        if hpo_json_result.is_err() {
+            return singleton;
         }
+        let hpo_json = hpo_json_result.unwrap();
+        let loader = OntologyLoaderBuilder::new().obographs_parser().build();
+        let ontology_opt: Option<FullCsrOntology> = loader.load_from_path(hpo_json).ok();
+        if let Some(hpo) = ontology_opt {
+            let hpo_arc = Arc::new(hpo);
+            singleton.ontology = Some(hpo_arc);
+        }           
+        return singleton;
     }
+
+
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
         let hpo_clone = Arc::clone(&ontology);
@@ -527,4 +536,20 @@ impl PhenoboardSingleton {
     }
 
 
+}
+
+
+impl Default for PhenoboardSingleton {
+    fn default() -> Self {
+        Self { 
+            settings: HpoCuratorSettings::load_settings(), 
+            ontology: None, 
+            pt_template_path: None, 
+            phetools: None, 
+            current_row: None, 
+            current_column: None, 
+            current_operation: PptOperation::EntireTable, 
+            unsaved: false
+        }
+    }
 }

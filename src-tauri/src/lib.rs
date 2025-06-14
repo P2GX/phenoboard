@@ -8,21 +8,22 @@ mod util;
 
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
-use std::{collections::HashMap, sync::{Arc, Mutex}};
-use tauri_plugin_fs::init;
+use std::{collections::HashMap, path::Path, sync::{Arc, Mutex}};
+use tauri_plugin_fs::{init, FilePath};
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto}, hpo::ontology_loader, settings::HpoCuratorSettings};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
-        .manage(Arc::new(Mutex::new(PhenoboardSingleton::new())))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(init())
+    .manage(Arc::new(Mutex::new(PhenoboardSingleton::new())))
+        
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
@@ -48,7 +49,6 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
 
 
 

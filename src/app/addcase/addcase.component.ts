@@ -1,29 +1,26 @@
-import { ChangeDetectorRef, Component, HostListener, NgZone } from '@angular/core';
+import { Component, HostListener, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
-import { invoke } from "@tauri-apps/api/core";
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { PmidDto } from '../models/pmid_dto';
+import { PubmedComponent } from "../pubmed/pubmed.component";
+
 
 @Component({
   selector: 'app-textmining',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PubmedComponent],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
 
-
-  pmidInput: any;
-retrievedTitle: any;
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService
   ) {}
-
+  @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
@@ -82,17 +79,6 @@ retrievedTitle: any;
   }
 
 
-  async retrieve_pmid_title() {
-    const input = this.pmidInput.trim();
-    try {
-      const result = await this.configService.retrieve_pmid_title(input);
-      this.pmidInput = result.pmid;
-      this.retrievedTitle = result.title;
-    } catch (error) {
-      console.error('PMID lookup failed:', error);
-      this.retrievedTitle = 'Error retrieving title';
-    }
-  }
 
   addCustomOption(index: number) {
     const customValue = this.customOptions[index]?.trim();
