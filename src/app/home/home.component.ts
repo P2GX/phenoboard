@@ -50,7 +50,6 @@ export class HomeComponent {
   }
 
   async ngOnInit() {
-    console.log("ngOnInit - TOP");
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;

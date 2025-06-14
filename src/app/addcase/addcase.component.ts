@@ -5,16 +5,18 @@ import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
+import { AddagesComponent } from "../addages/addages.component";
 
 
 @Component({
   selector: 'app-textmining',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent],
+  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+
 
   constructor(
     private ngZone: NgZone,
@@ -159,5 +161,8 @@ updateHtmlDataFromDom(): void {
     this.htmlData = container.innerHTML;
   }
 }
-
+  handleAgeList(entries: string[]) {
+    console.log('Validated entries:', entries);
+    // Use the entries array as needed
+  }
 }
