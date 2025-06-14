@@ -1,6 +1,30 @@
 @use "@angular/material" as mat;
 
 @include mat.core();
-@include mat.all-component-themes();
+/* @include mat.all-component-themes(); */
 
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* The following definitions need to be here because we are using them in innerHTML */
+.hpo-hit {
+    background-color: #fef3c7; /* light amber */
+    padding: 0.1em 0.2em;
+    border-radius: 0.2em;
+    cursor: help;
+    border: 1px solid #fcd34d;
+}
+
+.hpo-hit.observed {
+    background-color: #d1fae5; /* greenish for observed */
+    border-color: #10b981;
+}
+
+.hpo-hit.excluded {
+    background-color: #fee2e2; /* reddish for excluded */
+    border-color: #ef4444;
+}

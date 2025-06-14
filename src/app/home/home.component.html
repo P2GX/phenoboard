@@ -1,17 +1,92 @@
-<h1>FTC2</h1>
-<p>This application is intended to support biocuration of GA4GH Phenopackets. For each disease to be curated, users should read or create an Excel curation template file. Use the x window to curate cohorts (from tabular data), and use the mining window to perform text mining on individual cases.</p>
-<h3>Setup</h3>
-<p>Very early stage app. For now, go to the Settings tab and load the hp.json file (you need to download it first from HPO webpage). Then, go to the Text mining tab, and copy in a text to show text mining</p>
-<p>Example (copy this using Apple-C etc.)</p>
-<pre>
-    Orthoptic examination revealed strabismus, refractive errors, amblyopia, and nystagmus. Anterior 
-    segment changes included anterior stromal dystrophy, cataracts, and panuveitis. Fundal changes 
-    included optic nerve head drusen, optic disc hypoplasia, colobomas, and myelinated nerve fiber layer.
-</pre>
-<div class="hpoloader-container">
-    <app-hpoloader></app-hpoloader>
-</div>
-<div class="hpoloader-container">
-    <app-phetoolsloader></app-phetoolsloader>
+<div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">GA4GH Phenoboard</h1>
+
+    <p class="text-gray-600 text-base leading-relaxed">
+    This application supports the biocuration of GA4GH Phenopackets.
+    For each disease to be curated, users should read or create an Excel curation template file.
+    Use the <strong class="font-medium text-gray-800">cohorts</strong> window to curate tabular data,
+    and the <strong class="font-medium text-gray-800">mining</strong> window to perform text mining on individual cases.
+    </p>
+
+    <div class="flex flex-col space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="relative group">
+    <button
+        (click)="loadHpo()"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+    >Load HPO
+    </button>
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Select the hp.json file
+    </div>
+    </div>
+    <span [ngClass]="{'text-red-600': hpoMessage === 'loading ...'}"
+      class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
 </div>
 
+<div class="flex items-center gap-3">
+  <div class="relative group">
+    <button
+      (click)="chooseExistingTemplateFile()"
+      [disabled]="!status.hpoLoaded || status.newCohort"
+      class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >
+      {{ ptTemplateLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
+    </button>
+
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Select a phetools template file (enabled after HPO is loaded)
+    </div>
+  </div>
+
+  <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
+</div>
+
+<div class="flex items-center gap-3">
+  <div class="relative group">
+    <button
+        (click)="chooseNewPhetoolsFile()"
+        [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >Create new template
+    </button>
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Create a new phetools template file (enabled after HPO is loaded)
+    </div>
+    </div>
+    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
+</div>
+
+
+<div class="flex items-center gap-3">
+  <div class="relative group">
+    <button
+        (click)="goToAddCase()"
+        [disabled]="!status.hpoLoaded || (!status.ptTemplateLoaded && !status.newCohort)"
+        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >Add phenopacket
+    </button>
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Add a new case using text-mining and autocomplete
+    </div>
+    </div>
+    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
+</div>
+</div>
+</div>
+
+<div *ngIf="status.hasError" class="error-message">
+  {{ status.errorMessage }}
+</div>

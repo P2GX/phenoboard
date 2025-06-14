@@ -7,8 +7,13 @@ footer {
     width: 100%;
     gap: 10px;
     display: flex;
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* optional: adds space between items */
   }
   
+
+
   
   .led {
     width: 20px;

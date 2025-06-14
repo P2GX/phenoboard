@@ -56,7 +56,7 @@ export class TableComponent {
       console.log("Symbol:", symbol);
       console.log("Transcript:", transcript);
       console.log("Multi Text:", multiText);
-   
+
       invoke<string>('get_table_columns_from_seeds', { 
           diseaseId: diseaseId,
           diseaseName: diseaseName,

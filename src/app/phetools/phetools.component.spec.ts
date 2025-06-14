@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PyphetoolsComponent } from './pyphetools.component';
+import { PhetoolsComponent } from './phetools.component';
 
-describe('PyphetoolsComponent', () => {
-  let component: PyphetoolsComponent;
-  let fixture: ComponentFixture<PyphetoolsComponent>;
+describe('PhetoolsComponent', () => {
+  let component: PhetoolsComponent;
+  let fixture: ComponentFixture<PhetoolsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PyphetoolsComponent]
+      imports: [PhetoolsComponent]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PyphetoolsComponent);
+    fixture = TestBed.createComponent(PhetoolsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

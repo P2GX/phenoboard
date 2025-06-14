@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    hpocurator_lib::run()
+    phenoboard_lib::run()
 }

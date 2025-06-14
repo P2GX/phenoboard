@@ -1,4 +1,12 @@
+
 <app-navbar></app-navbar>
-<router-outlet></router-outlet>
+<main>
+  <app-home *ngIf="currentView === 'home'"></app-home>
+  <app-table *ngIf="currentView === 'table'"></app-table>
+  <app-textmining *ngIf="currentView === 'addcase'"></app-textmining>
+  <app-phetools *ngIf="currentView === 'phetools'"></app-phetools>
+  <app-settings *ngIf="currentView === 'settings'"></app-settings>
+  <app-help *ngIf="currentView === 'help'"></app-help>
+</main>
 <app-footer></app-footer>
 

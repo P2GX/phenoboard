@@ -1,5 +1,8 @@
-# hpocurator
-HPO Curation with Phenopackets
+# phenoboard
+GA4GH Phenoboard
+
+Curation of individuals with Human Phenotype Ontology and GA4GH Phenopacket Schema.
+
 
 ## Run the GUI application in development mode
 ```bash 
