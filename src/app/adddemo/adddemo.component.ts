@@ -14,34 +14,17 @@ import { AgeInputService} from '../services/age_service';  // Adjust path if nee
   styleUrl: './adddemo.component.css'
 })
 export class AdddemoComponent {
-addComment() {
-throw new Error('Method not implemented.');
-}
-submitDemo() {
-throw new Error('Method not implemented.');
-}
-  lastExamTerm: string | null = null;
-  onsetTerm: string | null = null;
-  availableAgeTerms: string[] = [];
+ constructor(public ageService: AgeInputService) {}
+ 
+ 
 
-handleOnsetSelection($event: string) {
-throw new Error('Method not implemented.');
-}
-isValidAge: any;
-onAgeInputBlur() {
-throw new Error('Method not implemented.');
-}
-ageInput: any;
-  constructor(public ageService: AgeInputService) {}
 
-  
-
-  
-
-  ngOnInit() {
-    
-  }
-
+  availableAgeTerms: string[] = ["na"];
+  ageOfOnset: string = "na";
+  ageAtLastExamination: string = "na";
+  allDataEntered: boolean = false;
+  isValidAge: any;
+  ageInput: any;
   individualId: string = '';
   isAscii: boolean = true;
 
@@ -51,8 +34,25 @@ ageInput: any;
   deceasedOptions = ['yes', 'no', 'na'];
   deceased = 'na';
 
-  ageOfOnset: string | null = null;
-  ageAtLastExamination: string | null = null;
+  
+
+
+  @Output() dataEnteredChange = new EventEmitter<boolean>();
+  ngOnInit() {
+      
+  }
+
+  handleOnsetSelection($event: string) {
+    throw new Error('Method not implemented.');
+  }
+  
+  onAgeInputBlur() {
+    throw new Error('Method not implemented.');
+  }
+
+
+  
+  
 
   onIndividualIdBlur() {
     this.individualId = this.individualId.trim();
@@ -63,5 +63,17 @@ ageInput: any;
     return this.ageService.selectedTerms;
   }
 
- 
+  addComment() {
+    throw new Error('Method not implemented.');
+  }
+  submitDemo(hideDemograpic: boolean) {
+    console.log("submitDemo- hideDemograpic=", hideDemograpic)
+    if (hideDemograpic) {
+      this.allDataEntered = true;
+      this.dataEnteredChange.emit(hideDemograpic);
+    } else {
+      this.allDataEntered = false;
+      this.dataEnteredChange.emit(hideDemograpic);
+    }
+  }
 }

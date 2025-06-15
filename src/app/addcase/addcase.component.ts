@@ -8,7 +8,7 @@ import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
-
+import { HpoAnnotationDto } from '../models/hpo_annotation_dto';
 
 @Component({
   selector: 'app-addcase',
@@ -18,6 +18,14 @@ import { AgeInputService } from '../services/age_service';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+  
+
+
+
+annotateSelectedText() {
+throw new Error('Method not implemented.');
+}
+
 
 
   constructor(
@@ -30,6 +38,9 @@ export class AddcaseComponent {
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
+  showAgeEntryArea: boolean = true;
+  showCollapsed: boolean = true;
+  showAnnotations: boolean = false;
 
   selectionRange: Range | null = null;
 
@@ -47,6 +58,7 @@ export class AddcaseComponent {
   showAnnotationPopup = false;
   popupX = 0;
   popupY = 0;
+  uniqueAnnotatedTerms: string[] = [];
 
   backend_status: StatusDto = defaultStatusDto();
   private unlisten: UnlistenFn | null = null;
@@ -105,14 +117,14 @@ export class AddcaseComponent {
     });
   }
 
-  @HostListener('document:mouseup', [])
+  /*@HostListener('document:mouseup', [])
     onMouseUp(): void {
     this.handleTextSelection();
-  }
+  }*/
 
-  handleTextSelection(): void {
-    this.rightClickOptions = [...this.predefinedOptions];
-    for (const item of this.addagesComponent.entries) {
+  handleTextSelection(event: MouseEvent): void {
+    this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
+    for (const item of this.ageService.getSelectedTerms()) {
       this.rightClickOptions.push(item);
     }
     console.log("In this.rightClickOptions:", this.rightClickOptions);
@@ -149,10 +161,8 @@ export class AddcaseComponent {
     this.updateHtmlDataFromDom();
   }
 }
+
 annotateSelection(annotation: string): void {
-  console.log("In annotateSelection");
-  this.rightClickOptions = [...this.predefinedOptions, ...this.addagesComponent.entries];
-  console.log("In this.rightClickOptions:", this.rightClickOptions);
   for (const span of this.selectedHpoSpans) {
     const prev = span.getAttribute('data-annotation');
     const updated = prev ? `${prev}, ${annotation}` : annotation;
@@ -177,5 +187,66 @@ updateHtmlDataFromDom(): void {
   handleAgeList(entries: string[]) {
     console.log('Validated entries:', entries);
     // Use the entries array as needed
+  }
+
+  handleDemographicData(hide_demographic: boolean) {
+    console.log("handleDemographicData - hide_demographic=",hide_demographic);
+    if (hide_demographic) {
+      this.showAgeEntryArea = false;
+    } else {
+      this.showAgeEntryArea = true;
+    }
+  }
+
+  getAnnotationsFromDom(): HpoAnnotationDto[] {
+    const elements = document.querySelectorAll('.hpo-hit');
+    const annotations: HpoAnnotationDto[] = [];
+
+    elements.forEach((el) => {
+      //const label = el.textContent?.trim() || '';
+      const id = el.getAttribute('data-id') || '';
+      const label = el.getAttribute('title') || '';
+
+      let status: 'observed' | 'excluded' | 'na' = 'na';
+
+      if (el.classList.contains('observed')) {
+        status = 'observed';
+      } else if (el.classList.contains('excluded')) {
+        status = 'excluded';
+      }
+
+      const onset = "to do";
+
+      if (label && id) {
+        annotations.push({ label, id, status, onset });
+      }
+    });
+
+    return annotations;
+  }
+
+  submitAnnotations(): void {
+    console.log("submitAnnotations")
+    //const annotatedTerms: string[] = [];
+
+    // Find all relevant spans in the document
+    // See highlight_text_with_hits in lib.rs for structure
+    const annotatedTerms = this.getAnnotationsFromDom();
+    console.log('Annotated HPO terms annotatedTerms:', annotatedTerms);
+    // Optionally, remove duplicates
+    this.uniqueAnnotatedTerms = [...new Set(JSON.stringify(annotatedTerms, null, 2))];
+
+    // Log, save, or emit the terms
+    console.log('Annotated HPO terms:', this.uniqueAnnotatedTerms);
+    this.showAnnotations = true;
+    this.showDataEntryArea = false;
+  }
+
+  debugAnnotations(): void {
+    const annotations = this.getAnnotationsFromDom();
+    console.log('Annotations:', JSON.stringify(annotations, null, 2));
+
+    const debugStr = annotations.map(a => `${a.label} (${a.id}): ${a.status}`).join('\n');
+    console.log('Summary:\n' + debugStr);
   }
 }

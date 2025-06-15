@@ -87,22 +87,16 @@ export class HomeComponent {
         this.pendingHpoNterms = String(status.nHpoTerms);
       }
       console.log("in update_gui, status = ", status);
-      console.log("status.hpoLoaded =", status.hpoLoaded, typeof status.hpoLoaded);
       if (status.hpoLoaded) {
-        console.log("status.hpoLoaded true ");
         this.hpoMessage = status.hpoVersion;
-        console.log("hpo_version =", status.hpoVersion);
       } else {
         this.hpoMessage = "uninitialized";
       }
-      console.log("loaded HPO: hpoMessage=", this.hpoMessage);
-      console.log("loaded HPO: Bottom=", this.hpoMessage);
       if (status.ptTemplatePath) {
-        console.log("ptTemplatePath =", status.ptTemplatePath);
         this.ptTemplateLoaded = true; 
         this.templateFileMessage = status.ptTemplatePath;
       } else {
-        console.log("ptTemplatePath = NIPE");
+        console.log("ptTemplatePath = not initialized");
         this.ptTemplateLoaded = false;
         this.templateFileMessage = "not initialized";
       }

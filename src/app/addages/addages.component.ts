@@ -44,4 +44,8 @@ export class AddagesComponent {
   handleAgeList($event: string[]) {
     throw new Error('Method not implemented.');
   }
+
+  getEntries(): string[] {
+    return this.entries;
+  }
 }

@@ -1,4 +1,4 @@
-<div class="space-y-4 p-4 border rounded-md">
+<div class="space-y-4 p-4 border rounded-md"  *ngIf="!allDataEntered">
     <div class="grid grid-cols-6 gap-6">
     <!-- Top row -->
     <label for="individualId" class="block text-sm font-medium text-gray-700">Individual ID</label>
@@ -7,7 +7,7 @@
     <label class="block text-sm font-medium text-gray-700">Sex</label>
     <label class="block text-sm font-medium text-gray-700">Deceased</label>
     <button
-        (click)="submitDemo()"
+        (click)="submitDemo(true)"
         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
     >Submit</button>
     <!-- Bottom row -->
@@ -18,8 +18,9 @@
             type="text"
             [(ngModel)]="individualId"
             (blur)="onIndividualIdBlur()"
-            placeholder="Enter ASCII ID"
-            class="border px-3 py-2 rounded w-150"
+            placeholder="individual ID"
+            class="border px-3 py-2 rounded"
+            style="width: 150px; height: 25px;"
         />
         <p *ngIf="!isAscii" class="text-red-600 text-xs">ID must be ASCII only</p>
     </div>
@@ -27,10 +28,10 @@
     <div>
         <select
             class="border border-gray-400 rounded px-3 py-2 w-full"
-            [(ngModel)]="ageInput"
+            [(ngModel)]="ageOfOnset"
             style="width: 150px"
         >
-        <option value="" disabled selected>age of onset</option>
+        <option value="na"></option>
         <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
         </select>
     </div>
@@ -38,10 +39,10 @@
     <div>
         <select
             class="border border-gray-400 rounded px-3 py-2 w-full"
-            [(ngModel)]="ageInput"
+            [(ngModel)]="ageAtLastExamination"
             style="width: 150px"
         >
-        <option value="" disabled selected>age at last examination</option>
+        <option value="na"></option>
         <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
         </select>
     </div>
@@ -72,12 +73,25 @@
         </label>
     </div>
     <!-- 5. Add comment-->
-     <button
+    <button
         (click)="addComment()"
         class="bg-gray-100 text-black px-4 py-2 rounded hover:bg-blue-100"
     >Add comment</button>
 </div>
-
-
-
 </div>
+<div
+    class="flex items-center justify-between p-4 border rounded-md text-sm text-gray-500"
+    *ngIf="allDataEntered"
+>
+    <p class="mr-4">
+        {{ individualId }}: {{ sex }}, deceased: {{ deceased }}, onset: {{ ageOfOnset }}, age at last exam: {{ ageAtLastExamination }}
+    </p>
+
+    <button
+        (click)="submitDemo(false)"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+    >
+        Reset
+    </button>
+</div>
+

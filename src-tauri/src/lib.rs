@@ -166,7 +166,7 @@ fn highlight_text_with_hits(
     }
     // Add any remaining text after last hit
     html.push_str(&html_escape::encode_text(&input_text[last_index..]));
-    html.push_str("</div>");
+    html.push_str("</div>"); // close div for hpominingbox
     println!("\n\n \n\n{}\n\n\n\n", &html);
     Ok(html)
 }

@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
     providedIn: 'root'
 })
 export class AgeInputService {
-    readonly onsetTerms = ['Antenatal onset',
+    readonly onsetTerms = ['na', 'Antenatal onset',
         'Embryonal onset', 'Fetal onset',
         'Late first trimester onset' , 'Second trimester onset' ,'Third trimester onset', 
         'Congenital onset',
@@ -16,7 +16,7 @@ export class AgeInputService {
 
     readonly isoPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?$/;
     /** The user selects these terms for use in annotations */
-    public selectedTerms: string[] = [];
+    public selectedTerms: string[] = ["na"];
 
     /**
      * Returns true if the input is a valid ISO8601 age string or a known HPO term
@@ -25,10 +25,9 @@ export class AgeInputService {
         return this.onsetTerms.includes(input) || this.isoPattern.test(input);
     }
 
-
+    /** always present "na" as the first value. These are the age terms that are selectable for the phenotypic features */
     setSelectedTerms(terms: string[]) {
-        console.log("Set selected: ", terms);
-        this.selectedTerms = terms;
+        this.selectedTerms = [...terms];
     }
 
     addSelectedTerm(term: string) {
@@ -37,5 +36,9 @@ export class AgeInputService {
 
     clearSelectedTerms() {
         this.selectedTerms = [];
+    }
+
+    getSelectedTerms(): string[] {
+        return this.selectedTerms;
     }
 }
