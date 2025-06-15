@@ -6,12 +6,14 @@ import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddagesComponent } from "../addages/addages.component";
+import { AdddemoComponent } from "../adddemo/adddemo.component";
+import { AgeInputService } from '../services/age_service';
 
 
 @Component({
-  selector: 'app-textmining',
+  selector: 'app-addcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent],
+  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
@@ -20,7 +22,8 @@ export class AddcaseComponent {
 
   constructor(
     private ngZone: NgZone,
-    private configService: ConfigService
+    private configService: ConfigService,
+    public ageService: AgeInputService
   ) {}
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
