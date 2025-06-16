@@ -1,5 +1,5 @@
 <div class="w-full px-[5%]"><app-pubmed #pmidChild></app-pubmed>
-<app-addages #addagesComponent (ageEntries)="handleAgeList($event)" *ngIf="showAgeEntryArea"></app-addages>
+<app-addages #addagesComponent *ngIf="showAgeEntryArea"></app-addages>
 <app-adddemo #adddemoComponent (dataEnteredChange)="handleDemographicData($event)"></app-adddemo>
 <div class="w-full mx-auto p-4">
   <div *ngIf="showTextArea">
@@ -22,6 +22,7 @@
 </div>
 </div>
 <div *ngIf="showDataEntryArea">
+  
   <button
     class="text-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 w-full text-left"
     (click)="showCollapsed = !showCollapsed"
@@ -29,52 +30,62 @@
     {{ showCollapsed ? '▼' : '►' }} Show Data Entry
   </button>
    <div *ngIf="showCollapsed" class="p-2 space-y-2">
-      <div class="whitespace-pre-wrap text-sm font-mono mb-4"
-        [innerHTML]="htmlData"
-        (mouseup)="handleTextSelection($event)"
-        ></div>
-        
-      <div *ngIf="selectedText" class="mt-2">
-        <span class="text-green-600 font-bold">Selected: "{{ selectedText }}"</span>
-        <button (click)="annotateSelectedText()" class="ml-2 px-3 py-1 bg-blue-500 text-white rounded">Annotate</button>
-      </div> 
-
-      <div
-        *ngIf="showAnnotationPopup"
-        class="absolute bg-white border rounded shadow p-2 z-50"
-        [style.top.px]="popupY"
-        [style.left.px]="popupX"
+      <div class="whitespace-pre-wrap text-sm font-mono mb-4 relative">
+  <ng-container *ngFor="let ann of annotations">
+    <ng-container *ngIf="ann.isFenominalHit; else plainText">
+      <span
+        class="cursor-pointer px-1 rounded"
+        (click)="openPopup(ann, $event)"
+        [ngClass]="{
+          'bg-green-100': ann.isObserved,
+          'bg-red-100': !ann.isObserved
+        }"
+        [attr.data-id]="ann.termId"
       >
-        <div class="text-sm font-medium mb-1">Annotate selection</div>
-        <button
-          *ngFor="let option of rightClickOptions"
-          class="block w-full text-left"
-          (click)="annotateSelection(option)"
-        >
-          {{ option }}
-        </button>
-        <button class="block w-full text-left" (click)="closePopup()">Cancel</button>
-      </div>
+        {{ ann.originalText }}
+      </span>
+    </ng-container>
+    <ng-template #plainText>
+      {{ ann.originalText }}
+    </ng-template>
+  </ng-container>
+</div>
+<!-- Open a popup menu if the user clicks on an annotation.-->
+<div
+    *ngIf="showPopup"
+    class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
+    [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
+    (mouseleave)="closePopup()"
+  >
+      <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
+      <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
+      <p><strong>Observed:</strong> {{ selectedAnnotation?.isFenominalHit ? 'Yes' : 'No'  }}</p>
+      <p><strong>Onset:</strong> {{ selectedAnnotation?.onsetString || '(none)' }}</p>
+    <p class="text-xs text-gray-600 mb-1">Term: {{ selectedAnnotation?.label }}</p>
+    <button
+      class="text-xs px-2 py-1 mb-1 bg-gray-100 rounded w-full"
+      (click)="toggleObserved(this.selectedAnnotation)"
+    >Mark as {{ selectedAnnotation?.isObserved ? 'Excluded' : 'Observed' }}</button>
+    <div class="mt-2">
+  <label class="text-xs block mb-1">Select Onset:</label>
+  <div *ngIf="selectedAnnotation">
+    <div *ngFor="let onset of rightClickOptions" class="text-xs mb-1" >
+      <label class="inline-flex items-center">
+        <input
+          type="radio"
+          name="onsetGroup"
+          class="mr-1"
+          [value]="onset"
+          [(ngModel)]="selectedAnnotation.onsetString"
+        />
+        {{ onset }}
+      </label>
     </div>
-    <div *ngIf="showAnnotationPopup" [style.left.px]="popupX" [style.top.px]="popupY" class="annotation-popup">
-  <h4>Annotation Details</h4>
-  <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
-  <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
-  <p><strong>Observed:</strong> {{ selectedAnnotation?.isFenominalHit ? 'Yes' : 'No'  }}</p>
-  <p><strong>Onset:</strong> {{ selectedAnnotation?.onsetString || '(none)' }}</p>
-  
-  <!-- Optional: add editing here if you want -->
-  <!--
-  <label>Onset:
-    <input [(ngModel)]="selectedAnnotation.onsetString" />
-  </label>
-  -->
-
-  <button (click)="closePopup()">Close</button>
+  </div>
 </div>
   </div>
-
-<pre class="whitespace-pre-wrap text-sm font-mono mb-4">{{ htmlData }}</pre>
+<!-- end.-->
+</div>
 <div class="flex gap-2 mt-3">
   
 
@@ -128,8 +139,24 @@
   </tbody>
 </table>
 
-<p>Selected Options: {{ selectedOptions | json }}</p>
+
+</div>
 
 
 
+<div
+  *ngIf="showHoverPopup"
+  [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
+  class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
+  (mouseleave)="closePopup()"
+>
+  <p class="text-sm font-semibold mb-2">Assign Age of Onset</p>
+  <div *ngFor="let option of rightClickOptions">
+    <button
+      class="text-xs px-2 py-1 hover:bg-gray-100 w-full text-left"
+      (click)="annotateSelection(option)"
+    >
+      {{ option }}
+    </button>
+  </div>
 </div>

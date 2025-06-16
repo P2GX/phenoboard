@@ -44,22 +44,19 @@ table {
   }
 
 
+
+
 .hpo-hit {
-  font-weight: bold;
+  cursor: pointer;
+  background-color: #f0faff;
+  border-bottom: 1px dotted #007acc;
+  padding: 0 2px;
 }
-
-.observed {
-  background-color: #d1fae5; /* light green */
-  color: #065f46;
+.hpo-hit.observed {
+  background-color: #e0ffe0;
 }
-
-.excluded {
-  background-color: #fee2e2; /* light red */
-  color: #991b1b;
-}
-
-.unmarked {
-  color: #374151; /* gray-700 */
+.hpo-hit.excluded {
+  background-color: #ffe0e0;
 }
 
 .annotation-popup {
@@ -68,4 +65,7 @@ table {
   border: 1px solid #ccc;
   padding: 8px;
   z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  white-space: nowrap;
+  pointer-events: none;
 }
