@@ -13,7 +13,7 @@ use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, path::Path, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init, FilePath};
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto}, hpo::ontology_loader, settings::HpoCuratorSettings};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::TextAnnotationDto}, hpo::ontology_loader, settings::HpoCuratorSettings};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -35,6 +35,7 @@ pub fn run() {
             load_phetools_template,
             load_hpo,
             run_text_mining,
+            map_text_to_annotations,
             set_value,
             table_manager::edit_current_column,
             table_manager::get_phetools_column,
@@ -133,6 +134,17 @@ fn run_text_mining(
     let singleton = singleton_arc.lock().unwrap();
     let json = singleton.map_text(input_text);
     json
+}
+
+
+#[tauri::command]
+fn map_text_to_annotations(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    input_text: &str 
+) -> Result<Vec<TextAnnotationDto>, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    return singleton.map_text_to_annotations(input_text);
 }
 
 #[tauri::command]

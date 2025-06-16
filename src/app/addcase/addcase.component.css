@@ -44,3 +44,20 @@ table {
   }
 
 
+.hpo-hit {
+  font-weight: bold;
+}
+
+.observed {
+  background-color: #d1fae5; /* light green */
+  color: #065f46;
+}
+
+.excluded {
+  background-color: #fee2e2; /* light red */
+  color: #991b1b;
+}
+
+.unmarked {
+  color: #374151; /* gray-700 */
+}

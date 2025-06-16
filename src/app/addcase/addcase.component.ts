@@ -1,4 +1,4 @@
-import { Component, HostListener, NgZone, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { ConfigService } from '../services/config.service';
@@ -8,7 +8,7 @@ import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
-import { HpoAnnotationDto } from '../models/hpo_annotation_dto';
+import { TextAnnotationDto } from '../models/text_annotation_dto';
 
 @Component({
   selector: 'app-addcase',
@@ -18,13 +18,14 @@ import { HpoAnnotationDto } from '../models/hpo_annotation_dto';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-  
-
-
-
 annotateSelectedText() {
 throw new Error('Method not implemented.');
 }
+submitAnnotations() {
+throw new Error('Method not implemented.');
+}
+  
+  @Input() annotations: TextAnnotationDto[] = [];
 
 
 
@@ -85,16 +86,49 @@ throw new Error('Method not implemented.');
 
   async doHpoTextMining(): Promise<void> {
     try {
-      const output = await this.configService.highlight_hpo_mining(this.pastedText);
-          console.log("output",output);
-          this.htmlData = output;
-          this.showTextArea = false;
-          this.showDataEntryArea = true;
-        } catch (error) {
-          // If parsing fails, set clipboardContent to the raw text
-          //this.clipboardContent = text;
-          console.error('Invalid JSON format:', error);
-        }
+      const result = await this.configService.map_text_to_annotations(this.pastedText);
+
+      if (typeof result === 'string') {
+        console.error('Backend error:', result); // handle error message
+      } else {
+        const annots: TextAnnotationDto[] = result;
+        this.annotations = annots;
+        const html = this.convertAnnotationsToHtml(); //
+        this.htmlData = html;
+        this.showTextArea = false;
+        this.showDataEntryArea = true;
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  }
+
+  
+
+  convertAnnotationsToHtml(): string {
+    return this.annotations.map(ann => {
+      if (!ann.isFenominalHit) {
+        const escaped = this.escapeHtml(ann.originalText);
+        return escaped;
+      }
+
+      const cls = ann.isObserved ? 'hpo-hit observed' : 'hpo-hit excluded';
+      return `<span class="${cls}" title="${ann.label} [${ann.termId}]" data-id="${ann.termId}">${this.escapeHtml(ann.originalText)}</span>`;
+    }).join('');
+  }
+
+  escapeHtml(text: string): string {
+    if (typeof text !== 'string') {
+      const mytype = typeof text;
+      console.warn('escapeHtml received non-string:', text, "type was ", mytype);
+      return '';
+    }
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
 
@@ -117,10 +151,7 @@ throw new Error('Method not implemented.');
     });
   }
 
-  /*@HostListener('document:mouseup', [])
-    onMouseUp(): void {
-    this.handleTextSelection();
-  }*/
+
 
   handleTextSelection(event: MouseEvent): void {
     this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
@@ -198,55 +229,4 @@ updateHtmlDataFromDom(): void {
     }
   }
 
-  getAnnotationsFromDom(): HpoAnnotationDto[] {
-    const elements = document.querySelectorAll('.hpo-hit');
-    const annotations: HpoAnnotationDto[] = [];
-
-    elements.forEach((el) => {
-      //const label = el.textContent?.trim() || '';
-      const id = el.getAttribute('data-id') || '';
-      const label = el.getAttribute('title') || '';
-
-      let status: 'observed' | 'excluded' | 'na' = 'na';
-
-      if (el.classList.contains('observed')) {
-        status = 'observed';
-      } else if (el.classList.contains('excluded')) {
-        status = 'excluded';
-      }
-
-      const onset = "to do";
-
-      if (label && id) {
-        annotations.push({ label, id, status, onset });
-      }
-    });
-
-    return annotations;
-  }
-
-  submitAnnotations(): void {
-    console.log("submitAnnotations")
-    //const annotatedTerms: string[] = [];
-
-    // Find all relevant spans in the document
-    // See highlight_text_with_hits in lib.rs for structure
-    const annotatedTerms = this.getAnnotationsFromDom();
-    console.log('Annotated HPO terms annotatedTerms:', annotatedTerms);
-    // Optionally, remove duplicates
-    this.uniqueAnnotatedTerms = [...new Set(JSON.stringify(annotatedTerms, null, 2))];
-
-    // Log, save, or emit the terms
-    console.log('Annotated HPO terms:', this.uniqueAnnotatedTerms);
-    this.showAnnotations = true;
-    this.showDataEntryArea = false;
-  }
-
-  debugAnnotations(): void {
-    const annotations = this.getAnnotationsFromDom();
-    console.log('Annotations:', JSON.stringify(annotations, null, 2));
-
-    const debugStr = annotations.map(a => `${a.label} (${a.id}): ${a.status}`).join('\n');
-    console.log('Summary:\n' + debugStr);
-  }
 }

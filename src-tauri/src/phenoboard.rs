@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, dto::pmid_dto::PmidDto, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::TextAnnotationDto}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util};
 use std::{collections::HashMap, path::Path, sync::Arc};
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
@@ -414,6 +414,15 @@ impl PhenoboardSingleton {
                 return serde_json::to_string(&fenominal_hits).unwrap();
             },
             Err(e) => {return e.to_string() },
+        }
+    }
+
+    pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
+        match self.get_sorted_fenominal_hits(input_text) {
+            Ok(fenominal_hits) => {
+                return util::text_to_annotation::text_to_annotations(input_text, &fenominal_hits);
+            },
+            Err(e) => {return Err(e.to_string()); },
         }
     }
 

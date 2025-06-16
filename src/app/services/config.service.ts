@@ -2,6 +2,7 @@ import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
+import { TextAnnotationDto } from '../models/text_annotation_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -93,6 +94,10 @@ export class ConfigService {
 
   async retrieve_pmid_title(input_pmid: string): Promise<PmidDto> {
     return await invoke("fetch_pmid_title", {input: input_pmid});
+  }
+
+  async map_text_to_annotations(input_text: string):  Promise<TextAnnotationDto[] | string> {
+    return await invoke("map_text_to_annotations", {inputText: input_text});
   }
 
 }
