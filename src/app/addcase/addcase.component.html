@@ -56,6 +56,22 @@
         <button class="block w-full text-left" (click)="closePopup()">Cancel</button>
       </div>
     </div>
+    <div *ngIf="showAnnotationPopup" [style.left.px]="popupX" [style.top.px]="popupY" class="annotation-popup">
+  <h4>Annotation Details</h4>
+  <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
+  <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
+  <p><strong>Observed:</strong> {{ selectedAnnotation?.isFenominalHit ? 'Yes' : 'No'  }}</p>
+  <p><strong>Onset:</strong> {{ selectedAnnotation?.onsetString || '(none)' }}</p>
+  
+  <!-- Optional: add editing here if you want -->
+  <!--
+  <label>Onset:
+    <input [(ngModel)]="selectedAnnotation.onsetString" />
+  </label>
+  -->
+
+  <button (click)="closePopup()">Close</button>
+</div>
   </div>
 
 <pre class="whitespace-pre-wrap text-sm font-mono mb-4">{{ htmlData }}</pre>

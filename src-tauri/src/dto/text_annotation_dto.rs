@@ -20,6 +20,7 @@ pub struct TextAnnotationDto {
     pub end: usize,
     pub is_observed: bool,
     pub original_text: String,
+    pub onset_string: String,
 }
 
 impl TextAnnotationDto {
@@ -56,7 +57,8 @@ impl Default for TextAnnotationDto {
             start: 0 as usize, 
             end:  0 as usize,
             is_observed: false, 
-            original_text: String::default()
+            original_text: String::default(),
+            onset_string: String::default()
         }
     }
 }

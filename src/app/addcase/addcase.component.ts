@@ -26,7 +26,7 @@ throw new Error('Method not implemented.');
 }
   
   @Input() annotations: TextAnnotationDto[] = [];
-
+  selectedAnnotation: TextAnnotationDto | null = null;
 
 
   constructor(
@@ -113,7 +113,7 @@ throw new Error('Method not implemented.');
       }
 
       const cls = ann.isObserved ? 'hpo-hit observed' : 'hpo-hit excluded';
-      return `<span class="${cls}" title="${ann.label} [${ann.termId}]" data-id="${ann.termId}">${this.escapeHtml(ann.originalText)}</span>`;
+      return `<span class="${cls}" title="${ann.label} [${ann.termId}]" data-id="${ann.termId}" onset-string="${ann.onsetString}">${this.escapeHtml(ann.originalText)}</span>`;
     }).join('');
   }
 
@@ -155,9 +155,6 @@ throw new Error('Method not implemented.');
 
   handleTextSelection(event: MouseEvent): void {
     this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
-    for (const item of this.ageService.getSelectedTerms()) {
-      this.rightClickOptions.push(item);
-    }
     console.log("In this.rightClickOptions:", this.rightClickOptions);
     const selection = window.getSelection();
     if (! selection || selection.rangeCount == 0) return;
@@ -195,18 +192,40 @@ throw new Error('Method not implemented.');
 
 annotateSelection(annotation: string): void {
   for (const span of this.selectedHpoSpans) {
-    const prev = span.getAttribute('data-annotation');
-    const updated = prev ? `${prev}, ${annotation}` : annotation;
-    span.setAttribute('data-annotation', updated);
-    span.title = updated;
-  }
+   // First, get all selected term IDs from spans
+    const selectedTermIds = this.selectedHpoSpans.map(span => span.getAttribute('data-id')).filter(id => id !== null) as string[];
+
+  // Update matching DTOs
+  this.annotations.forEach(annot => {
+    if (annot != null && selectedTermIds.includes(annot.termId)) {
+      annot.onsetString = annotation;
+    }
+  });
+    }
   this.closePopup();
+}
+
+onAnnotationClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  if (target && target.classList.contains('hpo-hit')) {
+    const termId = target.getAttribute('data-id');
+
+    if (termId) {
+      const annotation = this.annotations.find(ann => ann.termId === termId);
+      if (annotation) {
+        this.selectedAnnotation = annotation;
+        const rect = target.getBoundingClientRect();
+        this.popupX = rect.left + window.scrollX;
+        this.popupY = rect.bottom + window.scrollY;
+        this.showAnnotationPopup = true;
+      }
+    }
+  }
 }
 
 closePopup(): void {
   this.showAnnotationPopup = false;
-  this.selectedText = '';
-  this.selectedHpoSpans = [];
+  this.selectedAnnotation = null;
 }
 
 updateHtmlDataFromDom(): void {
@@ -228,5 +247,7 @@ updateHtmlDataFromDom(): void {
       this.showAgeEntryArea = true;
     }
   }
+
+
 
 }

@@ -61,3 +61,11 @@ table {
 .unmarked {
   color: #374151; /* gray-700 */
 }
+
+.annotation-popup {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  z-index: 1000;
+}

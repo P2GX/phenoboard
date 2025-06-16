@@ -6,6 +6,7 @@ export interface TextAnnotationDto {
     end: number,
     isObserved: boolean,
     originalText: string,
+    onsetString: string,
 }
 
 /*
@@ -18,4 +19,5 @@ pub struct TextAnnotationDto {
     pub end: usize,
     pub is_observed: bool,
     pub original_text: String,
+    pub onset_string: String,
 }*/
