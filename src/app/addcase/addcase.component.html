@@ -57,6 +57,10 @@
     [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
     (mouseleave)="closePopup()"
   >
+  <div class="flex justify-between items-center mb-2">
+    <p class="text-sm font-semibold">Edit Annotation</p>
+    <button (click)="closePopup()" class="text-gray-500 hover:text-black text-xs">✕</button>
+  </div>
       <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
       <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
       <p><strong>Observed:</strong> {{ selectedAnnotation?.isFenominalHit ? 'Yes' : 'No'  }}</p>
@@ -67,9 +71,9 @@
       (click)="toggleObserved(this.selectedAnnotation)"
     >Mark as {{ selectedAnnotation?.isObserved ? 'Excluded' : 'Observed' }}</button>
     <div class="mt-2">
+      <div  *ngIf="selectedAnnotation">
   <label class="text-xs block mb-1">Select Onset:</label>
-  <div *ngIf="selectedAnnotation">
-    <div *ngFor="let onset of rightClickOptions" class="text-xs mb-1" >
+    <div *ngFor="let onset of rightClickOptions" class="text-xs mb-1">
       <label class="inline-flex items-center">
         <input
           type="radio"
@@ -80,7 +84,7 @@
         />
         {{ onset }}
       </label>
-    </div>
+  </div>
   </div>
 </div>
   </div>
@@ -142,21 +146,3 @@
 
 </div>
 
-
-
-<div
-  *ngIf="showHoverPopup"
-  [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
-  class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
-  (mouseleave)="closePopup()"
->
-  <p class="text-sm font-semibold mb-2">Assign Age of Onset</p>
-  <div *ngFor="let option of rightClickOptions">
-    <button
-      class="text-xs px-2 py-1 hover:bg-gray-100 w-full text-left"
-      (click)="annotateSelection(option)"
-    >
-      {{ option }}
-    </button>
-  </div>
-</div>

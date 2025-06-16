@@ -38,7 +38,7 @@ export class AddcaseComponent {
   showAgeEntryArea: boolean = true;
   showCollapsed: boolean = true;
   showAnnotations: boolean = false;
-  suppressHoverMenu = false;
+
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
   
@@ -168,65 +168,13 @@ export class AddcaseComponent {
     });
   }
 
-  /* prevent hover menu from showing when we are selecting a section of text. */
-  suppressHover($event: MouseEvent) {
-    this.suppressHoverMenu = true;
-    this.showHoverPopup = false;
-  }
-handleTextSelection(event: MouseEvent): void {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return;
 
-  const range = selection.getRangeAt(0);
-  const selectedText = selection.toString().trim();
-  if (selectedText.length === 0) return;
-
-  const container = document.createElement('div');
-  container.appendChild(range.cloneContents());
-  const spanNodes = container.querySelectorAll('.hpo-hit');
-  if (spanNodes.length === 0) return;
-
-  this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
-  this.selectedHpoSpans = Array.from(spanNodes).map((span: any) => {
-    const dataId = span.getAttribute('data-id');
-    if (!dataId) return null;
-    const selector = `[data-id="${CSS.escape(dataId)}"]`;
-    return document.querySelector(selector) as HTMLElement | null;
-  }).filter((el): el is HTMLElement => el !== null);
-
-  this.selectedText = selectedText;
-  const rect = range.getBoundingClientRect();
-  this.popupX = rect.left + window.scrollX;
-  this.popupY = rect.bottom + window.scrollY;
-  
-
-  setTimeout(() => {
-    this.suppressHoverMenu = false;
-    this.showHoverPopup = true;
-  }, 300);
-}
 
   
-
-annotateSelection(annotation: string): void {
-  console.log("annotateSelection=>", annotation);
-  for (const span of this.selectedHpoSpans) {
-   // First, get all selected term IDs from spans
-    const selectedTermIds = this.selectedHpoSpans.map(span => span.getAttribute('data-id')).filter(id => id !== null) as string[];
-
-  // Update matching DTOs
-  this.annotations.forEach(annot => {
-    if (annot != null && selectedTermIds.includes(annot.termId)) {
-      annot.onsetString = annotation;
-    }
-  });
-    }
-  this.closePopup();
-}
 
 
 closePopup(): void {
-  this.showHoverPopup = false;
+  this.showPopup = false;
   this.selectedAnnotation = null;
 }
 
@@ -243,14 +191,6 @@ onAnnotationMouseLeave(event: MouseEvent) {
   this.selectedAnnotation = null;
 }
 
-updatePopupPosition(event: MouseEvent) {
-  if (this.suppressHoverMenu) return;
-  const target = event.target as HTMLElement;
-  const rect = target.getBoundingClientRect();
-  this.popupX = rect.left + window.scrollX;
-  this.popupY = rect.bottom + window.scrollY;
-  this.showHoverPopup = true;
-}
 
 handleMouseLeave() {
   this.showHoverPopup = false;
@@ -275,6 +215,8 @@ submitAnnotations() {
 
 openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   console.log("open popup ann=", ann);
+  this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
+  console.log("rightcli", this.rightClickOptions);
   this.selectedAnnotation = ann;
   this.showPopup = true;
   // Get the clicked element's bounding box

@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
