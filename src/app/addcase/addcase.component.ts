@@ -9,6 +9,8 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
+import { openUrl } from '@tauri-apps/plugin-opener';
+
 
 @Component({
   selector: 'app-addcase',
@@ -37,7 +39,7 @@ export class AddcaseComponent {
   showDataEntryArea: boolean = false;
   showAgeEntryArea: boolean = true;
   showCollapsed: boolean = true;
-  showAnnotations: boolean = false;
+  showAnnotationTable: boolean = false;
 
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
@@ -169,10 +171,6 @@ export class AddcaseComponent {
   }
 
 
-
-  
-
-
 closePopup(): void {
   this.showPopup = false;
   this.selectedAnnotation = null;
@@ -206,12 +204,7 @@ handleMouseLeave() {
     }
   }
 
-annotateSelectedText() {
-  throw new Error('Method not implemented.');
-}
-submitAnnotations() {
-  console.log("submitAnnotations not implemented yet")
-}
+
 
 openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   console.log("open popup ann=", ann);
@@ -233,4 +226,43 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     }
     annot.isObserved = !annot.isObserved;
   }
+
+  /* The following commands deal with the table of annotated terms */
+  annotateSelectedText() {
+    throw new Error('Method not implemented.');
+  }
+  submitAnnotations() {
+    this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
+    this.showAnnotationTable = true;
+    /*console.log('Annotations:');
+    this.annotations.forEach((annotation, index) => {
+      console.log(`Annotation ${index + 1}:`, annotation);
+    });*/
+  }
+
+  /* About half of the TextAnnotationDto objects represent the text between the fenominal hits
+    Here, we get a list of the fenominal hits (representing the HPO terms) for display in the table */
+  get fenominalAnnotations(): TextAnnotationDto[] {
+    return this.annotations.filter(a => a.isFenominalHit);
+  }
+
+  /* Remove an annotation from the HTML table. */
+  deleteAnnotation(index: number): void {
+    this.annotations.splice(index, 1);
+  }
+
+  updateOnset(annotation: TextAnnotationDto, newValue: string): void {
+    annotation.onsetString = newValue;
+  }
+
+  onLinkClick(event: MouseEvent, termId: string): void {
+    event.preventDefault();
+    this.openHpoLink(termId);
+  }
+
+  async openHpoLink(hpoId: string) {
+    const hpo_url = `https://hpo.jax.org/browse/term/${hpoId}`;
+    await openUrl(hpo_url);
+  }
+
 }

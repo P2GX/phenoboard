@@ -73,6 +73,12 @@ in the src-tauri folder, enter
 cargo add tauri-plugin-fs
 ```
 
+for the shell component (which opens the system browser)
+```bash
+npm install @tauri-apps/api
+```
+
+
 In the angular component, add 
 ```javascript
 import { open } from '@tauri-apps/api/dialog';
