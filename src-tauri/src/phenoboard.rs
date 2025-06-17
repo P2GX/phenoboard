@@ -3,10 +3,10 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::TextAnnotationDto}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util};
-use std::{collections::HashMap, path::Path, sync::Arc};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval}};
+use std::{collections::HashMap, path::Path, str::FromStr, sync::Arc};
 
-use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
+use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::MinimalTerm, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit},
     TextMiner,
@@ -543,7 +543,41 @@ impl PhenoboardSingleton {
         let retriever = PubmedRetriever::new(input)?;
         retriever.get().await
     }
+    
+    pub fn get_hpo_parent_and_children_terms(
+        &self,
+        annotation: TextAnnotationDto) 
+        -> ParentChildDto 
+    {
+        let hpo = match &self.ontology {
+            Some(hpo) => hpo,
+            None => return ParentChildDto::default(),
+        };
+        let tid = match TermId::from_str(&annotation.term_id) {
+            Ok(tid) => tid,
+            Err(_) => return ParentChildDto::default(), // should never happen
+        };
+        let children: Vec<TextAnnotationDto> = hpo.iter_child_ids(&tid)
+            .filter_map(|child_tid| {
+                hpo.term_by_id(child_tid).map(|term| TextAnnotationDto {
+                    term_id: child_tid.to_string(),
+                    label: term.name().to_string(),
+                    ..Default::default()
+                })
+            })
+            .collect();
+        let parents: Vec<TextAnnotationDto> = hpo.iter_parent_ids(&tid)
+            .filter_map(|parent_tid| {
+                hpo.term_by_id(parent_tid).map(|term| TextAnnotationDto {
+                    term_id: parent_tid.to_string(),
+                    label: term.name().to_string(),
+                    ..Default::default()
+                })
+            })
+            .collect();
 
+        ParentChildDto { parents: parents, children: children }
+    }
 
 }
 
@@ -561,4 +595,6 @@ impl Default for PhenoboardSingleton {
             unsaved: false
         }
     }
+
+   
 }

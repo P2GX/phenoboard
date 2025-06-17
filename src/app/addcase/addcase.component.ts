@@ -8,7 +8,7 @@ import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
-import { TextAnnotationDto } from '../models/text_annotation_dto';
+import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
 
@@ -47,7 +47,9 @@ export class AddcaseComponent {
 
   selectionRange: Range | null = null;
 
-  jsonData: any[] = [ ]; 
+  // childTermsMap: { [termId: string]: TextAnnotationDto[] } = {};
+  parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
+  showDropdownMap: { [termId: string]: boolean } = {};
   htmlData: string = '';
   rightClickOptions: string[] = [];
   predefinedOptions: string[] = ["observed", "excluded", "na"];
@@ -263,6 +265,24 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   async openHpoLink(hpoId: string) {
     const hpo_url = `https://hpo.jax.org/browse/term/${hpoId}`;
     await openUrl(hpo_url);
+  }
+
+  toggleDropdown(annotation: TextAnnotationDto) {
+    const termId = annotation.termId;
+
+    this.showDropdownMap[termId] = !this.showDropdownMap[termId];
+
+    if (this.showDropdownMap[termId] && !this.parentChildHpoTermMap[termId]) {
+      this.configService.getHpoParentAndChildTerms(annotation).then(relativeTermDtos => {
+        this.parentChildHpoTermMap[termId] = relativeTermDtos;
+      });
+    }
+  }
+
+  replaceTerm(annotation: TextAnnotationDto, replacement: TextAnnotationDto) {
+    annotation.termId = replacement.termId;
+    annotation.label = replacement.label;
+    this.showDropdownMap[annotation.termId] = false;
   }
 
 }

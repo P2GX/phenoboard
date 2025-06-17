@@ -1,3 +1,5 @@
+
+/** We use this scheme to transport fenominal hits from the backend to frontend and back again */
 export interface TextAnnotationDto {
     isFenominalHit: boolean,
     termId: string,
@@ -9,15 +11,11 @@ export interface TextAnnotationDto {
     onsetString: string,
 }
 
-/*
-pub struct TextAnnotationDto {
-    /// true if this is a fenominal hit, false for the intervening text segments
-    pub is_fenominal_hit: bool,
-    pub term_id: String,
-    pub label: String,
-    pub start: usize,
-    pub end: usize,
-    pub is_observed: bool,
-    pub original_text: String,
-    pub onset_string: String,
-}*/
+/** We use this to retrieve both the parents and the children of a given fenominal hit HPO term */
+export interface ParentChildDto {
+    parents: TextAnnotationDto[],
+    children:  TextAnnotationDto[],
+}
+
+
+

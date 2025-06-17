@@ -126,7 +126,45 @@
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
   {{ annotation.termId }}
 </a></td>
-        <td class="border px-1 py-[2px]">{{ annotation.label }}</td>
+<td class="border px-1 py-[2px] relative">
+  <span (click)="toggleDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
+    {{ annotation.label }} ▼
+  </span>
+
+  <div
+    *ngIf="showDropdownMap[annotation.termId]"
+    class="absolute left-0 top-full z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg"
+  >
+    <div *ngIf="!parentChildHpoTermMap[annotation.termId]" class="p-2 text-gray-500 text-sm italic">
+      Loading...
+    </div>
+
+    <div *ngIf="parentChildHpoTermMap[annotation.termId]">
+      <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
+      <ul>
+        <li
+          *ngFor="let parent of parentChildHpoTermMap[annotation.termId].parents"
+          (click)="replaceTerm(annotation, parent)"
+          class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+        >
+          {{ parent.label }} ({{ parent.termId }})
+        </li>
+      </ul>
+
+      <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
+      <ul>
+        <li
+          *ngFor="let child of parentChildHpoTermMap[annotation.termId].children"
+          (click)="replaceTerm(annotation, child)"
+          class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+        >
+          {{ child.label }} ({{ child.termId }})
+        </li>
+      </ul>
+    </div>
+  </div>
+</td>
+
         <td class="border px-1 py-[2px]">
         <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
           {{ annotation.isObserved ? 'Yes' : 'No' }}
@@ -155,36 +193,6 @@
 </div>
 
 </div>
-
-<!-- <p *ngIf="pastedText">Original text: {{ pastedText }}</p> -->
-
-<!-- Display the table if jsonData is available -->
-<table *ngIf="jsonData.length">
-  <thead>
-    <tr>
-      <!-- Create table headers dynamically -->
-      <th *ngFor="let key of getObjectKeys(jsonData[0])">{{ key }}</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let item of jsonData; let i = index" [ngClass]="{'highlight': item.status === 'active'}">
-      <td *ngFor="let key of getObjectKeys(item)">
-        {{ item[key] }}
-      </td>
-      <!-- New Column with Radio Buttons and Input -->
-      <td>
-        <div *ngFor="let option of predefinedOptions">
-          <input type="radio" [name]="'option_' + i" [(ngModel)]="selectedOptions[i]" [value]="option">
-          {{ option }}
-        </div>
-
-        <!-- Input Field for Custom Option -->
-        <input type="text" [(ngModel)]="customOptions[i]" placeholder="Enter custom option">
-        <button (click)="addCustomOption(i)">Add</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
 
 </div>

@@ -13,7 +13,7 @@ use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, path::Path, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init, FilePath};
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::TextAnnotationDto}, hpo::ontology_loader, settings::HpoCuratorSettings};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, settings::HpoCuratorSettings};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -46,6 +46,7 @@ pub fn run() {
             get_pt_template_path,
             select_phetools_template_path,
             fetch_pmid_title,
+            get_hpo_parent_and_children_terms
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -356,4 +357,13 @@ async fn fetch_pmid_title(
 }
 
 
-
+#[tauri::command]
+fn get_hpo_parent_and_children_terms(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    annotation: TextAnnotationDto
+) -> Result<ParentChildDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    let annots = singleton.get_hpo_parent_and_children_terms(annotation);
+    Ok(annots)
+}

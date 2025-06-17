@@ -2,7 +2,7 @@ import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
-import { TextAnnotationDto } from '../models/text_annotation_dto';
+import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -99,5 +99,9 @@ export class ConfigService {
   async map_text_to_annotations(input_text: string):  Promise<TextAnnotationDto[] | string> {
     return await invoke("map_text_to_annotations", {inputText: input_text});
   }
+
+  async getHpoParentAndChildTerms(annotation: TextAnnotationDto): Promise<ParentChildDto> {
+  return await invoke("get_hpo_parent_and_children_terms", {annotation: annotation});
+}
 
 }

@@ -7,9 +7,9 @@
 //! A FenominalHit has term_id (String), label (String),span (Range<usize>), and is_observed (bool)
 
 use fenominal::fenominal::FenominalHit;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug,Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TextAnnotationDto {
     /// true if this is a fenominal hit, false for the intervening text segments
@@ -61,4 +61,22 @@ impl Default for TextAnnotationDto {
             onset_string: String::default()
         }
     }
+}
+
+/// The following struct is usse to present the parents and children of a given term 
+/// This makes it easy for use to replace a term in the GUI
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParentChildDto {
+    pub parents: Vec<TextAnnotationDto>,
+    pub children: Vec<TextAnnotationDto>,
+}
+
+impl Default for ParentChildDto {
+    fn default() -> Self {
+        Self { 
+            parents: Default::default(), 
+            children: Default::default() }
+    }
+    
+    
 }
