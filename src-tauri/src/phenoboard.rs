@@ -6,7 +6,7 @@
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval}};
 use std::{collections::HashMap, path::Path, str::FromStr, sync::Arc};
 
-use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::MinimalTerm, TermId};
+use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{self, MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit},
     TextMiner,
@@ -32,6 +32,8 @@ pub struct PhenoboardSingleton {
     current_operation: PptOperation,
     /// this value is true if there are changes we have not yet saved to file
     unsaved: bool,
+    /// Strings for autocompletion
+    hpo_auto_complete: Vec<String>,
 }
 
 impl PhenoboardSingleton {
@@ -51,6 +53,7 @@ impl PhenoboardSingleton {
         if let Some(hpo) = ontology_opt {
             let hpo_arc = Arc::new(hpo);
             singleton.ontology = Some(hpo_arc);
+            singleton.initialize_hpo_autocomplete();
         }           
         return singleton;
     }
@@ -95,10 +98,38 @@ impl PhenoboardSingleton {
                     .expect("Ontolius HPO loader failed");
                 let hpo_arc = Arc::new(hpo);
                 self.ontology = Some(hpo_arc);
-                Ok(())
             }
-            Err(e) => Err(e.clone()),
+            Err(e) => { return Err(e.clone()); },
+        };
+        self.initialize_hpo_autocomplete();
+        Ok(())
+    }
+
+    /// Provide Strings with TermId - Label that will be used for autocompletion
+    pub fn get_hpo_autocomplete(&self) -> &Vec<String> {
+        &self.hpo_auto_complete
+    }
+
+    fn initialize_hpo_autocomplete(&mut self) {
+        // let phenotypic_abnormality: TermId = "HP:0000118".parse().unwrap();
+        match &self.ontology {
+            Some(hpo) => {
+                self.hpo_auto_complete.clear();
+                for tid in  hpo.iter_descendant_ids(&PHENOTYPIC_ABNORMALITY) {
+                    match hpo.term_by_id(tid) {
+                        Some(term) => {
+                            let label = term.name();
+                            let ac_string = format!("{tid} - {label}");
+                            self.hpo_auto_complete.push(ac_string);
+                            
+                        },
+                        None => { eprintln!("Could not retrieve term for {}", tid); }
+                    }
+                }
+            },
+            None => { eprintln!("Could not init HPO - should never happen")},
         }
+        println!("initialize_hpo_autocomplete - got {} terms", self.hpo_auto_complete.len());
     }
 
     pub fn hp_json_path(&self) -> Result<String, String> {
@@ -579,6 +610,33 @@ impl PhenoboardSingleton {
         ParentChildDto { parents: parents, children: children }
     }
 
+    pub fn get_autocompleted_term_dto(&self,
+            term_id: impl Into<String>,
+            term_label: impl Into<String>) -> Result<TextAnnotationDto, String> {
+        let hpo = match &self.ontology {
+            Some(hpo) => hpo,
+            None => { return Err(format!("HPO not initialized"));},
+        };
+        let term_id = term_id.into();
+        let hpo_id = match TermId::from_str(&term_id){
+            Ok(tid) => tid,
+            Err(e) => { return Err(format!("Could not create TermId: {}", e));},
+        };
+        let hpo_term = match hpo.term_by_id(&hpo_id) {
+            Some(term) => term,
+            None => { return Err(format!("Could not find term for TermId: {}", &hpo_id));},
+        };
+        let hpo_label: String = term_label.into();
+        if hpo_term.name() != hpo_label {
+            return Err(format!("Submitted label '{}' did not match label expected '{}' for TermId: {}", 
+            &hpo_label,
+            &hpo_term.name(),
+            &hpo_id));
+        }
+        Ok(TextAnnotationDto::from_id_and_label(&term_id, &hpo_label))
+    }
+    
+
 }
 
 
@@ -592,7 +650,8 @@ impl Default for PhenoboardSingleton {
             current_row: None, 
             current_column: None, 
             current_operation: PptOperation::EntireTable, 
-            unsaved: false
+            unsaved: false,
+            hpo_auto_complete: vec![],
         }
     }
 

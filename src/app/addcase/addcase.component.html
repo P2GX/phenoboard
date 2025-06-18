@@ -107,26 +107,26 @@
   </button>
 </div>
 <div *ngIf="showAnnotationTable" class="mt-4 p-2 border rounded bg-gray-50">
-  <strong>Annotated Terms:</strong>
+  <strong>Annotated Terms: n={{ fenominalAnnotations.length }}</strong>
   <!-- text-annotations.component.html -->
 <div class="max-h-64 overflow-y-auto border border-gray-300 rounded">
   <table class="table-auto w-full border-collapse text-xs leading-tight">
   <thead class="bg-gray-100">
     <tr>
-      <th class="border px-1 py-[2px]">Term ID</th>
-      <th class="border px-1 py-[2px]">Label</th>
-      <th class="border px-1 py-[2px]">Observed</th>
-      <th class="border px-1 py-[2px]">Onset</th>
-      <th class="border px-1 py-[2px]">Actions</th>
+      <th class="border px-1 py-[1px]">Term ID</th>
+      <th class="border px-1 py-[1px]">Label</th>
+      <th class="border px-1 py-[1px]">Observed</th>
+      <th class="border px-1 py-[1px]">Onset</th>
+      <th class="border px-1 py-[1px]">Actions</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let annotation of fenominalAnnotations; let i = index">
-      <td class="border px-1 py-[2px]">
+      <td class="border px-1 py-[1px]">
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
   {{ annotation.termId }}
 </a></td>
-<td class="border px-1 py-[2px] relative">
+<td class="border px-1 py-[1px] relative">
   <span (click)="toggleDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
     {{ annotation.label }} ▼
   </span>
@@ -165,13 +165,13 @@
   </div>
 </td>
 
-        <td class="border px-1 py-[2px]">
+        <td class="border px-1 py-[1px]">
         <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
           {{ annotation.isObserved ? 'Yes' : 'No' }}
         </span>
       </td>
-      <td class="border px-1 py-[2px]">{{ annotation.onsetString }}</td>
-      <td class="border px-1 py-[2px] flex gap-1 flex-wrap items-center">
+      <td class="border px-1 py-[1px]">{{ annotation.onsetString }}</td>
+      <td class="border px-1 py-[1px] flex gap-1 flex-wrap items-center">
         <button (click)="deleteAnnotation(i)" class="bg-red-500 text-white px-1 py-0.5 text-[10px] rounded">Delete</button>
         <button (click)="toggleObserved(annotation)" class="bg-blue-500 text-white px-1 py-0.5 text-[10px] rounded">Toggle</button>
         <select #onsetSelect
@@ -195,5 +195,14 @@
 </div>
 
 
+</div>
+
+<div class="space-y-1">
+  <app-hpoautocomplete
+    [inputString]="hpoInputString"
+    (selected)="selectedHpoTerm = $event"
+    #hpoAutocomplete
+  ></app-hpoautocomplete>
+  <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
 </div>
 

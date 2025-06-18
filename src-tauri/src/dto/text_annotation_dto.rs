@@ -7,6 +7,7 @@
 //! A FenominalHit has term_id (String), label (String),span (Range<usize>), and is_observed (bool)
 
 use fenominal::fenominal::FenominalHit;
+use ontolius::term::Term;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -43,6 +44,13 @@ impl TextAnnotationDto {
         dto.is_observed = hit.is_observed;
         dto.original_text = text.into();
 
+        dto
+    }
+
+    pub fn from_id_and_label(term_id: &str, term_label: &str) -> Self {
+        let mut dto = TextAnnotationDto::default();
+        dto.term_id = term_id.to_string();
+        dto.label = term_label.to_string();
         dto
     }
     

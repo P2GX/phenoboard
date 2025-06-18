@@ -1,38 +1,14 @@
 footer {
-    background-color: #f1f1f1;
-    padding: 1rem;
-    text-align: center;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    gap: 10px;
-    display: flex;
-    display: flex;
-    align-items: center;
-    gap: 1rem; /* optional: adds space between items */
-  }
-  
-
-
-  
-  .led {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: red;  /* Default state is red */
-    transition: background-color 0.3s ease;
-  }
-  
-  .led.green {
-    background-color: green;  /* Tool is ready */
-  }
-  
-  .led.red {
-    background-color: red;  /* Tool is not ready */
-  }
-  
-  span {
-    font-size: 16px;
-    font-weight: bold;
-  }
+  background-color: #f1f1f1;
+  padding: 1rem;
+  text-align: center;
+  position: static;
+  bottom: 0;
+  width: 100%;
+  gap: 10px;
+  display: flex;
+  display: flex;
+  align-items: center;
+  gap: 1rem; 
+}
   

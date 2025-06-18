@@ -1,12 +1,12 @@
-
-<app-navbar></app-navbar>
-<main>
-  <app-home *ngIf="currentView === 'home'"></app-home>
-  <app-table *ngIf="currentView === 'table'"></app-table>
-  <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
-  <app-phetools *ngIf="currentView === 'phetools'"></app-phetools>
-  <app-settings *ngIf="currentView === 'settings'"></app-settings>
-  <app-help *ngIf="currentView === 'help'"></app-help>
-</main>
-<app-footer></app-footer>
-
+<div class="flex flex-col min-h-screen">
+  <app-navbar></app-navbar>
+  <main>
+    <app-home *ngIf="currentView === 'home'"></app-home>
+    <app-table *ngIf="currentView === 'table'"></app-table>
+    <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
+    <app-phetools *ngIf="currentView === 'phetools'"></app-phetools>
+    <app-settings *ngIf="currentView === 'settings'"></app-settings>
+    <app-help *ngIf="currentView === 'help'"></app-help>
+  </main>
+  <app-footer></app-footer>
+  </div>

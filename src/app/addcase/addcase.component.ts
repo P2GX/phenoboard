@@ -10,12 +10,12 @@ import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
-
+import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent],
+  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent, HpoAutocompleteComponent],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
@@ -33,6 +33,7 @@ export class AddcaseComponent {
   @Input() annotations: TextAnnotationDto[] = [];
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
+  @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
 
   pastedText: string = '';
   showTextArea: boolean = true;
@@ -68,6 +69,11 @@ export class AddcaseComponent {
   uniqueAnnotatedTerms: string[] = [];
 
   backend_status: StatusDto = defaultStatusDto();
+
+  /* used for autocomplete widget */
+  hpoInputString: string = '';
+  selectedHpoTerm: string = "";
+
   private unlisten: UnlistenFn | null = null;
 
   async ngOnInit() {

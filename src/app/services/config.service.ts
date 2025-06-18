@@ -8,6 +8,7 @@ import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto
   providedIn: 'root'
 })
 export class ConfigService {
+  
   constructor() {}
 
   async selectHpJsonFile(): Promise<string | null> {
@@ -103,5 +104,15 @@ export class ConfigService {
   async getHpoParentAndChildTerms(annotation: TextAnnotationDto): Promise<ParentChildDto> {
   return await invoke("get_hpo_parent_and_children_terms", {annotation: annotation});
 }
+
+
+  async getAutocompleteHpo(value: string): Promise<string[]> {
+    return invoke<string[]>('get_hpo_autocomplete_terms', { query: value });
+  }
+
+  async submitAutocompleteHpoTerm(termId: string, termLabel:string) {
+    return invoke<string>('submit_autocompleted_hpo_term', { term_id: termId, term_label: termLabel });
+  }
+  
 
 }

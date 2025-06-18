@@ -8,6 +8,7 @@ import { TableComponent } from "./table/table.component";
 import { HelpComponent } from "./help/help.component";
 import { PhetoolsComponent } from "./phetools/phetools.component";
 import { NavbarComponent } from './navbar/navbar.component';
+
 import { Page, PageService } from './services/page.service';
 
 @Component({

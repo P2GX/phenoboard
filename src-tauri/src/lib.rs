@@ -46,7 +46,8 @@ pub fn run() {
             get_pt_template_path,
             select_phetools_template_path,
             fetch_pmid_title,
-            get_hpo_parent_and_children_terms
+            get_hpo_parent_and_children_terms,
+            get_hpo_autocomplete_terms
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -367,3 +368,36 @@ fn get_hpo_parent_and_children_terms(
     let annots = singleton.get_hpo_parent_and_children_terms(annotation);
     Ok(annots)
 }
+
+
+
+/// This function supplies the autocompletion candidates for angular for the HPO
+/// The JavaScript ensures that query is at least 3 letters
+#[tauri::command]
+fn get_hpo_autocomplete_terms(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    query: String) -> Vec<String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        let terms = singleton.get_hpo_autocomplete();
+        terms
+            .into_iter()
+            .filter(|t| t.to_lowercase().contains(&query.to_lowercase()))
+            .cloned()
+            .collect()
+}
+
+
+
+#[tauri::command]
+fn submit_autocompleted_hpo_term(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    term_id: impl Into<String>,
+    term_label: impl Into<String>,
+) -> Result<TextAnnotationDto, String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        singleton.get_autocompleted_term_dto(term_id, term_label)
+    }
+
+
