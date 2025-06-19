@@ -48,8 +48,6 @@ export class HpoAutocompleteComponent implements OnInit {
       startWith(''),
       debounceTime(300),
       switchMap((value) => {
-          console.log('Typed value:', value, 'Type:', typeof value);
-        console.log('Typed value:', value);
         if (typeof value === 'string' && value.length > 2) {
           this.textMiningSuccess = true;
           return this.configService.getAutocompleteHpo(value);
@@ -68,10 +66,8 @@ export class HpoAutocompleteComponent implements OnInit {
   }
 
   submitTerm() {
-    console.log("hpo auto complete, submitTerm");
     const autocompletedTerm = this.control.value;
     if (autocompletedTerm) {
-       console.log("hpo auto complete, submitTerm au=", autocompletedTerm);
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       this.configService.submitAutocompleteHpoTerm(id, label);
     }
