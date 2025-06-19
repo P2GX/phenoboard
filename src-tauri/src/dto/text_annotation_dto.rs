@@ -47,10 +47,15 @@ impl TextAnnotationDto {
         dto
     }
 
-    pub fn from_id_and_label(term_id: &str, term_label: &str) -> Self {
+    /// We create a TextAnnotationDto derived from autocomplete
+    /// This is designed to be added to the fenominal hit table after text mining
+    /// TODO. it is not elegant to misuse the is_fenominal_hit label, and
+    /// we should change the label to is_hpo_term
+    pub fn autocompleted_fenominal_hit(term_id: &str, term_label: &str) -> Self {
         let mut dto = TextAnnotationDto::default();
         dto.term_id = term_id.to_string();
         dto.label = term_label.to_string();
+        dto.is_fenominal_hit = true;
         dto
     }
     

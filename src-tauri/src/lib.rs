@@ -47,7 +47,8 @@ pub fn run() {
             select_phetools_template_path,
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
-            get_hpo_autocomplete_terms
+            get_hpo_autocomplete_terms,
+            submit_autocompleted_hpo_term
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -111,7 +112,7 @@ async fn load_phetools_template(
                     Err(e) => {
                         let mut status = singleton.get_status();
                         status.has_error = true;
-                        status.error_message = format!("{}", e);;
+                        status.error_message = format!("{}", e);
                         let _ = app.emit("backend_status", &status);
                     },
                 };
@@ -392,12 +393,15 @@ fn get_hpo_autocomplete_terms(
 #[tauri::command]
 fn submit_autocompleted_hpo_term(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    term_id: impl Into<String>,
-    term_label: impl Into<String>,
-) -> Result<TextAnnotationDto, String> {
+    app: AppHandle,
+    term_id: &str,
+    term_label: &str,
+) -> Result<(), String> {
         let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
         let singleton = singleton_arc.lock().unwrap();
-        singleton.get_autocompleted_term_dto(term_id, term_label)
+        let dto = singleton.get_autocompleted_term_dto(term_id, term_label)?;
+        let _ = app.emit("autocompletion", dto);
+        Ok(())
     }
 
 

@@ -110,8 +110,8 @@ export class ConfigService {
     return invoke<string[]>('get_hpo_autocomplete_terms', { query: value });
   }
 
-  async submitAutocompleteHpoTerm(termId: string, termLabel:string) {
-    return invoke<string>('submit_autocompleted_hpo_term', { term_id: termId, term_label: termLabel });
+  async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {
+    return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
   
 

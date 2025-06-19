@@ -633,7 +633,7 @@ impl PhenoboardSingleton {
             &hpo_term.name(),
             &hpo_id));
         }
-        Ok(TextAnnotationDto::from_id_and_label(&term_id, &hpo_label))
+        Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
     }
     
 

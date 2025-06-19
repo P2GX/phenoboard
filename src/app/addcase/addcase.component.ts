@@ -75,22 +75,49 @@ export class AddcaseComponent {
   selectedHpoTerm: string = "";
 
   private unlisten: UnlistenFn | null = null;
+  private unlistenFns: UnlistenFn[] = [];
 
-  async ngOnInit() {
-    this.unlisten = await listen('backend_status', (event) => {
-      this.ngZone.run(() => {
-        this.backend_status = event.payload as StatusDto;
-        console.log('Received backend status:', this.backend_status);
-        this.hpoInitialized = this.backend_status.hpoLoaded;
-      });
-    });
+  async ngOnInit(): Promise<void> {
+    this.unlistenFns.push(
+      await listen('backend_status', (event) => {
+        this.ngZone.run(() => this.handleBackendStatus(event.payload));
+      })
+    );
+
+    this.unlistenFns.push(
+      await listen('autocompletion', (event) => {
+        this.ngZone.run(() => this.handleAutocompletion(event.payload));
+      })
+    );
   }
+
   
   ngOnDestroy() {
     if (this.unlisten) {
       this.unlisten();
       this.unlisten = null;
     }
+  }
+
+  private handleBackendStatus(payload: unknown): void {
+    const status = payload as StatusDto;
+    this.backend_status = status;
+    this.hpoInitialized = status.hpoLoaded;
+    console.log('Received backend status:', status);
+  }
+  private handleAutocompletion(payload: unknown): void {
+    this.ngZone.run(() => {
+       try {
+        console.log("1) n items: ", this.annotations.length);
+      const dto = payload as TextAnnotationDto;
+      console.log("handleAutocompletion", dto);
+      this.annotations.push(dto);
+         console.log("2) n items: ", this.annotations.length);
+    } catch (error) {
+      console.error('Error in autocompletion payload:', error);
+    }
+    });
+   
   }
 
   /**

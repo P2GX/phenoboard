@@ -1,25 +1,22 @@
 <mat-card class="p-1 pb-0 mb-0">
-  <mat-card-title>HPO Term Search</mat-card-title>
+  <mat-card-title>Add term to table</mat-card-title>
 
   <div class="flex items-center gap-4">
     <!-- Text field (approx. 50% width) -->
     <mat-form-field class="flex-1 min-w-[300px]" appearance="outline">
       <input type="text"
-             placeholder="Search HPO term"
-             matInput
-             [formControl]="control"
-             [matAutocomplete]="auto">
+            placeholder="Search HPO term"
+            matInput
+            [formControl]="control"
+            [matAutocomplete]="auto">
       <mat-autocomplete #auto="matAutocomplete">
         <mat-option *ngFor="let option of options" [value]="option">
           {{ option }}
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
-
-    <!-- Submit button -->
-    <button mat-raised-button
+    <button class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
             color="primary"
-            [disabled]="!textMiningSuccess"
             (click)="submitTerm()">
       Submit Term
     </button>
