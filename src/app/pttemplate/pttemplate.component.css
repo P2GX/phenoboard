@@ -160,27 +160,3 @@
   border-radius: 4px;
   font-weight: bold;
 }
-
-
-.mat-tooltip {
-  background-color: #333 !important;    /* Dark background */
-  color: #fff !important;               /* White text */
-  font-size: 14px !important;           /* Slightly bigger font */
-  font-weight: 500 !important;          /* Medium weight */
-  padding: 8px 12px !important;         /* More padding for comfort */
-  border-radius: 6px !important;        /* Rounded corners */
-  max-width: 300px !important;          /* Max width to avoid very wide tooltips */
-  white-space: pre-line !important;     /* Support multiline tooltip with line breaks */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4) !important; /* Soft shadow */
-  opacity: 0.95 !important;              /* Slight transparency */
-}
-
-/* Optional: Add a subtle fade-in animation */
-.mat-tooltip-show {
-  animation: fadeInTooltip 0.2s ease-in forwards;
-}
-
-@keyframes fadeInTooltip {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 0.95; transform: translateY(0); }
-}

@@ -7,6 +7,7 @@ import { SettingsComponent } from "./settings/settings.component";
 import { TableComponent } from "./table/table.component";
 import { HelpComponent } from "./help/help.component";
 import { PhetoolsComponent } from "./phetools/phetools.component";
+import { PtTemplateComponent } from './pttemplate/pttemplate.component';
 import { NavbarComponent } from './navbar/navbar.component';
 
 import { Page, PageService } from './services/page.service';
@@ -14,7 +15,7 @@ import { Page, PageService } from './services/page.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, AddcaseComponent, SettingsComponent, PhetoolsComponent,  NavbarComponent],
+  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, AddcaseComponent, SettingsComponent, PhetoolsComponent, PtTemplateComponent, NavbarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

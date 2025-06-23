@@ -1,10 +1,11 @@
 <div class="flex flex-col min-h-screen">
   <app-navbar></app-navbar>
-  <main>
+  <main class="flex-1">
     <app-home *ngIf="currentView === 'home'"></app-home>
     <app-table *ngIf="currentView === 'table'"></app-table>
     <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
     <app-phetools *ngIf="currentView === 'phetools'"></app-phetools>
+    <app-pttemplate *ngIf="currentView === 'pttemplate'"></app-pttemplate>
     <app-settings *ngIf="currentView === 'settings'"></app-settings>
     <app-help *ngIf="currentView === 'help'"></app-help>
   </main>

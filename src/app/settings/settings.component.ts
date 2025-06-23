@@ -2,12 +2,21 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOption } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports:[CommonModule],
+  imports:[CommonModule, FormsModule, MatButtonModule, MatCardModule, MatInputModule,
+    MatFormFieldModule, MatOption, MatSelectModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
@@ -22,25 +31,43 @@ export class SettingsComponent implements OnInit {
   async ngOnInit() {
     console.log("ngOnInit");
   }
+variant: string = '';
+  isHgvs: boolean = false;
 
-  async chooseHpJsonFile() {
-    const path = await this.configService.selectHpJsonFile();
-    
-    if (path) {
-      try {
-        this.isLoading = true;
-        console.log("Loading HPO ");
-        this.cdRef.detectChanges()
-        // Give GUI time to paint before continuing
-        await new Promise(resolve => setTimeout(resolve, 100));
-        await this.configService.loadHumanPhenotypeOntology(path);
-        console.log("version ", this.hpoVersion);
-        this.hpoJsonPath = path;
-      } catch (error) {
-        console.error("Error loading HPO JSON:", error);
-      } finally {
-        this.isLoading = false;
-      }
-    }
+  structuralTypes = ['deletion', 'insertion', 'duplication', 'inversion'];
+  selectedStructuralType: string | null = null;
+
+  geneOptions = ['BRCA1', 'TP53', 'CFTR', 'MYH7']; // Replace with dynamic options
+  selectedGene: string | null = null;
+
+  onVariantInput(): void {
+    this.isHgvs = this.variant.trim().startsWith('c.');
   }
+
+  submitHgvs(): void {
+    // For now just use this
+    //NM_021957.4(GYS2):c.736C>T (p.Arg246Ter)
+    const transcript = 'NM_021957.4';
+    const symbol = 'GYS2'
+    const hgvs = 'c.736C>T'
+
+    console.log('Submitting HGVS:', this.variant, this.selectedGene);
+    // send to Rust via invoke or emit
+  }
+
+  submitSv(): void {
+    console.log('Submitting SV:', this.variant, this.selectedGene, this.selectedStructuralType);
+    // send to Rust via invoke or emit
+  }
+
+  onenVariantValidator(event: MouseEvent): void {
+    event.preventDefault();
+    const vv_url = "https://variantvalidator.org/";
+    this.openLink(vv_url);
+  }
+
+  async openLink(url: string) {
+    await openUrl(url);
+  }
+
 }

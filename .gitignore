@@ -28,3 +28,6 @@ dist/
 
 .nx/cache
 .nx/workspace-data
+.DS_Store
+src-tauri/.DS_Store
+src-tauri/gen/

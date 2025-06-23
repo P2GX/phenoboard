@@ -7,7 +7,6 @@
 //! A FenominalHit has term_id (String), label (String),span (Range<usize>), and is_observed (bool)
 
 use fenominal::fenominal::FenominalHit;
-use ontolius::term::Term;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

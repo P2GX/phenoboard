@@ -6,14 +6,15 @@ mod settings;
 mod table_manager;
 mod util;
 
+use ga4ghphetools::dto::template_dto::TemplateDto;
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
-use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_dialog::DialogExt;
-use std::{collections::HashMap, path::Path, sync::{Arc, Mutex}};
-use tauri_plugin_fs::{init, FilePath};
+use std::{collections::HashMap, sync::{Arc, Mutex}};
+use tauri_plugin_fs::{init};
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, settings::HpoCuratorSettings};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -28,6 +29,7 @@ pub fn run() {
             emit_backend_status,
             get_ppkt_store_json,
             get_phetools_table,
+            get_phetools_template,
             get_template_summary,
             highlight_text_with_hits,
             hpo_can_be_updated,
@@ -200,6 +202,18 @@ fn get_phetools_table(
     let singleton = singleton_arc.lock().unwrap();
     return singleton.get_matrix();
 }
+
+
+#[tauri::command]
+fn get_phetools_template(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+) -> Result<TemplateDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    return singleton.get_phetools_template();
+}
+
+
 
 #[tauri::command]
 fn set_value(
@@ -404,4 +418,17 @@ fn submit_autocompleted_hpo_term(
         Ok(())
     }
 
+
+#[tauri::command]
+fn submit_hgvs(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    app: AppHandle,
+    transcript: &str,
+    hgvs: &str,
+) -> Result<(), String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        //let _ = app.emit("autocompletion", dto);
+        Ok(())
+    }
 

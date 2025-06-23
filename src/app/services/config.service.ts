@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
+import { TemplateDto } from '../models/template_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +36,11 @@ export class ConfigService {
   async getPhetoolsMatrix(): Promise<string[][]> {
     return await invoke<string[][]>("get_phetools_table");
   }
+
+  async getPhetoolsTemplate(): Promise<TemplateDto> {
+    return await invoke<TemplateDto>("get_phetools_template");
+  }
+
 
   async loadPtTemplate(): Promise<void> {
     return await invoke<void>("load_phetools_template");
@@ -112,6 +118,10 @@ export class ConfigService {
 
   async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
+  }
+
+  async submitHgvs(transcript: string, hgvs: string): Promise<string> {
+    return invoke<string>('submit_hgvs', {transcript: transcript, hgvs: hgvs});
   }
   
 

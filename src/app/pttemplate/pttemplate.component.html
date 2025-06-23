@@ -1,0 +1,49 @@
+<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
+  <!-- Title -->
+  <h2 class="text-xl font-semibold text-gray-800">Phetools Template NEW</h2>
+  <div *ngIf="tableData">
+  <h3>Cohort Type: {{ tableData.cohortType }}</h3>
+
+  <table border="1" cellspacing="0" cellpadding="5">
+     <thead>
+    <tr>
+      <th>Individual ID</th>
+      <!-- You can add headers for the other cells if you want -->
+      <th *ngFor="let header of tableData.header.data">{{header.h1}}</th>
+    </tr>
+  </thead>
+    <tbody>
+      <tr *ngFor="let row of tableData.rows">
+        <td
+  (mouseenter)="showPopup = row.individualDto"
+  (mouseleave)="showPopup = null"
+  class="relative"
+>
+  {{ row.individualDto.individualId }}
+  <div
+    *ngIf="showPopup === row.individualDto"
+    class="absolute left-full top-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+  >
+    <ul class="list-disc list-inside text-sm text-gray-800">
+      <li><strong>row.individualDto.individualId</strong></li>
+      <li>{{ row.individualDto.pmid }}</li>
+      <li>{{ row.individualDto.title }}</li>
+      <li *ngIf="row.individualDto.comment.length > 0">
+        <strong>Comment:</strong> {{ row.individualDto.comment }}
+      </li>
+    </ul>
+  </div>
+</td>
+   <td *ngFor="let cell of row.data">
+        {{ cell.value }}
+      </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+ 
+
+
+  
+</div>
