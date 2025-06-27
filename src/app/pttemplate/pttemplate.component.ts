@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualDto, TemplateDto } from '../models/template_dto';
+import { DemographicDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
 
 @Component({
   selector: 'app-pttemplate',
@@ -16,19 +16,22 @@ export class PtTemplateComponent implements OnInit {
 
   constructor(private configService: ConfigService) {}
 
-  displayedColumns: string[] = [];
+
   tableData: TemplateDto | null = null;
-  showPopup: IndividualDto | null = null;
+  hoveredIndividual: IndividualDto | null = null;
+  hoveredDisease: DiseaseDto | null = null;
+  hoveredGene: GeneVariantBundleDto | null = null;
+  hoveredDemographics: DemographicDto | null = null;
+  hoveredHpoHeader: HeaderDupletDto | null = null;
 
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
       this.tableData = data;
-      this.displayedColumns = data.header.data.map(h => {
-        return h.h1 
-      });
+ 
+      
+      
       console.log(data);
-       console.log('typeof rows:', typeof data.rows);
       console.log('Row example:', data.rows[0]);
     });
   }

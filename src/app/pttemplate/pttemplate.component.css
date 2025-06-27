@@ -1,162 +1,82 @@
-
-.context-menu {
-    position: fixed;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 10000;
-    min-width: 100px;
-  }
-  
-  .context-menu button {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    text-align: left;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-  }
-  
-  .context-menu button:hover {
-    background-color: #eee;
-  }
-
-
-.context-menu ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-.context-menu li {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.context-menu li:hover {
-  background-color: #ddd;
-}
-
-.table-container {
-  position: relative;
-}
-
-.ppt-table {
+.pt-table {
   border-collapse: collapse;
-  width: auto;
-  table-layout: fixed;
-}
-  
-.ppt-table tr:hover {
-  background-color: #f1f1f1;
-}
-.ppt-table th,
-.ppt-table td {
-  border: 1px solid #ccc;
-  padding: 2px;
-  text-align: center;
-  vertical-align: bottom;
-  min-width: 30px;
-  max-width: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 100%;
+  font-size: 14px;
 }
 
-/* Rotated header cell */
-.vertical-header {
+.pt-table th {
+  border: none;
+  border-bottom: 1px solid #ccc; 
+  padding: 5px;
+}
+.pt-table td {
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+
+.rotate-header {
+  height: 80px; /* or less */
+  vertical-align: bottom;
   position: relative;
-  height: 120px;
+}
+
+.hpo-col {
+  width: 40px;
+  max-width: 40px;
   padding: 0;
 }
 
-/* Actual rotated text */
-.rotated-text {
-  transform: rotate(-90deg);
+.hpo-col .rotated-text {
+  transform: rotate(-30deg);
   transform-origin: left bottom;
+  white-space: nowrap;
   position: absolute;
   bottom: 5px;
-  left: 25px;
-  white-space: nowrap;
-  font-size: 11px;
-}
-
-
-.table-scroll-wrapper {
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-
-::ng-deep .cell-observed {
-  color: black;
-  background-color: #88e788;
-  font-weight: bold;
-}
-
-::ng-deep .cell-excluded {
-  color: black;
-  background-color: #ffe6e6;
-  font-weight: bold;
-}
-
-::ng-deep .cell-na {
-  color: black;
-  background-color: #eeeeee;
-  font-weight: normal;
-}
-
-.cell-ellipsis {
-  overflow: hidden;
+  left: 45%;
+  font-size: 10px;
+  line-height: 1;
   text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 200px;
-  vertical-align: bottom;
+  max-width: 100px; /* limit visible width */
 }
 
-
-
-
-.focus-table tr:hover {
-  background-color: #f1f1f1;
-}
-
-.focus-table th,
-.focus-table td {
+.hpo-popup {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f9f9f9;
   border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-  vertical-align: bottom;
-  max-width: 200px;
-  min-width: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Limit all columns by default */
-.focus-table th:not(:nth-child(3)):not(:nth-child(4)),
-.focus-table td:not(:nth-child(3)):not(:nth-child(4)) {
-  max-width: 80px;
-}
-
-/* Allow 3rd and 4th columns to grow fully */
-.focus-table th:not(:nth-child(1)):not(:nth-child(2)),
-.focus-table td:not(:nth-child(1)):not(:nth-child(2)) {
-  max-width: none;
-  white-space: normal; /* Allows wrapping if needed */
-  text-overflow: initial;
-  overflow: visible;
-}
-
-.error-banner {
-  background-color: #ffe5e5;
-  color: #a00000;
-  border: 1px solid #a00000;
-  padding: 8px 12px;
-  margin: 10px 0;
+  padding: 4px 8px;
   border-radius: 4px;
+  font-size: 11px;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hover-underline {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.observed-cell {
+  background-color: #d1fadf;
+  text-align: center;
   font-weight: bold;
+  color: #1a7f37; /* Dark green */
+}
+
+.excluded-cell {
+  background-color: #fde8e8;
+  text-align: center;
+  font-weight: bold;
+  color: #b91c1c; /* Dark red */
+}
+
+.na-cell {
+  background-color: #f5f5f5;
+  color: #999;
+  text-align: center;
+  font-style: italic;
 }

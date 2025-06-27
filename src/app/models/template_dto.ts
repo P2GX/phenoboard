@@ -7,13 +7,37 @@ export interface IndividualDto {
     comment: string;
 }
 
+export interface DiseaseDto {
+    diseaseId: string;
+    diseaseLabel: string;
+}
+
+export interface GeneVariantBundleDto {
+    hgncId: string;
+    geneSymbol: string;
+    transcript: string;
+    allele1: string;
+    allele2: string;
+    variantComment: string;
+}
+
+export interface DemographicDto {
+    ageOfOnset: string;
+    ageAtLastEncounter: string;
+    deceased: string;
+    sex: string;
+}
+
 export interface CellDto {
     value: string;
 }
 
 export interface RowDto {
     individualDto: IndividualDto;
-    data: CellDto[];
+    diseaseDtoList: DiseaseDto[];
+    geneVarDtoList: GeneVariantBundleDto[];
+    demographicDto: DemographicDto,
+    hpoData: CellDto[];
 }
 
 export interface HeaderDupletDto {
@@ -28,6 +52,6 @@ export interface HeaderDto {
 
 export interface TemplateDto {
     cohortType: string;
-    header: HeaderDto;
+    hpoHeaders: HeaderDupletDto[];
     rows: RowDto[];
 }
