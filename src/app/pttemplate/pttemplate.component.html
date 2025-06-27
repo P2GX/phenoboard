@@ -39,30 +39,46 @@
     <tbody>
       <tr *ngFor="let row of tableData.rows">
         <!-- First column: PMID/title/individual_id/comment -->
-        <td
-  (mouseenter)="hoveredIndividual = row.individualDto"
-  (mouseleave)="hoveredIndividual = null"
-  class="relative"
->
-  {{ row.individualDto.individualId }}
+        <td class="relative">
   <div
-    *ngIf="hoveredIndividual === row.individualDto"
-    class="absolute top-0 left-0 bg-white shadow-md border p-2 rounded z-50 w-64"
+    (mouseenter)="hoveredIndividual = row.individualDto"
+    (mouseleave)="hoveredIndividual = null"
+    class="cursor-pointer"
   >
-    <ul class="list-disc list-inside text-sm text-gray-800">
-      <li><strong>{{ row.individualDto.individualId }}</strong></li>
-      <li>{{ row.individualDto.pmid }}</li>
-      <li>{{ row.individualDto.title }}</li>
-      <li><strong>onset: {{ row.individualDto.ageOfOnset }}</strong></li>
-      <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
-      <li>deceased: {{ row.individualDto.deceased }}</li>
-      <li>sex: {{ row.individualDto.sex }}</li>
-      <li *ngIf="row.individualDto.comment.length > 0">
-        <strong>Comment:</strong> {{ row.individualDto.comment }}
-      </li>
-    </ul>
+    {{ row.individualDto.individualId }}
+
+    <div
+      *ngIf="hoveredIndividual === row.individualDto"
+      class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+      (mouseenter)="hoveredIndividual = row.individualDto"
+      (mouseleave)="hoveredIndividual = null"
+    >
+      <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+        <li><strong>{{ row.individualDto.individualId }}</strong></li>
+        <li>{{ row.individualDto.pmid }}</li>
+        <li>{{ row.individualDto.title }}</li>
+        <li *ngIf="row.individualDto.comment.length > 0">
+          <strong>Comment:</strong> {{ row.individualDto.comment }}
+        </li>
+        <li>onset: {{ row.individualDto.ageOfOnset }}</li>
+        <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
+        <li>deceased: {{ row.individualDto.deceased }}</li>
+        <li>sex: {{ row.individualDto.sex }}</li>
+      </ul>
+
+      <!-- ✅ Edit button in popup -->
+      <button
+        mat-stroked-button
+        color="primary"
+        class="text-xs py-0 px-2"
+        (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
+      >
+        ✏️ Edit
+      </button>
+    </div>
   </div>
 </td>
+
 <!-- Second column: disease/id -->
  <td class="relative">
   <div *ngFor="let disease of row.diseaseDtoList ?? []" class="relative inline-block">
