@@ -47,16 +47,16 @@
   {{ row.individualDto.individualId }}
   <div
     *ngIf="hoveredIndividual === row.individualDto"
-    class="absolute left-full top-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+    class="absolute top-0 left-0 bg-white shadow-md border p-2 rounded z-50 w-64"
   >
     <ul class="list-disc list-inside text-sm text-gray-800">
       <li><strong>{{ row.individualDto.individualId }}</strong></li>
       <li>{{ row.individualDto.pmid }}</li>
       <li>{{ row.individualDto.title }}</li>
-      <li><strong>onset: {{ row.demographicDto.ageOfOnset }}</strong></li>
-      <li>last encounter: {{ row.demographicDto.ageAtLastEncounter }}</li>
-      <li>deceased: {{ row.demographicDto.deceased }}</li>
-      <li>sex: {{ row.demographicDto.sex }}</li>
+      <li><strong>onset: {{ row.individualDto.ageOfOnset }}</strong></li>
+      <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
+      <li>deceased: {{ row.individualDto.deceased }}</li>
+      <li>sex: {{ row.individualDto.sex }}</li>
       <li *ngIf="row.individualDto.comment.length > 0">
         <strong>Comment:</strong> {{ row.individualDto.comment }}
       </li>

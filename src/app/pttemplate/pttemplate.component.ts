@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DemographicDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
+import { DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
 
 @Component({
   selector: 'app-pttemplate',
@@ -21,7 +21,6 @@ export class PtTemplateComponent implements OnInit {
   hoveredIndividual: IndividualDto | null = null;
   hoveredDisease: DiseaseDto | null = null;
   hoveredGene: GeneVariantBundleDto | null = null;
-  hoveredDemographics: DemographicDto | null = null;
   hoveredHpoHeader: HeaderDupletDto | null = null;
 
   ngOnInit(): void {

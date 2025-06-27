@@ -5,6 +5,10 @@ export interface IndividualDto {
     title: string; 
     individualId: string;
     comment: string;
+    ageOfOnset: string;
+    ageAtLastEncounter: string;
+    deceased: string;
+    sex: string;
 }
 
 export interface DiseaseDto {
@@ -21,12 +25,6 @@ export interface GeneVariantBundleDto {
     variantComment: string;
 }
 
-export interface DemographicDto {
-    ageOfOnset: string;
-    ageAtLastEncounter: string;
-    deceased: string;
-    sex: string;
-}
 
 export interface CellDto {
     value: string;
@@ -36,7 +34,6 @@ export interface RowDto {
     individualDto: IndividualDto;
     diseaseDtoList: DiseaseDto[];
     geneVarDtoList: GeneVariantBundleDto[];
-    demographicDto: DemographicDto,
     hpoData: CellDto[];
 }
 
