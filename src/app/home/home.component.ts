@@ -29,7 +29,7 @@ export class HomeComponent {
 
   status: StatusDto = defaultStatusDto();
   statusSubscription?: Subscription;
- 
+
   ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
   hasError: boolean = false;
@@ -45,21 +45,15 @@ export class HomeComponent {
   errorMessage: string | null = null;
 
   ngAfterViewInit() {
-    if (this.pendingHpoVersion && this.footer_component) {
-      this.footer_component.setHpoVersion(this.pendingHpoVersion);
-      this.pendingHpoVersion = null;
-    }
-    if (this.pendingHpoNterms && this.footer_component) {
-      this.footer_component.setHpoVersion(this.pendingHpoNterms);
-      this.pendingHpoNterms = null;
-    }
+    console.log("ngAfterViewInit, about to emit backend status");
+    this.configService.emitStatusFromBackend();
   }
 
   async ngOnInit() {
-    console.log("ngOnInit - TOP");
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
+        console.log("got backend status: ", status);
         this.backendStatusService.setStatus(status);
         this.status = event.payload as StatusDto;
         this.update_gui_variables(status);
@@ -93,22 +87,16 @@ export class HomeComponent {
         this.pendingHpoNterms = String(status.nHpoTerms);
       }
       console.log("in update_gui, status = ", status);
-      console.log("status.hpoLoaded =", status.hpoLoaded, typeof status.hpoLoaded);
       if (status.hpoLoaded) {
-        console.log("status.hpoLoaded true ");
         this.hpoMessage = status.hpoVersion;
-        console.log("hpo_version =", status.hpoVersion);
       } else {
         this.hpoMessage = "uninitialized";
       }
-      console.log("loaded HPO: hpoMessage=", this.hpoMessage);
-      console.log("loaded HPO: Bottom=", this.hpoMessage);
       if (status.ptTemplatePath) {
-        console.log("ptTemplatePath =", status.ptTemplatePath);
         this.ptTemplateLoaded = true; 
         this.templateFileMessage = status.ptTemplatePath;
       } else {
-        console.log("ptTemplatePath = NIPE");
+        console.log("ptTemplatePath = not initialized");
         this.ptTemplateLoaded = false;
         this.templateFileMessage = "not initialized";
       }

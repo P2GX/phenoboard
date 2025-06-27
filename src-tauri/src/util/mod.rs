@@ -1,2 +1,2 @@
-pub mod demographics_dialog;
+pub mod text_to_annotation;
 pub mod pubmed_retrieval;

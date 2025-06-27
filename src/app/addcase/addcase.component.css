@@ -44,33 +44,28 @@ table {
   }
 
 
-  .hpo-hit {
-  background-color: #fef3c7; /* light amber */
-  padding: 0.1em 0.2em;
-  border-radius: 0.2em;
-  cursor: help;
-  border: 1px solid #fcd34d;
-}
 
+
+.hpo-hit {
+  cursor: pointer;
+  background-color: #f0faff;
+  border-bottom: 1px dotted #007acc;
+  padding: 0 2px;
+}
 .hpo-hit.observed {
-  background-color: #d1fae5; /* greenish for observed */
-  border-color: #10b981;
+  background-color: #e0ffe0;
 }
-
 .hpo-hit.excluded {
-  background-color: #fee2e2; /* reddish for excluded */
-  border-color: #ef4444;
+  background-color: #ffe0e0;
 }
 
-.hpo-hit[data-annotation]:hover::after {
-  content: attr(data-annotation);
+.annotation-popup {
   position: absolute;
-  background: #333;
-  color: white;
-  padding: 0.2em 0.4em;
-  font-size: 0.75em;
-  border-radius: 0.2em;
-  z-index: 999;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   white-space: nowrap;
+  pointer-events: none;
 }
-

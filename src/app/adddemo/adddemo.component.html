@@ -1,0 +1,97 @@
+<div class="space-y-4 p-4 border rounded-md"  *ngIf="!allDataEntered">
+    <div class="grid grid-cols-6 gap-6">
+    <!-- Top row -->
+    <label for="individualId" class="block text-sm font-medium text-gray-700">Individual ID</label>
+    <label class="block text-sm font-medium text-gray-700">Age of Onset</label>
+    <label class="block text-sm font-medium text-gray-700">Age of Last Exam</label>
+    <label class="block text-sm font-medium text-gray-700">Sex</label>
+    <label class="block text-sm font-medium text-gray-700">Deceased</label>
+    <button
+        (click)="submitDemo(true)"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >Submit</button>
+    <!-- Bottom row -->
+    <!-- 1. Text field for individual ID-->
+    <div>
+        <input
+            id="individualId"
+            type="text"
+            [(ngModel)]="individualId"
+            (blur)="onIndividualIdBlur()"
+            placeholder="individual ID"
+            class="border px-3 py-2 rounded"
+            style="width: 150px; height: 25px;"
+        />
+        <p *ngIf="!isAscii" class="text-red-600 text-xs">ID must be ASCII only</p>
+    </div>
+    <!-- 2. Age of Onset Dropdown Menu -->
+    <div>
+        <select
+            class="border border-gray-400 rounded px-3 py-2 w-full"
+            [(ngModel)]="ageOfOnset"
+            style="width: 150px"
+        >
+        <option value="na"></option>
+        <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
+        </select>
+    </div>
+    <!-- 3. Age of Last Exam Dropdown Menu -->
+    <div>
+        <select
+            class="border border-gray-400 rounded px-3 py-2 w-full"
+            [(ngModel)]="ageAtLastExamination"
+            style="width: 150px"
+        >
+        <option value="na"></option>
+        <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
+        </select>
+    </div>
+    <!-- 4. Sex radio button -->
+    <div class="flex gap-4">
+    <label *ngFor="let s of sexOptions" class="inline-flex items-center">
+        <input
+            type="radio"
+            name="sex"
+            [value]="s"
+            [(ngModel)]="sex"
+            class="mr-2"
+        />
+        {{ s }}
+        </label>
+    </div>
+    <!-- 4. Sex radio button -->
+    <div class="flex gap-3">
+    <label *ngFor="let d of deceasedOptions" class="inline-flex items-center">
+        <input
+            type="radio"
+            name="deceased"
+            [value]="d"
+            [(ngModel)]="deceased"
+            class="mr-2"
+        />
+        {{ d }}
+        </label>
+    </div>
+    <!-- 5. Add comment-->
+    <button
+        (click)="addComment()"
+        class="bg-gray-100 text-black px-4 py-2 rounded hover:bg-blue-100"
+    >Add comment</button>
+</div>
+</div>
+<div
+    class="flex items-center justify-between p-4 border rounded-md text-sm text-gray-500"
+    *ngIf="allDataEntered"
+>
+    <p class="mr-4">
+        {{ individualId }}: {{ sex }}, deceased: {{ deceased }}, onset: {{ ageOfOnset }}, age at last exam: {{ ageAtLastExamination }}
+    </p>
+
+    <button
+        (click)="submitDemo(false)"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+    >
+        Reset
+    </button>
+</div>
+

@@ -2,11 +2,14 @@ import { Injectable, numberAttribute } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
+import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
+import { TemplateDto } from '../models/template_dto';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
+  
   constructor() {}
 
   async selectHpJsonFile(): Promise<string | null> {
@@ -33,6 +36,11 @@ export class ConfigService {
   async getPhetoolsMatrix(): Promise<string[][]> {
     return await invoke<string[][]>("get_phetools_table");
   }
+
+  async getPhetoolsTemplate(): Promise<TemplateDto> {
+    return await invoke<TemplateDto>("get_phetools_template");
+  }
+
 
   async loadPtTemplate(): Promise<void> {
     return await invoke<void>("load_phetools_template");
@@ -83,8 +91,8 @@ export class ConfigService {
     return await invoke("get_ppkt_store_json");
   }
 
-  async updateDescriptiveStats(): Promise<void> {
-    return await invoke("update_descriptive_stats");
+  async emitStatusFromBackend(): Promise<void> {
+    return await invoke("emit_backend_status");
   }
 
   async highlight_hpo_mining(input_text: string): Promise<string> {
@@ -94,5 +102,27 @@ export class ConfigService {
   async retrieve_pmid_title(input_pmid: string): Promise<PmidDto> {
     return await invoke("fetch_pmid_title", {input: input_pmid});
   }
+
+  async map_text_to_annotations(input_text: string):  Promise<TextAnnotationDto[] | string> {
+    return await invoke("map_text_to_annotations", {inputText: input_text});
+  }
+
+  async getHpoParentAndChildTerms(annotation: TextAnnotationDto): Promise<ParentChildDto> {
+  return await invoke("get_hpo_parent_and_children_terms", {annotation: annotation});
+}
+
+
+  async getAutocompleteHpo(value: string): Promise<string[]> {
+    return invoke<string[]>('get_hpo_autocomplete_terms', { query: value });
+  }
+
+  async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {
+    return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
+  }
+
+  async submitHgvs(transcript: string, hgvs: string): Promise<string> {
+    return invoke<string>('submit_hgvs', {transcript: transcript, hgvs: hgvs});
+  }
+  
 
 }

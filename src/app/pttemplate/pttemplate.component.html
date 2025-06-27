@@ -1,0 +1,167 @@
+<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
+  <!-- Title -->
+  <h2 class="text-xl font-semibold text-gray-800">Phetools Template NEW</h2>
+  <div *ngIf="tableData">
+  <h3>Cohort Type: {{ tableData.cohortType }}</h3>
+  <table class="pt-table">
+    <thead>
+    <tr>
+      <th>Individual ID</th>
+      <th>Disease</th>
+      <th>Gene</th>
+      <th
+        class="rotate-header hpo-col"
+        *ngFor="let header of tableData.hpoHeaders"
+        (mouseenter)="hoveredHpoHeader = header"
+        (mouseleave)="hoveredHpoHeader = null"
+      >
+      <div class="rotated-text"
+      [ngClass]="{ 'hover-underline': hoveredHpoHeader === header }">
+        {{ header.h1 }}
+      </div>
+
+      <!-- Popup shown on hover -->
+      <div
+        *ngIf="hoveredHpoHeader === header"
+        class="hpo-popup"
+      >
+        <a
+          [href]="'https://hpo.jax.org/browse/term/' + header.h2"
+          target="_blank"
+          rel="noopener"
+        >
+          🔗 {{ header.h2 }}
+        </a>
+      </div>
+</th>
+    </tr>
+  </thead>
+    <tbody>
+      <tr *ngFor="let row of tableData.rows">
+        <!-- First column: PMID/title/individual_id/comment -->
+        <td class="relative">
+  <div
+    (mouseenter)="hoveredIndividual = row.individualDto"
+    (mouseleave)="hoveredIndividual = null"
+    class="cursor-pointer"
+  >
+    {{ row.individualDto.individualId }}
+
+    <div
+      *ngIf="hoveredIndividual === row.individualDto"
+      class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+      (mouseenter)="hoveredIndividual = row.individualDto"
+      (mouseleave)="hoveredIndividual = null"
+    >
+      <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+        <li><strong>{{ row.individualDto.individualId }}</strong></li>
+        <li>{{ row.individualDto.pmid }}</li>
+        <li>{{ row.individualDto.title }}</li>
+        <li *ngIf="row.individualDto.comment.length > 0">
+          <strong>Comment:</strong> {{ row.individualDto.comment }}
+        </li>
+        <li>onset: {{ row.individualDto.ageOfOnset }}</li>
+        <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
+        <li>deceased: {{ row.individualDto.deceased }}</li>
+        <li>sex: {{ row.individualDto.sex }}</li>
+      </ul>
+
+      <!-- Edit button in popup -->
+      <button
+        mat-stroked-button
+        color="primary"
+        class="text-xs py-0 px-2"
+        (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
+      >
+        ✏️ Edit
+      </button>
+    </div>
+  </div>
+</td>
+
+<!-- Second column: disease/id -->
+<td class="relative">
+  <div 
+    *ngFor="let disease of row.diseaseDtoList ?? []" 
+    class="relative inline-block"
+    (mouseenter)="hoveredDisease = disease"
+    (mouseleave)="hoveredDisease = null"
+    >
+    <span class="cursor-pointer">
+      {{ disease.diseaseId }}
+    </span>
+
+    <!-- Hover popup for disease -->
+    <div
+      *ngIf="hoveredDisease === disease"
+      class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
+      (mouseenter)="hoveredDisease = disease"
+      (mouseleave)="hoveredDisease = null"
+    >
+      <ul class="list-disc list-inside text-sm text-gray-800">
+        <li><strong>{{ disease.diseaseLabel }}</strong></li>
+        <li>ID: {{ disease.diseaseId }}</li>
+      </ul>
+      <!-- Edit button in popup -->
+      <button
+        mat-stroked-button
+        color="primary"
+        class="text-xs py-0 px-2"
+        (click)="openDiseaseEditor(disease); $event.stopPropagation();"
+      >
+        ✏️ Edit
+      </button>
+    </div>
+  </div>
+</td>
+
+ <!-- Third column for gene/var-->
+  <td class="relative">
+  <div *ngFor="let gene of row.geneVarDtoList ?? []" class="relative inline-block mr-2">
+    <span
+      (mouseenter)="hoveredGene = gene"
+      (mouseleave)="hoveredGene = null"
+      class="cursor-help"
+    >
+      {{ gene.geneSymbol }}
+    </span>
+
+    <div
+      *ngIf="hoveredGene === gene"
+      class="absolute top-0 left-full ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+    >
+      <ul class="list-disc list-inside text-sm text-gray-800">
+        <li><strong>{{ gene.geneSymbol }}</strong></li>
+        <li>{{ gene.hgncId }}</li>
+        <li>transcript: {{ gene.transcript }}</li>
+        <li>allele 1: {{ gene.allele1 }}</li>
+        <li *ngIf="gene.allele2!=='na'">allele 2: {{ gene.allele2 }}</li>
+      </ul>
+    </div>
+  </div>
+</td>
+<!-- The values of the HPO columns-->
+<td *ngFor="let cell of row.hpoData" class="hpo-col"
+    [ngClass]="{
+      'observed-cell': cell.value === 'observed',
+      'excluded-cell': cell.value === 'excluded',
+      'na-cell': cell.value === 'na'
+    }"
+>
+  <ng-container [ngSwitch]="cell.value">
+    <ng-container *ngSwitchCase="'observed'">✅</ng-container>
+    <ng-container *ngSwitchCase="'excluded'">❌</ng-container>
+    <ng-container *ngSwitchCase="'na'">n/a</ng-container>
+    <ng-container *ngSwitchDefault>{{ cell.value }}</ng-container>
+  </ng-container>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+ 
+
+
+  
+</div>

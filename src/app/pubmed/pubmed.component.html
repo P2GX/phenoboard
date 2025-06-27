@@ -1,0 +1,37 @@
+
+
+<div class="flex items-center gap-4 mt-6" *ngIf="!this.pmidDto.retrievedPmid">
+<!-- PMID Input -->
+<input
+    type="text"
+    [(ngModel)]="this.pmidDto.pmid"
+    placeholder="Enter PMID"
+    class="border border-gray-400 rounded px-3 py-2 w-40"
+/>
+
+<button
+    (click)="retrieve_pmid_title()"
+    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+>
+Lookup
+</button>
+<input
+    type="text"
+    [value]="this.pmidDto.title"
+    readonly
+    class="border border-gray-300 bg-gray-100 rounded px-3 py-2 flex-1"
+/>
+</div>
+
+<div class="m-4 mt-6" *ngIf="pmidDto.retrievedPmid">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <p class="text-green-700 font-semibold text-sm">{{ pmidDto.pmid }}</p>
+                <p class="text-gray-500 text-sm">{{ pmidDto.title }}</p>
+            </div>
+            <button
+            (click)="reset_pmid()"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >Reset</button>
+        </div>
+</div>

@@ -9,5 +9,5 @@ Curation of individuals with Human Phenotype Ontology and GA4GH Phenopacket Sche
 npm run tauri dev
 ```
 
-Also see the [documention](https://p2gx.github.io/hpocurator/).
+Also see the [documention](https://p2gx.github.io/phenoboard/).
 

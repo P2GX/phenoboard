@@ -3,15 +3,14 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, dto::pmid_dto::PmidDto, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings};
-use std::{collections::HashMap, path::Path, sync::Arc};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self}};
+use std::{collections::HashMap, path::Path, str::FromStr, sync::Arc};
 
-use ontolius::{io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, MetadataAware, OntologyTerms}, TermId};
+use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
-    fenominal::{Fenominal, FenominalHit},
-    TextMiner,
+    fenominal::{Fenominal, FenominalHit}
 };
-use rphetools::PheTools;
+use ga4ghphetools::{dto::template_dto::TemplateDto, PheTools};
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -24,29 +23,44 @@ pub enum PptOperation {
 /// A singleton
 pub struct PhenoboardSingleton {
     settings: HpoCuratorSettings,
+    /// Human Phenotype Ontology
     ontology: Option<Arc<FullCsrOntology>>,
+    /// Path to save the phetools template
     pt_template_path: Option<String>,
+    /// PheTools is the heart of the application.
     phetools: Option<PheTools>,
     current_row: Option<usize>,
     current_column: Option<usize>,
     current_operation: PptOperation,
     /// this value is true if there are changes we have not yet saved to file
     unsaved: bool,
+    /// Strings for autocompletion
+    hpo_auto_complete: Vec<String>,
 }
 
 impl PhenoboardSingleton {
+    /// Create a new instance of PhenoboardSingleton
+    /// 
+    /// The constructor will try to load the HPO from the settings file if available;
+    /// if something does not work, it will leave the ontology field as None
     pub fn new() -> Self {
-        PhenoboardSingleton {
-            settings: HpoCuratorSettings::load_settings(), 
-            ontology: None,
-            pt_template_path: None,
-            phetools: None,
-            current_row: None,
-            current_column: None,
-            current_operation: PptOperation::EntireTable,
-            unsaved: false,
+        let mut singleton = PhenoboardSingleton::default();
+        let hpo_json_result= singleton.settings.get_hp_json_path();
+        if hpo_json_result.is_err() {
+            return singleton;
         }
+        let hpo_json = hpo_json_result.unwrap();
+        let loader = OntologyLoaderBuilder::new().obographs_parser().build();
+        let ontology_opt: Option<FullCsrOntology> = loader.load_from_path(hpo_json).ok();
+        if let Some(hpo) = ontology_opt {
+            let hpo_arc = Arc::new(hpo);
+            singleton.ontology = Some(hpo_arc);
+            singleton.initialize_hpo_autocomplete();
+        }           
+        return singleton;
     }
+
+
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
         let hpo_clone = Arc::clone(&ontology);
@@ -67,7 +81,7 @@ impl PhenoboardSingleton {
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
-                let mut phetools = PheTools::new(hpo_arc);
+                let phetools = PheTools::new(hpo_arc);
                 self.phetools = Some(phetools);
                 self.load_excel_template(template_path)?;
                 Ok(())
@@ -86,10 +100,38 @@ impl PhenoboardSingleton {
                     .expect("Ontolius HPO loader failed");
                 let hpo_arc = Arc::new(hpo);
                 self.ontology = Some(hpo_arc);
-                Ok(())
             }
-            Err(e) => Err(e.clone()),
+            Err(e) => { return Err(e.clone()); },
+        };
+        self.initialize_hpo_autocomplete();
+        Ok(())
+    }
+
+    /// Provide Strings with TermId - Label that will be used for autocompletion
+    pub fn get_hpo_autocomplete(&self) -> &Vec<String> {
+        &self.hpo_auto_complete
+    }
+
+    fn initialize_hpo_autocomplete(&mut self) {
+        // let phenotypic_abnormality: TermId = "HP:0000118".parse().unwrap();
+        match &self.ontology {
+            Some(hpo) => {
+                self.hpo_auto_complete.clear();
+                for tid in  hpo.iter_descendant_ids(&PHENOTYPIC_ABNORMALITY) {
+                    match hpo.term_by_id(tid) {
+                        Some(term) => {
+                            let label = term.name();
+                            let ac_string = format!("{tid} - {label}");
+                            self.hpo_auto_complete.push(ac_string);
+                            
+                        },
+                        None => { eprintln!("Could not retrieve term for {}", tid); }
+                    }
+                }
+            },
+            None => { eprintln!("Could not init HPO - should never happen")},
         }
+        println!("initialize_hpo_autocomplete - got {} terms", self.hpo_auto_complete.len());
     }
 
     pub fn hp_json_path(&self) -> Result<String, String> {
@@ -408,14 +450,22 @@ impl PhenoboardSingleton {
         }
     }
 
+    pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
+        match self.get_sorted_fenominal_hits(input_text) {
+            Ok(fenominal_hits) => {
+                return util::text_to_annotation::text_to_annotations(input_text, &fenominal_hits);
+            },
+            Err(e) => {return Err(e.to_string()); },
+        }
+    }
+
     pub fn get_sorted_fenominal_hits(&self, input_text: &str) 
         -> Result<Vec<FenominalHit>, String>
     {
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
-                let hpo_ref = hpo_arc.as_ref();
-                let fenominal = Fenominal::from(hpo_ref);
+                let fenominal = Fenominal::new(hpo_arc);
                 let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&input_text);
                 fenominal_hits.sort_by_key(|hit| hit.span.start);
                 return Ok(fenominal_hits);
@@ -440,12 +490,18 @@ impl PhenoboardSingleton {
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
-                let hpo_ref = hpo_arc.as_ref();
-                let fenominal = Fenominal::from(hpo_ref);
+                let fenominal = Fenominal::new(hpo_arc);
                 let hpo_arc = Arc::clone(hpo);
                 let phetools = PheTools::new(hpo_arc);
-                let fenom_hits: Vec<TermId> = fenominal.process(input_text);
-                let ordered_hpo_ids = phetools.arrange_terms(&fenom_hits);
+                let fenom_hits: Vec<FenominalHit> = fenominal.process(input_text);
+                let mut tid_list: Vec<TermId> = Vec::new();
+                for hit in fenom_hits {
+                    // TODO REFACTOR, do not use unwrap
+                    // FenominalHit should probably include a TermId
+                    let tid = TermId::from_str(&hit.term_id).unwrap();
+                    tid_list.push(tid);
+                }
+                let ordered_hpo_ids = phetools.arrange_terms(&tid_list);
                 return ordered_hpo_ids;
             }
             None => {
@@ -477,11 +533,13 @@ impl PhenoboardSingleton {
         }
     }
 
+    /// TODO Refactor
     pub fn phenopacket_count(&self) -> usize {
-        match &self.phetools {
-            Some(ptools) => ptools.phenopacket_count(),
+        42
+       /*match &self.phetools {
+            Some(ptools) => ptools.nrows() -2,
             None => 0,
-        }
+        }*/
     }
 
     pub fn get_table_columns_from_seeds(
@@ -525,6 +583,93 @@ impl PhenoboardSingleton {
         let retriever = PubmedRetriever::new(input)?;
         retriever.get().await
     }
+    
+    pub fn get_hpo_parent_and_children_terms(
+        &self,
+        annotation: TextAnnotationDto) 
+        -> ParentChildDto 
+    {
+        let hpo = match &self.ontology {
+            Some(hpo) => hpo,
+            None => return ParentChildDto::default(),
+        };
+        let tid = match TermId::from_str(&annotation.term_id) {
+            Ok(tid) => tid,
+            Err(_) => return ParentChildDto::default(), // should never happen
+        };
+        let children: Vec<TextAnnotationDto> = hpo.iter_child_ids(&tid)
+            .filter_map(|child_tid| {
+                hpo.term_by_id(child_tid).map(|term| TextAnnotationDto {
+                    term_id: child_tid.to_string(),
+                    label: term.name().to_string(),
+                    ..Default::default()
+                })
+            })
+            .collect();
+        let parents: Vec<TextAnnotationDto> = hpo.iter_parent_ids(&tid)
+            .filter_map(|parent_tid| {
+                hpo.term_by_id(parent_tid).map(|term| TextAnnotationDto {
+                    term_id: parent_tid.to_string(),
+                    label: term.name().to_string(),
+                    ..Default::default()
+                })
+            })
+            .collect();
+
+        ParentChildDto { parents: parents, children: children }
+    }
+
+    pub fn get_autocompleted_term_dto(&self,
+            term_id: impl Into<String>,
+            term_label: impl Into<String>) -> Result<TextAnnotationDto, String> {
+        let hpo = match &self.ontology {
+            Some(hpo) => hpo,
+            None => { return Err(format!("HPO not initialized"));},
+        };
+        let term_id = term_id.into();
+        let hpo_id = match TermId::from_str(&term_id){
+            Ok(tid) => tid,
+            Err(e) => { return Err(format!("Could not create TermId: {}", e));},
+        };
+        let hpo_term = match hpo.term_by_id(&hpo_id) {
+            Some(term) => term,
+            None => { return Err(format!("Could not find term for TermId: {}", &hpo_id));},
+        };
+        let hpo_label: String = term_label.into();
+        if hpo_term.name() != hpo_label {
+            return Err(format!("Submitted label '{}' did not match label expected '{}' for TermId: {}", 
+            &hpo_label,
+            &hpo_term.name(),
+            &hpo_id));
+        }
+        Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
+    }
+
+    /// Todo better documentation
+    pub fn get_phetools_template(&self) -> Result<TemplateDto, String> {
+        match &self.phetools {
+            Some(phetools) => phetools.get_template_dto(),
+            None => Err(format!("phetools not initialized")),
+        }
+    }
+
+}
 
 
+impl Default for PhenoboardSingleton {
+    fn default() -> Self {
+        Self { 
+            settings: HpoCuratorSettings::load_settings(), 
+            ontology: None, 
+            pt_template_path: None, 
+            phetools: None, 
+            current_row: None, 
+            current_column: None, 
+            current_operation: PptOperation::EntireTable, 
+            unsaved: false,
+            hpo_auto_complete: vec![],
+        }
+    }
+
+   
 }

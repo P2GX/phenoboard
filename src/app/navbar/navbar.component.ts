@@ -22,6 +22,7 @@ export class NavbarComponent {
     { id: 'table', label: 'New PheTools Table' },
     { id: 'addcase', label: 'Add case' },
     { id: 'phetools', label: 'Edit PheTools Table'},
+    { id: 'pttemplate', label: 'Edit Template'},
     { id: 'settings', label: 'Settings' },
     { id: 'help', label: 'Help' },
   ];

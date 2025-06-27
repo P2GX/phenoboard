@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Edit Individual</h2>
+<mat-dialog-content>
+    <form [formGroup]="form">
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>PMID</mat-label>
+        <input matInput formControlName="pmid" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Individual ID</mat-label>
+        <input matInput formControlName="individualId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Comment</mat-label>
+        <textarea matInput formControlName="comment"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Sex</mat-label>
+        <mat-select formControlName="sex" required>
+            <mat-option value="M">Male (M)</mat-option>
+            <mat-option value="F">Female (F)</mat-option>
+            <mat-option value="O">Other (O)</mat-option>
+            <mat-option value="U">Unknown (U)</mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('sex')?.invalid">Sex is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Deceased</mat-label>
+        <mat-select formControlName="deceased" required>
+            <mat-option value="yes">yes</mat-option>
+            <mat-option value="no">no</mat-option>
+            <mat-option value="na">na</mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('deceased')?.invalid">Deceased is required</mat-error>
+        </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>

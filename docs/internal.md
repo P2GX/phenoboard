@@ -10,8 +10,8 @@ These pages are generated with mkdocs.
 To set things up, perform the following steps (substitute name of venv if needed).
 
 ```
-python3 -m venv venvhpoo
-source venvhpo/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 pip install --upgrade pip
 pip install mkdocs
 pip install mkdocs-material

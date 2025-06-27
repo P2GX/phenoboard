@@ -35,32 +35,15 @@ npm run tauri dev
 
 
 ### Creating new components
-The standard command for creating a new component called ``<name>`` is
+To generate a new component, navigate to the src/app folder, make a directory with the name of the component, cd into the new directory, 
+and enter the following command.
 ```bash 
-ng generate component <name> --standalone
-```
-You need to run the Angular CLI command from the root of your Angular project — the directory that contains the angular.json file.
-To create a component in a specific path, enter:
-```bash 
-ng generate component components/hpoloader --standalone --skip-import
-```
-Note that this may not work after updating to nx. In this case, create a directory where you want to put the new component, cd into the directory, and
-enter this
-```bash 
-npx nx generate @nx/angular:component hpoloader --standalone
+npx nx generate @nx/angular:component <name> --standalone
 ```
 This will initialize the typical four files for an angular component.
 
-### Added routing
-```bash
-ng add @angular/router
-```
 
-### Angular material
-To install
-```bash
-npm install @angular/material
-```
+
 
 ## Set up file system access
 At the top level of the project, enter
@@ -72,6 +55,12 @@ in the src-tauri folder, enter
 ```bash
 cargo add tauri-plugin-fs
 ```
+
+for the shell component (which opens the system browser)
+```bash
+npm install @tauri-apps/api
+```
+
 
 In the angular component, add 
 ```javascript
@@ -116,7 +105,6 @@ cargo tauri init
 ## file system (tauri v2)
 
 npm run tauri add fs
-
 npm run tauri add dialog
 
 .

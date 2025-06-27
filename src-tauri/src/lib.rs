@@ -6,27 +6,30 @@ mod settings;
 mod table_manager;
 mod util;
 
+use ga4ghphetools::dto::template_dto::TemplateDto;
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
-use tauri_plugin_fs::init;
+use tauri_plugin_fs::{init};
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
-        .manage(Arc::new(Mutex::new(PhenoboardSingleton::new())))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(init())
+    .manage(Arc::new(Mutex::new(PhenoboardSingleton::new())))
+        
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
             get_phetools_table,
+            get_phetools_template,
             get_template_summary,
             highlight_text_with_hits,
             hpo_can_be_updated,
@@ -34,6 +37,7 @@ pub fn run() {
             load_phetools_template,
             load_hpo,
             run_text_mining,
+            map_text_to_annotations,
             set_value,
             table_manager::edit_current_column,
             table_manager::get_phetools_column,
@@ -44,11 +48,13 @@ pub fn run() {
             get_pt_template_path,
             select_phetools_template_path,
             fetch_pmid_title,
+            get_hpo_parent_and_children_terms,
+            get_hpo_autocomplete_terms,
+            submit_autocompleted_hpo_term
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
 
 
 
@@ -108,7 +114,7 @@ async fn load_phetools_template(
                     Err(e) => {
                         let mut status = singleton.get_status();
                         status.has_error = true;
-                        status.error_message = format!("{}", e);;
+                        status.error_message = format!("{}", e);
                         let _ = app.emit("backend_status", &status);
                     },
                 };
@@ -133,6 +139,17 @@ fn run_text_mining(
     let singleton = singleton_arc.lock().unwrap();
     let json = singleton.map_text(input_text);
     json
+}
+
+
+#[tauri::command]
+fn map_text_to_annotations(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    input_text: &str 
+) -> Result<Vec<TextAnnotationDto>, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    return singleton.map_text_to_annotations(input_text);
 }
 
 #[tauri::command]
@@ -166,7 +183,7 @@ fn highlight_text_with_hits(
     }
     // Add any remaining text after last hit
     html.push_str(&html_escape::encode_text(&input_text[last_index..]));
-    html.push_str("</div>");
+    html.push_str("</div>"); // close div for hpominingbox
     println!("\n\n \n\n{}\n\n\n\n", &html);
     Ok(html)
 }
@@ -185,6 +202,18 @@ fn get_phetools_table(
     let singleton = singleton_arc.lock().unwrap();
     return singleton.get_matrix();
 }
+
+
+#[tauri::command]
+fn get_phetools_template(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+) -> Result<TemplateDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    return singleton.get_phetools_template();
+}
+
+
 
 #[tauri::command]
 fn set_value(
@@ -344,4 +373,62 @@ async fn fetch_pmid_title(
 }
 
 
+#[tauri::command]
+fn get_hpo_parent_and_children_terms(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    annotation: TextAnnotationDto
+) -> Result<ParentChildDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    let annots = singleton.get_hpo_parent_and_children_terms(annotation);
+    Ok(annots)
+}
+
+
+
+/// This function supplies the autocompletion candidates for angular for the HPO
+/// The JavaScript ensures that query is at least 3 letters
+#[tauri::command]
+fn get_hpo_autocomplete_terms(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    query: String) -> Vec<String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        let terms = singleton.get_hpo_autocomplete();
+        terms
+            .into_iter()
+            .filter(|t| t.to_lowercase().contains(&query.to_lowercase()))
+            .cloned()
+            .collect()
+}
+
+
+
+#[tauri::command]
+fn submit_autocompleted_hpo_term(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    app: AppHandle,
+    term_id: &str,
+    term_label: &str,
+) -> Result<(), String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        let dto = singleton.get_autocompleted_term_dto(term_id, term_label)?;
+        let _ = app.emit("autocompletion", dto);
+        Ok(())
+    }
+
+
+#[tauri::command]
+fn submit_hgvs(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    app: AppHandle,
+    transcript: &str,
+    hgvs: &str,
+) -> Result<(), String> {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        //let _ = app.emit("autocompletion", dto);
+        Ok(())
+    }
 

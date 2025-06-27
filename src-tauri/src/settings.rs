@@ -60,6 +60,13 @@ impl HpoCuratorSettings {
         }
     }
 
+    pub fn hp_json_path_or_none(&self) -> Option<String> {
+        match &self.hp_json_file {
+            Some (hp_json) => Some(hp_json.clone()),
+            None => None
+        }
+    }
+
 
     /// Returns the path of the HPO Curator directory/settings file
     fn settings_file_path() -> Result<PathBuf, String> {
