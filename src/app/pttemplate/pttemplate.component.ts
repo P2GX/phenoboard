@@ -9,6 +9,7 @@ import { DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, Templ
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
 import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
+import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 
 
 @Component({
@@ -79,4 +80,18 @@ openDiseaseEditor(disease: DiseaseDto) {
   });
 }
   
+  openGeneEditor(gene: GeneVariantBundleDto) {
+    const dialogRef = this.dialog.open(GeneEditComponent, {
+      width: '500px',
+      data: { ...gene }, // pass a copy
+    });
+
+    dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
+      if (result) {
+        // Apply changes back to the original
+        Object.assign(gene, result);
+        // Optional: trigger change detection or save to backend
+      }
+    });
+  }
 }

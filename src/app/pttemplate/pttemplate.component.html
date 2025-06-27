@@ -6,9 +6,9 @@
   <table class="pt-table">
     <thead>
     <tr>
-      <th>Individual ID</th>
-      <th>Disease</th>
-      <th>Gene</th>
+      <th class="narrow-column">Individual ID</th>
+      <th class="narrow-column">Disease</th>
+      <th class="narrow-column">Gene</th>
       <th
         class="rotate-header hpo-col"
         *ngFor="let header of tableData.hpoHeaders"
@@ -39,7 +39,7 @@
     <tbody>
       <tr *ngFor="let row of tableData.rows">
         <!-- First column: PMID/title/individual_id/comment -->
-        <td class="relative">
+        <td class="relative narrow-column">
   <div
     (mouseenter)="hoveredIndividual = row.individualDto"
     (mouseleave)="hoveredIndividual = null"
@@ -80,7 +80,7 @@
 </td>
 
 <!-- Second column: disease/id -->
-<td class="relative">
+<td class="relative narrow-column">
   <div 
     *ngFor="let disease of row.diseaseDtoList ?? []" 
     class="relative inline-block"
@@ -116,27 +116,41 @@
 </td>
 
  <!-- Third column for gene/var-->
-  <td class="relative">
-  <div *ngFor="let gene of row.geneVarDtoList ?? []" class="relative inline-block mr-2">
-    <span
+  <td class="relative narrow-column">
+  <div *ngFor="let gene of row.geneVarDtoList ?? []" 
+      class="relative inline-block mr-2"
       (mouseenter)="hoveredGene = gene"
-      (mouseleave)="hoveredGene = null"
-      class="cursor-help"
+      (mouseleave)="hoveredGene = null">
+    <span
+      class="cursor-pointer"
     >
       {{ gene.geneSymbol }}
     </span>
-
     <div
       *ngIf="hoveredGene === gene"
-      class="absolute top-0 left-full ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+      class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 max-w-xs overflow-auto"
+      (mouseenter)="hoveredGene = gene"
+      (mouseleave)="hoveredGene = null"
     >
-      <ul class="list-disc list-inside text-sm text-gray-800">
+      <ul class="list-disc list-inside text-sm text-gray-800 break-words">
         <li><strong>{{ gene.geneSymbol }}</strong></li>
         <li>{{ gene.hgncId }}</li>
         <li>transcript: {{ gene.transcript }}</li>
         <li>allele 1: {{ gene.allele1 }}</li>
         <li *ngIf="gene.allele2!=='na'">allele 2: {{ gene.allele2 }}</li>
+        <li *ngIf="gene.variantComment.length > 0">
+          <strong>Comment:</strong> {{ gene.variantComment }}
+        </li>
       </ul>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        class="text-xs py-0 px-2"
+        (click)="openGeneEditor(gene); $event.stopPropagation();"
+      >
+        ✏️ Edit
+      </button>
     </div>
   </div>
 </td>
