@@ -66,7 +66,7 @@
         <li>sex: {{ row.individualDto.sex }}</li>
       </ul>
 
-      <!-- ✅ Edit button in popup -->
+      <!-- Edit button in popup -->
       <button
         mat-stroked-button
         color="primary"
@@ -80,28 +80,41 @@
 </td>
 
 <!-- Second column: disease/id -->
- <td class="relative">
-  <div *ngFor="let disease of row.diseaseDtoList ?? []" class="relative inline-block">
-    <span
-      (mouseenter)="hoveredDisease = disease"
-      (mouseleave)="hoveredDisease = null"
-      class="cursor-help"
+<td class="relative">
+  <div 
+    *ngFor="let disease of row.diseaseDtoList ?? []" 
+    class="relative inline-block"
+    (mouseenter)="hoveredDisease = disease"
+    (mouseleave)="hoveredDisease = null"
     >
-    {{ disease.diseaseId }}
+    <span class="cursor-pointer">
+      {{ disease.diseaseId }}
     </span>
 
     <!-- Hover popup for disease -->
     <div
       *ngIf="hoveredDisease === disease"
-      class="absolute top-0 left-full ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+      class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
+      (mouseenter)="hoveredDisease = disease"
+      (mouseleave)="hoveredDisease = null"
     >
       <ul class="list-disc list-inside text-sm text-gray-800">
         <li><strong>{{ disease.diseaseLabel }}</strong></li>
         <li>ID: {{ disease.diseaseId }}</li>
       </ul>
+      <!-- Edit button in popup -->
+      <button
+        mat-stroked-button
+        color="primary"
+        class="text-xs py-0 px-2"
+        (click)="openDiseaseEditor(disease); $event.stopPropagation();"
+      >
+        ✏️ Edit
+      </button>
     </div>
   </div>
- </td>
+</td>
+
  <!-- Third column for gene/var-->
   <td class="relative">
   <div *ngFor="let gene of row.geneVarDtoList ?? []" class="relative inline-block mr-2">

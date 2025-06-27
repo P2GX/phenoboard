@@ -5,7 +5,7 @@ import { IndividualDto } from '../models/template_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';      // ✅ Add this
+import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';  
 import { CommonModule } from '@angular/common';
 
@@ -25,12 +25,12 @@ import { CommonModule } from '@angular/common';
   ],
   templateUrl: './individual_edit.component.html',
 })
-export class IndividualEditDialogComponent {
+export class IndividualEditComponent {
   form: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private dialogRef: MatDialogRef<IndividualEditDialogComponent>,
+    private dialogRef: MatDialogRef<IndividualEditComponent>,
     @Inject(MAT_DIALOG_DATA) public data: IndividualDto
   ) {
     this.form = this.fb.group({

@@ -7,8 +7,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
 import { DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { IndividualEditDialogComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
-
+import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
+import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 
 
 @Component({
@@ -18,8 +18,8 @@ import { IndividualEditDialogComponent } from '../individual_edit/individual_edi
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
-    MatDialogModule,
-    IndividualEditDialogComponent],
+    MatDialogModule
+  ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
@@ -48,7 +48,7 @@ export class PtTemplateComponent implements OnInit {
 
 
 openIndividualEditor(individual: IndividualDto) {
-  const dialogRef = this.dialog.open(IndividualEditDialogComponent, {
+  const dialogRef = this.dialog.open(IndividualEditComponent, {
     width: '500px',
     data: { ...individual }, // pass a copy
   });
@@ -57,6 +57,23 @@ openIndividualEditor(individual: IndividualDto) {
     if (result) {
       // Apply changes back to the original
       Object.assign(individual, result);
+      // Optional: trigger change detection or save to backend
+    }
+  });
+}
+
+
+
+openDiseaseEditor(disease: DiseaseDto) {
+  const dialogRef = this.dialog.open(DiseaseEditComponent, {
+    width: '500px',
+    data: { ...disease }, // pass a copy
+  });
+
+  dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
+    if (result) {
+      // Apply changes back to the original
+      Object.assign(disease, result);
       // Optional: trigger change detection or save to backend
     }
   });
