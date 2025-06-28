@@ -191,8 +191,15 @@
   </table>
 </div>
 
- <button (click)="validateCohort()" class="btn-outline-primary">Validate</button>
-
+<button (click)="validateCohort()" class="btn-outline-primary">Validate</button>
+<div class="space-y-1">
+  <app-hpoautocomplete
+    [inputString]="hpoInputString"
+    (selected)="selectedHpoTerm = $event"
+    #hpoAutocomplete
+  ><span card-title>Add a new HPO term to template</span></app-hpoautocomplete>
+  <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+</div>
 
   
 </div>

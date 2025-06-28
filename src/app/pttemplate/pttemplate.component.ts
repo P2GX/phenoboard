@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -11,12 +11,14 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
 import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
+import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 
 
 @Component({
   selector: 'app-pttemplate',
   standalone: true,
   imports: [ CommonModule,
+    HpoAutocompleteComponent,
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
@@ -28,7 +30,7 @@ import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 export class PtTemplateComponent implements OnInit {
 
   constructor(private configService: ConfigService, private dialog: MatDialog) {}
-
+  @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
 
   tableData: TemplateDto | null = null;
   hoveredIndividual: IndividualDto | null = null;
@@ -36,6 +38,10 @@ export class PtTemplateComponent implements OnInit {
   hoveredGene: GeneVariantBundleDto | null = null;
   hoveredHpoHeader: HeaderDupletDto | null = null;
   cohortDescription: CohortDescriptionDto | null = null;
+
+  /* used for autocomplete widget */
+  hpoInputString: string = '';
+  selectedHpoTerm: string = "";
 
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")

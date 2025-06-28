@@ -40,3 +40,47 @@
     dark:disabled:text-gray-500
     dark:disabled:border-gray-600;
 }
+
+.h1-primary {
+  @apply text-3xl md:text-4xl font-semibold text-gray-800 tracking-tight;
+}
+
+.h2-primary {
+  @apply text-2xl md:text-3xl font-medium text-gray-700 mt-6 mb-2;
+}
+
+.p-primary {
+  @apply text-base md:text-lg text-gray-600 leading-relaxed;
+}
+
+.primary-divider {
+  @apply border-t border-gray-200 dark:border-gray-700 
+    mt-2
+    pt-1
+    px-5
+    text-sm text-gray-500 
+}
+
+.primary-divider h1 {
+  @apply text-center font-semibold text-3xl; /* Largest and bold */
+}
+
+.primary-divider h2 {
+  @apply text-left font-medium text-2xl mt-2.5;  /* Slightly smaller, less bold */
+}
+
+.primary-divider h3 {
+  @apply text-left font-normal text-xl mt-2.5;   /* Even smaller, normal weight */
+}
+
+.primary-divider p {
+    @apply text-left mt-0;
+}
+
+.primary-list {
+    @apply list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300;
+}
+
+.primary-list a {
+  @apply text-blue-600 hover:underline;
+}

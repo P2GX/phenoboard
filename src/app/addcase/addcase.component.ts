@@ -107,17 +107,13 @@ export class AddcaseComponent {
   }
   private handleAutocompletion(payload: unknown): void {
     this.ngZone.run(() => {
-       try {
-        console.log("1) n items: ", this.annotations.length);
-      const dto = payload as TextAnnotationDto;
-      console.log("handleAutocompletion", dto);
-      this.annotations.push(dto);
-         console.log("2) n items: ", this.annotations.length);
-    } catch (error) {
-      console.error('Error in autocompletion payload:', error);
-    }
+      try {
+        const dto = payload as TextAnnotationDto;
+        this.annotations.push(dto);
+      } catch (error) {
+        console.error('Error in autocompletion payload:', error);
+      }
     });
-   
   }
 
   /**
