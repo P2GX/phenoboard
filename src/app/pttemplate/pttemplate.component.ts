@@ -122,4 +122,20 @@ openDiseaseEditor(disease: DiseaseDto) {
       transcript: gene?.transcript || 'N/A',
     };
   }
+
+  async validateCohort() {
+    console.log("validate")
+    if (this.tableData == null) {
+      // TODO error warning
+      return;
+    }
+    try {
+      await this.configService.validateCohort(this.tableData);
+      alert('✅ Cohort is valid!');
+    } catch (err: any) {
+      // If the Rust command returns a ValidationErrors struct
+      alert('❌ Validation failed:\n' + JSON.stringify(err));
+    }
+  }
+
 }

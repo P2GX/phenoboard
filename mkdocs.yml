@@ -43,11 +43,14 @@ theme:
       quote: octicons/quote-16
 
 
-
 nav:
-- Home: 'index.md'
-- For developers: 'developers.md'
-- Internal: 'internal.md'
+  - Home: 'index.md'
+  - For developers: 'developers.md'
+  - Internal: 'internal.md'
+
+
+markdown_extensions:
+  - attr_list
 
 
 

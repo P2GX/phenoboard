@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::template_dto::TemplateDto, PheTools};
+use ga4ghphetools::{dto::{template_dto::TemplateDto, validation_errors::ValidationErrors}, PheTools};
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -540,6 +540,21 @@ impl PhenoboardSingleton {
             Some(ptools) => ptools.nrows() -2,
             None => 0,
         }*/
+    }
+
+
+    pub fn validate_template(
+        &self, 
+        cohort_dto: TemplateDto) 
+    -> Result<(), ValidationErrors> {
+        let mut verrs = ValidationErrors::new();
+        match &self.phetools {
+            Some(ptools) => ptools.validate_template(cohort_dto),
+            None => {
+                verrs.push_str("Phetools template not initialized");
+                Err(verrs)
+            },
+        }
     }
 
     pub fn get_table_columns_from_seeds(

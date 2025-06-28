@@ -432,3 +432,12 @@ fn submit_hgvs(
         Ok(())
     }
 
+#[tauri::command]
+fn validate_template(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    app: AppHandle,
+    cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.validate_template(cohort_dto).map_err(|verrs| verrs.errors().clone())
+}
