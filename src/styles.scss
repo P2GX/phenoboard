@@ -10,21 +10,33 @@
 @tailwind utilities;
 
 
-/* The following definitions need to be here because we are using them in innerHTML */
-.hpo-hit {
-    background-color: #fef3c7; /* light amber */
-    padding: 0.1em 0.2em;
-    border-radius: 0.2em;
-    cursor: help;
-    border: 1px solid #fcd34d;
-}
+.btn-outline-primary {
+  @apply 
+    text-blue-700
+    border border-blue-700
+    hover:bg-blue-800
+    hover:text-white
+    focus:ring-4
+    focus:outline-none
+    focus:ring-blue-300
+    font-medium
+    rounded-lg
+    text-sm
+    px-5 py-2.5
+    text-center
+    me-2 mb-2
+    transition-colors duration-200
+    dark:border-blue-500
+    dark:text-blue-500
+    dark:hover:bg-blue-500
+    dark:hover:text-white
+    dark:focus:ring-blue-800
 
-.hpo-hit.observed {
-    background-color: #d1fae5; /* greenish for observed */
-    border-color: #10b981;
-}
-
-.hpo-hit.excluded {
-    background-color: #fee2e2; /* reddish for excluded */
-    border-color: #ef4444;
+    disabled:bg-gray-200
+    disabled:text-gray-400
+    disabled:border-gray-300
+    disabled:cursor-not-allowed
+    dark:disabled:bg-gray-700
+    dark:disabled:text-gray-500
+    dark:disabled:border-gray-600;
 }

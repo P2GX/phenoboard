@@ -1,6 +1,6 @@
 # Angular tips
 
-This page includes how-tos for some common operations.
+This page includes aide-mémoires for some common operations.
 
 ## Create a component
 

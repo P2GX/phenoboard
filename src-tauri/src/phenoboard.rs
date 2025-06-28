@@ -176,7 +176,7 @@ impl PhenoboardSingleton {
     pub fn get_row(&self, row: usize) -> Result<Vec<String>, String> {
         match &self.phetools {
             Some(ptools) => {
-                let row = ptools.get_string_row(row)?;
+                let row = vec!["todo".to_ascii_lowercase()];// ptools.get_string_row(row)?;
                 Ok(row)
             }
             None => Err(format!("Could not get row because Phetools was null")),
@@ -229,7 +229,7 @@ impl PhenoboardSingleton {
                         ptools.ncols()
                     ));
                 }
-                let column = ptools.get_string_column(col)?;
+                let column = vec!["todo".to_ascii_lowercase()];//ptools.get_string_column(col)?;
                 self.set_current_column(col);
                 Ok(column)
             }
@@ -549,7 +549,10 @@ impl PhenoboardSingleton {
     -> Result<(), ValidationErrors> {
         let mut verrs = ValidationErrors::new();
         match &self.phetools {
-            Some(ptools) => ptools.validate_template(cohort_dto),
+            Some(ptools) => {
+                let template = ptools.validate_template(cohort_dto)?;
+                return Ok(());
+            },
             None => {
                 verrs.push_str("Phetools template not initialized");
                 Err(verrs)
