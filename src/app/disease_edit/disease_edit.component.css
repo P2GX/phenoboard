@@ -1,1 +1,46 @@
 
+/* Reduce padding inside dialog content */
+.mat-dialog-content {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Make form fields more compact */
+mat-form-field {
+  margin-bottom: 8px !important;
+  /* Reduce height of the input container */
+  --mat-form-field-label-floating-scale: 0.75; /* optional smaller label scaling */
+}
+
+/* Smaller label and input font size */
+mat-label {
+  font-size: 0.85rem;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+input.mat-input-element {
+  font-size: 0.9rem;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  height: 28px;
+}
+
+/* Reduce dialog title bottom margin */
+.mat-dialog-title {
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+}
+
+/* Reduce vertical spacing for actions buttons */
+.mat-dialog-actions {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Optional: make buttons smaller */
+.mat-dialog-actions button {
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  min-width: 64px;
+}

@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>Edit Gene/Variant</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form">
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>HGNC Id</mat-label>
+        <input matInput formControlName="hgncId" (blur)="hgncIdTouched = true" />
+        <mat-error *ngIf="form.get('hgncId')?.hasError('required') && hgncIdTouched">
+            HGNC ID is required
+        </mat-error>
+        <mat-error *ngIf="form.get('hgncId')?.hasError('whitespace') && hgncIdTouched">
+            Leading or trailing whitespace is not allowed
+        </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Gene symbol</mat-label>
+        <input matInput formControlName="geneSymbol"/>
+        <mat-error *ngIf="form.get('geneSymbol')?.hasError('required')">
+            Gene symbol is required
+        </mat-error>
+        <mat-error *ngIf="form.get('geneSymbol')?.hasError('whitespace')">
+            Leading or trailing whitespace is not allowed
+        </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Transcript</mat-label>
+        <input matInput formControlName="transcript"/>
+        <mat-error *ngIf="form.get('transcript')?.hasError('required')">
+            Transcript is required
+        </mat-error>
+        <mat-error *ngIf="form.get('transcript')?.hasError('whitespace')">
+            Leading or trailing whitespace is not allowed
+        </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Allele 1</mat-label>
+        <input matInput formControlName="allele1"/>
+        <mat-error *ngIf="form.get('allele1')?.hasError('required')">
+            Transcript is required
+        </mat-error>
+        <mat-error *ngIf="form.get('allele1')?.hasError('whitespace')">
+            Leading or trailing whitespace is not allowed
+        </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Allele 2</mat-label>
+        <input matInput formControlName="allele1"/>
+        <mat-error *ngIf="form.get('allele2')?.hasError('required')">
+            Transcript is required
+        </mat-error>
+        <mat-error *ngIf="form.get('allele2')?.hasError('whitespace')">
+            Leading or trailing whitespace is not allowed
+        </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Variant comment</mat-label>
+        <input matInput formControlName="variantComment"/>
+       
+        </mat-form-field>
+
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="cancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>
+

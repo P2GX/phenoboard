@@ -80,3 +80,16 @@
   text-align: center;
   font-style: italic;
 }
+
+.narrow-column {
+  white-space: nowrap;
+  width: 1%;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.bottom-align {
+  vertical-align: bottom;
+  padding-bottom: 6px; /* optional: tweak to align perfectly */
+}
