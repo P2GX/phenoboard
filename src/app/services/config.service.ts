@@ -124,5 +124,8 @@ export class ConfigService {
     return invoke<string>('submit_hgvs', {transcript: transcript, hgvs: hgvs});
   }
   
+  async validateCohort(cohortDto: TemplateDto): Promise<void> {
+    return invoke<void>('validate_template', {cohort_dto: cohortDto});
+  }
 
 }
