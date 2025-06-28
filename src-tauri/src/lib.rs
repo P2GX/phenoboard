@@ -14,6 +14,7 @@ use tauri_plugin_dialog::DialogExt;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
+
 use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -50,7 +51,8 @@ pub fn run() {
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
             get_hpo_autocomplete_terms,
-            submit_autocompleted_hpo_term
+            submit_autocompleted_hpo_term,
+            validate_template
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
