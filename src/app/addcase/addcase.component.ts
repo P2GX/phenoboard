@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, NgZone, ViewChild } from '@angular/core';
+import { Component, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
 import { ConfigService } from '../services/config.service';
@@ -20,11 +20,6 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-  
-  showPopup: boolean = false;
-
-  
-
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
@@ -34,6 +29,7 @@ export class AddcaseComponent {
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
+  @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
 
   pastedText: string = '';
   showTextArea: boolean = true;
@@ -41,14 +37,12 @@ export class AddcaseComponent {
   showAgeEntryArea: boolean = true;
   showCollapsed: boolean = true;
   showAnnotationTable: boolean = false;
-
+  showPopup: boolean = false;
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
   
 
   selectionRange: Range | null = null;
-
-  // childTermsMap: { [termId: string]: TextAnnotationDto[] } = {};
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
   showDropdownMap: { [termId: string]: boolean } = {};
   rightClickOptions: string[] = [];
@@ -94,6 +88,13 @@ export class AddcaseComponent {
       this.unlisten();
       this.unlisten = null;
     }
+  }
+
+  submitNewRow(): void {
+      let pmid_dto = this.pubmedComponent.getPmidDto();
+      let demogr_dto = this.demographics_component
+      console.log("pmid DTO:", pmid_dto);
+      console.log("annotations", this.annotations);
   }
 
   private handleBackendStatus(payload: unknown): void {
