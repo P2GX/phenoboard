@@ -293,24 +293,7 @@ impl PhenoboardSingleton {
         Ok(())
     }
 
-    pub fn set_value(
-        &mut self,
-        r: usize,
-        c: usize,
-        value: &str,
-    ) -> Result<(), String> {
-        match &mut self.phetools {
-            Some(ptools) => {
-                println!("hpo_curator: set_value r={}. c={}, value=?", r,c);
-                match ptools.set_value(r, c, value) {
-                    Ok(_) => { println!("hpo_curaotr, set_value, OK"); },
-                    Err(e ) => { eprintln!("{:?}", e)}
-                }
-                Ok(())
-            }
-            None => Err(format!("phetools not initialized")),
-        }
-    }
+
 
     pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
         match self.phetools.as_mut() {
@@ -510,21 +493,7 @@ impl PhenoboardSingleton {
         }
     }
 
-    /// The GUI will allow the user to set the value of a specific cell.
-    pub fn set_table_cell(
-        &mut self,
-        r: usize,
-        c: usize,
-        val: &str,
-    ) -> Result<(), String> {
-        match self.phetools.as_mut() {
-            Some(table) => {
-                table.set_value(r, c, val)?;
-                Ok(())
-            }
-            None => Err(format!("Attempt to set uninitialized table")),
-        }
-    }
+
 
     pub fn hpo_initialized(&self) -> bool {
         match &self.ontology {
@@ -556,6 +525,21 @@ impl PhenoboardSingleton {
             None => {
                 verrs.push_str("Phetools template not initialized");
                 Err(verrs)
+            },
+        }
+    }
+    pub fn add_hpo_term_to_cohort(
+        &mut self,
+        hpo_id: &str,
+        hpo_label: &str) 
+    -> std::result::Result<(), String> {
+        match self.phetools.as_mut() {
+            Some(ptools) => {
+                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label)?;
+                Ok(())
+            },
+            None => {
+                Err("Phenotype template not initialized".to_string())
             },
         }
     }

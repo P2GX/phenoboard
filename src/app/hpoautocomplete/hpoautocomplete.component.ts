@@ -4,8 +4,8 @@ import { debounceTime, switchMap, startWith, of } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core'; // Needed for mat-option
-import { CommonModule } from '@angular/common'; // Needed for *ngFor, etc.
+import { MatOptionModule } from '@angular/material/core'; 
+import { CommonModule } from '@angular/common'; 
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
 import { EMPTY } from 'rxjs';
@@ -36,6 +36,8 @@ export class HpoAutocompleteComponent implements OnInit {
 
   @Input() inputString: string = '';
   @Output() selected = new EventEmitter<string>();
+  @Input() onSubmit: (term: string) => Promise<void> = async () => {};
+
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['inputString'] && changes['inputString'].currentValue !== undefined) {
@@ -65,12 +67,20 @@ export class HpoAutocompleteComponent implements OnInit {
     this.textMiningSuccess = false;
   }
 
-  submitTerm() {
-    const autocompletedTerm = this.control.value;
-    if (autocompletedTerm) {
-      const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
-      this.configService.submitAutocompleteHpoTerm(id, label);
+  /* This function works with a callback from the parent component. 
+    for instance, <app-hpoautocomplete (termSubmitted)="handleTermSubmit($event)"></app-hpoautocomplete>.
+    The callback function will be activate, and then we clear the input. */
+  async submitTerm() {
+    const term = this.control.value;
+    if (term) {
+      this.selected.emit(term);
+      await this.onSubmit(term);
+    } else {
+      console.error("could not retrieve HPO autocompletion value");
     }
-    this.clearInput()
+    this.clearInput();
   }
+
+
+  
 }

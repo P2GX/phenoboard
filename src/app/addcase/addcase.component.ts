@@ -51,7 +51,6 @@ export class AddcaseComponent {
   // childTermsMap: { [termId: string]: TextAnnotationDto[] } = {};
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
   showDropdownMap: { [termId: string]: boolean } = {};
-  htmlData: string = '';
   rightClickOptions: string[] = [];
   predefinedOptions: string[] = ["observed", "excluded", "na"];
   selectedOptions: string[] = []; // Stores selected radio button values
@@ -61,8 +60,6 @@ export class AddcaseComponent {
   hasError: boolean = false;
   multiSelecting = false;
 
-
-  selectedHpoSpans: HTMLElement[] = [];
   selectedText: string = '';
   popupX = 0;
   popupY = 0;
@@ -118,7 +115,7 @@ export class AddcaseComponent {
 
   /**
    * Performs HPO text mining by sending the pasted text to the backend service,
-   * and updates the annotation list and rendered HTML view on success.
+   * and updates the annotation list on success.
    *
    * - If the backend returns a string, it is assumed to be an error message.
    * - Otherwise, the result is parsed as a list of `TextAnnotationDto`.
@@ -135,8 +132,6 @@ export class AddcaseComponent {
       } else {
         const annots: TextAnnotationDto[] = result;
         this.annotations = annots;
-        const html = this.convertAnnotationsToHtml(); 
-        this.htmlData = html;
         this.showTextArea = false;
         this.showDataEntryArea = true;
       }
@@ -154,33 +149,6 @@ export class AddcaseComponent {
     this.errorString = '';
     this.hasError = false;
   }
-  
-
-  convertAnnotationsToHtml(): string {
-    return this.annotations.map(ann => {
-      if (!ann.isFenominalHit) {
-        const escaped = this.escapeHtml(ann.originalText);
-        return escaped;
-      }
-      const cls = ann.isObserved ? 'hpo-hit observed' : 'hpo-hit excluded';
-      return `<span class="${cls}" title="${ann.label} [${ann.termId}]" data-id="${ann.termId}" onset-string="${ann.onsetString}">${this.escapeHtml(ann.originalText)}</span>`;
-    }).join('');
-  }
-
-  escapeHtml(text: string): string {
-    if (typeof text !== 'string') {
-      const mytype = typeof text;
-      console.warn('escapeHtml received non-string:', text, "type was ", mytype);
-      return '';
-    }
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
 
 
   addCustomOption(index: number) {
@@ -312,6 +280,17 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     annotation.termId = replacement.termId;
     annotation.label = replacement.label;
     this.showDropdownMap[annotation.termId] = false;
+  }
+
+    submitSelectedHpo = async () => {
+    await this.submitHpoAutocompleteTerm(this.selectedHpoTerm);
+  };
+
+  async submitHpoAutocompleteTerm(autocompletedTerm: string): Promise<void> {
+    if (autocompletedTerm) {
+      const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
+      await this.configService.submitAutocompleteHpoTerm(id, label);
+    }
   }
 
 }

@@ -196,6 +196,7 @@
   <app-hpoautocomplete
     [inputString]="hpoInputString"
     (selected)="selectedHpoTerm = $event"
+    [onSubmit]="submitSelectedHpo"
     #hpoAutocomplete
   ><span card-title>Add a new HPO term to template</span></app-hpoautocomplete>
   <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>

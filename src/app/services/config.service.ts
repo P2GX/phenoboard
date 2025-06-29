@@ -128,4 +128,15 @@ export class ConfigService {
     return invoke<void>('validate_template', {cohortDto: cohort_dto});
   }
 
+  /**
+   * Add an HPO term to the current cohort.
+   * @param id - The HPO term ID (e.g., "HP:0004322")
+   * @param label - The human-readable label (e.g., "Seizures")
+   */
+  async addHpoToCohort(id: string, label: string): Promise<void> {
+    // TODO: Implement actual logic to store or process this HPO term.
+    console.log(`SERVICE LAYER Adding HPO to cohort: ${id} (${label})`);
+    return invoke<void>('add_hpo_term_to_cohort', {hpoId: id, hpoLabel: label});
+  }
+
 }

@@ -39,11 +39,8 @@ pub fn run() {
             load_hpo,
             run_text_mining,
             map_text_to_annotations,
-            set_value,
-            table_manager::edit_current_column,
             table_manager::get_phetools_column,
             table_manager::get_selected_phetools_column,
-            table_manager::process_pyphetools_table_rclick,
             get_table_columns_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
@@ -52,7 +49,8 @@ pub fn run() {
             get_hpo_parent_and_children_terms,
             get_hpo_autocomplete_terms,
             submit_autocompleted_hpo_term,
-            validate_template
+            validate_template,
+            add_hpo_term_to_cohort
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -217,18 +215,6 @@ fn get_phetools_template(
 
 
 
-#[tauri::command]
-fn set_value(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    r: usize,
-    c: usize,
-    value: &str,
-) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    singleton.set_value(r, c, value)?;
-    Ok(())
-}
 
 
 #[tauri::command]
@@ -437,9 +423,21 @@ fn submit_hgvs(
 #[tauri::command]
 fn validate_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    app: AppHandle,
     cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     singleton.validate_template(cohort_dto).map_err(|verrs| verrs.errors().clone())
 }
+
+
+#[tauri::command]
+fn add_hpo_term_to_cohort(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    hpo_id: &str,
+    hpo_label: &str) 
+-> Result<(), String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label).map_err(|e| e.to_string())
+}
+

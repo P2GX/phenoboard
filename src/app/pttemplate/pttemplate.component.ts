@@ -38,6 +38,8 @@ export class PtTemplateComponent implements OnInit {
   hoveredGene: GeneVariantBundleDto | null = null;
   hoveredHpoHeader: HeaderDupletDto | null = null;
   cohortDescription: CohortDescriptionDto | null = null;
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
 
   /* used for autocomplete widget */
   hpoInputString: string = '';
@@ -45,11 +47,13 @@ export class PtTemplateComponent implements OnInit {
 
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")
+    this.loadTemplate();
+  }
+
+  loadTemplate(): void {
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
       this.tableData = data;
       this.cohortDescription = this.generateCohortDescriptionDto(data);
-      
-      
       console.log(data);
       console.log('Row example:', data.rows[0]);
     });
@@ -141,6 +145,37 @@ openDiseaseEditor(disease: DiseaseDto) {
     } catch (err: any) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Validation failed:\n' + JSON.stringify(err));
+    }
+  }
+
+
+showSuccess(message: string): void {
+  this.successMessage = message;
+  setTimeout(() => this.successMessage = null, 5000); // hide after 5 sec
+}
+
+showError(message: string): void {
+  this.errorMessage = message;
+  setTimeout(() => this.errorMessage = null, 5000);
+}
+
+  submitSelectedHpo = async () => {
+    await this.addHpoTermToCohort(this.selectedHpoTerm);
+    
+  };
+
+  async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
+    console.log("addHpoTermToCohort = ", autocompletedTerm);
+    if (autocompletedTerm) {
+      const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
+      try {
+        await this.configService.addHpoToCohort(id, label);
+        this.showSuccess(`Successfully added ${label} (${id})`);
+        this.loadTemplate();
+      } catch (err) {
+        console.error(err);
+        this.showError(`Failed to add term ${label} (${id})`);
+      }
     }
   }
 
