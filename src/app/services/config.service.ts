@@ -129,13 +129,12 @@ export class ConfigService {
   }
 
   /**
-   * Add an HPO term to the current cohort.
+   * Add an HPO term to the current cohort. The column should show "na" for all phenopackets.
+   * This enables us to add an HPO term and then edit it in the GUI.
    * @param id - The HPO term ID (e.g., "HP:0004322")
    * @param label - The human-readable label (e.g., "Seizures")
    */
   async addHpoToCohort(id: string, label: string): Promise<void> {
-    // TODO: Implement actual logic to store or process this HPO term.
-    console.log(`SERVICE LAYER Adding HPO to cohort: ${id} (${label})`);
     return invoke<void>('add_hpo_term_to_cohort', {hpoId: id, hpoLabel: label});
   }
 

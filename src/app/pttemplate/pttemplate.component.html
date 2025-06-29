@@ -172,7 +172,9 @@
   </div>
 </td>
 <!-- The values of the HPO columns-->
-<td *ngFor="let cell of row.hpoData" class="hpo-col"
+<td *ngFor="let cell of row.hpoData" 
+    class="hpo-col"
+    (contextmenu)="onRightClick($event, cell)"
     [ngClass]="{
       'observed-cell': cell.value === 'observed',
       'excluded-cell': cell.value === 'excluded',
@@ -191,16 +193,37 @@
   </table>
 </div>
 
-<button (click)="validateCohort()" class="btn-outline-primary">Validate</button>
-<div class="space-y-1">
-  <app-hpoautocomplete
-    [inputString]="hpoInputString"
-    (selected)="selectedHpoTerm = $event"
-    [onSubmit]="submitSelectedHpo"
-    #hpoAutocomplete
-  ><span card-title>Add a new HPO term to template</span></app-hpoautocomplete>
-  <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+
+<div class="flex items-center gap-4 mb-4">
+  <button (click)="validateCohort()" class="btn-outline-primary">Validate</button>
+  <div class="space-y-1">
+    <app-hpoautocomplete
+      [inputString]="hpoInputString"
+      (selected)="selectedHpoTerm = $event"
+      [onSubmit]="submitSelectedHpo"
+      #hpoAutocomplete
+    ><span card-title>Add a new HPO term to template</span></app-hpoautocomplete>
+    <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+  </div>
+  <app-addages #addagesComponent></app-addages>
+</div>
+  
 </div>
 
-  
+<div
+  *ngIf="contextMenuVisible"
+  [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+  class="absolute z-50 bg-white border border-gray-300 rounded shadow-md p-2 text-sm w-40"
+  role="menu"
+  aria-label="Annotation context menu"
+>
+  <button
+    *ngFor="let option of contextMenuOptions"
+    class="block w-full text-left hover:bg-gray-100 px-2 py-1 rounded focus:outline-none focus:bg-gray-200"
+    role="menuitem"
+    (click)="onMenuOptionClick(option.value)"
+    type="button"
+  >
+    {{ option.label }}
+  </button>
 </div>

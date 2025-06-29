@@ -195,7 +195,6 @@ handleMouseLeave() {
 
 /** This is run when the user enters demographic information via the child component */
   handleDemographicData(hide_demographic: boolean) {
-    console.log("handleDemographicData - hide_demographic=",hide_demographic);
     if (hide_demographic) {
       this.showAgeEntryArea = false;
     } else {
@@ -208,7 +207,6 @@ handleMouseLeave() {
 openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   console.log("open popup ann=", ann);
   this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
-  console.log("rightcli", this.rightClickOptions);
   this.selectedAnnotation = ann;
   this.showPopup = true;
   // Get the clicked element's bounding box

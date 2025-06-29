@@ -61,18 +61,26 @@
     text-sm text-gray-500 
 }
 
+.primary-box {
+  @apply space-y-4 p-4 border rounded-md bg-white dark:bg-transparent;
+}
+
+.primary-box h1
 .primary-divider h1 {
   @apply text-center font-semibold text-3xl; /* Largest and bold */
 }
 
+.primary-box h2
 .primary-divider h2 {
   @apply text-left font-medium text-2xl mt-2.5;  /* Slightly smaller, less bold */
 }
 
+.primary-box h3
 .primary-divider h3 {
   @apply text-left font-normal text-xl mt-2.5;   /* Even smaller, normal weight */
 }
 
+.primary-box p
 .primary-divider p {
     @apply text-left mt-0;
 }
@@ -84,3 +92,5 @@
 .primary-list a {
   @apply text-blue-600 hover:underline;
 }
+
+

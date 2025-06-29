@@ -8,17 +8,22 @@ import { ConfigService } from '../services/config.service';
 import { DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
 import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
+import { AgeInputService } from '../services/age_service';
 
+type Option = { label: string; value: string };
 
 @Component({
   selector: 'app-pttemplate',
   standalone: true,
-  imports: [ CommonModule,
+  imports: [ 
+    AddagesComponent,
     HpoAutocompleteComponent,
+    CommonModule,
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
@@ -29,8 +34,12 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 })
 export class PtTemplateComponent implements OnInit {
 
-  constructor(private configService: ConfigService, private dialog: MatDialog) {}
+  constructor(
+    private configService: ConfigService, 
+    private dialog: MatDialog,
+    public ageService: AgeInputService) {}
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
+  @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
 
   tableData: TemplateDto | null = null;
   hoveredIndividual: IndividualDto | null = null;
@@ -44,9 +53,24 @@ export class PtTemplateComponent implements OnInit {
   /* used for autocomplete widget */
   hpoInputString: string = '';
   selectedHpoTerm: string = "";
+  /* used for right-click option menu */
+  contextMenuVisible: boolean = false;
+  contextMenuX:number = 0;
+  contextMenuY: number = 0;
+  selectedCell: any = null;
+  
+  predefinedOptions: Option[] = [
+    { label: 'Observed ✅', value: 'observed' },
+    { label: 'Excluded ❌', value: 'excluded' },
+    { label: 'N/A', value: 'na' },
+    // Add more dynamically if you want
+  ];
+  contextMenuOptions: Option[] = [];
 
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")
+    document.addEventListener('click', this.onClickAnywhere.bind(this));
+    this.contextMenuOptions = [...this.predefinedOptions];
     this.loadTemplate();
   }
 
@@ -178,5 +202,29 @@ showError(message: string): void {
       }
     }
   }
+
+  
+
+onRightClick(event: MouseEvent, cell: any): void {
+  let ageOptions: Option[] = this.ageService.getSelectedTerms().map(item => ({ label: `${item} ✅`, value: item }));
+  this.contextMenuOptions = [...this.predefinedOptions, ...ageOptions];
+  event.preventDefault(); // prevent default browser menu
+  this.selectedCell = cell;
+  this.contextMenuVisible = true;
+  this.contextMenuX = event.clientX;
+  this.contextMenuY = event.clientY;
+}
+
+onMenuOptionClick(newValue: string): void {
+  if (this.selectedCell) {
+    this.selectedCell.value = newValue;
+    // optionally emit an event or call a backend service here
+  }
+  this.contextMenuVisible = false;
+}
+
+onClickAnywhere(): void {
+  this.contextMenuVisible = false;
+}
 
 }
