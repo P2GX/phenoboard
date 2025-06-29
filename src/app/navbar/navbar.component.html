@@ -1,11 +1,16 @@
 <nav class="flex flex-wrap items-center gap-2 bg-gray-800 px-4 py-3 shadow-md rounded-md">
-    <button
+  <button
     *ngFor="let tab of tabs"
-    class="text-white px-4 py-2 rounded-md transition-colors duration-200
-        hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
-    [ngClass]="{ 'bg-gray-700 font-semibold': currentView === tab.id }"
+    [disabled]="isDisabled(tab)"
     (click)="setView(tab.id)"
->
-  {{ tab.label }}
-</button>
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+          hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+    [ngClass]="{
+      'bg-gray-700 font-semibold': currentView === tab.id,
+      'opacity-50 cursor-not-allowed': isDisabled(tab)
+    }"
+  >
+    {{ tab.label }}
+  </button>
 </nav>
+

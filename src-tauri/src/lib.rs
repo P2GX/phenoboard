@@ -3,7 +3,6 @@ mod dto;
 mod phenoboard;
 mod hpo;
 mod settings;
-mod table_manager;
 mod util;
 
 use ga4ghphetools::dto::template_dto::TemplateDto;
@@ -32,15 +31,12 @@ pub fn run() {
             get_phetools_table,
             get_phetools_template,
             get_template_summary,
-            highlight_text_with_hits,
             hpo_can_be_updated,
             get_backend_status,
             load_phetools_template,
             load_hpo,
             run_text_mining,
             map_text_to_annotations,
-            table_manager::get_phetools_column,
-            table_manager::get_selected_phetools_column,
             get_table_columns_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
@@ -150,42 +146,6 @@ fn map_text_to_annotations(
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     return singleton.map_text_to_annotations(input_text);
-}
-
-#[tauri::command]
-fn highlight_text_with_hits(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    input_text: &str) 
-    -> Result<String, String> 
-{
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    let sorted_hits = singleton.get_sorted_fenominal_hits(input_text)?;
-    let mut html = String::new();
-    html.push_str("<div class=\"hpominingbox\">");
-    let mut last_index = 0;
-
-    for hit in sorted_hits {
-        html.push_str(&html_escape::encode_text(&input_text[last_index..hit.span.start]));
-        let matched_text = &input_text[hit.span.clone()];
-        let class = if hit.is_observed { "observed" } else { "excluded" };
-        let annotated = format!(
-            r#"<span class="hpo-hit {}" title="{} [{}]" data-id="{}">{}</span>"#,
-            class,
-            hit.label,
-            hit.term_id,
-            hit.term_id,
-            html_escape::encode_text(matched_text),
-        );
-        html.push_str(&annotated);
-
-        last_index = hit.span.end;
-    }
-    // Add any remaining text after last hit
-    html.push_str(&html_escape::encode_text(&input_text[last_index..]));
-    html.push_str("</div>"); // close div for hpominingbox
-    println!("\n\n \n\n{}\n\n\n\n", &html);
-    Ok(html)
 }
 
 

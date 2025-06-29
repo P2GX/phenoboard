@@ -21,10 +21,14 @@
 }
 
 .hpo-col {
-  width: 40px;
-  max-width: 40px;
-  padding: 0;
+  width: auto;                /* Let it shrink to fit content */
+  max-width: 3.5rem;          /* Constrain upper bound */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  text-align: center;
 }
+
 
 .hpo-col .rotated-text {
   transform: rotate(-30deg);

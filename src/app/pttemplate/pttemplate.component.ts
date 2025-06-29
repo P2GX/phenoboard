@@ -1,11 +1,11 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
+import { CellDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -58,6 +58,9 @@ export class PtTemplateComponent implements OnInit {
   contextMenuX:number = 0;
   contextMenuY: number = 0;
   selectedCell: any = null;
+  pendingHpoIndex: number | null = null;
+  focusedHpoIndex: number | null = null;
+  hpoFocusRange = 0; // number of columns to each side
   
   predefinedOptions: Option[] = [
     { label: 'Observed ✅', value: 'observed' },
@@ -65,7 +68,23 @@ export class PtTemplateComponent implements OnInit {
     { label: 'N/A', value: 'na' },
     // Add more dynamically if you want
   ];
+
+  focusOptions = [
+    { label: 'Focus on this column', value: 'focus-0' },
+    { label: 'Focus on this column ±2', value: 'focus-2' },
+    { label: 'Focus on this column ±5', value: 'focus-5' },
+    { label: 'Focus on this column ±10', value: 'focus-10' },
+    { label: 'Show all columns', value: 'focus-reset' }
+  ];
+
   contextMenuOptions: Option[] = [];
+
+
+
+
+
+  
+
 
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")
@@ -84,20 +103,19 @@ export class PtTemplateComponent implements OnInit {
   }
 
 
-openIndividualEditor(individual: IndividualDto) {
-  const dialogRef = this.dialog.open(IndividualEditComponent, {
-    width: '500px',
-    data: { ...individual }, // pass a copy
-  });
-
-  dialogRef.afterClosed().subscribe((result: IndividualDto | null) => {
-    if (result) {
-      // Apply changes back to the original
-      Object.assign(individual, result);
-      // Optional: trigger change detection or save to backend
-    }
-  });
-}
+  openIndividualEditor(individual: IndividualDto) {
+    const dialogRef = this.dialog.open(IndividualEditComponent, {
+      width: '500px',
+      data: { ...individual }, // pass a copy
+    });
+    dialogRef.afterClosed().subscribe((result: IndividualDto | null) => {
+      if (result) {
+        // Apply changes back to the original
+        Object.assign(individual, result);
+        // Optional: trigger change detection or save to backend
+      }
+    });
+  }
 
 
 
@@ -205,26 +223,59 @@ showError(message: string): void {
 
   
 
-onRightClick(event: MouseEvent, cell: any): void {
-  let ageOptions: Option[] = this.ageService.getSelectedTerms().map(item => ({ label: `${item} ✅`, value: item }));
-  this.contextMenuOptions = [...this.predefinedOptions, ...ageOptions];
-  event.preventDefault(); // prevent default browser menu
-  this.selectedCell = cell;
-  this.contextMenuVisible = true;
-  this.contextMenuX = event.clientX;
-  this.contextMenuY = event.clientY;
-}
-
-onMenuOptionClick(newValue: string): void {
-  if (this.selectedCell) {
-    this.selectedCell.value = newValue;
-    // optionally emit an event or call a backend service here
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, cell: CellDto) {
+    event.preventDefault();
+    this.contextMenuVisible = true;
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.pendingHpoIndex = hpoColumnIndex;
+    this.selectedCell = cell;
+    this.contextMenuOptions = [
+      ...this.predefinedOptions,
+      ...this.ageService.getSelectedTerms().map(term => ({
+          label: term,
+          value: term
+        })),
+      { label: '---', value: 'separator' },
+      ...this.focusOptions,
+  ];
+  console.log("CMI:", this.contextMenuOptions);
   }
-  this.contextMenuVisible = false;
-}
 
-onClickAnywhere(): void {
-  this.contextMenuVisible = false;
-}
+  shouldDisplayHpoColumn(index: number): boolean {
+    if (this.focusedHpoIndex === null) return true;
+    return (
+      index >= this.focusedHpoIndex - this.hpoFocusRange &&
+      index <= this.focusedHpoIndex + this.hpoFocusRange
+    );
+  }
 
+  onMenuOptionClick(option: string): void {
+    console.log("onMenuOptionClick option=",option);
+    if (option.startsWith('focus')) {
+      const parts = option.split('-');
+      if (parts[1] === 'reset') {
+        this.focusedHpoIndex = null;
+        this.hpoFocusRange = 0;
+      } else {
+        this.focusedHpoIndex = this.pendingHpoIndex;
+        this.hpoFocusRange = parseInt(parts[1], 10);
+      }
+    } else if (this.selectedCell) {
+      // if we get here, then the option is 'observed', 'na', 'P4M', etc
+      this.focusedHpoIndex = null;
+      this.selectedCell.value = option;
+    } 
+    this.pendingHpoIndex = null;
+    this.contextMenuVisible = false;
+  }
+
+  onClickAnywhere(): void {
+    this.contextMenuVisible = false;
+  }
+
+  @HostListener('document:click')
+  closeContextMenu() {
+    this.contextMenuVisible = false;
+  }
 }

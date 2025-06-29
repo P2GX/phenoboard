@@ -7,8 +7,8 @@
   <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
   <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms. Most individuals are diagnosed with 
   <a *ngIf="cohortDescription.diseaseDatabase === 'OMIM'" 
-   [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
-   target="_blank" class="text-blue-600 underline">
+    [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
+    target="_blank" class="text-blue-600 underline">
   {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
   </a>
   <span *ngIf="cohortDescription.diseaseDatabase !== 'OMIM'">
@@ -26,9 +26,12 @@
       <th class="narrow-column bottom-align">Individual ID</th>
       <th class="narrow-column bottom-align">Disease</th>
       <th class="narrow-column bottom-align">Gene</th>
+      <!-- The following creates the series of headers for the HPO columns.
+            We use the function shouldDisplayHpoColumn to allow the user to focus on a 1-10 columns at a time-->
+      <ng-container *ngFor="let header of tableData.hpoHeaders; let i = index">
       <th
         class="rotate-header hpo-col"
-        *ngFor="let header of tableData.hpoHeaders"
+        *ngIf="shouldDisplayHpoColumn(i)"
         (mouseenter)="hoveredHpoHeader = header"
         (mouseleave)="hoveredHpoHeader = null"
       >
@@ -50,7 +53,8 @@
           🔗 {{ header.h2 }}
         </a>
       </div>
-</th>
+  </th>
+</ng-container>
     </tr>
   </thead>
     <tbody>
@@ -172,22 +176,31 @@
   </div>
 </td>
 <!-- The values of the HPO columns-->
-<td *ngFor="let cell of row.hpoData" 
-    class="hpo-col"
-    (contextmenu)="onRightClick($event, cell)"
-    [ngClass]="{
-      'observed-cell': cell.value === 'observed',
-      'excluded-cell': cell.value === 'excluded',
-      'na-cell': cell.value === 'na'
-    }"
->
-  <ng-container [ngSwitch]="cell.value">
-    <ng-container *ngSwitchCase="'observed'">✅</ng-container>
-    <ng-container *ngSwitchCase="'excluded'">❌</ng-container>
-    <ng-container *ngSwitchCase="'na'">n/a</ng-container>
-    <ng-container *ngSwitchDefault>{{ cell.value }}</ng-container>
-  </ng-container>
-</td>
+    <ng-container *ngFor="let cell of row.hpoData; let i = index">
+      <td  *ngIf="shouldDisplayHpoColumn(i)"
+          class="hpo-col"
+          (contextmenu)="onRightClick($event, i, cell)"
+          [ngClass]="{
+            'observed-cell': cell.value === 'observed',
+            'excluded-cell': cell.value === 'excluded',
+            'na-cell': cell.value === 'na'
+          }"
+      >
+        <ng-container [ngSwitch]="cell.value">
+          <ng-container *ngSwitchCase="'observed'">✅</ng-container>
+          <ng-container *ngSwitchCase="'excluded'">❌</ng-container>
+          <ng-container *ngSwitchCase="'na'">n/a</ng-container>
+          <ng-container *ngSwitchDefault>
+            <div
+              class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
+              [title]="cell.value"
+            >
+              {{ cell.value }}
+            </div>
+          </ng-container>
+        </ng-container>
+      </td>
+    </ng-container>
       </tr>
     </tbody>
   </table>

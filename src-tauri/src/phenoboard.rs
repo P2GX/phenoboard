@@ -394,26 +394,7 @@ impl PhenoboardSingleton {
     }
 
 
-    /// This method can be used to retrieve a matrix of string with the first three
-    /// phetools columns (pmid, title, individual id) together with a specific HPO column
-    pub fn get_column_with_context(&mut self, col: usize) -> Result<Vec<Vec<String>>, String> {
-        match &mut self.phetools {
-            Some(ptools) => {
-                if ptools.is_hpo_col(col) {
-                    let mat = ptools.get_hpo_col_with_context(col)?;
-                    self.set_current_column(col);
-                    return Ok(mat);
-                } else {
-                    let ctype = ptools.col_type_at(col)?;
-                    return Err(format!("Column type {ctype} not supported."));
-                }
-                //ptools.get_column_with_context(col).map_error(|e| e.to_string())?;
-            }
-            None => {
-                return Err(format!("Phetools not intialized"));
-            }
-        };
-    }
+  
 
     pub fn check_readiness(&self) -> bool {
         return self.ontology.is_some() && self.pt_template_path.is_some();

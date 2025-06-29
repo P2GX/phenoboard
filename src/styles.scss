@@ -67,17 +67,17 @@
 
 .primary-box h1
 .primary-divider h1 {
-  @apply text-center font-semibold text-3xl; /* Largest and bold */
+  @apply text-center font-bold text-3xl; /* Largest and bold */
 }
 
 .primary-box h2
 .primary-divider h2 {
-  @apply text-left font-medium text-2xl mt-2.5;  /* Slightly smaller, less bold */
+  @apply text-left font-bold text-2xl mt-2.5;  /* Slightly smaller, less bold */
 }
 
 .primary-box h3
 .primary-divider h3 {
-  @apply text-left font-normal text-xl mt-2.5;   /* Even smaller, normal weight */
+  @apply text-left font-bold text-xl mt-2.5;   /* Even smaller, normal weight */
 }
 
 .primary-box p
