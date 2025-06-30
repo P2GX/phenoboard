@@ -92,7 +92,7 @@ export class AddcaseComponent {
 
   submitNewRow(): void {
       let pmid_dto = this.pubmedComponent.getPmidDto();
-      let demogr_dto = this.demographics_component
+      let demogr_dto = this.demographics_component.getDemograph();
       console.log("pmid DTO:", pmid_dto);
       console.log("annotations", this.annotations);
   }

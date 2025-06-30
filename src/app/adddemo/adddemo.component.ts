@@ -1,9 +1,9 @@
 
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
-import { FormControl, FormsModule } from '@angular/forms';
+import {  FormsModule } from '@angular/forms';
 import { AgeInputService} from '../services/age_service';  // Adjust path if needed
-
+import { defaultDemographDto, DemographDto} from '../models/demograph_dto'
 
 
 @Component({
@@ -15,27 +15,21 @@ import { AgeInputService} from '../services/age_service';  // Adjust path if nee
 })
 export class AdddemoComponent {
  constructor(public ageService: AgeInputService) {}
- 
- 
 
+  demograph: DemographDto = defaultDemographDto();
 
   availableAgeTerms: string[] = ["na"];
-  ageOfOnset: string = "na";
-  ageAtLastExamination: string = "na";
+  showCommentBox: boolean = false;
+  showCommentModal: boolean = false;
+  tempComment: string = '';
+
   allDataEntered: boolean = false;
   isValidAge: any;
   ageInput: any;
-  individualId: string = '';
   isAscii: boolean = true;
 
-  sexOptions = ['M', 'F', 'U', 'O'];
-  sex: string = 'U';
-
+  sexOptions = ['M', 'F', 'O', 'U'];
   deceasedOptions = ['yes', 'no', 'na'];
-  deceased = 'na';
-
-  
-
 
   @Output() dataEnteredChange = new EventEmitter<boolean>();
   ngOnInit() {
@@ -51,12 +45,15 @@ export class AdddemoComponent {
   }
 
 
-  
+  getDemograph(): DemographDto {
+    
+    return this.demograph;
+  }
   
 
   onIndividualIdBlur() {
-    this.individualId = this.individualId.trim();
-    this.isAscii = /^[\x00-\x7F]*$/.test(this.individualId);
+    this.demograph.individualId = this.demograph.individualId.trim();
+    this.isAscii = /^[\x00-\x7F]*$/.test(this.demograph.individualId);
   }
 
   get selectedTerms(): string[] {
@@ -64,10 +61,24 @@ export class AdddemoComponent {
   }
 
   addComment() {
-    throw new Error('Method not implemented.');
+    this.showCommentBox = true;
   }
+
+  openCommentDialog(): void {
+    this.tempComment = this.demograph.comment;
+    this.showCommentModal = true;
+  }
+
+confirmComment(): void {
+  this.demograph.comment = this.tempComment;
+  this.showCommentModal = false;
+}
+
+cancelComment(): void {
+  this.showCommentModal = false;
+}
+
   submitDemo(hideDemograpic: boolean) {
-    console.log("submitDemo- hideDemograpic=", hideDemograpic)
     if (hideDemograpic) {
       this.allDataEntered = true;
       this.dataEnteredChange.emit(hideDemograpic);
@@ -76,4 +87,11 @@ export class AdddemoComponent {
       this.dataEnteredChange.emit(hideDemograpic);
     }
   }
+
+  isReady(): boolean {
+    return (
+      this.demograph.individualId.length > 0
+    );
+  }
+
 }

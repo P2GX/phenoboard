@@ -41,6 +41,30 @@ button.btn-outline-primary {
     dark:disabled:border-gray-600;
 }
 
+button.btn-outline-cancel {
+  @apply 
+    text-gray-600
+    border border-gray-500
+    hover:bg-gray-200
+    hover:text-black
+    focus:ring-2
+    focus:outline-none
+    focus:ring-gray-400
+    font-medium
+    rounded-lg
+    text-sm
+    px-5 py-2.5
+    text-center
+    me-2 mb-2
+    transition-colors duration-200
+    dark:border-gray-400
+    dark:text-gray-400
+    dark:hover:bg-gray-600
+    dark:hover:text-white
+    dark:focus:ring-gray-600;
+}
+
+
 .h1-primary {
   @apply text-3xl md:text-4xl font-semibold text-gray-800 tracking-tight;
 }
