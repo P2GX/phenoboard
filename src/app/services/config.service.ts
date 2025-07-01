@@ -140,7 +140,10 @@ export class ConfigService {
   }
 
 
-  async addNewRowToCohort(individual_dto: IndividualDto, hpo_annotations: HpoTermDto[]): Promise<void> {
+  async addNewRowToCohort(
+      individual_dto: IndividualDto, 
+      template_dto: TemplateDto,
+      hpo_annotations: HpoTermDto[]): Promise<void> {
     console.log("service - addNewRowToCohort, indiv", individual_dto);
     console.log("KEYS passed to invoke:", Object.keys({ individual_dto, hpo_annotations }));
 
