@@ -48,4 +48,10 @@ export class PubmedComponent {
   getPmidDto(): PmidDto {
     return this.pmidDto;
   }
+
+  isReady(): boolean {
+    return (
+      this.pmidDto.pmid.length > 0 && this.pmidDto.title.length > 0
+    )
+  }
 }

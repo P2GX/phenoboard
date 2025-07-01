@@ -2,17 +2,11 @@
 //!
 
 use dirs::home_dir;
-use ontolius::io::OntologyLoaderBuilder;
-use ontolius::ontology::csr::FullCsrOntology;
-use rfd::FileDialog;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Emitter, State};
 
-use crate::phenoboard::PhenoboardSingleton;
 
 /// Settings to persist between sessions.
 

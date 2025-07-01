@@ -3,7 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { TemplateDto } from '../models/template_dto';
+import { IndividualDto, TemplateDto } from '../models/template_dto';
+import { HpoTermDto } from '../models/hpo_annotation_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -136,6 +137,17 @@ export class ConfigService {
    */
   async addHpoToCohort(id: string, label: string): Promise<void> {
     return invoke<void>('add_hpo_term_to_cohort', {hpoId: id, hpoLabel: label});
+  }
+
+
+  async addNewRowToCohort(individual_dto: IndividualDto, hpo_annotations: HpoTermDto[]): Promise<void> {
+    console.log("service - addNewRowToCohort, indiv", individual_dto);
+    console.log("KEYS passed to invoke:", Object.keys({ individual_dto, hpo_annotations }));
+
+    return invoke<void>('add_new_row_to_cohort', 
+      {individualDto: individual_dto, 
+        hpoAnnotations: hpo_annotations
+      });
   }
 
 }

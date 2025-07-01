@@ -148,16 +148,7 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn get_matrix(&self) -> Result<Vec<Vec<String>>, String> {
-        println!("hpo_curator::get_matrix");
-        match &self.phetools {
-            Some(ptools) => {
-                let matrix = ptools.get_string_matrix()?;
-                Ok(matrix)
-            }
-            None => Err(format!("Table not initialized")),
-        }
-    }
+  
 
     pub fn get_hpo_version(&self) -> Result<String, String> {
         match &self.ontology {
@@ -172,127 +163,6 @@ impl PhenoboardSingleton {
             None => Err("HPO not initialized".to_string()),
         }
     }
-
-    pub fn get_row(&self, row: usize) -> Result<Vec<String>, String> {
-        match &self.phetools {
-            Some(ptools) => {
-                let row = vec!["todo".to_ascii_lowercase()];// ptools.get_string_row(row)?;
-                Ok(row)
-            }
-            None => Err(format!("Could not get row because Phetools was null")),
-        }
-    }
-
-
-    
-    pub fn new_row(
-        &mut self,
-        pmid: impl Into<String>,
-        title: impl Into<String>,
-        individual_id: impl Into<String>,
-    ) -> Result<(), String> {
-        eprintln!("[ERROR] HpoCurator::new_row not implemented");
-        /* 
-        match &mut self.phetools {
-            Some(ptools) => {
-                ptools.add_row(pmid, title, individual_id)?;
-                Ok(())
-            }
-            None => Err(format!("Phetools object not initialized")),
-        }*/
-        Ok(())
-    }
-
-    pub fn new_row_with_pt(
-        &mut self,
-        pmid: impl Into<String>,
-        title: impl Into<String>,
-        individual_id: impl Into<String>,
-    ) -> Result<(), String> {
-        match &mut self.phetools {
-            Some(ptools) => {
-               // ptools.add_row(pmid, title, individual_id)?;
-                eprintln!("[ERROR] HpoCurator::add_row not implemented");
-                Ok(())
-            }
-            None => Err(format!("Phetools object not initialized")),
-        }
-    }
-
-    pub fn get_column(&mut self, col: usize) -> Result<Vec<String>, String> {
-        match &self.phetools {
-            Some(ptools) => {
-                if col >= ptools.ncols() {
-                    return Err(format!(
-                        "request to get row {} from table with only {} rows",
-                        col,
-                        ptools.ncols()
-                    ));
-                }
-                let column = vec!["todo".to_ascii_lowercase()];//ptools.get_string_column(col)?;
-                self.set_current_column(col);
-                Ok(column)
-            }
-            None => Err(format!("Could not get column because Phetools was null")),
-        }
-    }
-
-    pub fn get_current_row(&self) -> Option<usize> {
-        self.current_row
-    }
-
-    pub fn get_current_column(&self) -> Option<usize> {
-        self.current_column
-    }
-
-    pub fn set_current_row(&mut self, row: usize) {
-        match &self.phetools {
-            Some(ptools) => {
-                if row >= ptools.nrows() {
-                    self.current_row = None
-                } else {
-                    self.current_row = Some(row)
-                }
-            }
-            None => {
-                println!("TODO do we need error handling")
-            }
-        }
-    }
-
-    pub fn set_current_column(&mut self, col: usize) {
-        match &self.phetools {
-            Some(ptools) => {
-                if col >= ptools.ncols() {
-                    self.current_column = None
-                } else {
-                    println!("Setting current column to {}", col);
-                    self.current_column = Some(col)
-                }
-            }
-            None => println!("Null phetools"), // todo -- error needed here?
-        }
-    }
-
-    pub fn set_current_operation(&mut self, op: &str) -> Result<(), String> {
-        match op {
-            "show_column" => {
-                self.current_operation = PptOperation::ShowColumn;
-            }
-            "show_row" => {
-                self.current_operation = PptOperation::ShowRow;
-            }
-            "table" => {
-                self.current_operation = PptOperation::EntireTable;
-            }
-            _ => {
-                self.current_operation = PptOperation::EntireTable;
-                return Err(format!("Did not recognize operation {}", op));
-            }
-        }
-        Ok(())
-    }
-
 
 
     pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
@@ -319,15 +189,7 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn get_hpo_data(&self) -> Result<HashMap<String,String>, String> {
-        match &self.phetools {
-            Some(ptools) => {
-                let dat= ptools.get_hpo_data();
-                return Ok(dat);
-            },
-            None => Err(format!("Phetools template not initialized"))
-        }
-    }
+    
 
     /// Get a DTO that summarizes the status of the data in the backend
     /// The DTO is synchronized with the corresponding tscript in app/models
@@ -393,8 +255,6 @@ impl PhenoboardSingleton {
         return dirman.get_json();
     }
 
-
-  
 
     pub fn check_readiness(&self) -> bool {
         return self.ontology.is_some() && self.pt_template_path.is_some();
@@ -500,7 +360,8 @@ impl PhenoboardSingleton {
         let mut verrs = ValidationErrors::new();
         match &self.phetools {
             Some(ptools) => {
-                let template = ptools.validate_template(cohort_dto)?;
+                println!("TODO probably change API");
+                let _template = ptools.validate_template(cohort_dto)?;
                 return Ok(());
             },
             None => {
@@ -513,14 +374,14 @@ impl PhenoboardSingleton {
         &mut self,
         hpo_id: &str,
         hpo_label: &str) 
-    -> std::result::Result<(), String> {
+    -> std::result::Result<(), Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 ptools.add_hpo_term_to_cohort(hpo_id, hpo_label)?;
                 Ok(())
             },
             None => {
-                Err("Phenotype template not initialized".to_string())
+                Err(vec!["Phenotype template not initialized".to_string()])
             },
         }
     }
@@ -653,6 +514,4 @@ impl Default for PhenoboardSingleton {
             hpo_auto_complete: vec![],
         }
     }
-
-   
 }

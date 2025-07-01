@@ -9,8 +9,10 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
+import { IndividualDto } from '../models/template_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
+import { HpoAnnotationDto, HpoTermDto } from '../models/hpo_annotation_dto';
 
 @Component({
   selector: 'app-addcase',
@@ -90,9 +92,22 @@ export class AddcaseComponent {
     }
   }
 
-  submitNewRow(): void {
+  async submitNewRow(): Promise<void> {
       let pmid_dto = this.pubmedComponent.getPmidDto();
       let demogr_dto = this.demographics_component.getDemograph();
+      // combine the above
+      const individual_dto: IndividualDto = {
+        pmid: pmid_dto.pmid,
+        title: pmid_dto.title,
+        individualId: demogr_dto.individualId,
+        comment: demogr_dto.comment,
+        ageOfOnset: demogr_dto.ageOfOnset,
+        ageAtLastEncounter: demogr_dto.ageAtLastEncounter,
+        deceased: demogr_dto.deceased,
+        sex: demogr_dto.sex
+      };
+      const hpoAnnotations: HpoTermDto[] = this.annotations.map(this.convertTextAnnotationToHpoAnnotation);
+      await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations);
       console.log("pmid DTO:", pmid_dto);
       console.log("annotations", this.annotations);
   }
@@ -290,6 +305,24 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       await this.configService.submitAutocompleteHpoTerm(id, label);
     }
+  }
+
+  convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
+    let status = 'na';
+    if (textAnn.isObserved) {
+      status = 'observed';
+      if (textAnn.onsetString != 'na') {
+        status = textAnn.onsetString;
+      }
+    } else {
+      status = 'excluded';
+    }
+
+    return {
+      termId: textAnn.termId,
+      termLabel: textAnn.label,
+      entry: status,
+    };
   }
 
 }

@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::template_dto::TemplateDto;
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}};
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
@@ -28,7 +28,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
-            get_phetools_table,
             get_phetools_template,
             get_template_summary,
             hpo_can_be_updated,
@@ -46,7 +45,8 @@ pub fn run() {
             get_hpo_autocomplete_terms,
             submit_autocompleted_hpo_term,
             validate_template,
-            add_hpo_term_to_cohort
+            add_hpo_term_to_cohort,
+            add_new_row_to_cohort
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -149,19 +149,7 @@ fn map_text_to_annotations(
 }
 
 
-/// When we initialize a new Table (Excel file) for curation, we start with
-/// a text that contains candidate HPO terms for curation.
-/// This function performs text mining on that text and creates
-/// a Matrix of Strings with which we initialize the table in the GUI
-/// TODO: better documentation
-#[tauri::command]
-fn get_phetools_table(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-) -> Result<Vec<Vec<String>>, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    return singleton.get_matrix();
-}
+
 
 
 #[tauri::command]
@@ -186,14 +174,6 @@ fn get_template_summary(
     singleton.get_template_summary()
 }
 
-#[tauri::command]
-fn get_hpo_data(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) ->Result<HashMap<String,String>, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.get_hpo_data()
-}
 
 /// Check whether the HPO version we are using is the latest version
 /// by comparing the latest version online
@@ -374,9 +354,10 @@ fn submit_hgvs(
     transcript: &str,
     hgvs: &str,
 ) -> Result<(), String> {
-        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-        let singleton = singleton_arc.lock().unwrap();
+       // let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        //let singleton = singleton_arc.lock().unwrap();
         //let _ = app.emit("autocompletion", dto);
+        println!("{transcript} - {hgvs} TODO submit hgvs");
         Ok(())
     }
 
@@ -395,9 +376,25 @@ fn add_hpo_term_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     hpo_id: &str,
     hpo_label: &str) 
--> Result<(), String> {
+-> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label).map_err(|e| e.to_string())
+    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label)
+}
+
+
+
+#[tauri::command]
+fn add_new_row_to_cohort(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    individualDto: IndividualBundleDto, 
+    hpoAnnotations: Vec<HpoTermDto>) 
+-> Result<(), String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    println!("add_new_row_to_cohort HPO version {:?}", &singleton.get_hpo_version());
+    println!("individual_dto: {:?}", individualDto);
+    println!("hpo_annotations: {:?}", hpoAnnotations);
+    Ok(())
 }
 
