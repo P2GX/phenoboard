@@ -14,6 +14,7 @@ import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
+import { TemplateDtoService } from '../services/template_dto_service';
 
 type Option = { label: string; value: string };
 
@@ -37,7 +38,8 @@ export class PtTemplateComponent implements OnInit {
   constructor(
     private configService: ConfigService, 
     private dialog: MatDialog,
-    public ageService: AgeInputService) {}
+    public ageService: AgeInputService,
+    private templateService: TemplateDtoService) {}
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
 
@@ -91,14 +93,15 @@ export class PtTemplateComponent implements OnInit {
     document.addEventListener('click', this.onClickAnywhere.bind(this));
     this.contextMenuOptions = [...this.predefinedOptions];
     this.loadTemplate();
+    this.templateService.template$.subscribe(template => {
+      this.tableData = template;
+    });
   }
 
   loadTemplate(): void {
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
       this.tableData = data;
       this.cohortDescription = this.generateCohortDescriptionDto(data);
-      console.log(data);
-      console.log('Row example:', data.rows[0]);
     });
   }
 
@@ -239,7 +242,6 @@ showError(message: string): void {
       { label: '---', value: 'separator' },
       ...this.focusOptions,
   ];
-  console.log("CMI:", this.contextMenuOptions);
   }
 
   shouldDisplayHpoColumn(index: number): boolean {

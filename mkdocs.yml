@@ -45,7 +45,9 @@ theme:
 
 nav:
   - Home: 'index.md'
-  - For developers: 'developers.md'
+  - For developers:
+      - Overview: developers/overview.md
+      - Sorting HPO terms: developers/hpo-sorting.md
   - Internal: 'internal.md'
 
 

@@ -13,6 +13,7 @@ import { IndividualDto } from '../models/template_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { HpoAnnotationDto, HpoTermDto } from '../models/hpo_annotation_dto';
+import { TemplateDtoService } from '../services/template_dto_service';
 
 @Component({
   selector: 'app-addcase',
@@ -25,7 +26,8 @@ export class AddcaseComponent {
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
-    public ageService: AgeInputService
+    public ageService: AgeInputService,
+    private templateService: TemplateDtoService
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
@@ -107,7 +109,8 @@ export class AddcaseComponent {
         sex: demogr_dto.sex
       };
       const hpoAnnotations: HpoTermDto[] = this.annotations.map(this.convertTextAnnotationToHpoAnnotation);
-      await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations);
+      let template_dto = this.templateService.getTemplate();
+      await this.configService.addNewRowToCohort(individual_dto, template_dto, hpoAnnotations);
       console.log("pmid DTO:", pmid_dto);
       console.log("annotations", this.annotations);
   }
