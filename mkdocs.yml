@@ -53,7 +53,8 @@ nav:
 
 markdown_extensions:
   - attr_list
-
+  - codehilite:
+      linenums: true
 
 
 markdown_external_links:

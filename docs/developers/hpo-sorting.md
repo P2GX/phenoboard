@@ -7,7 +7,7 @@ The logic of the code is implemented in the [GA4GH phetools](https://github.com/
 
 
 ## DFS
-<pre> ```
+```rust
  pub fn arrange_term_ids(&mut self, hpo_terms_for_curation: &Vec<TermId>) 
     -> Vec<TermId> {
         self.hpo_curation_term_id_set.clear();
@@ -26,7 +26,7 @@ The logic of the code is implemented in the [GA4GH phetools](https://github.com/
         ordered_term_id_list.extend(neoplasm_terms);
         ordered_term_id_list
     }
-    ``` </pre>
+``` 
     That is, we use a DFS to order the terms, but place all neoplasm terms after the other terms.
 
     ## Using rearranged terms in phenoboard
@@ -34,11 +34,11 @@ The logic of the code is implemented in the [GA4GH phetools](https://github.com/
     There are three situations in which we arrange terms
 
     1. When we initialize a new cohort, the user can provide seed terms. This is run through the
-    <pre>```rust run_text_mining```</pre> function, which calls <pre>PhenoboardSingleton::map_text_to_term_list</pre> to return JSON representing these hits.
+    ```rust run_text_mining```</pre> function, which calls ```rustPhenoboardSingleton::map_text_to_term_list``` to return JSON representing these hits.
     TODO - refactor tu use DTOs
 
     2. When we add a single new HPO term to a cohort. This is run through the
-    <pre>```rust add_hpo_term_to_cohort```</pre> function.
+    ```rust add_hpo_term_to_cohort``` function.
 
     3. When we add a new phenopacket row to a cohort. This is run through the 
      <pre>```rust add_new_row_to_cohort```</pre> function.
@@ -47,7 +47,7 @@ The logic of the code is implemented in the [GA4GH phetools](https://github.com/
      possibly edits). We also get the new information (new HPO term or new row). We transform the
      DTO into a domain object (``PheToolsTemplate``). We arrange the HPO Term ids to make a new Header object, and then we calculate a vector with the indices of the OLD columns in the NEW vector, allowing us to update simply. 
 
-<pre>
+
 ```rust
 pub fn add_hpo_term_to_cohort(
     &mut self,
@@ -99,4 +99,4 @@ pub fn add_hpo_term_to_cohort(
     }
 }
 ````
-</pre>
+
