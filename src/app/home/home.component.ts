@@ -7,6 +7,8 @@ import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
 import { PageService } from '../services/page.service';
+import { TemplateDtoService } from '../services/template_dto_service';
+import { TemplateDto } from '../models/template_dto';
 
 
 @Component({
@@ -22,6 +24,7 @@ export class HomeComponent {
     private ngZone: NgZone, 
     private configService: ConfigService,
     private backendStatusService: BackendStatusService,
+    private templateService: TemplateDtoService,
     private pageService: PageService) {}
 
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
@@ -130,6 +133,9 @@ export class HomeComponent {
     this.errorMessage = null;
     try {
       await this.configService.loadPtTemplate();
+      this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
+            this.templateService.setTemplate(data);
+      });
     } catch (error: any) {
       this.errorMessage = error?.message || 'An unexpected error occurred';
       console.error('Template load failed:', error);

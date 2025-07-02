@@ -131,7 +131,6 @@ export class ConfigService {
    * @param label - The human-readable label (e.g., "Seizures")
    */
   async addHpoToCohort(id: string, label: string, cohortDto: TemplateDto): Promise<void> {
-    console.log("addHpoToCohort KEYS passed to invoke:", Object.keys({ id, label, cohortDto }));
     return invoke<void>('add_hpo_term_to_cohort', 
         {hpoId: id, hpoLabel: label, cohortDto: cohortDto});
   }
@@ -140,14 +139,15 @@ export class ConfigService {
   async addNewRowToCohort(
       individual_dto: IndividualDto, 
       hpo_annotations: HpoTermDto[],
-      template_dto: TemplateDto): Promise<void> {
+      template_dto: TemplateDto): Promise<TemplateDto> {
     console.log("service - addNewRowToCohort, indiv", individual_dto);
-    console.log("KEYS passed to invoke:", Object.keys({ individual_dto, hpo_annotations }));
+    console.log("service - addNewRowToCohort, hpo", hpo_annotations);
+    console.log("template dto", template_dto);
 
-    return invoke<void>('add_new_row_to_cohort', 
-      {individual_dto: individual_dto, 
-        hpo_annotations: hpo_annotations,
-        template_dto: template_dto
+    return invoke<TemplateDto>('add_new_row_to_cohort', 
+      {individualDto: individual_dto, 
+        hpoAnnotations: hpo_annotations,
+        templateDto: template_dto
       });
   }
 

@@ -92,6 +92,7 @@ export class AddcaseComponent {
       this.unlisten();
       this.unlisten = null;
     }
+    
   }
 
   async submitNewRow(): Promise<void> {
@@ -108,10 +109,18 @@ export class AddcaseComponent {
         deceased: demogr_dto.deceased,
         sex: demogr_dto.sex
       };
-      const hpoAnnotations: HpoTermDto[] = this.annotations.map(this.convertTextAnnotationToHpoAnnotation);
+      const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
+      console.log("mapped HPO annotations", hpoAnnotations);
       let template_dto = this.templateService.getTemplate();
       if (template_dto != null) {
-        await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations, template_dto);
+        try {
+        const updated_dto = await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations, template_dto);
+        console.log("Updated cohort, " , updated_dto);
+        this.templateService.setTemplate(updated_dto);
+      } catch (error) {
+        console.log("Could not add new row: error TO DO DISPLAAY", error);
+      }
+
       } else {
         console.error("Attempt to add new row with null template_dto");
       }
@@ -121,8 +130,8 @@ export class AddcaseComponent {
     const status = payload as StatusDto;
     this.backend_status = status;
     this.hpoInitialized = status.hpoLoaded;
-    console.log('Received backend status:', status);
   }
+
   private handleAutocompletion(payload: unknown): void {
     this.ngZone.run(() => {
       try {
@@ -175,8 +184,8 @@ export class AddcaseComponent {
   addCustomOption(index: number) {
     const customValue = this.customOptions[index]?.trim();
     if (customValue && !this.predefinedOptions.includes(customValue)) {
-      this.predefinedOptions.push(customValue); // Add new option
-      this.selectedOptions[index] = customValue; // Select it
+      this.predefinedOptions.push(customValue); 
+      this.selectedOptions[index] = customValue;
     }
   }
 
@@ -226,14 +235,12 @@ handleMouseLeave() {
 
 
 openPopup(ann: TextAnnotationDto, event: MouseEvent) {
-  console.log("open popup ann=", ann);
   this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
   this.selectedAnnotation = ann;
   this.showPopup = true;
   // Get the clicked element's bounding box
   const target = event.target as HTMLElement;
   const rect = target.getBoundingClientRect();
-
   // Position relative to the page
   this.popupX = rect.left + window.scrollX;
   this.popupY = rect.bottom + window.scrollY;
@@ -260,7 +267,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
   /* About half of the TextAnnotationDto objects represent the text between the fenominal hits
     Here, we get a list of the fenominal hits (representing the HPO terms) for display in the table */
-  get fenominalAnnotations(): TextAnnotationDto[] {
+  getFenominalAnnotations(): TextAnnotationDto[] {
     return this.annotations.filter(a => a.isFenominalHit);
   }
 
@@ -313,6 +320,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
+    console.log("convertTextAnnotationToHpoAnnotation teAnn", textAnn);
     let status = 'na';
     if (textAnn.isObserved) {
       status = 'observed';

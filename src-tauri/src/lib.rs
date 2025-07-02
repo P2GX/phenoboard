@@ -29,9 +29,7 @@ pub fn run() {
             emit_backend_status,
             get_ppkt_store_json,
             get_phetools_template,
-            get_template_summary,
             hpo_can_be_updated,
-            get_backend_status,
             load_phetools_template,
             load_hpo,
             run_text_mining,
@@ -162,19 +160,6 @@ fn get_phetools_template(
 }
 
 
-
-
-
-#[tauri::command]
-fn get_template_summary(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<HashMap<String,String>, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.get_template_summary()
-}
-
-
 /// Check whether the HPO version we are using is the latest version
 /// by comparing the latest version online
 #[tauri::command]
@@ -282,16 +267,6 @@ fn get_table_columns_from_seeds(
         disease_id, disease_name, hgnc_id, gene_symbol, transcript_id, input_text)
 }
 
-/// TODO- this should be replaced by emitting signal after HPO is initialized
-#[tauri::command]
-fn get_backend_status(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<StatusDto, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    Ok(singleton.get_status())
-}
-
 
 #[tauri::command]
 async fn fetch_pmid_title(
@@ -392,11 +367,11 @@ fn add_new_row_to_cohort(
     individual_dto: IndividualBundleDto, 
     hpo_annotations: Vec<HpoTermDto>,
     template_dto: TemplateDto) 
--> Result<(), Vec<String>> {
+-> Result<TemplateDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
-
-    Ok(())
+    let updated_template = singleton.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
+    println!("rust, add_new_row: {:?}", updated_template);
+    Ok(updated_template)
 }
 

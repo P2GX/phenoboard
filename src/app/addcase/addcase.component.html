@@ -107,7 +107,7 @@
   </button>
 </div>
 <div *ngIf="showAnnotationTable" class="mt-4 p-2 border rounded bg-gray-50">
-  <strong>Annotated Terms: n={{ fenominalAnnotations.length }}</strong>
+  <strong>Annotated Terms: n={{ getFenominalAnnotations().length }}</strong>
   <!-- text-annotations.component.html -->
 <div class="max-h-64 overflow-y-auto border border-gray-300 rounded">
   <table class="table-auto w-full border-collapse text-xs leading-tight">
@@ -121,7 +121,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let annotation of fenominalAnnotations; let i = index">
+    <tr *ngFor="let annotation of getFenominalAnnotations(); let i = index">
       <td class="border px-1 py-[1px]">
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
   {{ annotation.termId }}

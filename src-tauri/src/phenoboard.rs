@@ -180,17 +180,7 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn get_template_summary(&self) 
-        -> Result<HashMap<String,String>, String> 
-    {
-        match &self.phetools {
-            Some(ptools) => ptools.get_template_summary(),
-            None => Err(format!("Phetools template not initialized"))
-        }
-    }
-
-    
-
+ 
     /// Get a DTO that summarizes the status of the data in the backend
     /// The DTO is synchronized with the corresponding tscript in app/models
     pub fn get_status(&self) -> StatusDto {
@@ -392,11 +382,11 @@ impl PhenoboardSingleton {
         individual_dto: IndividualBundleDto, 
         hpo_annotations: Vec<HpoTermDto>,
         template_dto: TemplateDto) 
-    -> std::result::Result<(), Vec<String>> {
+    -> std::result::Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
-                Ok(())
+                let updated_dto = ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
+                Ok(updated_dto)
             },
             None => {
                 Err(vec!["Phenotype template not initialized".to_string()])
