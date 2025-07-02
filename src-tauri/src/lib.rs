@@ -375,11 +375,12 @@ fn validate_template(
 fn add_hpo_term_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     hpo_id: &str,
-    hpo_label: &str) 
+    hpo_label: &str,
+    cohort_dto: TemplateDto) 
 -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label)
+    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
 }
 
 

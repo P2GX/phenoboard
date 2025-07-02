@@ -372,11 +372,12 @@ impl PhenoboardSingleton {
     pub fn add_hpo_term_to_cohort(
         &mut self,
         hpo_id: &str,
-        hpo_label: &str) 
+        hpo_label: &str,
+        cohort_dto: TemplateDto) 
     -> std::result::Result<(), Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label)?;
+                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)?;
                 Ok(())
             },
             None => {
@@ -409,7 +410,8 @@ impl PhenoboardSingleton {
                 );
                 match result {
                     Ok(pt_template) => {
-                        let template_dto = pt_template.get_template_dto();
+                        let template_dto = pt_template.get_template_dto()
+                            .map_err(|_| format!("Could not retrieve Template DTO"))?;
                         return Ok(template_dto);
                     }
                     Err(e) => {
