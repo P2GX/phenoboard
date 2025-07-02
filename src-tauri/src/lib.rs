@@ -275,7 +275,7 @@ fn get_table_columns_from_seeds(
     gene_symbol: &str,
     transcript_id: &str,
     input_text: &str,
-) -> Result<String, String> {
+) -> Result<TemplateDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.get_table_columns_from_seeds(

@@ -27,25 +27,25 @@ The logic of the code is implemented in the [GA4GH phetools](https://github.com/
         ordered_term_id_list
     }
 ``` 
-    That is, we use a DFS to order the terms, but place all neoplasm terms after the other terms.
+That is, we use a DFS to order the terms, but place all neoplasm terms after the other terms.
 
-    ## Using rearranged terms in phenoboard
+## Using rearranged terms in phenoboard
 
-    There are three situations in which we arrange terms
+There are three situations in which we arrange terms
 
-    1. When we initialize a new cohort, the user can provide seed terms. This is run through the
-    ```rust run_text_mining```</pre> function, which calls ```rustPhenoboardSingleton::map_text_to_term_list``` to return JSON representing these hits.
-    TODO - refactor tu use DTOs
+1. When we initialize a new cohort, the user can provide seed terms. This is run through the
+```rust run_text_mining``` function, which calls ```rust PhenoboardSingleton::map_text_to_term_list``` to return JSON representing these hits.
+TODO - refactor tu use DTOs
 
-    2. When we add a single new HPO term to a cohort. This is run through the
-    ```rust add_hpo_term_to_cohort``` function.
+2. When we add a single new HPO term to a cohort. This is run through the
+```rust add_hpo_term_to_cohort``` function.
 
-    3. When we add a new phenopacket row to a cohort. This is run through the 
-     <pre>```rust add_new_row_to_cohort```</pre> function.
+3. When we add a new phenopacket row to a cohort. This is run through the 
+```rust add_new_row_to_cohort``` function.
 
-     The latter two calls need to rearrange the order of the columns of the existing terms. The strategy is as follows. We expect to get a TemplateDto object with all of the data of the cohort (including
-     possibly edits). We also get the new information (new HPO term or new row). We transform the
-     DTO into a domain object (``PheToolsTemplate``). We arrange the HPO Term ids to make a new Header object, and then we calculate a vector with the indices of the OLD columns in the NEW vector, allowing us to update simply. 
+The latter two calls need to rearrange the order of the columns of the existing terms. The strategy is as follows. We expect to get a TemplateDto object with all of the data of the cohort (including
+possibly edits). We also get the new information (new HPO term or new row). We transform the
+DTO into a domain object (``PheToolsTemplate``). We arrange the HPO Term ids to make a new Header object, and then we calculate a vector with the indices of the OLD columns in the NEW vector, allowing us to update simply. 
 
 
 ```rust

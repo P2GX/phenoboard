@@ -320,8 +320,7 @@ impl PhenoboardSingleton {
                 let fenom_hits: Vec<FenominalHit> = fenominal.process(input_text);
                 let mut tid_list: Vec<TermId> = Vec::new();
                 for hit in fenom_hits {
-                    // TODO REFACTOR, do not use unwrap
-                    // FenominalHit should probably include a TermId
+                    // Fenominal hit.term_id can be unwrapped
                     let tid = TermId::from_str(&hit.term_id).unwrap();
                     tid_list.push(tid);
                 }
@@ -394,7 +393,7 @@ impl PhenoboardSingleton {
         gene_symbol: &str,
         transcript_id: &str,
         input_text: &str,
-    ) -> Result<String, String> {
+    ) -> Result<TemplateDto, String> {
         let fresult = self.map_text_to_term_list(input_text);
         match &self.ontology {
             Some(hpo) => {
@@ -409,9 +408,9 @@ impl PhenoboardSingleton {
                     fresult,
                 );
                 match result {
-                    Ok(matrix) => {
-                        let json_string = serde_json::to_string(&matrix).unwrap();
-                        return Ok(json_string);
+                    Ok(pt_template) => {
+                        let template_dto = pt_template.get_template_dto();
+                        return Ok(template_dto);
                     }
                     Err(e) => {
                         return Err(format!("Could not create matrix: {}", e));
