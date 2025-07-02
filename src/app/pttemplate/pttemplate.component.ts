@@ -81,13 +81,6 @@ export class PtTemplateComponent implements OnInit {
 
   contextMenuOptions: Option[] = [];
 
-
-
-
-
-  
-
-
   ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit")
     document.addEventListener('click', this.onClickAnywhere.bind(this));
@@ -100,7 +93,7 @@ export class PtTemplateComponent implements OnInit {
 
   loadTemplate(): void {
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
-      this.tableData = data;
+      this.templateService.setTemplate(data);
       this.cohortDescription = this.generateCohortDescriptionDto(data);
     });
   }
@@ -211,10 +204,15 @@ showError(message: string): void {
 
   async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
     console.log("addHpoTermToCohort = ", autocompletedTerm);
+    const template = this.templateService.getTemplate();
+    if (template == null) {
+      console.error("Attempt to add HPO Term to cohort but template is null");
+      return;
+    }
     if (autocompletedTerm) {
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
-        await this.configService.addHpoToCohort(id, label);
+        await this.configService.addHpoToCohort(id, label, template);
         this.showSuccess(`Successfully added ${label} (${id})`);
         this.loadTemplate();
       } catch (err) {

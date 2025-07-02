@@ -110,9 +110,11 @@ export class AddcaseComponent {
       };
       const hpoAnnotations: HpoTermDto[] = this.annotations.map(this.convertTextAnnotationToHpoAnnotation);
       let template_dto = this.templateService.getTemplate();
-      await this.configService.addNewRowToCohort(individual_dto, template_dto, hpoAnnotations);
-      console.log("pmid DTO:", pmid_dto);
-      console.log("annotations", this.annotations);
+      if (template_dto != null) {
+        await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations, template_dto);
+      } else {
+        console.error("Attempt to add new row with null template_dto");
+      }
   }
 
   private handleBackendStatus(payload: unknown): void {

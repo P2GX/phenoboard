@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}};
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{self, IndividualBundleDto, TemplateDto}};
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
@@ -380,7 +380,8 @@ fn add_hpo_term_to_cohort(
 -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
+    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)?;
+    Ok(())
 }
 
 
@@ -388,14 +389,14 @@ fn add_hpo_term_to_cohort(
 #[tauri::command]
 fn add_new_row_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    individualDto: IndividualBundleDto, 
-    hpoAnnotations: Vec<HpoTermDto>) 
--> Result<(), String> {
+    individual_dto: IndividualBundleDto, 
+    hpo_annotations: Vec<HpoTermDto>,
+    template_dto: TemplateDto) 
+-> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    println!("add_new_row_to_cohort HPO version {:?}", &singleton.get_hpo_version());
-    println!("individual_dto: {:?}", individualDto);
-    println!("hpo_annotations: {:?}", hpoAnnotations);
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
+
     Ok(())
 }
 

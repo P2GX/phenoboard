@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{template_dto::TemplateDto, validation_errors::ValidationErrors}, PheTools};
+use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors}, PheTools};
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -378,6 +378,24 @@ impl PhenoboardSingleton {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)?;
+                Ok(())
+            },
+            None => {
+                Err(vec!["Phenotype template not initialized".to_string()])
+            },
+        }
+    }
+
+    /// Add a new phenopacket (row) to the cohort
+    pub fn add_new_row_to_cohort(
+        &mut self,
+        individual_dto: IndividualBundleDto, 
+        hpo_annotations: Vec<HpoTermDto>,
+        template_dto: TemplateDto) 
+    -> std::result::Result<(), Vec<String>> {
+        match self.phetools.as_mut() {
+            Some(ptools) => {
+                ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
                 Ok(())
             },
             None => {
