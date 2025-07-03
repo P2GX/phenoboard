@@ -5,6 +5,7 @@ import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { IndividualDto, TemplateDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
+import { VariantListDto } from '../models/variant_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -149,6 +150,10 @@ export class ConfigService {
         hpoAnnotations: hpo_annotations,
         templateDto: template_dto
       });
+  }
+
+  async getVariantList(): Promise<VariantListDto> {
+    return invoke<VariantListDto>('get_variant_list_dto');
   }
 
 }

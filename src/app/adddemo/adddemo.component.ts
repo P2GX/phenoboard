@@ -18,13 +18,11 @@ export class AdddemoComponent {
 
   demograph: DemographDto = defaultDemographDto();
 
-  availableAgeTerms: string[] = ["na"];
   showCommentBox: boolean = false;
   showCommentModal: boolean = false;
   tempComment: string = '';
 
   allDataEntered: boolean = false;
-  isValidAge: any;
   ageInput: any;
   isAscii: boolean = true;
 
@@ -69,14 +67,14 @@ export class AdddemoComponent {
     this.showCommentModal = true;
   }
 
-confirmComment(): void {
-  this.demograph.comment = this.tempComment;
-  this.showCommentModal = false;
-}
+  confirmComment(): void {
+    this.demograph.comment = this.tempComment;
+    this.showCommentModal = false;
+  }
 
-cancelComment(): void {
-  this.showCommentModal = false;
-}
+  cancelComment(): void {
+    this.showCommentModal = false;
+  }
 
   submitDemo(hideDemograpic: boolean) {
     if (hideDemograpic) {
@@ -92,6 +90,13 @@ cancelComment(): void {
     return (
       this.demograph.individualId.length > 0
     );
+  }
+
+
+  reset(): void {
+    this.demograph = defaultDemographDto();
+    this.ageService.clearSelectedTerms();
+    this.allDataEntered = false;
   }
 
 }

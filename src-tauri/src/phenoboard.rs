@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors}, PheTools};
+use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantListDto}, PheTools};
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -502,6 +502,14 @@ impl PhenoboardSingleton {
     pub fn get_phetools_template(&self) -> Result<TemplateDto, String> {
         match &self.phetools {
             Some(phetools) => phetools.get_template_dto(),
+            None => Err(format!("phetools not initialized")),
+        }
+    }
+
+
+    pub fn get_variant_list_dto(&self) -> Result<VariantListDto, String> {
+        match &self.phetools {
+            Some(phetools) => phetools.get_variant_list_dto(),
             None => Err(format!("phetools not initialized")),
         }
     }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FooterComponent } from './footer/footer.component';
 import { HomeComponent } from './home/home.component';
 import { AddcaseComponent } from "./addcase/addcase.component";
-import { SettingsComponent } from "./settings/settings.component";
+import { VariantListComponent } from "./variant_list/variant_list.component";
 import { TableComponent } from "./table/table.component";
 import { HelpComponent } from "./help/help.component";
 import { PhetoolsComponent } from "./phetools/phetools.component";
@@ -15,7 +15,7 @@ import { Page, PageService } from './services/page.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, AddcaseComponent, SettingsComponent, PhetoolsComponent, PtTemplateComponent, NavbarComponent],
+  imports: [CommonModule, FooterComponent, HomeComponent, TableComponent, HelpComponent, AddcaseComponent, VariantListComponent, PhetoolsComponent, PtTemplateComponent, NavbarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

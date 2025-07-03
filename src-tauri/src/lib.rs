@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{self, IndividualBundleDto, TemplateDto}};
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{self, IndividualBundleDto, TemplateDto}, variant_dto::VariantListDto};
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
@@ -375,3 +375,13 @@ fn add_new_row_to_cohort(
     Ok(updated_template)
 }
 
+
+
+#[tauri::command]
+fn get_variant_list_dto(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>) 
+-> Result<VariantListDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.get_variant_list_dto()
+}

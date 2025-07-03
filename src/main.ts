@@ -7,12 +7,12 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';  // <-- Import this
 
-import { routes } from './app/app.routes';
+//import { routes } from './app/app.routes';
 
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes),
+    //provideRouter(routes),
     importProvidersFrom(
       BrowserAnimationsModule,
       MatMenuModule,

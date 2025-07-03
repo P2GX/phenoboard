@@ -117,10 +117,9 @@ export class AddcaseComponent {
         const updated_dto = await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations, template_dto);
         console.log("Updated cohort, " , updated_dto);
         this.templateService.setTemplate(updated_dto);
-      } catch (error) {
-        console.log("Could not add new row: error TO DO DISPLAAY", error);
-      }
-
+        } catch (error) {
+          console.log("Could not add new row: error TO DO DISPLAAY", error);
+        }
       } else {
         console.error("Attempt to add new row with null template_dto");
       }
@@ -316,6 +315,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     if (autocompletedTerm) {
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       await this.configService.submitAutocompleteHpoTerm(id, label);
+      this.clearError();
+      this.resetWindow();
+      this.demographics_component.reset();
+
     }
   }
 

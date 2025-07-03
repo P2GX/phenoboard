@@ -10,26 +10,32 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { VariantDtoService } from '../services/variant_service';
 
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-variant_list',
   standalone: true,
   imports:[CommonModule, FormsModule, MatButtonModule, MatCardModule, MatInputModule,
     MatFormFieldModule, MatOption, MatSelectModule],
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css']
+  templateUrl: './variant_list.component.html',
+  styleUrls: ['./variant_list.component.css']
 })
-export class SettingsComponent implements OnInit {
+export class VariantListComponent implements OnInit {
   hpoJsonPath: string | null = null;
   hpocuratorSettingsPath: string | null = null;
   hpoVersion: string | null = null;
   isLoading:boolean = false;
 
-  constructor(private configService: ConfigService, private cdRef: ChangeDetectorRef) {}
+  constructor(private configService: ConfigService, private variantService: VariantDtoService) {}
 
   async ngOnInit() {
     console.log("ngOnInit");
+     this.configService.getVariantList().subscribe({
+      next: (variantList) => this.variantService.setVariantList(variantList),
+      error: (err) => console.error('Failed to load variant list:', err),
+    });
+  }
   }
 variant: string = '';
   isHgvs: boolean = false;

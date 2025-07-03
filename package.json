@@ -35,7 +35,7 @@
     "@angular-devkit/schematics": "^17.0.0",
     "@angular/cli": "^17.3.17",
     "@angular/compiler-cli": "^17.3.12",
-    "@nx/angular": "20.6.0",
+    "@nx/angular": "^20.8.2",
     "@nx/workspace": "20.6.0",
     "@schematics/angular": "^17.0.0",
     "@tauri-apps/cli": "^2.3.1",

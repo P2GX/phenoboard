@@ -55,7 +55,7 @@ export class NavbarComponent {
     label: 'Edit Template',
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
-  { id: 'settings', label: 'Edit variants' },
+  { id: 'variant_list', label: 'Edit variants' },
   { id: 'help', label: 'Help' }
 ];
 
