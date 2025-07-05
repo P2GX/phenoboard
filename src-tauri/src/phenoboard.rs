@@ -521,9 +521,12 @@ impl PhenoboardSingleton {
     }
 
 
-    pub fn get_variant_list_dto(&self) -> Result<VariantListDto, String> {
-        match &self.phetools {
-            Some(phetools) => phetools.get_variant_list_dto(),
+    pub fn validate_variant_list_dto(
+        &mut self,
+        variant_dto_list: Vec<VariantDto>) 
+    -> Result<Vec<VariantDto>, String> {
+        match self.phetools.as_mut() {
+            Some(phetools) => phetools.validate_variant_dto_list( variant_dto_list),
             None => Err(format!("phetools not initialized")),
         }
     }

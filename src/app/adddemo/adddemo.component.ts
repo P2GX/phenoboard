@@ -23,6 +23,7 @@ export class AdddemoComponent {
   tempComment: string = '';
 
   allDataEntered: boolean = false;
+  isValidAge: any;
   ageInput: any;
   isAscii: boolean = true;
 

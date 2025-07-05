@@ -18,6 +18,7 @@ import { TemplateDtoService } from '../services/template_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
 import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-addcase',
@@ -93,6 +94,11 @@ export class AddcaseComponent {
         this.ngZone.run(() => this.handleAutocompletion(event.payload));
       })
     );
+    // 
+    this.templateService.template$.pipe(take(1)).subscribe(() => {
+      // This makes sure the template service is fully available
+    });
+  
   }
 
   

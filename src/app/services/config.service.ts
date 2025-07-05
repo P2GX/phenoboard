@@ -5,7 +5,7 @@ import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantBundleDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
-import { VariantDto, VariantListDto } from '../models/variant_dto';
+import { VariantDto } from '../models/variant_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -154,8 +154,12 @@ export class ConfigService {
       });
   }
 
-  async getVariantList(): Promise<VariantListDto> {
-    return invoke<VariantListDto>('get_variant_list_dto');
+  async validateVariantDtoList(variantList: VariantDto[]): Promise<VariantDto[]> {
+    return invoke<VariantDto[]>('validate_variant_list_dto', {
+        variantDtoList: variantList
+    });
   }
+
+
 
 }

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,8 +8,7 @@ import { MatOption } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { VariantDtoService } from '../services/variant_service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
 import { StructuralType, VariantDto } from '../models/variant_dto';
 import { TemplateDtoService } from '../services/template_dto_service';
@@ -36,7 +35,6 @@ export class AddVariantComponent {
   
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.templateService.getAllGeneSymbolTranscriptPairs();
-    console.log("addvariant, ngOnInit, options=", this.geneOptions);
   }
 
   /** This will emit an event that can be captured by the parent component (see method addVariantToDto)  */
@@ -54,6 +52,7 @@ export class AddVariantComponent {
     {'label':'insertion', 'id':'INS'},
     {'label':'duplication', 'id':'DUP'},
     {'label':'inversion', 'id':'INV'},
+    {'label':'translocation', 'id':'TRANSL'},
     {'label':'sv (general)', 'id':'SV'},];
 
   geneOptions: GeneTranscriptDto[] = []; 
@@ -80,16 +79,11 @@ export class AddVariantComponent {
     }
   }
 
-
   resetVars(): void {
     this.errorMessage = null;
     this.variantValidated = false;
     this.isHgvs = false;
   }
-
-
-
-
 
   async submitSvDto(): Promise<void> {
     if (!this.variant || !this.selectedGene) {

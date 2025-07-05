@@ -1,7 +1,48 @@
-<h1>Variant Validation</h1>
+<div class="primary-box">
+<h1 class="h1-primary">Variant Validation</h1>
 
-<button mat-raised-button color="primary" (click)="openVariantDialog()">
-  ➕ Add Variant
-</button>
+<div *ngIf="variantListDto.length > 0">
+  <table class="min-w-full border mt-4 text-sm">
+    <thead>
+      <tr class="bg-gray-100">
+        <th class="px-4 py-2 text-left">Gene</th>
+        <th class="px-4 py-2 text-left">Variant</th>
+        <th class="px-4 py-2 text-left">Transcript</th>
+        <th class="px-4 py-2 text-left">HGNC ID</th>
+        <th class="px-4 py-2 text-left">Type</th>
+        <th class="px-4 py-2 text-left">Validated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let variant of variantListDto" class="border-t">
+        <td class="px-4 py-1">{{ variant.gene_symbol }}</td>
+        <td class="px-4 py-1">{{ variant.variant_string }}</td>
+        <td class="px-4 py-1">{{ variant.transcript || 'n/a' }}</td>
+        <td class="px-4 py-1">{{ variant.hgnc_id }}</td>
+        <td class="px-4 py-1">
+          {{ variant.is_structural ? 'Structural' : 'Sequence' }}
+        </td>
+        <td class="px-4 py-1">
+          <span
+            class="inline-block w-2.5 h-2.5 rounded-full mr-1"
+            [ngClass]="{
+              'bg-green-500': variant.validated,
+              'bg-red-500': !variant.validated
+            }"
+          ></span>
+          {{ variant.validated ? 'Yes' : 'No' }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
+<div *ngIf="variantListDto.length == 0">
+  <p class="text-gray-400 mt-2">No variants available2  .</p>
+</div>
 
+<div *ngIf="errorMessage">
+  <p class="text-red-400 mt-2">Error: {{errorMessage}}</p>
+</div>
+
+</div>

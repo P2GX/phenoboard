@@ -45,7 +45,8 @@ pub fn run() {
             validate_template,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            submit_variant_dto
+            submit_variant_dto,
+            validate_variant_list_dto
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -380,10 +381,12 @@ fn add_new_row_to_cohort(
 
 
 #[tauri::command]
-fn get_variant_list_dto(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>) 
--> Result<VariantListDto, String> {
+fn validate_variant_list_dto(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    variant_dto_list: Vec<VariantDto>) 
+-> Result<Vec<VariantDto>, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.get_variant_list_dto()
+    let mut singleton = singleton_arc.lock().unwrap();
+   
+    singleton.validate_variant_list_dto( variant_dto_list) 
 }

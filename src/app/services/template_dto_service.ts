@@ -3,6 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import type { TemplateDto } from '../models/template_dto';
 import { GeneTranscriptDto } from '../models/gene_dto';
 import { ConfigService } from './config.service';
+import { VariantDto } from '../models/variant_dto';
 
 @Injectable({ providedIn: 'root' })
 export class TemplateDtoService {
@@ -55,4 +56,36 @@ export class TemplateDtoService {
                 return true;
             });
         }
+
+  
+    /** Return a list of all variant strings represented in the cohort */
+    getVariantDtos(): VariantDto[] {
+        const template = this.getTemplate();
+        if (template == null) {
+            return [];
+        }
+        const seen = new Set<string>();
+        const dto_list: VariantDto[] = [];
+
+        for (const row of template.rows) {
+            for (const geneVar of row.geneVarDtoList) {
+                if (geneVar.allele1 == "na" || seen.has(geneVar.allele1)) {
+                    continue;
+                }
+                seen.add(geneVar.allele1);
+                const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
+                const is_sv = prefixes.some(prefix => geneVar.allele1.startsWith(prefix));
+                const dto = {
+                        variant_string: geneVar.allele1,
+                        atranscript: geneVar.transcript,
+                        hgnc_id: geneVar.hgncId,
+                        gene_symbol: geneVar.geneSymbol,
+                        validated: is_sv ? true : false,
+                        is_structural: is_sv,
+                };
+                dto_list.push(dto);
+            }
+        }
+        return dto_list;
+    }
 }
