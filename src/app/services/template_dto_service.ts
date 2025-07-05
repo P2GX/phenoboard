@@ -57,7 +57,7 @@ export class TemplateDtoService {
             });
         }
 
-  
+
     /** Return a list of all variant strings represented in the cohort */
     getVariantDtos(): VariantDto[] {
         const template = this.getTemplate();
@@ -77,7 +77,7 @@ export class TemplateDtoService {
                 const is_sv = prefixes.some(prefix => geneVar.allele1.startsWith(prefix));
                 const dto = {
                         variant_string: geneVar.allele1,
-                        atranscript: geneVar.transcript,
+                        transcript: geneVar.transcript,
                         hgnc_id: geneVar.hgncId,
                         gene_symbol: geneVar.geneSymbol,
                         validated: is_sv ? true : false,

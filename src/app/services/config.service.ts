@@ -154,6 +154,11 @@ export class ConfigService {
       });
   }
 
+  /**
+   * Validate variants in the back end and return the results for display.
+   * @param variantList: Variants derived from the template in the frontend
+   * @returns List of the same variants, with the validated flag set to true if validations was 
+   */
   async validateVariantDtoList(variantList: VariantDto[]): Promise<VariantDto[]> {
     return invoke<VariantDto[]>('validate_variant_list_dto', {
         variantDtoList: variantList

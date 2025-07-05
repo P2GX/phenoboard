@@ -4,7 +4,7 @@ export interface VariantDto {
     /** Either an HGVS string (e.g., c.123T>G) or a structural variant string like "DEL: deletion of exon 5" */
     variant_string: string;
     /** Transcript of reference for the gene (e.g. NM_000123.2). Not required for structural variants. */
-    transcript?: string | null;
+    transcript: string;
     /** HGNC identifier, e.g., HGNC:123 */
     hgnc_id: string;
     /** Gene symbol recommended by HGNC, e.g., FBN1 */
