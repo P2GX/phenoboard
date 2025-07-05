@@ -3,9 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { IndividualDto, TemplateDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
-import { VariantListDto } from '../models/variant_dto';
+import { VariantDto, VariantListDto } from '../models/variant_dto';
 
 @Injectable({
   providedIn: 'root'
@@ -117,8 +117,8 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
-  async submitHgvs(transcript: string, hgvs: string): Promise<string> {
-    return invoke<string>('submit_hgvs', {transcript: transcript, hgvs: hgvs});
+  async submitVariantDto(dto: VariantDto): Promise<VariantDto> {
+    return invoke<VariantDto>('submit_variant_dto', {variantDto: dto});
   }
   
   async validateCohort(cohort_dto: TemplateDto): Promise<void> {
@@ -140,6 +140,7 @@ export class ConfigService {
   async addNewRowToCohort(
       individual_dto: IndividualDto, 
       hpo_annotations: HpoTermDto[],
+      gene_variant_list: GeneVariantBundleDto[],
       template_dto: TemplateDto): Promise<TemplateDto> {
     console.log("service - addNewRowToCohort, indiv", individual_dto);
     console.log("service - addNewRowToCohort, hpo", hpo_annotations);
@@ -148,6 +149,7 @@ export class ConfigService {
     return invoke<TemplateDto>('add_new_row_to_cohort', 
       {individualDto: individual_dto, 
         hpoAnnotations: hpo_annotations,
+        geneVariantList: gene_variant_list,
         templateDto: template_dto
       });
   }

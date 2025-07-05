@@ -4,13 +4,13 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self}};
-use std::{collections::HashMap, path::Path, str::FromStr, sync::Arc};
+use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantListDto}, PheTools};
+use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::{VariantDto, VariantListDto}}, PheTools};
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -165,12 +165,25 @@ impl PhenoboardSingleton {
     }
 
 
+    /// The template files are located in a subsub directory of the project directory.
+    /// This function retrieves a PathBuf that points to the project directory.
+    fn get_grandparent_dir(file_path: &str) -> Option<PathBuf> {
+        let path = Path::new(file_path);
+        path.parent()?.parent().map(|p| p.to_path_buf())
+    }
+
+
     pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(excel_file) {
                 Ok(_) => {
                     self.pt_template_path = Some(excel_file.to_string());
-                    return Ok(());
+                    let project_dir = Self::get_grandparent_dir(excel_file);
+                    if project_dir.is_none() {
+                        return Err(format!("Could not load project directory for {excel_file}"));
+                    }
+                    let project_dir = project_dir.unwrap();
+                    ptools.initialize_project_dir(project_dir)
                 }
                 Err(msg) => {
                     return Err(msg);
@@ -381,11 +394,12 @@ impl PhenoboardSingleton {
         &mut self,
         individual_dto: IndividualBundleDto, 
         hpo_annotations: Vec<HpoTermDto>,
+        gene_variant_list: Vec<GeneVariantBundleDto>,
         template_dto: TemplateDto) 
     -> std::result::Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                let updated_dto = ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
+                let updated_dto = ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, gene_variant_list, template_dto)?;
                 Ok(updated_dto)
             },
             None => {
@@ -510,6 +524,13 @@ impl PhenoboardSingleton {
     pub fn get_variant_list_dto(&self) -> Result<VariantListDto, String> {
         match &self.phetools {
             Some(phetools) => phetools.get_variant_list_dto(),
+            None => Err(format!("phetools not initialized")),
+        }
+    }
+
+    pub fn submit_variant_dto(&mut self, dto: VariantDto) -> Result<VariantDto, String> {
+        match self.phetools.as_mut() {
+            Some(phetools) => phetools.validate_variant(dto),
             None => Err(format!("phetools not initialized")),
         }
     }

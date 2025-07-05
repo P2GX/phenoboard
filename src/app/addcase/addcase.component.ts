@@ -9,25 +9,31 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { IndividualDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto } from '../models/template_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
-import { HpoAnnotationDto, HpoTermDto } from '../models/hpo_annotation_dto';
+import { HpoTermDto } from '../models/hpo_annotation_dto';
+import { MatIconModule } from '@angular/material/icon';
 import { TemplateDtoService } from '../services/template_dto_service';
+import { AddVariantComponent } from "../addvariant/addvariant.component";
+import { VariantDto } from '../models/variant_dto';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent, HpoAutocompleteComponent],
+  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent, HpoAutocompleteComponent, MatIconModule],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
     public ageService: AgeInputService,
-    private templateService: TemplateDtoService
+    private templateService: TemplateDtoService,
+    private dialog: MatDialog
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
   @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
@@ -44,7 +50,10 @@ export class AddcaseComponent {
   showPopup: boolean = false;
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
-  
+
+  allele1: VariantDto | null = null;
+  allele2: VariantDto | null = null;
+ 
 
   selectionRange: Range | null = null;
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
@@ -110,11 +119,19 @@ export class AddcaseComponent {
         sex: demogr_dto.sex
       };
       const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
-      console.log("mapped HPO annotations", hpoAnnotations);
+      const geneVariantBundle = this.createGeneVariantBundleDto();
+      if (geneVariantBundle == null) {
+        this.errorString = "Could not create Gene/Variant bundle";
+        return;
+      }
       let template_dto = this.templateService.getTemplate();
       if (template_dto != null) {
         try {
-        const updated_dto = await this.configService.addNewRowToCohort(individual_dto, hpoAnnotations, template_dto);
+        const updated_dto = await this.configService.addNewRowToCohort(
+            individual_dto, 
+            hpoAnnotations, 
+            [geneVariantBundle],
+            template_dto);
         console.log("Updated cohort, " , updated_dto);
         this.templateService.setTemplate(updated_dto);
         } catch (error) {
@@ -340,5 +357,64 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       entry: status,
     };
   }
+
+  handleVariantAllele1(variant: VariantDto) {
+    this.allele1 = variant;
+  }
+
+  handleVariantAllele2(variant: VariantDto) {
+    this.allele2 = variant;
+  }
+
+  openAddAllele1Dialog() {
+    console.log("openAddAllele1Dialog-top")
+    const dialogRef = this.dialog.open(AddVariantComponent, {
+      width: '600px'
+    });
+
+    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+      if (result) {
+        this.allele1 = result;
+        console.log('allele1 added:', result);
+      } else {
+        console.error("Error in openAddAllele1Dialog")
+      }
+    });
+  }
+
+  openAddAllele2Dialog() {
+    const dialogRef = this.dialog.open(AddVariantComponent, {
+      width: '600px'
+    });
+
+    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+      if (result) {
+        this.allele2 = result;
+        console.log('Variant added:', result);
+      } else {
+        console.error("Error in openAddAllele2Dialog")
+      }
+    });
+  }
+
+
+  createGeneVariantBundleDto(): GeneVariantBundleDto | null {
+    if (this.allele1 == null || this.allele1.validated) {
+      return null; // need at least allele1 to move forward
+    }
+    let allele2_string = "na";
+    if (this.allele2 != null && this.allele2.validated) {
+      allele2_string = this.allele2.variant_string
+    }
+    return  {
+      hgncId: this.allele1.hgnc_id,
+      geneSymbol: this.allele1.gene_symbol,
+      transcript: this.allele1.transcript || "na",
+      allele1: this.allele1.variant_string,
+      allele2: allele2_string,
+      variantComment: '',
+    }
+  }
+  
 
 }

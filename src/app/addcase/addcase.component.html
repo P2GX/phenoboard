@@ -3,13 +3,13 @@
 <app-adddemo #adddemoComponent (dataEnteredChange)="handleDemographicData($event)"></app-adddemo>
 <div class="w-full mx-auto p-4">
   <div *ngIf="showTextArea">
-  <label class="block mb-2 text-sm font-medium text-gray-700">
+  <label class="label-primary">
       Paste clinical text
   </label>
   <div class="flex flex-col items-start">
     <textarea
       [(ngModel)]="pastedText"
-      rows="20"
+      rows="15"
       placeholder="Paste here with ctrl-V..."
       class="w-[100%] border-4 border-gray-400 rounded-md p-3 text-sm font-mono resize-y focus:outline-none focus:border-blue-500"
     ></textarea>
@@ -206,6 +206,52 @@
   ><span card-title>Add new HPO term</span></app-hpoautocomplete>
   <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
 </div>
+<!-- ALLELE 1 -->
+<div class="flex items-center gap-4 w-full">
+  <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 1</button>
+  <span *ngIf="allele1" class="flex items-center gap-2 text-sm text-gray-700">
+  <span
+    class="inline-block w-2.5 h-2.5 rounded-full"
+    [ngClass]="{
+      'bg-green-500': allele1.validated,
+      'bg-red-500': !allele1.validated
+    }"
+  ></span>
+  {{ allele1.variant_string }} ({{allele1.gene_symbol}})
+
+  <button mat-icon-button 
+          *ngIf="allele1" 
+          (click)="allele1 = null" 
+          aria-label="Clear variant" 
+          class="flex-shrink p-0 w-5 h-5">
+    <mat-icon>close</mat-icon>
+  </button>
+  </span>
+   <p *ngIf="!allele1" class="text-gray-400">na</p>
+</div>
+<!-- ALLELE 2 -->
+<div class="flex items-center gap-4 w-full">
+  <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 2</button>
+  <span *ngIf="allele2" class="flex items-center gap-2 text-sm text-gray-700">
+  <span
+    class="inline-block w-2.5 h-2.5 rounded-full"
+    [ngClass]="{
+      'bg-green-500': allele2.validated,
+      'bg-red-500': !allele2.validated
+    }"
+  ></span>
+  {{ allele2.variant_string }} ({{allele2.gene_symbol}})
+  <button mat-icon-button 
+    *ngIf="allele2" 
+    (click)="allele2 = null" 
+    aria-label="Clear variant" 
+    class="flex-shrink p-0 w-5 h-5">
+    <mat-icon>close</mat-icon>
+  </button>
+  </span>
+  <p *ngIf="!allele2" class="text-gray-400">na</p>
+</div>
+
 <div class="space-y-1">
     <button
       (click)="submitNewRow()"

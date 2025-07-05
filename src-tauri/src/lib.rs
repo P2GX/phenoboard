@@ -5,16 +5,16 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{self, IndividualBundleDto, TemplateDto}, variant_dto::VariantListDto};
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::{VariantDto, VariantListDto}};
 use phenoboard::PhenoboardSingleton;
 use rfd::FileDialog;
 use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_dialog::DialogExt;
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::sync::{Arc, Mutex};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::StatusDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -44,7 +44,8 @@ pub fn run() {
             submit_autocompleted_hpo_term,
             validate_template,
             add_hpo_term_to_cohort,
-            add_new_row_to_cohort
+            add_new_row_to_cohort,
+            submit_variant_dto
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -86,19 +87,18 @@ fn load_hpo(
 }
 
 
+/// Allow the user to choose an existing PheTools template file from the file system and load it
 #[tauri::command]
 async fn load_phetools_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
 ) -> Result<(), String> {
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    println!("load_phetools_template");
     std::thread::spawn(move || {
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                println!("load_phetools_template got string: {}", &path_str);
                 match singleton.load_excel_template(&path_str) {
                     Ok(_) => {
                         let status = singleton.get_status();
@@ -323,18 +323,15 @@ fn submit_autocompleted_hpo_term(
 
 
 #[tauri::command]
-fn submit_hgvs(
+fn submit_variant_dto(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     app: AppHandle,
-    transcript: &str,
-    hgvs: &str,
-) -> Result<(), String> {
-       // let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-        //let singleton = singleton_arc.lock().unwrap();
-        //let _ = app.emit("autocompletion", dto);
-        println!("{transcript} - {hgvs} TODO submit hgvs");
-        Ok(())
-    }
+    variant_dto: VariantDto,
+) -> Result<VariantDto, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.submit_variant_dto(variant_dto) 
+}
 
 #[tauri::command]
 fn validate_template(
@@ -366,11 +363,16 @@ fn add_new_row_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     individual_dto: IndividualBundleDto, 
     hpo_annotations: Vec<HpoTermDto>,
+    gene_variant_list: Vec<GeneVariantBundleDto>,
     template_dto: TemplateDto) 
 -> Result<TemplateDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    let updated_template = singleton.add_new_row_to_cohort(individual_dto, hpo_annotations, template_dto)?;
+    let updated_template = singleton.add_new_row_to_cohort(
+        individual_dto, 
+        hpo_annotations, 
+        gene_variant_list,
+        template_dto)?;
     println!("rust, add_new_row: {:?}", updated_template);
     Ok(updated_template)
 }

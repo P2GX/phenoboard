@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { VariantDtoService } from '../services/variant_service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { AddVariantComponent } from '../addvariant/addvariant.component';
 
 
 @Component({
@@ -22,58 +24,36 @@ import { VariantDtoService } from '../services/variant_service';
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent implements OnInit {
+
   hpoJsonPath: string | null = null;
   hpocuratorSettingsPath: string | null = null;
   hpoVersion: string | null = null;
   isLoading:boolean = false;
 
-  constructor(private configService: ConfigService, private variantService: VariantDtoService) {}
+  constructor(private configService: ConfigService, private variantService: VariantDtoService, private dialog: MatDialog) {}
 
   async ngOnInit() {
-    console.log("ngOnInit");
-     this.configService.getVariantList().subscribe({
-      next: (variantList) => this.variantService.setVariantList(variantList),
-      error: (err) => console.error('Failed to load variant list:', err),
-    });
-  }
-  }
-variant: string = '';
-  isHgvs: boolean = false;
-
-  structuralTypes = ['deletion', 'insertion', 'duplication', 'inversion'];
-  selectedStructuralType: string | null = null;
-
-  geneOptions = ['BRCA1', 'TP53', 'CFTR', 'MYH7']; // Replace with dynamic options
-  selectedGene: string | null = null;
-
-  onVariantInput(): void {
-    this.isHgvs = this.variant.trim().startsWith('c.');
+    /*this.configService.getVariantList()
+      .then(variantList => this.variantService.setVariantList(variantList))
+      .catch(err => console.error('Failed to load variant list:', err));*/
+      console.log("VariantListComponent - ngOnInit")
   }
 
-  submitHgvs(): void {
-    // For now just use this
-    //NM_021957.4(GYS2):c.736C>T (p.Arg246Ter)
-    const transcript = 'NM_021957.4';
-    const symbol = 'GYS2'
-    const hgvs = 'c.736C>T'
+    openVariantDialog(): void {
+      console.log("VariantListComponent - openVariantDialog")
+      const dialogRef = this.dialog.open(AddVariantComponent, {
+        width: '600px',
+        data: {
+          // optionally pass initial values here
+        }
+      });
 
-    console.log('Submitting HGVS:', this.variant, this.selectedGene);
-    // send to Rust via invoke or emit
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          // Handle submitted variant (e.g. add to list)
+          console.log('Variant submitted:', result);
+        }
+      });
   }
-
-  submitSv(): void {
-    console.log('Submitting SV:', this.variant, this.selectedGene, this.selectedStructuralType);
-    // send to Rust via invoke or emit
-  }
-
-  onenVariantValidator(event: MouseEvent): void {
-    event.preventDefault();
-    const vv_url = "https://variantvalidator.org/";
-    this.openLink(vv_url);
-  }
-
-  async openLink(url: string) {
-    await openUrl(url);
-  }
-
 }
+

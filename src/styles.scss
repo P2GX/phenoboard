@@ -77,6 +77,10 @@ button.btn-outline-cancel {
   @apply text-base md:text-lg text-gray-600 leading-relaxed;
 }
 
+.label-primary {
+  @apply text-sm md:text-base font-medium text-gray-700 tracking-wide;
+}
+
 .primary-divider {
   @apply border-t border-gray-200 dark:border-gray-700 
     mt-2

@@ -16,6 +16,13 @@ export interface VariantDto {
 }
 
 
+
 export interface VariantListDto {
     variantDtoList: VariantDto[]
 } 
+
+
+export interface StructuralType {
+    label: string;
+    id: string;
+}

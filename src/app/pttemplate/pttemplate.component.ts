@@ -44,6 +44,7 @@ export class PtTemplateComponent implements OnInit {
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
 
   tableData: TemplateDto | null = null;
+  selectedCell: any = null;
   hoveredIndividual: IndividualDto | null = null;
   hoveredDisease: DiseaseDto | null = null;
   hoveredGene: GeneVariantBundleDto | null = null;
@@ -59,7 +60,7 @@ export class PtTemplateComponent implements OnInit {
   contextMenuVisible: boolean = false;
   contextMenuX:number = 0;
   contextMenuY: number = 0;
-  selectedCell: any = null;
+  
   pendingHpoIndex: number | null = null;
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
@@ -89,13 +90,30 @@ export class PtTemplateComponent implements OnInit {
     this.templateService.template$.subscribe(template => {
       this.tableData = template;
     });
+    this.cohortDescription = this.generateCohortDescriptionDto(this.tableData);
   }
 
-  loadTemplate(): void {
+  async ngOnDestroy(): Promise<void> {
+  if (this.tableData) {
+    await this.templateService.saveTemplate();
+  }
+}
+
+  /* Load the Phetools template from the backend only if the templateService 
+    has not yet been initialized. */
+  async loadTemplate(): Promise<void> {
+    const existing = this.templateService.getTemplate();
+    if (!existing) {
+      this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
+        this.templateService.setTemplate(data);
+        });
+    }
+  }
+
+  async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
-      this.templateService.setTemplate(data);
-      this.cohortDescription = this.generateCohortDescriptionDto(data);
-    });
+        this.templateService.setTemplate(data);
+  });
   }
 
 
@@ -146,7 +164,10 @@ openDiseaseEditor(disease: DiseaseDto) {
   }
 
 
-  generateCohortDescriptionDto(tableData: TemplateDto): CohortDescriptionDto | null {
+  generateCohortDescriptionDto(tableData: TemplateDto | null): CohortDescriptionDto | null {
+    if (tableData == null) {
+      return null;
+    }
     const row = tableData.rows[0];
     const disease = row?.diseaseDtoList?.[0];
     const gene = row?.geneVarDtoList?.[0];
@@ -204,12 +225,15 @@ showError(message: string): void {
 
   async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
     console.log("addHpoTermToCohort = ", autocompletedTerm);
+    
     const template = this.templateService.getTemplate();
     if (template == null) {
       console.error("Attempt to add HPO Term to cohort but template is null");
       return;
     }
     if (autocompletedTerm) {
+      // save any chancgs from the front end first
+      this.templateService.saveTemplate();
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
         await this.configService.addHpoToCohort(id, label, template);
@@ -262,9 +286,14 @@ showError(message: string): void {
         this.hpoFocusRange = parseInt(parts[1], 10);
       }
     } else if (this.selectedCell) {
+      console.log('selectedCell in tableData?', this.tableData?.rows.some(r => r.hpoData.includes(this.selectedCell)));
       // if we get here, then the option is 'observed', 'na', 'P4M', etc
       this.focusedHpoIndex = null;
       this.selectedCell.value = option;
+      if (this.tableData) { // persist the data to the service
+        console.log("trying to persist");
+        this.templateService.setTemplate({ ...this.tableData });
+      }
     } 
     this.pendingHpoIndex = null;
     this.contextMenuVisible = false;
