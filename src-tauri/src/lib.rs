@@ -47,7 +47,8 @@ pub fn run() {
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
             submit_variant_dto,
-            validate_variant_list_dto
+            validate_variant_list_dto,
+            export_ppkt
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -352,6 +353,18 @@ fn save_template(
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.save_template(&cohort_dto).map_err(|verrs| verrs.errors().clone())
 }
+
+#[tauri::command]
+fn export_ppkt(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort_dto: TemplateDto) -> Result<(), String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.export_ppkt(cohort_dto)
+}
+
+
+
 
 
 #[tauri::command]

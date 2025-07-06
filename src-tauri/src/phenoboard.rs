@@ -430,7 +430,34 @@ impl PhenoboardSingleton {
         }
     }
 
+    fn get_phenopackets_output_dir(&self) -> Option<PathBuf> {
+        let default_dir = self.phetools.as_ref()?.get_default_cohort_dir().map(|mut dir| {
+            dir.push("phenopackets");
+            dir
+        })?;
 
+        FileDialog::new()
+            .set_directory(default_dir)
+            .set_title("Select Output Directory for Phenopackets")
+            .pick_folder()
+    }
+
+    pub fn export_ppkt(
+        &mut self,
+        cohort_dto: TemplateDto) -> Result<(), String> {
+        let out_dir = match self.get_phenopackets_output_dir() {
+            Some(dir) => dir,
+            None =>  { return Err("Could not get phenopackets output directory".to_string());},
+        };
+        match self.phetools.as_mut() {
+            Some(ptools) => {
+                ptools.write_ppkt_list(cohort_dto, out_dir)
+            },
+            None => {
+                Err("Phetools template not initialized".to_string())
+            },
+        }
+    }
 
     pub fn add_hpo_term_to_cohort(
         &mut self,

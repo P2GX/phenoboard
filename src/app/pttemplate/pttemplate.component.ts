@@ -316,4 +316,22 @@ showError(message: string): void {
       console.error("Attempt to save nill cohort.");
     }
   }
+
+  async exportPpkt() {
+    const template_dto = this.templateService.getTemplate();
+      if (template_dto != null) {
+        try {
+          await this.configService.exportPpkt(template_dto);
+        } catch (err) {
+          if (Array.isArray(err)) {
+            console.error("Validation errors:", err);
+            // TODO handle validation errors in UI
+          } else {
+            console.error("Unexpected error:", err);
+          }
+        }
+      } else {
+        console.error("Attempt to export phenopackets from nill cohort.");
+      }
+  }
 }

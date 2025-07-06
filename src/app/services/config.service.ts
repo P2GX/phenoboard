@@ -129,6 +129,10 @@ export class ConfigService {
     return invoke<void>('save_template', {cohortDto: cohort_dto});
   }
 
+  async exportPpkt(cohort_dto: TemplateDto): Promise<void> {
+    return invoke<void>('export_ppkt', {cohortDto: cohort_dto});
+  }
+
   /**
    * Add an HPO term to the current cohort. The column should show "na" for all phenopackets.
    * This enables us to add an HPO term and then edit it in the GUI.
