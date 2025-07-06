@@ -377,11 +377,10 @@ impl PhenoboardSingleton {
         hpo_id: &str,
         hpo_label: &str,
         cohort_dto: TemplateDto) 
-    -> std::result::Result<(), Vec<String>> {
+    -> std::result::Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)?;
-                Ok(())
+                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
             },
             None => {
                 Err(vec!["Phenotype template not initialized".to_string()])

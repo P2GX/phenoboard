@@ -131,8 +131,8 @@ export class ConfigService {
    * @param id - The HPO term ID (e.g., "HP:0004322")
    * @param label - The human-readable label (e.g., "Seizures")
    */
-  async addHpoToCohort(id: string, label: string, cohortDto: TemplateDto): Promise<void> {
-    return invoke<void>('add_hpo_term_to_cohort', 
+  async addHpoToCohort(id: string, label: string, cohortDto: TemplateDto): Promise<TemplateDto> {
+    return invoke<TemplateDto>('add_hpo_term_to_cohort', 
         {hpoId: id, hpoLabel: label, cohortDto: cohortDto});
   }
 

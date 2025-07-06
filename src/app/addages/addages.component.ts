@@ -48,4 +48,8 @@ export class AddagesComponent {
   getEntries(): string[] {
     return this.entries;
   }
+
+  reset(): void {
+    this.entries = [];
+  }
 }

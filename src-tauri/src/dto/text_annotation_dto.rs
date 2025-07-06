@@ -70,7 +70,7 @@ impl Default for TextAnnotationDto {
             end:  0 as usize,
             is_observed: false, 
             original_text: String::default(),
-            onset_string: String::default()
+            onset_string: "na".to_string(),
         }
     }
 }

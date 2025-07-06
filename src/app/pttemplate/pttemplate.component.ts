@@ -236,9 +236,9 @@ showError(message: string): void {
       this.templateService.saveTemplate();
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
-        await this.configService.addHpoToCohort(id, label, template);
+        let updated_template = await this.configService.addHpoToCohort(id, label, template);
         this.showSuccess(`Successfully added ${label} (${id})`);
-        this.loadTemplate();
+        this.templateService.setTemplate(updated_template);
       } catch (err) {
         console.error(err);
         this.showError(`Failed to add term ${label} (${id})`);

@@ -37,8 +37,8 @@ export class AddcaseComponent {
     private dialog: MatDialog
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
-  @ViewChild('pmidChild') pubmedComponent!: PubmedComponent;
-  @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
+  @ViewChild(PubmedComponent) pubmedComponent!: PubmedComponent;
+  @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
 
@@ -54,6 +54,8 @@ export class AddcaseComponent {
 
   allele1: VariantDto | null = null;
   allele2: VariantDto | null = null;
+
+  
  
 
   selectionRange: Range | null = null;
@@ -66,7 +68,7 @@ export class AddcaseComponent {
   hpoInitialized: boolean = false;
   errorString: string | null = null;
   hasError: boolean = false;
-  multiSelecting = false;
+
 
   selectedText: string = '';
   popupX = 0;
@@ -111,6 +113,7 @@ export class AddcaseComponent {
   }
 
   async submitNewRow(): Promise<void> {
+    console.log("submitNewRow - top");
       let pmid_dto = this.pubmedComponent.getPmidDto();
       let demogr_dto = this.demographics_component.getDemograph();
       // combine the above
@@ -125,27 +128,32 @@ export class AddcaseComponent {
         sex: demogr_dto.sex
       };
       const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
+      console.log("submitNewRow - got ", hpoAnnotations.length, " annotations");
+        console.log("und zwar ", hpoAnnotations);
       const geneVariantBundle = this.createGeneVariantBundleDto();
       if (geneVariantBundle == null) {
         this.errorString = "Could not create Gene/Variant bundle";
+          console.log("submitNewRow - Could not create Gene/Variant bundle");
         return;
       }
       let template_dto = this.templateService.getTemplate();
+      console.log("submitNewRow - template_dto=", template_dto);
       if (template_dto != null) {
         try {
-        const updated_dto = await this.configService.addNewRowToCohort(
-            individual_dto, 
-            hpoAnnotations, 
-            [geneVariantBundle],
-            template_dto);
-        console.log("Updated cohort, " , updated_dto);
-        this.templateService.setTemplate(updated_dto);
+          const updated_dto = await this.configService.addNewRowToCohort(
+              individual_dto, 
+              hpoAnnotations, 
+              [geneVariantBundle],
+              template_dto);
+          console.log("Updated dto, " , updated_dto);
+          this.templateService.setTemplate(updated_dto);
         } catch (error) {
-          console.log("Could not add new row: error TO DO DISPLAAY", error);
+          this.errorString = "Could not add new row: ${error}";
         }
       } else {
         console.error("Attempt to add new row with null template_dto");
       }
+      this.resetAllInputVars();
   }
 
   private handleBackendStatus(payload: unknown): void {
@@ -220,6 +228,8 @@ export class AddcaseComponent {
       this.showTextArea = true;
     });
   }
+
+ 
 
 
 closePopup(): void {
@@ -339,24 +349,26 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       await this.configService.submitAutocompleteHpoTerm(id, label);
       this.clearError();
-      this.resetWindow();
-      this.demographics_component.reset();
-
+      this.ngZone.run(() => {
+        this.resetWindow();
+        this.demographics_component.reset();
+      });
     }
   }
 
   convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
     console.log("convertTextAnnotationToHpoAnnotation teAnn", textAnn);
     let status = 'na';
+    
     if (textAnn.isObserved) {
       status = 'observed';
-      if (textAnn.onsetString != 'na') {
-        status = textAnn.onsetString;
+      if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
+        status = textAnn.onsetString; // if there is a non-empty/non-na onset, use it for our value
       }
     } else {
       status = 'excluded';
     }
-
+    console.log("convertTextAnnotationToHpoAnnotation stats=", status);
     return {
       termId: textAnn.termId,
       termLabel: textAnn.label,
@@ -405,7 +417,8 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
 
   createGeneVariantBundleDto(): GeneVariantBundleDto | null {
-    if (this.allele1 == null || this.allele1.validated) {
+    if (this.allele1 == null ) {
+      console.error("allele 1 was null, cannot create GeneVariant bundle");
       return null; // need at least allele1 to move forward
     }
     let allele2_string = "na";
@@ -422,5 +435,24 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     }
   }
   
-
+  resetAllInputVars() {
+    this.resetWindow();
+    this.allele1 = null;
+    this.allele2 = null;
+    this.demographics_component.reset();
+    this.pubmedComponent.reset_pmid();
+    if (this.addagesComponent) {
+        this.addagesComponent.reset();
+    }
+    if (this.hpo_component) {
+      this.hpo_component.clearInput();
+    }
+    
+    this.annotations = [];
+    this.selectedAnnotation = null;
+    this.selectionRange = null;
+    this.errorString = null;
+    this.hasError = false;
+    this.backend_status = defaultStatusDto();
+  }
 }

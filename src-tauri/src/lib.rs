@@ -350,11 +350,10 @@ fn add_hpo_term_to_cohort(
     hpo_id: &str,
     hpo_label: &str,
     cohort_dto: TemplateDto) 
--> Result<(), Vec<String>> {
+-> Result<TemplateDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)?;
-    Ok(())
+    singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
 }
 
 
