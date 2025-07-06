@@ -307,4 +307,13 @@ showError(message: string): void {
   closeContextMenu() {
     this.contextMenuVisible = false;
   }
+
+  saveCohort() {
+    const template_dto = this.templateService.getTemplate();
+    if (template_dto != null) {
+      this.configService.saveCohort(template_dto);
+    } else {
+      console.error("Attempt to save nill cohort.");
+    }
+  }
 }

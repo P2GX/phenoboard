@@ -1,33 +1,31 @@
-<div class="primary-box">
+<div class="primary-box flex flex-col justify-between">
+  <ng-content select="[card-title]"></ng-content>
 
-<datalist id="hpoOptions">
+  <datalist id="hpoOptions">
     <option *ngFor="let term of this.ageService.onsetTerms" [value]="term"></option>
-</datalist>
-<div class="flex gap-2 items-center">
+  </datalist>
+
+  <div class="flex items-center gap-4">
     <input
-        id="ageInput"
-        list="hpoOptions"
-        [(ngModel)]="ageInput"
-        placeholder="Enter Age of Onset e.g. Congenital onset or P3Y4M"
-        class="border border-gray-400 rounded px-3 py-2 w-40"
+      id="ageInput"
+      list="hpoOptions"
+      [(ngModel)]="ageInput"
+      placeholder="Enter Age of Onset e.g. Congenital onset or P3Y4M"
+      class="border border-gray-400 rounded px-3 py-2 w-40"
     />
 
-    <button
-        (click)="addAge()"
-        class="btn-outline-primary"
-    >Add</button>
+    <button (click)="addAge()" class="btn-outline-primary">Add</button>
+  </div>
 
-    <ul class="flex flex-wrap gap-4 ml-0 list-none p-0">
-        <li *ngFor="let entry of entries; let i = index" class="flex items-center space-x-1 bg-gray-100 rounded px-2 py-1">
-        <span>{{ entry }}</span>
-        <button
-        (click)="removeAge(i)"
-        class="text-red-500 text-xs p-0 leading-none hover:text-red-700"
-        aria-label="Remove entry"
-        title="Remove"
-        style="background:none; border:none; cursor:pointer;"
-        >&times;</button>
-        </li>
-    </ul>
-</div>
+  <ul class="flex flex-wrap gap-2 mt-2 list-none p-0">
+    <li *ngFor="let entry of entries; let i = index"
+        class="flex items-center bg-gray-100 rounded px-2 py-1">
+      <span>{{ entry }}</span>
+      <button (click)="removeAge(i)"
+              class="text-red-500 text-xs ml-2 hover:text-red-700"
+              aria-label="Remove entry"
+              title="Remove"
+              style="background: none; border: none; cursor: pointer;">×</button>
+    </li>
+  </ul>
 </div>

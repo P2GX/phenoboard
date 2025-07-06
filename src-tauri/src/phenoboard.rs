@@ -4,13 +4,14 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self}};
-use std::{collections::HashMap, path::{Path, PathBuf}, str::FromStr, sync::Arc};
+use std::{collections::HashMap, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
 use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::{VariantDto, VariantListDto}}, PheTools};
+use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 use crate::util::pubmed_retrieval::PubmedRetriever;
 
@@ -362,8 +363,7 @@ impl PhenoboardSingleton {
         let mut verrs = ValidationErrors::new();
         match &self.phetools {
             Some(ptools) => {
-                println!("TODO probably change API");
-                let _template = ptools.validate_template(cohort_dto)?;
+                let _template = ptools.validate_template(&cohort_dto)?;
                 return Ok(());
             },
             None => {
@@ -372,6 +372,66 @@ impl PhenoboardSingleton {
             },
         }
     }
+
+
+    fn get_default_template_dir(&self) -> Option<PathBuf> {
+        match &self.phetools {
+            Some(phetools) => {
+                phetools.get_default_cohort_dir().map(|mut dir| {
+                    dir.push("input");
+                    dir
+                })
+            },
+            None => None,
+        }
+    }
+
+    fn save_template_json(&self, template: &TemplateDto) -> Result<(), String> {
+        let dir_opt = self.get_default_template_dir();
+        if dir_opt.is_none() {
+            return Err("Could not get default path".to_string());
+        }
+        let default_dir = dir_opt.unwrap();
+        let save_path: Option<PathBuf> = FileDialog::new()
+            .set_directory(default_dir)
+            .set_title("Save PheTools JSON template")
+            .set_file_name("template.json")
+            .save_file();
+
+        if let Some(path) = save_path {
+            // Serialize DTO to JSON string
+            let json = serde_json::to_string_pretty(&template).map_err(|_|"Could not serialize to JSON".to_string())?;
+            let mut file = File::create(&path).map_err(|_|"Could not create file".to_string())?;
+            file.write_all(json.as_bytes()).map_err(|_|"Could not write file".to_string())?;
+
+            println!("Saved JSON to {:?}", path);
+        } else {
+            println!("Save cancelled by user");
+        }
+
+        Ok(())
+    }
+
+    pub fn save_template(
+        &mut self, 
+        cohort_dto: &TemplateDto) 
+    -> Result<(), ValidationErrors> {
+        let mut verrs = ValidationErrors::new();
+        match self.phetools.as_mut() {
+            Some(ptools) => {
+                ptools.save_template(cohort_dto);
+                self.save_template_json(cohort_dto);
+                Ok(())
+            },
+            None => {
+                verrs.push_str("Phetools template not initialized");
+                Err(verrs)
+            },
+        }
+    }
+
+
+
     pub fn add_hpo_term_to_cohort(
         &mut self,
         hpo_id: &str,

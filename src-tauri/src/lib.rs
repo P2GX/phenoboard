@@ -43,6 +43,7 @@ pub fn run() {
             get_hpo_autocomplete_terms,
             submit_autocompleted_hpo_term,
             validate_template,
+            save_template,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
             submit_variant_dto,
@@ -341,6 +342,15 @@ fn validate_template(
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     singleton.validate_template(cohort_dto).map_err(|verrs| verrs.errors().clone())
+}
+
+#[tauri::command]
+fn save_template(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.save_template(&cohort_dto).map_err(|verrs| verrs.errors().clone())
 }
 
 

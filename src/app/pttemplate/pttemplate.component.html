@@ -207,21 +207,36 @@
 </div>
 
 
-<div class="flex items-center gap-4 mb-4">
-  <button (click)="validateCohort()" class="btn-outline-primary">Validate</button>
-  <div class="space-y-1">
-    <app-hpoautocomplete
-      [inputString]="hpoInputString"
-      (selected)="selectedHpoTerm = $event"
-      [onSubmit]="submitSelectedHpo"
-      #hpoAutocomplete
-    ><span card-title>Add a new HPO term to template</span></app-hpoautocomplete>
-    <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+  <!-- Left side: Inputs -->
+  <div class="flex items-center gap-6">
+    <!-- HPO Autocomplete -->
+    <div class="space-y-1">
+      <app-hpoautocomplete
+        [inputString]="hpoInputString"
+        (selected)="selectedHpoTerm = $event"
+        [onSubmit]="submitSelectedHpo"
+        #hpoAutocomplete
+      >
+        <span card-title>Add a new HPO term to template</span>
+      </app-hpoautocomplete>
+    </div>
+
+    <!-- Add Ages -->
+    <app-addages #addagesComponent><span card-title>Add a new Onset</span></app-addages>
+   <div class="primary-box  flex  gap-4 h-full">
+    <button (click)="validateCohort()" 
+          class="btn-outline-primary whitespace-nowrap align-middle leading-none"
+          >Validate</button>
+    <button (click)="saveCohort()" 
+          class="btn-outline-primary whitespace-nowrap align-middle leading-none">Save</button>
   </div>
-  <app-addages #addagesComponent></app-addages>
-</div>
+
+  </div>
+  
+
   
 </div>
+
 
 <div
   *ngIf="contextMenuVisible"

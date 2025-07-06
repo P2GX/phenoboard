@@ -1,8 +1,7 @@
-<mat-card class="primary-box">
+<mat-card class="primary-box flex flex-col justify-between">
   <ng-content select="[card-title]"></ng-content>
 
   <div class="flex items-center gap-4">
-    <!-- Text field (approx. 50% width) -->
     <mat-form-field class="flex-1 min-w-[300px]" appearance="outline">
       <input type="text"
             placeholder="Search HPO term"
@@ -15,6 +14,7 @@
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
+
     <button class="btn-outline-primary"
             color="primary"
             (click)="submitTerm()">
