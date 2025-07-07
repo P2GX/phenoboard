@@ -55,8 +55,9 @@ impl PhenoboardSingleton {
         let ontology_opt: Option<FullCsrOntology> = loader.load_from_path(hpo_json).ok();
         if let Some(hpo) = ontology_opt {
             let hpo_arc = Arc::new(hpo);
-            singleton.ontology = Some(hpo_arc);
+            singleton.ontology = Some(hpo_arc.clone());
             singleton.initialize_hpo_autocomplete();
+            singleton.set_hpo(hpo_arc.clone());
         }           
         return singleton;
     }
@@ -68,11 +69,6 @@ impl PhenoboardSingleton {
         self.ontology = Some(ontology);
         let phetools = PheTools::new(hpo_clone);
         self.phetools = Some(phetools);
-    }
-
-    pub fn set_hp_json(&mut self, hp_json: &str) -> Result<(), String>{
-        self.settings.set_hp_json_path(hp_json)?;
-        Ok(())
     }
 
     /// Set the path to the phenotools template we will input or create
@@ -91,22 +87,6 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn load_hp_json_file(&mut self, hp_json: &str) -> Result<(), String> {
-        let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-        self.set_hp_json(hp_json)?;
-        match &self.settings.get_hp_json_path() {
-            Ok(hp_json) => {
-                let hpo: FullCsrOntology = loader
-                    .load_from_path(hp_json)
-                    .expect("Ontolius HPO loader failed");
-                let hpo_arc = Arc::new(hpo);
-                self.ontology = Some(hpo_arc);
-            }
-            Err(e) => { return Err(e.clone()); },
-        };
-        self.initialize_hpo_autocomplete();
-        Ok(())
-    }
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
     pub fn get_hpo_autocomplete(&self) -> &Vec<String> {
@@ -146,22 +126,6 @@ impl PhenoboardSingleton {
         match &self.pt_template_path {
             Some(pt_template) => Ok(pt_template.to_string()),
             None => Err("phenotype template path not initialized".to_string()),
-        }
-    }
-
-  
-
-    pub fn get_hpo_version(&self) -> Result<String, String> {
-        match &self.ontology {
-            Some(hpo) => Ok(hpo.version().to_string()),
-            None => Err("HPO not initialized".to_string()),
-        }
-    }
-
-    pub fn n_hpo_terms(&self) -> Result<usize, String> {
-        match &self.ontology {
-            Some(hpo) => Ok(hpo.len()),
-            None => Err("HPO not initialized".to_string()),
         }
     }
 

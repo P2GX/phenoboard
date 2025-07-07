@@ -3,9 +3,9 @@ import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { FooterComponent } from '../footer/footer.component';
 import { CommonModule, NgIf } from '@angular/common';
-import { defaultStatusDto, StatusDto } from '../models/status_dto';
+import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { PageService } from '../services/page.service';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateDto } from '../models/template_dto';
@@ -29,9 +29,8 @@ export class HomeComponent {
 
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
   private unlisten: UnlistenFn | null = null;
-
-  status: StatusDto = defaultStatusDto();
   statusSubscription?: Subscription;
+  status: StatusDto = this.backendStatusService.getStatus();
 
   ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
@@ -47,27 +46,16 @@ export class HomeComponent {
 
   errorMessage: string | null = null;
 
-  ngAfterViewInit() {
-    console.log("ngAfterViewInit, about to emit backend status");
-    this.configService.emitStatusFromBackend();
-  }
-
   async ngOnInit() {
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
         console.log("got backend status: ", status);
         this.backendStatusService.setStatus(status);
-        this.status = event.payload as StatusDto;
-        this.update_gui_variables(status);
+        this.update_gui_variables();
       });
     });
-    //  this will restore the status upon navigation:
-    this.statusSubscription = this.backendStatusService.status$.subscribe(status => {
-    if (status) {
-        this.update_gui_variables(status);
-      }
-    });
+    
     await listen('failure', (event) => {
       this.hasError = true;
       this.errorMessage = String(event.payload);
@@ -77,10 +65,21 @@ export class HomeComponent {
       this.errorMessage = '';
       this.hpoMessage = "loading ...";
     });
+    this.templateService.template$.pipe(take(1)).subscribe(() => {
+          // This makes sure the template service is fully available
+      });
+    this.statusSubscription = this.backendStatusService.status$.subscribe(
+      status => this.status = status
+    );
+    this.update_gui_variables();
   }
 
-  async update_gui_variables(status: StatusDto) {
-
+  ngAfterViewInit() {
+    this.configService.emitStatusFromBackend();
+  }
+  
+  async update_gui_variables() {
+    const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
       let n_hpo = status.nHpoTerms ?? 0;
       let n_hpo_str = String(n_hpo);
@@ -181,5 +180,7 @@ export class HomeComponent {
   goToAddCase() {
     this.pageService.setPage("addcase");
   }
+
+  
 
 }

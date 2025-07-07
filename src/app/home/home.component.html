@@ -13,7 +13,7 @@
       <div class="relative group">
     <button
         (click)="loadHpo()"
-        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200"
+        class="btn-outline-primary w-[300px]"
     >Load HPO
     </button>
     <!-- Tooltip -->
@@ -24,7 +24,8 @@
     </div>
     </div>
     <span [ngClass]="{'text-red-600': hpoMessage === 'loading ...'}"
-      class="text-sm text-gray-500 italic">{{ hpoMessage }}</span>
+      class="text-sm text-gray-500 italic">{{ hpoMessage }} <span *ngIf="status.hpoLoaded">  ({{ status.nHpoTerms }} terms)</span>
+    </span>
 </div>
 
 <div class="flex items-center gap-3">
@@ -32,7 +33,7 @@
     <button
       (click)="chooseExistingTemplateFile()"
       [disabled]="!status.hpoLoaded || status.newCohort"
-      class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      class="btn-outline-primary w-[300px]"
     >
       {{ ptTemplateLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
     </button>
@@ -53,7 +54,7 @@
     <button
         (click)="chooseNewPhetoolsFile()"
         [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
-        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        class="btn-outline-primary w-[300px]"
     >Create new template
     </button>
     <!-- Tooltip -->
@@ -67,23 +68,6 @@
 </div>
 
 
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-        (click)="goToAddCase()"
-        [disabled]="!status.hpoLoaded || (!status.ptTemplateLoaded && !status.newCohort)"
-        class="w-[300px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-    >Add phenopacket
-    </button>
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Add a new case using text-mining and autocomplete
-    </div>
-    </div>
-    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
-</div>
 </div>
 </div>
 
