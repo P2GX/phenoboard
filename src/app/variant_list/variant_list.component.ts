@@ -21,13 +21,12 @@ import { VariantDto } from '../models/variant_dto';
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent implements OnInit {
-
-  errorMessage: string | null = null;
-  
-
   constructor(
     private configService: ConfigService, 
     private templateService: TemplateDtoService) {}
+
+  errorMessage: string | null = null;
+  variantListDto: VariantDto[] | [] = [];
 
   async ngOnInit() {
     this.templateService.template$.pipe(take(1)).subscribe(() => {
@@ -41,7 +40,7 @@ export class VariantListComponent implements OnInit {
     }
   }
 
-    variantListDto: VariantDto[] | [] = [];
+   
 
     
 }

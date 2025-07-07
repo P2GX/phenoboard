@@ -39,7 +39,7 @@
         <mat-label>Allele 1</mat-label>
         <input matInput formControlName="allele1"/>
         <mat-error *ngIf="form.get('allele1')?.hasError('required')">
-            Transcript is required
+            Allele 1 is required
         </mat-error>
         <mat-error *ngIf="form.get('allele1')?.hasError('whitespace')">
             Leading or trailing whitespace is not allowed
@@ -50,7 +50,7 @@
         <mat-label>Allele 2</mat-label>
         <input matInput formControlName="allele1"/>
         <mat-error *ngIf="form.get('allele2')?.hasError('required')">
-            Transcript is required
+            Allele 2 is required
         </mat-error>
         <mat-error *ngIf="form.get('allele2')?.hasError('whitespace')">
             Leading or trailing whitespace is not allowed
@@ -60,9 +60,7 @@
         <mat-form-field appearance="fill" class="w-full">
         <mat-label>Variant comment</mat-label>
         <input matInput formControlName="variantComment"/>
-       
         </mat-form-field>
-
     </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
