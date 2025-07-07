@@ -61,6 +61,7 @@ export class TemplateDtoService {
     /** Return a list of all variant strings represented in the cohort */
     getVariantDtos(): VariantDto[] {
         const template = this.getTemplate();
+        const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
         if (template == null) {
             return [];
         }
@@ -73,17 +74,30 @@ export class TemplateDtoService {
                     continue;
                 }
                 seen.add(geneVar.allele1);
-                const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
                 const is_sv = prefixes.some(prefix => geneVar.allele1.startsWith(prefix));
                 const dto = {
-                        variant_string: geneVar.allele1,
-                        transcript: geneVar.transcript,
-                        hgnc_id: geneVar.hgncId,
-                        gene_symbol: geneVar.geneSymbol,
-                        validated: is_sv ? true : false,
-                        is_structural: is_sv,
+                    variant_string: geneVar.allele1,
+                    transcript: geneVar.transcript,
+                    hgnc_id: geneVar.hgncId,
+                    gene_symbol: geneVar.geneSymbol,
+                    validated: is_sv ? true : false,
+                    is_structural: is_sv,
                 };
                 dto_list.push(dto);
+                if (geneVar.allele2 == "na" || seen.has(geneVar.allele2)) {
+                    continue;
+                }
+                seen.add(geneVar.allele2);
+                const is_sv2 = prefixes.some(prefix => geneVar.allele2.startsWith(prefix));
+                const dto2 = {
+                    variant_string: geneVar.allele2,
+                    transcript: geneVar.transcript,
+                    hgnc_id: geneVar.hgncId,
+                    gene_symbol: geneVar.geneSymbol,
+                    validated: is_sv2 ? true : false,
+                    is_structural: is_sv,
+                }
+                dto_list.push(dto2);
             }
         }
         return dto_list;

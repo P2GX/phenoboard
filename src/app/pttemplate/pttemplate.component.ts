@@ -148,13 +148,17 @@ openDiseaseEditor(disease: DiseaseDto) {
   });
 }
   
+/**
+ * Opens a dialog that allows us to edit the current gene/transcript/alleles
+ * @param gene 
+ */
   openGeneEditor(gene: GeneVariantBundleDto) {
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
       data: { ...gene }, // pass a copy
     });
 
-    dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
+    dialogRef.afterClosed().subscribe((result: GeneVariantBundleDto | null) => {
       if (result) {
         // Apply changes back to the original
         Object.assign(gene, result);

@@ -1,25 +1,25 @@
 <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
-  <!-- Title -->
-  
+  <!-- Title and description of cohort-->
   <div *ngIf="cohortDescription" class="mb-4 text-sm text-gray-700">
-    <h2 class="text-xl font-semibold text-gray-800">{{cohortDescription.geneSymbol}}: {{ cohortDescription.diseaseLabel }}</h2>
-  This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort with 
-  <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
-  <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms. Most individuals are diagnosed with 
-  <a *ngIf="cohortDescription.diseaseDatabase === 'OMIM'" 
-    [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
-    target="_blank" class="text-blue-600 underline">
-  {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-  </a>
-  <span *ngIf="cohortDescription.diseaseDatabase !== 'OMIM'">
+    <h2 class="text-xl font-semibold text-gray-800">
+        {{cohortDescription.geneSymbol}}: {{ cohortDescription.diseaseLabel }}</h2>
+    This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort with 
+    <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
+    <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms. Most individuals are diagnosed with 
+    <a *ngIf="cohortDescription.diseaseDatabase === 'OMIM'" 
+      [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
+      target="_blank" class="text-blue-600 underline">
     {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-  </span>, associated with 
-  <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" target="_blank" class="text-blue-600 underline">
-    {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
-  </a>, transcript <code>{{ cohortDescription.transcript }}</code>.
-</div>
+    </a>
+    <span *ngIf="cohortDescription.diseaseDatabase !== 'OMIM'">
+      {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
+    </span>, associated with 
+    <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" target="_blank" class="text-blue-600 underline">
+      {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
+    </a>, transcript <code>{{ cohortDescription.transcript }}</code>.
+  </div>
+  <!-- Table with one row per phenopacket -->
   <div *ngIf="tableData">
-
   <table class="pt-table">
     <thead>
     <tr>
@@ -39,8 +39,7 @@
       [ngClass]="{ 'hover-underline': hoveredHpoHeader === header }">
         {{ header.h1 }}
       </div>
-
-      <!-- Popup shown on hover -->
+      <!-- Popup shown on hover over column header (HPO label, rotated) with link to HPO website-->
       <div
         *ngIf="hoveredHpoHeader === header"
         class="hpo-popup"
@@ -53,52 +52,50 @@
           🔗 {{ header.h2 }}
         </a>
       </div>
-  </th>
-</ng-container>
-    </tr>
+    </th>
+  </ng-container>
+  </tr>
   </thead>
     <tbody>
       <tr *ngFor="let row of tableData.rows">
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column">
-  <div
-    (mouseenter)="hoveredIndividual = row.individualDto"
-    (mouseleave)="hoveredIndividual = null"
-    class="cursor-pointer"
-  >
-    {{ row.individualDto.individualId }}
-
-    <div
-      *ngIf="hoveredIndividual === row.individualDto"
-      class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
-      (mouseenter)="hoveredIndividual = row.individualDto"
-      (mouseleave)="hoveredIndividual = null"
-    >
-      <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-        <li><strong>{{ row.individualDto.individualId }}</strong></li>
-        <li>{{ row.individualDto.pmid }}</li>
-        <li>{{ row.individualDto.title }}</li>
-        <li *ngIf="row.individualDto.comment.length > 0">
-          <strong>Comment:</strong> {{ row.individualDto.comment }}
-        </li>
-        <li>onset: {{ row.individualDto.ageOfOnset }}</li>
-        <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
-        <li>deceased: {{ row.individualDto.deceased }}</li>
-        <li>sex: {{ row.individualDto.sex }}</li>
-      </ul>
-
-      <!-- Edit button in popup -->
-      <button
-        mat-stroked-button
-        color="primary"
-        class="text-xs py-0 px-2"
-        (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
-      >
-        ✏️ Edit
-      </button>
-    </div>
-  </div>
-</td>
+        <div
+          (mouseenter)="hoveredIndividual = row.individualDto"
+          (mouseleave)="hoveredIndividual = null"
+          class="cursor-pointer"
+        >
+          {{ row.individualDto.individualId }}
+        <div
+          *ngIf="hoveredIndividual === row.individualDto"
+          class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+          (mouseenter)="hoveredIndividual = row.individualDto"
+          (mouseleave)="hoveredIndividual = null"
+        >
+          <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+            <li><strong>{{ row.individualDto.individualId }}</strong></li>
+            <li>{{ row.individualDto.pmid }}</li>
+            <li>{{ row.individualDto.title }}</li>
+            <li *ngIf="row.individualDto.comment.length > 0">
+              <strong>Comment:</strong> {{ row.individualDto.comment }}
+            </li>
+            <li>onset: {{ row.individualDto.ageOfOnset }}</li>
+            <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
+            <li>deceased: {{ row.individualDto.deceased }}</li>
+            <li>sex: {{ row.individualDto.sex }}</li>
+          </ul>
+          <!-- Edit button in popup -->
+          <button
+            mat-stroked-button
+            color="primary"
+            class="text-xs py-0 px-2"
+            (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
+          >
+            ✏️ Edit
+          </button>
+        </div>
+      </div>
+    </td>
 
 <!-- Second column: disease/id -->
 <td class="relative narrow-column">
@@ -223,7 +220,7 @@
 
     <!-- Add Ages -->
     <app-addages #addagesComponent><span card-title>Add a new Onset</span></app-addages>
-   <div class="primary-box  flex  gap-4 h-full">
+    <div class="primary-box  flex  gap-4 h-full">
     <button (click)="validateCohort()" 
           class="btn-outline-primary whitespace-nowrap align-middle leading-none"
           >Validate</button>
