@@ -232,16 +232,12 @@ impl PhenoboardSingleton {
         self.ontology.is_some()
     }
 
-    /// TODO figure out error handling
-    pub fn map_text(&self, input_text: &str) -> String {
-        match self.get_sorted_fenominal_hits(input_text) {
-            Ok(fenominal_hits) => {
-                return serde_json::to_string(&fenominal_hits).unwrap();
-            },
-            Err(e) => {return e.to_string() },
-        }
-    }
-
+    /// Use our rust fenominal implementation to perform HPO text mining.
+    /// 
+    /// * Arguments
+    /// `input_text` - Generally, a clinical text that contains HPO terms
+    /// 
+    /// * Returns: A list of  representing the fenominal hits.
     pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
         match self.get_sorted_fenominal_hits(input_text) {
             Ok(fenominal_hits) => {
@@ -251,7 +247,8 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn get_sorted_fenominal_hits(&self, input_text: &str) 
+    /// Run fenominal and sort the results by span.
+    fn get_sorted_fenominal_hits(&self, input_text: &str) 
         -> Result<Vec<FenominalHit>, String>
     {
         match &self.ontology {

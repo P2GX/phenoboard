@@ -32,7 +32,6 @@ pub fn run() {
             hpo_can_be_updated,
             load_phetools_template,
             load_hpo,
-            run_text_mining,
             map_text_to_annotations,
             get_table_columns_from_seeds,
             get_hp_json_path,
@@ -122,20 +121,6 @@ async fn load_phetools_template(
         }
     });
     Ok(())
-}
-
-
-
-
-#[tauri::command]
-fn run_text_mining(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    input_text: &str
-) -> String {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    let json = singleton.map_text(input_text);
-    json
 }
 
 
