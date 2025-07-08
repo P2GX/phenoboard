@@ -1,15 +1,15 @@
-import { Component, NgZone, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { FooterComponent } from '../footer/footer.component';
 import { CommonModule, NgIf } from '@angular/common';
 import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
-import { Subscription, take } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { PageService } from '../services/page.service';
 import { TemplateDtoService } from '../services/template_dto_service';
+import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { TemplateDto } from '../models/template_dto';
-
 
 @Component({
   selector: 'app-home',
@@ -18,14 +18,17 @@ import { TemplateDto } from '../models/template_dto';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
 
   constructor(
-    private ngZone: NgZone, 
+    ngZone: NgZone, 
     private configService: ConfigService,
     private backendStatusService: BackendStatusService,
-    private templateService: TemplateDtoService,
-    private pageService: PageService) {}
+    override templateService: TemplateDtoService,
+    private pageService: PageService,
+    override cdRef: ChangeDetectorRef) {
+      super(templateService, ngZone, cdRef);
+    }
 
   @ViewChild(FooterComponent) footer_component!: FooterComponent;
   private unlisten: UnlistenFn | null = null;
@@ -46,7 +49,12 @@ export class HomeComponent {
 
   errorMessage: string | null = null;
 
-  async ngOnInit() {
+
+
+  override async ngOnInit() {
+    console.log("HomeComponent ngInit");
+    super.ngOnInit();
+
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
@@ -55,7 +63,7 @@ export class HomeComponent {
         this.update_gui_variables();
       });
     });
-    
+   
     await listen('failure', (event) => {
       this.hasError = true;
       this.errorMessage = String(event.payload);
@@ -65,9 +73,6 @@ export class HomeComponent {
       this.errorMessage = '';
       this.hpoMessage = "loading ...";
     });
-    this.templateService.template$.pipe(take(1)).subscribe(() => {
-          // This makes sure the template service is fully available
-      });
     this.statusSubscription = this.backendStatusService.status$.subscribe(
       status => this.status = status
     );
@@ -76,6 +81,16 @@ export class HomeComponent {
 
   ngAfterViewInit() {
     this.configService.emitStatusFromBackend();
+  }
+
+  protected override onTemplateLoaded(template: TemplateDto): void {
+    console.log("✅ Template loaded into HomeComponent:", template);
+    this.cdRef.detectChanges();
+  }
+
+  protected override onTemplateMissing(): void {
+    console.warn("⚠️ Template is missing in HomeComponent");
+    // Optionally fetch it again or show an error
   }
   
   async update_gui_variables() {
@@ -105,7 +120,9 @@ export class HomeComponent {
     });
   }
   
-  ngOnDestroy() {
+  override ngOnDestroy() {
+    console.log("HomeComponent - ngOnDestroy");
+    super.ngOnDestroy();
     if (this.unlisten) {
       this.unlisten();
       this.unlisten = null;
@@ -116,25 +133,35 @@ export class HomeComponent {
     
 
   async loadHpo() {
-    console.log("loading HPO");
     try {
       await this.configService.loadHPO();
     } catch (error) {
       console.error("Failed to call load_hpo:", error);
       this.hpoMessage = "Error calling load_hpo";
-    }  finally {
-      console.log("done loading HPO");
-    }
+    } 
   }
 
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
     this.errorMessage = null;
+    console.log("chooseExistingTemplateFile TOP");
     try {
-      await this.configService.loadPtTemplate();
-      this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
-            this.templateService.setTemplate(data);
-      });
+        console.log("chooseExistingTemplateFile TRY TOP");
+      //await this.configService.loadPtExcelTemplate();
+        //console.log("chooseExistingTemplateFile after loadPtTempalte");
+      const data = await this.configService.loadPtExcelTemplate();
+      if (data == null) {
+        console.error("Could not retrieve template, data=null TODO create error message");
+        return;
+      }
+      console.log("chooseExistingTemplateFile data=", data);
+      
+      this.templateService.setTemplate(data);
+      console.log("chooseExistingTemplateFile After set template=");
+      const newTemplate = JSON.parse(JSON.stringify(data));
+      console.log("chooseExistingTemplateFile newTemplate=", newTemplate);
+      
+      this.templateService.setTemplate(newTemplate);
     } catch (error: any) {
       this.errorMessage = error?.message || 'An unexpected error occurred';
       console.error('Template load failed:', error);
@@ -145,7 +172,7 @@ export class HomeComponent {
 
   async chooseNewPhetoolsFile() {
     console.log("chooseNewPhetoolsFile - not implemented");
-    this.configService.loadPtTemplate();
+    this.configService.loadPtExcelTemplate();
   /*  const path = await save({
       title: "Save new PheTools template file",
       defaultPath: "phetools-individuals.xlsx",

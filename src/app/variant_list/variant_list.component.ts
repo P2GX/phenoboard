@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
 import { MatCardModule } from '@angular/material/card';
@@ -8,8 +8,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { TemplateDtoService } from '../services/template_dto_service';
-import { take } from 'rxjs/operators';
 import { VariantDto } from '../models/variant_dto';
+import { TemplateDto } from '../models/template_dto';
+import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 
 
 @Component({
@@ -20,18 +21,25 @@ import { VariantDto } from '../models/variant_dto';
   templateUrl: './variant_list.component.html',
   styleUrls: ['./variant_list.component.css']
 })
-export class VariantListComponent implements OnInit {
+export class VariantListComponent extends TemplateBaseComponent implements OnInit {
+  protected override onTemplateLoaded(template: TemplateDto): void {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     private configService: ConfigService, 
-    private templateService: TemplateDtoService) {}
+    override templateService: TemplateDtoService,
+    ngZone: NgZone, 
+    override cdRef: ChangeDetectorRef) {
+      super(templateService, ngZone, cdRef)
+    }
 
   errorMessage: string | null = null;
   variantListDto: VariantDto[] | [] = [];
+  tableData: TemplateDto | null = null;
 
-  async ngOnInit() {
-    this.templateService.template$.pipe(take(1)).subscribe(() => {
-          // This makes sure the template service is fully available
-        });
+  override async ngOnInit() {
+    super.ngOnInit();
+
     const variant_dtos = this.templateService.getVariantDtos();
     try {
       this.variantListDto = await this.configService.validateVariantDtoList(variant_dtos);
@@ -40,7 +48,11 @@ export class VariantListComponent implements OnInit {
     }
   }
 
-   
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+  }
+
+
 
     
 }

@@ -3,17 +3,17 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self}};
-use std::{collections::HashMap, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
+use std::{fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::{VariantDto, VariantListDto}}, PheTools};
+use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
-use crate::util::pubmed_retrieval::PubmedRetriever;
+
 
 pub enum PptOperation {
     ShowColumn,
@@ -71,8 +71,9 @@ impl PhenoboardSingleton {
         self.phetools = Some(phetools);
     }
 
-    /// Set the path to the phenotools template we will input or create
-    /// TODO better handling of vector of errors
+   
+    /*
+     /// Set the path to the phenotools template we will input or create
     pub fn set_pt_template_path(&mut self, template_path: &str) -> Result<(), String> {
         self.pt_template_path = Some(template_path.to_string());
         match &self.ontology {
@@ -85,7 +86,7 @@ impl PhenoboardSingleton {
             }
             None => Err(format!("HPO not initialized")),
         }
-    }
+    }*/
 
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
@@ -138,23 +139,37 @@ impl PhenoboardSingleton {
     }
 
 
-    pub fn load_excel_template(&mut self, excel_file: &str) -> Result<(), String> {
+    /// Load an excel file containing a phetools template (version 1). Use this to initialize the Phetools backend
+    /// * Arguments
+    /// 
+    /// - `excel_file` - the template file
+    /// - `fix errors` - attempt to fix errors including outdated HPO ids or labels and stray-whitespace errors
+    /// 
+    /// * Returns
+    /// - Ok(()) if successful, list of errors (strings) otherwise
+    pub fn load_excel_template(
+        &mut self, 
+        excel_file: &str,
+        fix_errors: bool) -> Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
-            Some(ptools) => match ptools.load_excel_template(excel_file) {
-                Ok(_) => {
+            Some(ptools) => match ptools.load_excel_template(excel_file, fix_errors) {
+                Ok(dto) => {
                     self.pt_template_path = Some(excel_file.to_string());
                     let project_dir = Self::get_grandparent_dir(excel_file);
                     if project_dir.is_none() {
-                        return Err(format!("Could not load project directory for {excel_file}"));
+                        return Err(vec![format!("Could not load project directory for {excel_file}")]);
                     }
                     let project_dir = project_dir.unwrap();
-                    ptools.initialize_project_dir(project_dir)
+                    match ptools.initialize_project_dir(project_dir) {
+                        Ok(_) => Ok(dto),
+                        Err(e) => Err(vec![e]),
+                    }
                 }
                 Err(msg) => {
                     return Err(msg);
                 }
             },
-            None => return Err(format!("Could not load excel file since Phetools was not initialized. Did you load HPO?")),
+            None => return Err(vec!["Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()]),
         }
     }
 
@@ -309,27 +324,26 @@ impl PhenoboardSingleton {
 
     /// TODO Refactor
     pub fn phenopacket_count(&self) -> usize {
-        42
+  
        /*match &self.phetools {
             Some(ptools) => ptools.nrows() -2,
             None => 0,
         }*/
+        0
     }
 
 
     pub fn validate_template(
         &self, 
         cohort_dto: TemplateDto) 
-    -> Result<(), ValidationErrors> {
-        let mut verrs = ValidationErrors::new();
+    -> Result<(), Vec<String>> {
         match &self.phetools {
             Some(ptools) => {
                 let _template = ptools.validate_template(&cohort_dto)?;
                 return Ok(());
             },
             None => {
-                verrs.push_str("Phetools template not initialized");
-                Err(verrs)
+                Err(vec!["Phetools template not initialized".to_string()])
             },
         }
     }
@@ -376,17 +390,19 @@ impl PhenoboardSingleton {
     pub fn save_template(
         &mut self, 
         cohort_dto: &TemplateDto) 
-    -> Result<(), ValidationErrors> {
+    -> Result<(), Vec<String>> {
         let mut verrs = ValidationErrors::new();
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.save_template(cohort_dto);
-                self.save_template_json(cohort_dto);
-                Ok(())
+                ptools.save_template(cohort_dto)?;
+                match self.save_template_json(cohort_dto){
+                    Ok(_) => Ok(()),
+                    Err(e) => Err(vec![e]),
+                }
             },
             None => {
                 verrs.push_str("Phetools template not initialized");
-                Err(verrs)
+                Err(verrs.errors())
             },
         }
     }
@@ -563,7 +579,7 @@ impl PhenoboardSingleton {
     pub fn get_phetools_template(&self) -> Result<TemplateDto, String> {
         match &self.phetools {
             Some(phetools) => phetools.get_template_dto(),
-            None => Err(format!("phetools not initialized")),
+            None => Err(format!("{}:{}-phetools not initialized", file!(), line!())),
         }
     }
 

@@ -1,3 +1,12 @@
+<p *ngIf="tableData">
+    ✅ Template loaded in component with {{ tableData.rows.length }} rows
+  </p>
+
+
+<p *ngIf="!tableData">
+    ✅ Template NOT LOADED
+  </p>
+
 <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
   <!-- Title and description of cohort-->
   <div *ngIf="cohortDescription" class="mb-4 text-sm text-gray-700">
@@ -19,7 +28,7 @@
     </a>, transcript <code>{{ cohortDescription.transcript }}</code>.
   </div>
   <!-- Table with one row per phenopacket -->
-  <div *ngIf="tableData">
+  <div *ngIf="tableData != null">
   <table class="pt-table">
     <thead>
     <tr>

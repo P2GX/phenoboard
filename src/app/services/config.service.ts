@@ -31,16 +31,18 @@ export class ConfigService {
     return await invoke<string | string>("get_hp_json_path");
   }
 
-  async selectPhetoolsTemplatePath(): Promise<string|string> {
-    return await invoke<string|string>("select_phetools_template_path");
-  }
-
   async getPhetoolsTemplate(): Promise<TemplateDto> {
     return await invoke<TemplateDto>("get_phetools_template");
   }
 
-  async loadPtTemplate(): Promise<void> {
-    return await invoke<void>("load_phetools_template");
+  /** Load the version-one format Excel template (all of which are Mendelian) */
+  async loadPtExcelTemplate(): Promise<TemplateDto> {
+    return await invoke<TemplateDto>("load_phetools_excel_template", { "fixErrors": false});
+  }
+
+  /** Load an excel template file and try to fix some common errors (outdated HPO labels, whitespace) */
+  async loadAndFixPtTemplate(): Promise<TemplateDto> {
+    return await invoke<TemplateDto>("load_phetools_template", { "fixErrors": true});
   }
 
   async fetchStatus(): Promise<void> {

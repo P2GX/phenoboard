@@ -5,10 +5,9 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::{VariantDto, VariantListDto}};
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::{VariantDto}};
 use phenoboard::PhenoboardSingleton;
-use rfd::FileDialog;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use std::sync::{Arc, Mutex};
 use tauri_plugin_fs::{init};
@@ -30,13 +29,12 @@ pub fn run() {
             get_ppkt_store_json,
             get_phetools_template,
             hpo_can_be_updated,
-            load_phetools_template,
+            load_phetools_excel_template,
             load_hpo,
             map_text_to_annotations,
             get_table_columns_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
-            select_phetools_template_path,
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
             get_hpo_autocomplete_terms,
@@ -49,6 +47,16 @@ pub fn run() {
             validate_variant_list_dto,
             export_ppkt
         ])
+        .setup(|app| {
+            let win = app.get_webview_window("main").unwrap();
+            let app_handle = app.app_handle().clone();
+            win.on_window_event(move |event| {
+                if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+                    app_handle.exit(0);
+                }
+            });
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -91,36 +99,43 @@ fn load_hpo(
 
 /// Allow the user to choose an existing PheTools template file from the file system and load it
 #[tauri::command]
-async fn load_phetools_template(
+async fn load_phetools_excel_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-) -> Result<(), String> {
+    fix_errors: bool
+) -> Result<TemplateDto, Vec<String>> {
+    //let phenoboard_arc: Arc::clone(&*singleton);
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    std::thread::spawn(move || {
-        match app.dialog().file().blocking_pick_file() {
+    let app_handle = app.clone();
+    
+    tokio::task::spawn_blocking(move || {
+        match app_handle.dialog().file().blocking_pick_file() {
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                match singleton.load_excel_template(&path_str) {
-                    Ok(_) => {
+                match singleton.load_excel_template(&path_str, fix_errors) {
+                    Ok(dto) => {
                         let status = singleton.get_status();
-                        println!("load pt template: {:?}",&status);
-                        let _ = app.emit("backend_status", &status);
+                        let _ = app_handle.emit("backend_status", &status);
+                        Ok(dto)
                     },
                     Err(e) => {
                         let mut status = singleton.get_status();
                         status.has_error = true;
-                        status.error_message = format!("{}", e);
-                        let _ = app.emit("backend_status", &status);
+                        status.error_message = format!("{:?}", e);
+                        let _ = app_handle.emit("backend_status", &status);
+                        Err(e)
                     },
-                };
+                }
             },
             None => {
-                let _ = app.emit("templateLoaded", "failure");
+                let _ = app_handle.emit("templateLoaded", "failure");
+                Err(vec!["User cancelled file selection".to_string()])
             }
         }
-    });
-    Ok(())
+    })
+    .await
+    .map_err(|e| vec![format!("Task join error: {}", e)])?
 }
 
 
@@ -204,7 +219,7 @@ fn get_pt_template_path(
 
 
 
-
+/*
 #[tauri::command]
 fn select_phetools_template_path(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
@@ -230,7 +245,7 @@ fn select_phetools_template_path(
         }
         None => Err(format!("Could not get path from file dialog")),
     }
-}
+} */
 
 
 /// When we initialize a new Table (Excel file) for curation, we start with
@@ -327,7 +342,7 @@ fn validate_template(
     cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_template(cohort_dto).map_err(|verrs| verrs.errors().clone())
+    singleton.validate_template(cohort_dto)
 }
 
 #[tauri::command]
@@ -336,7 +351,7 @@ fn save_template(
     cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.save_template(&cohort_dto).map_err(|verrs| verrs.errors().clone())
+    singleton.save_template(&cohort_dto)
 }
 
 #[tauri::command]

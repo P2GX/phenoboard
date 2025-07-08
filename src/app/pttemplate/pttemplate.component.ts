@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -15,6 +15,8 @@ import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { TemplateDtoService } from '../services/template_dto_service';
+import { TemplateBaseComponent } from '../templatebase/templatebase.component';
+
 
 type Option = { label: string; value: string };
 
@@ -33,13 +35,18 @@ type Option = { label: string; value: string };
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
-export class PtTemplateComponent implements OnInit {
+export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
+  
 
   constructor(
     private configService: ConfigService, 
     private dialog: MatDialog,
     public ageService: AgeInputService,
-    private templateService: TemplateDtoService) {}
+    ngZone: NgZone,
+    templateService: TemplateDtoService,
+    override cdRef: ChangeDetectorRef) {
+      super(templateService, ngZone, cdRef)
+    }
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
 
@@ -82,33 +89,67 @@ export class PtTemplateComponent implements OnInit {
 
   contextMenuOptions: Option[] = [];
 
-  ngOnInit(): void {
-    console.log("PtTemplateComponent - ngInit")
+  override ngOnInit(): void {
+    console.log("PtTemplateComponent - ngInit");
+    super.ngOnInit();
     document.addEventListener('click', this.onClickAnywhere.bind(this));
     this.contextMenuOptions = [...this.predefinedOptions];
-    this.loadTemplate();
-    this.templateService.template$.subscribe(template => {
-      this.tableData = template;
-    });
-    this.cohortDescription = this.generateCohortDescriptionDto(this.tableData);
   }
 
-  async ngOnDestroy(): Promise<void> {
-  if (this.tableData) {
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
+    /* consider
+    if (this.tableData) {
     await this.templateService.saveTemplate();
+  }*/
   }
-}
+
+  protected override onTemplateLoaded(template: TemplateDto): void {
+    console.log("✅ Template loaded into PtTemplateComponent:", template);
+    console.log("🧪 typeof template", typeof template);
+    console.log("🧪 template === null?", template === null);
+    console.log("🧪 template === undefined?", template === undefined);    
+    console.log("🧪 template.rows.length:", template?.rows?.length);
+  
+    this.tableData = template;
+    console.log("OK, this tabledata", this.tableData);
+    this.cohortDescription = this.generateCohortDescriptionDto(template);
+    console.log("📦 tableData assigned:", this.tableData);
+    this.cdRef.detectChanges();
+  }
+
+  protected override onTemplateMissing(): void {
+    console.warn("⚠️ Template is missing in PtTemplateComponent");
+    // Optionally fetch it again or show an error
+  }
 
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
   async loadTemplate(): Promise<void> {
     const existing = this.templateService.getTemplate();
     if (!existing) {
-      this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
-        this.templateService.setTemplate(data);
-        });
+      console.log("🏗️ Loading template from backend...");
+      try {
+        const data = await this.configService.getPhetoolsTemplate();
+        this.templateService.setTemplate(data); // 🟢 base class reacts here
+      } catch (error) {
+        console.error("❌ Failed to load template:", error);
+      }
+    } else {
+      console.log("✅ Template already loaded");
     }
   }
+
+   ngAfterViewInit(): void {
+    
+      this.cdRef.detectChanges(); // SAFE HERE
+    
+  }
+
+ 
+
+
 
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {

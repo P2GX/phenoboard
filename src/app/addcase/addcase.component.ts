@@ -9,7 +9,7 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, TemplateDto } from '../models/template_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { HpoTermDto } from '../models/hpo_annotation_dto';
@@ -18,7 +18,7 @@ import { TemplateDtoService } from '../services/template_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
 import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
-import { take } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-addcase',
@@ -55,7 +55,7 @@ export class AddcaseComponent {
   allele1: VariantDto | null = null;
   allele2: VariantDto | null = null;
 
-  
+  tableData: TemplateDto | null = null;
  
 
   selectionRange: Range | null = null;
@@ -97,8 +97,13 @@ export class AddcaseComponent {
       })
     );
     // 
-    this.templateService.template$.pipe(take(1)).subscribe(() => {
-      // This makes sure the template service is fully available
+    this.templateService.template$.subscribe(template => {
+      if (template) {
+        this.tableData = template;
+      } else {
+        this.tableData = null;
+      }
+      
     });
   
   }

@@ -7,16 +7,27 @@ import { VariantDto } from '../models/variant_dto';
 
 @Injectable({ providedIn: 'root' })
 export class TemplateDtoService {
-    constructor(private configService: ConfigService){}
+    constructor(private configService: ConfigService){
+        console.log('🟡 TemplateDtoService instance created');
+    }
     private templateSubject = new BehaviorSubject<TemplateDto | null>(null);
     template$ = this.templateSubject.asObservable();
 
     setTemplate(template: TemplateDto) {
+        console.log("✅ Template set - OLD:", this.templateSubject.getValue());
+        console.log("✅ Template set - NEW:", template);
+        console.log("✅ Are they the same object?", this.templateSubject.getValue() === template);
+        console.log("✅ Are they deeply equal?", JSON.stringify(this.templateSubject.getValue()) === JSON.stringify(template));
+        
         this.templateSubject.next(template);
+        
+        console.log("✅ Template set - CURRENT VALUE:", this.templateSubject.getValue());
     }
 
     getTemplate(): TemplateDto | null {
-        return this.templateSubject.value;
+         const current = this.templateSubject.getValue();
+        console.log("✅ Template GOT:", current);
+        return current;
     }
 
     clearTemplate() {
