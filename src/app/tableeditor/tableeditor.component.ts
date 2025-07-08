@@ -5,13 +5,13 @@ import { ConfigService } from '../services/config.service';
 
 
 @Component({
-  selector: 'app-phetools',
+  selector: 'app-tableeditor',
   standalone: true,
   imports: [CommonModule, MatTableModule],
-  templateUrl: './phetools.component.html',
-  styleUrls: ['./phetools.component.css'],
+  templateUrl: './tableeditor.component.html',
+  styleUrls: ['./tableeditor.component.css'],
 })
-export class PhetoolsComponent implements OnInit {
+export class TableEditorComponent implements OnInit {
   objectKeys = Object.keys;
   constructor(private configService: ConfigService, private cdr: ChangeDetectorRef) {}
   

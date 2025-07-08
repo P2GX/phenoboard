@@ -55,6 +55,11 @@ export class NavbarComponent {
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
   { id: 'variant_list', label: 'Edit variants' },
+  {
+    id: 'tableeditor',
+    label: 'External table editor',
+    disabledFn: (status) => !status?.hpoLoaded
+  },
   { id: 'help', label: 'Help' }
 ];
 

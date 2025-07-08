@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { invoke } from '@tauri-apps/api/core';
 import { Router } from '@angular/router';
+import { TemplateDtoService } from '../services/template_dto_service';
+import { TemplateBaseComponent } from '../templatebase/templatebase.component';
+import { TemplateDto } from '../models/template_dto';
 
 
 
@@ -14,15 +17,14 @@ import { Router } from '@angular/router';
   templateUrl: './newtemplate.component.html',
   styleUrl: './newtemplate.component.scss'
 })
-export class NewTemplateComponent {
-  dataForm: FormGroup;
-  tableData: string[] = [];
-  jsonData: string = '';
-  showTable: boolean = false;
-  errorMessage: string = '';
-  
-
-  constructor(private fb: FormBuilder, private router: Router) {
+export class NewTemplateComponent extends TemplateBaseComponent implements OnInit, OnDestroy  {
+  constructor(
+    private fb: FormBuilder, 
+    private router: Router,
+    ngZone: NgZone, 
+    templateService: TemplateDtoService,
+    cdRef: ChangeDetectorRef) {
+      super(templateService, ngZone, cdRef);
     this.dataForm = this.fb.group({
       diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
       diseaseName: ['', [Validators.required, this.noLeadingOrTrailingWhitespace]],
@@ -32,6 +34,20 @@ export class NewTemplateComponent {
       multiText: ['', [Validators.required]], // 
     });
   }
+  dataForm: FormGroup;
+  tableData: string[] = [];
+  jsonData: string = '';
+  errorMessage: string = '';
+  
+   protected override onTemplateLoaded(template: TemplateDto): void {
+      console.log("✅ Template loaded into HomeComponent:", template);
+      this.cdRef.detectChanges();
+    }
+  
+    protected override onTemplateMissing(): void {
+      // When we open the page, the template will still be missing
+    }
+
 
   noLeadingOrTrailingWhitespace(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
@@ -41,6 +57,7 @@ export class NewTemplateComponent {
     return null;
   }
 
+  /** Activate by the submit button of the form. */
   onSubmit() {
     if (this.dataForm.valid) {
       const diseaseId = this.dataForm.get('diseaseId')?.value;
@@ -57,7 +74,7 @@ export class NewTemplateComponent {
       console.log("Transcript:", transcript);
       console.log("Multi Text:", multiText);
 
-      invoke<string>('get_table_columns_from_seeds', { 
+      invoke<string>('get_template_dto_from_seeds', { 
           diseaseId: diseaseId,
           diseaseName: diseaseName,
           hgncId: hgnc,
@@ -70,7 +87,6 @@ export class NewTemplateComponent {
             console.log("output");
             console.log("Success:", response);
             this.jsonData = JSON.parse(response);
-            this.showTable = true;
             this.errorMessage = '';
           } catch (error) { 
             console.error('Invalid JSON format:', error);
@@ -102,16 +118,6 @@ export class NewTemplateComponent {
 
   getObjectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
-  }
-
-  // This button is clicked when the user wants to edit the new table
-  async onEditButtonClick() {
-    try {
-      this.router.navigate(["/table"]);
-      console.log("navigating to table");
-    } catch (error) {
-      console.error('Error invoking onEditButtonClick:', error);
-    }
   }
 
 }

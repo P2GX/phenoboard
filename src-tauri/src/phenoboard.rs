@@ -471,7 +471,9 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn get_table_columns_from_seeds(
+    /// Generate a Template from seed HPO terms.
+    /// ToDo, this is Mendelian only, we need to extend it.
+    pub fn get_template_dto_from_seeds(
         &mut self,
         disease_id: &str,
         disease_name: &str,
@@ -497,6 +499,7 @@ impl PhenoboardSingleton {
                     Ok(pt_template) => {
                         let template_dto = pt_template.get_template_dto()
                             .map_err(|_| format!("Could not retrieve Template DTO"))?;
+                        self.phetools = Some(phetools);
                         return Ok(template_dto);
                     }
                     Err(e) => {

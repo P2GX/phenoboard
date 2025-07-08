@@ -32,7 +32,7 @@ pub fn run() {
             load_phetools_excel_template,
             load_hpo,
             map_text_to_annotations,
-            get_table_columns_from_seeds,
+            get_template_dto_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
             fetch_pmid_title,
@@ -255,7 +255,7 @@ fn select_phetools_template_path(
 /// TODO: better documentation
 
 #[tauri::command]
-fn get_table_columns_from_seeds(
+fn get_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     disease_id: &str,
     disease_name: &str,
@@ -266,7 +266,7 @@ fn get_table_columns_from_seeds(
 ) -> Result<TemplateDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.get_table_columns_from_seeds(
+    singleton.get_template_dto_from_seeds(
         disease_id, disease_name, hgnc_id, gene_symbol, transcript_id, input_text)
 }
 

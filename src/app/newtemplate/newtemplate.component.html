@@ -1,6 +1,6 @@
 <h3>Create new phenopacket cohort template</h3>
 <!-- Either show the form or the table -->
-  <form [formGroup]="dataForm" (ngSubmit)="onSubmit()" class="form-container" *ngIf="!showTable">
+  <form [formGroup]="dataForm" (ngSubmit)="onSubmit()" class="form-container">
     <div class="form-column">
         <div class="form-group">
             <label for="diseaseId" class="form-label">Disease identifier</label>
@@ -78,24 +78,3 @@
   
  
 
-  <!-- Display the table with pyphetools template (waiting to be completed) if jsonData is available -->
-<div class="table-container" *ngIf="showTable">
-<table >
-    <thead>
-      <tr>
-        <!-- Create table headers dynamically from the first row -->
-        <th *ngFor="let header of jsonData[0]">{{ header }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Iterate over the remaining rows to fill table data -->
-      <tr *ngFor="let row of jsonData.slice(1)">
-        <td *ngFor="let cell of row">{{ cell }}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  
-</div>
-
-<button *ngIf="showTable" (click)="onEditButtonClick()">Edit template</button>
