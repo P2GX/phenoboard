@@ -52,7 +52,7 @@
 <div class="flex items-center gap-3">
   <div class="relative group">
     <button
-        (click)="chooseNewPhetoolsFile()"
+        (click)="createNewPhetoolsTemplate()"
         [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
         class="btn-outline-primary w-[300px]"
     >Create new template
@@ -71,6 +71,6 @@
 </div>
 </div>
 
-<div  class="error-message">
- ERROR {{ errorMessage }}
+<div *ngIf="hasError" class="error-message">
+  {{ errorMessage }}
 </div>

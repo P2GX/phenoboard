@@ -170,41 +170,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
 
 
-  async chooseNewPhetoolsFile() {
-    console.log("chooseNewPhetoolsFile - not implemented");
-    this.configService.loadPtExcelTemplate();
-  /*  const path = await save({
-      title: "Save new PheTools template file",
-      defaultPath: "phetools-individuals.xlsx",
-      filters: [
-        { name: "Excel Files", extensions: ["xlsx"] },
-        { name: "All Files", extensions: ["*"] }
-      ]
-    });
-  
-    if (!path) {
-      console.log("Template save canceled");
-      return;
-    }
-    try {
-  
-      console.log("Saving file at:", path);
-      await this.configService.loadExistingPhetoolsTemplate(path);
-      this.newFilePath = path;
-      this.newFileCreated = true;
-    } catch(error) {
-      this.newFilePath = "";
-      this.newFileCreated = false;
-      console.error("Could not create new file: ", error);
-    } finally {
-      this.isLoading = false;
-      await this.configService.checkReadiness();
-    }
-    //await invoke("create_new_file", { path });  // Send path to Rust*/
-  }
-
-  /* switch to the addcase page */
-  goToAddCase() {
+  async createNewPhetoolsTemplate() {
     this.pageService.setPage("addcase");
   }
 

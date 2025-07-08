@@ -2,9 +2,9 @@
   <app-navbar></app-navbar>
   <main class="flex-1">
     <app-home *ngIf="currentView === 'home'"></app-home>
-    <app-table *ngIf="currentView === 'table'"></app-table>
+    <app-newtemplate *ngIf="currentView === 'newtemplate'"></app-newtemplate>
     <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
-    <app-phetools *ngIf="currentView === 'phetools'"></app-phetools>
+    <app-phetools *ngIf="currentView === 'newtemplate'"></app-phetools>
     <app-pttemplate *ngIf="currentView === 'pttemplate'"></app-pttemplate>
     <app-variant_list *ngIf="currentView === 'variant_list'"></app-variant_list>
     <app-help *ngIf="currentView === 'help'"></app-help>

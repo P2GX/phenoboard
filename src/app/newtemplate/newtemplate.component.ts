@@ -8,13 +8,13 @@ import { Router } from '@angular/router';
 
 
 @Component({
-  selector: 'app-table',
+  selector: 'app-newtemplate',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './table.component.html',
-  styleUrl: './table.component.scss'
+  templateUrl: './newtemplate.component.html',
+  styleUrl: './newtemplate.component.scss'
 })
-export class TableComponent {
+export class NewTemplateComponent {
   dataForm: FormGroup;
   tableData: string[] = [];
   jsonData: string = '';

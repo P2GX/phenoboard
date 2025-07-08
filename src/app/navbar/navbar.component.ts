@@ -39,20 +39,19 @@ export class NavbarComponent {
 
   tabs: Tab[] = [
   { id: 'home', label: 'Home' },
-  { id: 'table', label: 'New PheTools Table' },
   {
-    id: 'addcase',
-    label: 'Add case',
-    disabledFn: (status) => !status?.ptTemplateLoaded
-  },
-  {
-    id: 'phetools',
-    label: 'Edit PheTools Table',
-    disabledFn: (status) => !status?.ptTemplateLoaded
+    id: 'newtemplate',
+    label: 'Create new template',
+    disabledFn: (status) => !status?.hpoLoaded
   },
   {
     id: 'pttemplate',
     label: 'Edit Template',
+    disabledFn: (status) => !status?.ptTemplateLoaded
+  },
+  {
+    id: 'addcase',
+    label: 'Add case',
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
   { id: 'variant_list', label: 'Edit variants' },
