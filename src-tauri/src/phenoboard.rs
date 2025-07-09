@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, NewTemplateDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -475,39 +475,19 @@ impl PhenoboardSingleton {
     /// ToDo, this is Mendelian only, we need to extend it.
     pub fn get_template_dto_from_seeds(
         &mut self,
-        disease_id: &str,
-        disease_name: &str,
-        hgnc_id: &str,
-        gene_symbol: &str,
-        transcript_id: &str,
-        input_text: &str,
+        dto: NewTemplateDto
     ) -> Result<TemplateDto, String> {
-        let fresult = self.map_text_to_term_list(input_text);
+        let fresult = self.map_text_to_term_list(&dto.seed_text);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
-                let result = phetools.create_pyphetools_template(
-                    disease_id,
-                    disease_name,
-                    hgnc_id,
-                    gene_symbol,
-                    transcript_id,
+                phetools.create_pyphetools_template_from_seeds(
+                    dto,
                     fresult,
-                );
-                match result {
-                    Ok(pt_template) => {
-                        let template_dto = pt_template.get_template_dto()
-                            .map_err(|_| format!("Could not retrieve Template DTO"))?;
-                        self.phetools = Some(phetools);
-                        return Ok(template_dto);
-                    }
-                    Err(e) => {
-                        return Err(format!("Could not create matrix: {}", e));
-                    }
-                }
-            }
-            None => { return Err(format!("Could not retrieve ontology")); }
+                )
+            },
+            None =>  Err(format!("Could not retrieve ontology"))
             }
     }
 

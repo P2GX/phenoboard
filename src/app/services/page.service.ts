@@ -31,4 +31,8 @@ export class PageService {
     getHome(): Page {
         return "home";
     }
+
+    goToTemplateEditor(): void {
+        this.setPage('pttemplate')
+    }
 }

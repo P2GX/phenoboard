@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, TemplateDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, NewTemplateDto, TemplateDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { VariantDto } from '../models/variant_dto';
 
@@ -34,6 +34,13 @@ export class ConfigService {
   async getPhetoolsTemplate(): Promise<TemplateDto> {
     return await invoke<TemplateDto>("get_phetools_template");
   }
+
+  async getNewTemplateFromSeeds(dto: NewTemplateDto):  Promise<TemplateDto> {
+    return await invoke<TemplateDto>("get_template_dto_from_seeds", {
+      'dto': dto
+    });
+  }
+  
 
   /** Load the version-one format Excel template (all of which are Mendelian) */
   async loadPtExcelTemplate(): Promise<TemplateDto> {

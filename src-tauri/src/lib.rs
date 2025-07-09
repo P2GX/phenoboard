@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::{VariantDto}};
+use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, NewTemplateDto, TemplateDto}, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
@@ -257,17 +257,11 @@ fn select_phetools_template_path(
 #[tauri::command]
 fn get_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    disease_id: &str,
-    disease_name: &str,
-    hgnc_id: &str,
-    gene_symbol: &str,
-    transcript_id: &str,
-    input_text: &str,
+    dto: NewTemplateDto
 ) -> Result<TemplateDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.get_template_dto_from_seeds(
-        disease_id, disease_name, hgnc_id, gene_symbol, transcript_id, input_text)
+    singleton.get_template_dto_from_seeds(dto)
 }
 
 

@@ -1,11 +1,13 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { invoke } from '@tauri-apps/api/core';
-import { Router } from '@angular/router';
+import { noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { TemplateDto } from '../models/template_dto';
+import { newMendelianTemplate, TemplateDto } from '../models/template_dto';
+
+import { ConfigService } from '../services/config.service';
+import { PageService } from '../services/page.service';
 
 
 
@@ -18,54 +20,68 @@ import { TemplateDto } from '../models/template_dto';
   styleUrl: './newtemplate.component.scss'
 })
 export class NewTemplateComponent extends TemplateBaseComponent implements OnInit, OnDestroy  {
+
   constructor(
     private fb: FormBuilder, 
-    private router: Router,
+    private configService: ConfigService,
     ngZone: NgZone, 
+    private pageService: PageService,
     templateService: TemplateDtoService,
     cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
-    this.dataForm = this.fb.group({
-      diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
-      diseaseName: ['', [Validators.required, this.noLeadingOrTrailingWhitespace]],
-      hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
-      symbol: ['', [Validators.required, this.noLeadingOrTrailingWhitespace]],
-      transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
-      multiText: ['', [Validators.required]], // 
-    });
+      this.mendelianDataForm = this.fb.group({
+        diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
+        diseaseName: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+        hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
+        symbol: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+        transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
+        multiText: ['', [Validators.required]], // 
+      });
   }
-  dataForm: FormGroup;
+
+  digenicTemplate = false;
+  meldedTemplate = false;
+  mendelianTemplate = false;
+
+  mendelianDataForm: FormGroup;
   tableData: string[] = [];
   jsonData: string = '';
-  errorMessage: string = '';
+  errorMessage: string | null = null;
+
+  override ngOnInit(): void {
+    super.ngOnInit();
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+  }
   
-   protected override onTemplateLoaded(template: TemplateDto): void {
-      console.log("✅ Template loaded into HomeComponent:", template);
-      this.cdRef.detectChanges();
-    }
+  protected override onTemplateLoaded(template: TemplateDto): void {
+    console.log("✅ Template loaded into HomeComponent:", template);
+    this.cdRef.detectChanges();
+  }
   
     protected override onTemplateMissing(): void {
       // When we open the page, the template will still be missing
     }
 
 
-  noLeadingOrTrailingWhitespace(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (value && (value.trim().length < 2 || value !== value.trim())) {
-      return { whitespace: true };
-    }
-    return null;
-  }
+  
 
   /** Activate by the submit button of the form. */
-  onSubmit() {
-    if (this.dataForm.valid) {
-      const diseaseId = this.dataForm.get('diseaseId')?.value;
-      const diseaseName = this.dataForm.get('diseaseName')?.value;
-      const hgnc = this.dataForm.get('hgnc')?.value;
-      const symbol = this.dataForm.get('symbol')?.value;
-      const transcript = this.dataForm.get('transcript')?.value;
-      const multiText = this.dataForm.get('multiText')?.value;
+  async onSubmitMendelian() {
+    if (!this.mendelianDataForm.valid) {
+      this.errorMessage = "Invalid entries in data entry form."
+      return;
+    }
+      const diseaseId = this.mendelianDataForm.get('diseaseId')?.value;
+      const diseaseName = this.mendelianDataForm.get('diseaseName')?.value;
+      const hgnc = this.mendelianDataForm.get('hgnc')?.value;
+      const symbol = this.mendelianDataForm.get('symbol')?.value;
+      const transcript = this.mendelianDataForm.get('transcript')?.value;
+      const multiText = this.mendelianDataForm.get('multiText')?.value;
+
+      const newTemplateDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript, multiText);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);
@@ -74,42 +90,26 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       console.log("Transcript:", transcript);
       console.log("Multi Text:", multiText);
 
-      invoke<string>('get_template_dto_from_seeds', { 
-          diseaseId: diseaseId,
-          diseaseName: diseaseName,
-          hgncId: hgnc,
-          geneSymbol: symbol,
-          transcriptId: transcript,
-          inputText: multiText 
-       })
-        .then((response) => {
-          try {
-            console.log("output");
-            console.log("Success:", response);
-            this.jsonData = JSON.parse(response);
-            this.errorMessage = '';
-          } catch (error) { 
-            console.error('Invalid JSON format:', error);
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          this.errorMessage = 'Failed to process the data. Please try again.';
-        });
-    } else {
-      console.log("Form has errors!");
-      this.markAllFieldsAsTouched();
-    }
+      try {
+        const template = await this.configService.getNewTemplateFromSeeds(newTemplateDto);
+        this.templateService.setTemplate(template);
+        this.pageService.goToTemplateEditor();
+      } catch (error) {
+          this.errorMessage = String(error);
+      }
+      
+
+      
   }
 
 
   hasError(field: string): boolean {
-    return this.dataForm.controls[field].invalid && this.dataForm.controls[field].touched;
+    return this.mendelianDataForm.controls[field].invalid && this.mendelianDataForm.controls[field].touched;
   }
 
   markAllFieldsAsTouched() {
-    Object.keys(this.dataForm.controls).forEach(field => {
-      const control = this.dataForm.get(field);
+    Object.keys(this.mendelianDataForm.controls).forEach(field => {
+      const control = this.mendelianDataForm.get(field);
       if (control) {
         control.markAsTouched();
       }
@@ -119,5 +119,22 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
   getObjectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
   }
+
+
+digenic() {
+  this.mendelianTemplate = true;
+  this.meldedTemplate = false;
+  this.digenicTemplate = false;
+}
+melded() {
+  this.mendelianTemplate = false;
+  this.meldedTemplate = true;
+  this.digenicTemplate = false;
+}
+mendelian() {
+  this.mendelianTemplate = true;
+  this.meldedTemplate = false;
+  this.digenicTemplate = false;
+}
 
 }
