@@ -35,8 +35,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
-  hasError: boolean = false;
-  hpoMessage: string = "not initialized";
+  hpoMessage: string | null = null;
 
   newFilePath: any;
   loadError: any;
@@ -62,11 +61,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       });
     });
     await listen('failure', (event) => {
-      this.hasError = true;
       this.errorMessage = String(event.payload);
     });
     await listen('hpoLoading', (event) => {
-      this.hasError = false;
+      this.hpoMessage = null;
       this.errorMessage = '';
       this.hpoMessage = "loading ...";
     });
@@ -91,6 +89,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
   
   async update_gui_variables() {
+    this.errorMessage = null;
     const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
       console.log("in update_gui, status = ", status);
@@ -124,6 +123,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   async loadHpo() {
     try {
+      this.errorMessage = null;
       await this.configService.loadHPO();
     } catch (error) {
       console.error("Failed to call load_hpo:", error);
@@ -134,14 +134,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
     this.errorMessage = null;
-    console.log("chooseExistingTemplateFile TOP");
     try {
-        console.log("chooseExistingTemplateFile TRY TOP");
-      //await this.configService.loadPtExcelTemplate();
-        //console.log("chooseExistingTemplateFile after loadPtTempalte");
+      console.log("chooseExistingTemplateFile TRY TOP");
       const data = await this.configService.loadPtExcelTemplate();
       if (data == null) {
-        console.error("Could not retrieve template, data=null TODO create error message");
+        this.errorMessage = "Could not retrieve template (null error)"
         return;
       }
       console.log("chooseExistingTemplateFile data=", data);
@@ -153,7 +150,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       
       this.templateService.setTemplate(newTemplate);*/
     } catch (error: any) {
-      this.errorMessage = error?.message || 'An unexpected error occurred';
+      this.errorMessage = String(error);
       console.error('Template load failed:', error);
     }
   }

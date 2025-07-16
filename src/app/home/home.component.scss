@@ -10,6 +10,14 @@
     margin-bottom: 15px;
   }
 
+
+  .error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px; 
+  }
+
   .error-message {
     background-color: #ffe6e6; /* light red background */
     color: #a30000;            /* deep red text */

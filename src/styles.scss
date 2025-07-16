@@ -66,10 +66,13 @@ button.btn-outline-cancel {
 
 .h1-primary {
   @apply text-3xl md:text-4xl font-semibold text-gray-800 tracking-tight;
+   margin-bottom: 0.4rem; /* px */
 }
 
 .h2-primary {
-  @apply text-2xl md:text-3xl font-medium text-gray-700 mt-6 mb-2;
+  @apply text-2xl md:text-3xl font-semibold text-gray-800 tracking-tight;
+  margin-top: 1.0rem; /* 16px */
+  margin-bottom: 0.2rem; /* px */
 }
 
 .p-primary {
