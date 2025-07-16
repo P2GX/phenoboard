@@ -37,8 +37,8 @@
   </table>
 </div>
 
-<div *ngIf="variantListDto.length == 0">
-  <p class="text-gray-400 mt-2">No variants available2  .</p>
+<div *ngIf="errorMessage==null && variantListDto.length == 0">
+  <p class="text-gray-400 mt-2">No variants available.</p>
 </div>
 
 <div *ngIf="errorMessage">

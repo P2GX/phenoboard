@@ -4,6 +4,7 @@ import type { TemplateDto } from '../models/template_dto';
 import { GeneTranscriptDto } from '../models/gene_dto';
 import { ConfigService } from './config.service';
 import { VariantDto } from '../models/variant_dto';
+import { DiseaseGeneDto } from '../models/case_bundle';
 
 @Injectable({ providedIn: 'root' })
 export class TemplateDtoService {
@@ -13,20 +14,15 @@ export class TemplateDtoService {
     private templateSubject = new BehaviorSubject<TemplateDto | null>(null);
     template$ = this.templateSubject.asObservable();
 
+    private geneTranscriptDtoList = new BehaviorSubject<GeneTranscriptDto[] | null>(null);
+    geneTranscriptDtoList$ = this.geneTranscriptDtoList.asObservable();
+
     setTemplate(template: TemplateDto) {
-        console.log("✅ Template set - OLD:", this.templateSubject.getValue());
-        console.log("✅ Template set - NEW:", template);
-        console.log("✅ Are they the same object?", this.templateSubject.getValue() === template);
-        console.log("✅ Are they deeply equal?", JSON.stringify(this.templateSubject.getValue()) === JSON.stringify(template));
-        
         this.templateSubject.next(template);
-        
-        console.log("✅ Template set - CURRENT VALUE:", this.templateSubject.getValue());
     }
 
     getTemplate(): TemplateDto | null {
-         const current = this.templateSubject.getValue();
-        console.log("✅ Template GOT:", current);
+        const current = this.templateSubject.getValue();
         return current;
     }
 
@@ -47,7 +43,6 @@ export class TemplateDtoService {
     cohort. For Mendelian, this should be just one */
     getAllGeneSymbolTranscriptPairs(): GeneTranscriptDto[] {
         const seen = new Set<string>();
-        console.log("getAllGeneSymbolTranscriptPairs TOP");
         const template = this.getTemplate();
         if (template == null) {
             console.error("Attempt to retrieve genes but template was null");
@@ -113,4 +108,33 @@ export class TemplateDtoService {
         }
         return dto_list;
     }
+
+    toDiseaseGeneDtoList(template: TemplateDto): DiseaseGeneDto[] {
+    if (template.rows.length == 0) {
+      return [];
+    }
+    
+    if (template.cohortType === "mendelian") {
+      const row0 = template.rows[0];
+      if (row0.diseaseDtoList.length != 1) {
+        // should never happen
+        console.error("Malformed Mendelian template, expected only one disease");
+      }
+      const disease0 = row0.diseaseDtoList[0];
+      const diseaseId = disease0.diseaseId; 
+      const diseaseLabel = disease0.diseaseLabel;
+      if (row0.geneVarDtoList.length != 1) {
+         // should never happen
+        console.error("Malformed Mendelian template, expected only one gene");
+      }
+      const gene0 = row0.geneVarDtoList[0];
+      const hgnc = gene0.hgncId;
+      const symbol = gene0.geneSymbol;
+      const trascript = gene0.transcript;
+      
+      console.log("x");
+    }
+
+    return [];
+  }
 }

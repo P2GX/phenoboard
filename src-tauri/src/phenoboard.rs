@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, NewTemplateDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -21,7 +21,7 @@ pub enum PptOperation {
     EntireTable,
 }
 
-/// A singleton
+/// A singleton that coordinates all interactions with the backend (including GA4GH Phenoboard)
 pub struct PhenoboardSingleton {
     settings: HpoCuratorSettings,
     /// Human Phenotype Ontology
@@ -70,23 +70,6 @@ impl PhenoboardSingleton {
         let phetools = PheTools::new(hpo_clone);
         self.phetools = Some(phetools);
     }
-
-   
-    /*
-     /// Set the path to the phenotools template we will input or create
-    pub fn set_pt_template_path(&mut self, template_path: &str) -> Result<(), String> {
-        self.pt_template_path = Some(template_path.to_string());
-        match &self.ontology {
-            Some(hpo) => {
-                let hpo_arc = Arc::clone(hpo);
-                let phetools = PheTools::new(hpo_arc);
-                self.phetools = Some(phetools);
-                self.load_excel_template(template_path)?;
-                Ok(())
-            }
-            None => Err(format!("HPO not initialized")),
-        }
-    }*/
 
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
@@ -475,9 +458,10 @@ impl PhenoboardSingleton {
     /// ToDo, this is Mendelian only, we need to extend it.
     pub fn get_template_dto_from_seeds(
         &mut self,
-        dto: NewTemplateDto
+        dto: DiseaseGeneDto,
+        input: &str
     ) -> Result<TemplateDto, String> {
-        let fresult = self.map_text_to_term_list(&dto.seed_text);
+        let fresult = self.map_text_to_term_list(input);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
@@ -583,6 +567,14 @@ impl PhenoboardSingleton {
             None => Err(format!("phetools not initialized")),
         }
     }
+
+    pub fn load_external_excel(&mut self, external_excel_file: &str) 
+    -> Result<ColumnTableDto, String> {
+        match self.phetools.as_mut() {
+            Some(phetools) => phetools.load_external_excel(external_excel_file),
+            None => Err(format!("phetools not initialized")),
+        }
+}
 
 }
 

@@ -133,8 +133,6 @@ export class AddcaseComponent {
         sex: demogr_dto.sex
       };
       const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
-      console.log("submitNewRow - got ", hpoAnnotations.length, " annotations");
-        console.log("und zwar ", hpoAnnotations);
       const geneVariantBundle = this.createGeneVariantBundleDto();
       if (geneVariantBundle == null) {
         this.errorString = "Could not create Gene/Variant bundle";
@@ -142,7 +140,6 @@ export class AddcaseComponent {
         return;
       }
       let template_dto = this.templateService.getTemplate();
-      console.log("submitNewRow - template_dto=", template_dto);
       if (template_dto != null) {
         try {
           const updated_dto = await this.configService.addNewRowToCohort(

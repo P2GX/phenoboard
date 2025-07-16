@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { FooterComponent } from '../footer/footer.component';
 import { CommonModule, NgIf } from '@angular/common';
 import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
@@ -30,7 +29,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       super(templateService, ngZone, cdRef);
     }
 
-  @ViewChild(FooterComponent) footer_component!: FooterComponent;
   private unlisten: UnlistenFn | null = null;
   statusSubscription?: Subscription;
   status: StatusDto = this.backendStatusService.getStatus();
@@ -63,7 +61,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.update_gui_variables();
       });
     });
-   
     await listen('failure', (event) => {
       this.hasError = true;
       this.errorMessage = String(event.payload);
@@ -96,13 +93,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   async update_gui_variables() {
     const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
-      let n_hpo = status.nHpoTerms ?? 0;
-      let n_hpo_str = String(n_hpo);
-      if (this.footer_component) {
-        this.footer_component.setHpoNTerms(n_hpo_str);
-      } else {
-        this.pendingHpoNterms = String(status.nHpoTerms);
-      }
       console.log("in update_gui, status = ", status);
       if (status.hpoLoaded) {
         this.hpoMessage = status.hpoVersion;
@@ -158,10 +148,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       
       this.templateService.setTemplate(data);
       console.log("chooseExistingTemplateFile After set template=");
-      const newTemplate = JSON.parse(JSON.stringify(data));
+      /*const newTemplate = JSON.parse(JSON.stringify(data));
       console.log("chooseExistingTemplateFile newTemplate=", newTemplate);
       
-      this.templateService.setTemplate(newTemplate);
+      this.templateService.setTemplate(newTemplate);*/
     } catch (error: any) {
       this.errorMessage = error?.message || 'An unexpected error occurred';
       console.error('Template load failed:', error);
@@ -171,7 +161,9 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
 
   async createNewPhetoolsTemplate() {
-    this.pageService.setPage("addcase");
+     alert("Function called!");
+    console.error("TODO REFACTOR");
+
   }
 
   

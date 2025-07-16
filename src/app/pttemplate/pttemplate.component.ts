@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
@@ -9,7 +8,7 @@ import { CellDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualD
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
-import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; // adjust path as needed
+import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
 import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
@@ -76,7 +75,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     { label: 'Observed ✅', value: 'observed' },
     { label: 'Excluded ❌', value: 'excluded' },
     { label: 'N/A', value: 'na' },
-    // Add more dynamically if you want
   ];
 
   focusOptions = [
@@ -107,21 +105,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   protected override onTemplateLoaded(template: TemplateDto): void {
     console.log("✅ Template loaded into PtTemplateComponent:", template);
-    console.log("🧪 typeof template", typeof template);
-    console.log("🧪 template === null?", template === null);
-    console.log("🧪 template === undefined?", template === undefined);    
-    console.log("🧪 template.rows.length:", template?.rows?.length);
-  
     this.tableData = template;
-    console.log("OK, this tabledata", this.tableData);
     this.cohortDescription = this.generateCohortDescriptionDto(template);
-    console.log("📦 tableData assigned:", this.tableData);
     this.cdRef.detectChanges();
   }
 
   protected override onTemplateMissing(): void {
     console.warn("⚠️ Template is missing in PtTemplateComponent");
-    // Optionally fetch it again or show an error
   }
 
   /* Load the Phetools template from the backend only if the templateService 
@@ -141,14 +131,9 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
   }
 
-   ngAfterViewInit(): void {
-    
-      this.cdRef.detectChanges(); // SAFE HERE
-    
+  ngAfterViewInit(): void {
+    this.cdRef.detectChanges(); 
   }
-
- 
-
 
 
   async loadTemplateFromBackend(): Promise<void> {
@@ -269,8 +254,6 @@ showError(message: string): void {
   };
 
   async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
-    console.log("addHpoTermToCohort = ", autocompletedTerm);
-    
     const template = this.templateService.getTemplate();
     if (template == null) {
       console.error("Attempt to add HPO Term to cohort but template is null");

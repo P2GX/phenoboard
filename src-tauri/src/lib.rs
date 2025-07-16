@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{hpo_term_dto::HpoTermDto, template_dto::{GeneVariantBundleDto, IndividualBundleDto, NewTemplateDto, TemplateDto}, variant_dto::VariantDto};
+use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
@@ -45,14 +45,17 @@ pub fn run() {
             add_new_row_to_cohort,
             submit_variant_dto,
             validate_variant_list_dto,
-            export_ppkt
+            export_ppkt,
+            load_external_excel
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
             let app_handle = app.app_handle().clone();
             win.on_window_event(move |event| {
                 if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
-                    app_handle.exit(0);
+                    //app_handle.exit(0);
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                    std::process::exit(0);
                 }
             });
             Ok(())
@@ -257,11 +260,12 @@ fn select_phetools_template_path(
 #[tauri::command]
 fn get_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: NewTemplateDto
+    dto: DiseaseGeneDto,
+    input: &str
 ) -> Result<TemplateDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.get_template_dto_from_seeds(dto)
+    singleton.get_template_dto_from_seeds(dto, input)
 }
 
 
@@ -406,3 +410,47 @@ fn validate_variant_list_dto(
    
     singleton.validate_variant_list_dto( variant_dto_list) 
 }
+
+
+
+/// Allow the user to choose an external Excel file (e.g., supplemental table) from which we will create phenopackets
+#[tauri::command]
+async fn load_external_excel(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    fix_errors: bool
+) -> Result<ColumnTableDto, String> {
+    //let phenoboard_arc: Arc::clone(&*singleton);
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let app_handle = app.clone();
+    
+    tokio::task::spawn_blocking(move || {
+        match app_handle.dialog().file().blocking_pick_file() {
+            Some(file) => {
+                let mut singleton = phenoboard_arc.lock().unwrap();
+                let path_str = file.to_string();
+                match singleton.load_external_excel(&path_str) {
+                    Ok(dto) => {
+                        let status = singleton.get_status();
+                        let _ = app_handle.emit("backend_status", &status);
+                        Ok(dto)
+                    },
+                    Err(e) => {
+                        let mut status = singleton.get_status();
+                        status.has_error = true;
+                        status.error_message = format!("{:?}", e);
+                        let _ = app_handle.emit("backend_status", &status);
+                        Err(e)
+                    },
+                }
+            },
+            None => {
+                let _ = app_handle.emit("templateLoaded", "failure");
+                Err("User cancelled file selection".to_string())
+            }
+        }
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+

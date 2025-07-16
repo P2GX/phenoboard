@@ -81,6 +81,8 @@ then end the process with
 ```bash
 kill -9 <PID>
 ```
+This may also cause the typescript part of the app to not be updated when we run ``npm run tauri dev``.
+
 
 ## Run in browser
 Can be useful with the DevTools panel

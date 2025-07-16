@@ -1,12 +1,16 @@
 {
   "name": "phenoboard",
-  "version": "0.2.29",
+  "version": "0.3.2",
   "scripts": {
     "ng": "ng",
-    "start": "nx serve",
+    "start": "nx serve phenoboard --port 1420",
     "build": "nx build --base-href ./",
     "watch": "nx build --watch --configuration development",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:dev:clean": "rimraf dist && rimraf src-tauri/target && npm run tauri dev",
+    "tauri:dev:fresh": "npm run clean && npm run tauri dev",
+    "clean": "rimraf dist && rimraf src-tauri/target && rimraf node_modules/.cache"
   },
   "private": true,
   "dependencies": {
@@ -27,6 +31,7 @@
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "tw-elements": "^2.0.0",
+    "xlsx": "^0.18.5",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {

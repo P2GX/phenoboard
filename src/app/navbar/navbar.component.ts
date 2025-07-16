@@ -5,8 +5,6 @@ import { StatusDto } from '../models/status_dto';
 import { Subscription } from 'rxjs';
 import { BackendStatusService } from '../services/backend_status_service';
 
-
-
 type Tab = {
   id: Page;
   label: string;
@@ -39,27 +37,23 @@ export class NavbarComponent {
 
   tabs: Tab[] = [
   { id: 'home', label: 'Home' },
+  { id: 'table', label: 'New PheTools Table' },
   {
-    id: 'newtemplate',
-    label: 'Create new template',
-    disabledFn: (status) => !status?.hpoLoaded
+    id: 'addcase',
+    label: 'Add case',
+    disabledFn: (status) => !status?.ptTemplateLoaded
+  },
+  {
+    id: 'phetools',
+    label: 'Edit PheTools Table',
+    disabledFn: (status) => !status?.ptTemplateLoaded
   },
   {
     id: 'pttemplate',
     label: 'Edit Template',
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
-  {
-    id: 'addcase',
-    label: 'Add case',
-    disabledFn: (status) => !status?.ptTemplateLoaded
-  },
   { id: 'variant_list', label: 'Edit variants' },
-  {
-    id: 'tableeditor',
-    label: 'External table editor',
-    disabledFn: (status) => !status?.hpoLoaded
-  },
   { id: 'help', label: 'Help' }
 ];
 

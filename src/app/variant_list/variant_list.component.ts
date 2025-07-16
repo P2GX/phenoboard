@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
 import { MatCardModule } from '@angular/material/card';
@@ -21,7 +21,7 @@ import { TemplateBaseComponent } from '../templatebase/templatebase.component';
   templateUrl: './variant_list.component.html',
   styleUrls: ['./variant_list.component.css']
 })
-export class VariantListComponent extends TemplateBaseComponent implements OnInit {
+export class VariantListComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
   protected override onTemplateLoaded(template: TemplateDto): void {
     throw new Error('Method not implemented.');
   }

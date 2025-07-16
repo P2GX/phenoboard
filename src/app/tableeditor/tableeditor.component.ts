@@ -1,49 +1,83 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
+import { TemplateBaseComponent } from '../templatebase/templatebase.component';
+import { TemplateDtoService } from '../services/template_dto_service';
+import { TemplateDto } from '../models/template_dto';
+
+
+import { MatIconModule } from "@angular/material/icon";
+import { ViewChild } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
+import { ColumnTableDto } from '../models/etl_dto';
 
 
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule],
+  imports: [CommonModule, MatTableModule, MatIconModule],
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.css'],
 })
-export class TableEditorComponent implements OnInit {
-  objectKeys = Object.keys;
-  constructor(private configService: ConfigService, private cdr: ChangeDetectorRef) {}
+export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+
+
+@ViewChild(MatPaginator) paginator!: MatPaginator;
+// Data properties
+tableData: ColumnTableDto | null = null;
+processedData: any[] = [];
+filteredData: any[] = [];
+dataSource = new MatTableDataSource<any[]>([]);
+displayedColumns: string[] = [];
+
+// UI state
+isLoading = false;
+errorMessage = '';
+searchTerm = '';
+pageSize = 25;
+selectedRows = new Set<any>();
+
+// Editing state
+editingCell: { row: number, col: number } | null = null;
+editingValue = '';
+activeColumn = -1;
+activeRow = -1;
+
+
   
-  // currently selected (by right click) row and column 
-  contextMenuRow: number | null = null;
-  contextMenuCol: number | null = null;
-  // This is set to true by right click
-  showContextMenu = false;
-  showHpoContextMenu: boolean = false;
-  // todo - probably we do not need to record this
-  contextMenuPosition = { x: 0, y: 0 };
-  contextMenuItems: string[] = ["edit column", "edit row", "delete column", "delete row"];
-  hpoContextMenuItems: string[] = ["observed", "excluded", "na", "return to main"];
-
-  tableData: string[][] = [];
-
-  showMainTable: boolean = true;
-  showRowTable: boolean = false;
-  showColTable: boolean = false;
-
-  summary: Record<string, string> = {};
+ 
+  constructor(private configService: ConfigService, 
+    templateService: TemplateDtoService,
+    ngZone: NgZone,
+    cdRef: ChangeDetectorRef
+  ) {
+    super(templateService, ngZone, cdRef);
+  }
   
-  errorMessage: string | null = null;
-
-  async ngOnInit() {
-    try {
-      console.log("ini pyphetools refactor")
-    } catch (err) {
-      console.error("Failed to load table data", err);
-      return;
-    }
+  override ngOnInit(): void {
+    super.ngOnInit();
   }
 
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+  }
+
+  protected override onTemplateLoaded(template: TemplateDto): void {
+    console.log("TableEditorComponent:onTemplateLoaded");
+  }
+
+ 
+  loadExcel() {
+    console.log('loadExcel');
+    this.configService.loadExternalExcel();
+}
+
+
+
+
+
+
+  
   
 }

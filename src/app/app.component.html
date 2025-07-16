@@ -2,12 +2,12 @@
   <app-navbar></app-navbar>
   <main class="flex-1">
     <app-home *ngIf="currentView === 'home'"></app-home>
-    <app-newtemplate *ngIf="currentView === 'newtemplate'"></app-newtemplate>
-    <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
-    <app-tableeditor *ngIf="currentView === 'tableeditor'"></app-tableeditor>
+   <app-newtemplate *ngIf="currentView === 'table'"></app-newtemplate>
+   <app-tableeditor *nfIG="currentView === 'tableeditor'"></app-tableeditor>
+   <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
     <app-pttemplate *ngIf="currentView === 'pttemplate'"></app-pttemplate>
     <app-variant_list *ngIf="currentView === 'variant_list'"></app-variant_list>
     <app-help *ngIf="currentView === 'help'"></app-help>
   </main>
-  <app-footer></app-footer>
+  <div><p>DOWE NEED FOOTER HERE</p></div>
   </div>

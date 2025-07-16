@@ -1,3 +1,4 @@
+import { DiseaseGeneDto } from "./case_bundle";
 
 
 export interface IndividualDto {
@@ -47,11 +48,14 @@ export interface HeaderDto {
     data: HeaderDupletDto[];
 }
 
+
+
 export interface TemplateDto {
-    cohortType: string;
-    hpoHeaders: HeaderDupletDto[];
-    rows: RowDto[];
+    cohortType: string,
+    hpoHeaders: HeaderDupletDto[],
+    rows: RowDto[]
 }
+
 
 
 /// This is used to transmit information about a new disease template
@@ -64,8 +68,7 @@ export interface TemplateDto {
 export interface NewTemplateDto {
     templateType: string,
     diseaseDtoList: DiseaseDto[],
-    geneVariantDtoList: GeneVariantBundleDto[],
-    seedText: string
+    geneVariantDtoList: GeneVariantBundleDto[]
 }
 
 export function newMendelianTemplate(
@@ -73,8 +76,7 @@ export function newMendelianTemplate(
     diseaseLabel: string, 
     hgnc: string, 
     symbol: string, 
-    transcript: string, 
-    seedText:string): NewTemplateDto {
+    transcript: string): NewTemplateDto {
 
     const disease_dto: DiseaseDto = {
         diseaseId: diseaseId,
@@ -94,6 +96,5 @@ export function newMendelianTemplate(
         templateType: 'mendelian',
         diseaseDtoList: [disease_dto],
         geneVariantDtoList: [gvb_dto],
-        seedText: seedText
     };
 }

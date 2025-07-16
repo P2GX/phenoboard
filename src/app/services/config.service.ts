@@ -1,4 +1,4 @@
-import { Injectable, numberAttribute } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
@@ -6,6 +6,8 @@ import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto
 import { GeneVariantBundleDto, IndividualDto, NewTemplateDto, TemplateDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { VariantDto } from '../models/variant_dto';
+import { ColumnTableDto } from '../models/etl_dto';
+import { DiseaseGeneDto } from '../models/case_bundle';
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +37,7 @@ export class ConfigService {
     return await invoke<TemplateDto>("get_phetools_template");
   }
 
-  async getNewTemplateFromSeeds(dto: NewTemplateDto):  Promise<TemplateDto> {
+  async getNewTemplateFromSeeds(dto: DiseaseGeneDto):  Promise<TemplateDto> {
     return await invoke<TemplateDto>("get_template_dto_from_seeds", {
       'dto': dto
     });
@@ -159,10 +161,6 @@ export class ConfigService {
       hpo_annotations: HpoTermDto[],
       gene_variant_list: GeneVariantBundleDto[],
       template_dto: TemplateDto): Promise<TemplateDto> {
-    console.log("service - addNewRowToCohort, indiv", individual_dto);
-    console.log("service - addNewRowToCohort, hpo", hpo_annotations);
-    console.log("template dto", template_dto);
-
     return invoke<TemplateDto>('add_new_row_to_cohort', 
       {individualDto: individual_dto, 
         hpoAnnotations: hpo_annotations,
@@ -182,6 +180,11 @@ export class ConfigService {
     });
   }
 
-
+  /**
+   * Load an external Excel table (e.g., supplemental material) that we want to transform into a collection of phenopacket rows
+   */
+  async loadExternalExcel(): Promise<ColumnTableDto> {
+    return invoke<ColumnTableDto>("load_external_excel");
+  }
 
 }

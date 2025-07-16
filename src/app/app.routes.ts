@@ -1,1 +1,0 @@
-/* No routing used in this single-page application */

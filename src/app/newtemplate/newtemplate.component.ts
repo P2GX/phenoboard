@@ -4,10 +4,11 @@ import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { newMendelianTemplate, TemplateDto } from '../models/template_dto';
+import { TemplateDto } from '../models/template_dto';
 
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
+import { newMendelianTemplate } from '../models/case_bundle';
 
 
 
@@ -17,7 +18,7 @@ import { PageService } from '../services/page.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './newtemplate.component.html',
-  styleUrl: './newtemplate.component.scss'
+  styleUrls: ['./newtemplate.component.scss'],
 })
 export class NewTemplateComponent extends TemplateBaseComponent implements OnInit, OnDestroy  {
 
@@ -81,7 +82,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       const transcript = this.mendelianDataForm.get('transcript')?.value;
       const multiText = this.mendelianDataForm.get('multiText')?.value;
 
-      const newTemplateDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript, multiText);
+      const newTemplateDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);
@@ -93,7 +94,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       try {
         const template = await this.configService.getNewTemplateFromSeeds(newTemplateDto);
         this.templateService.setTemplate(template);
-        this.pageService.goToTemplateEditor();
+        console.error("TODO REFACOT newtemplate");
       } catch (error) {
           this.errorMessage = String(error);
       }
