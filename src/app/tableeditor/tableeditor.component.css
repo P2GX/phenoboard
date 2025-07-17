@@ -1,186 +1,103 @@
+.pt-table td:first-child {
+  background-color: #f0f8ff; /* light blue bg, for example */
+  cursor: context-menu;      /* show right-click cursor */
+}
+  .error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px; 
+  }
+
+  .error-message {
+    background-color: #ffe6e6; /* light red background */
+    color: #a30000;            /* deep red text */
+    border: 1px solid #ff4d4d; /* red border */
+    padding: 1em;
+    margin-top: 1em;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+}
+
+
+.pt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+.pt-table th,
+.pt-table td {
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+
+
+.pt-table td.edit-mode-narrow {
+  width: 150px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-row {
+  background-color: #f9f9f9; /* very light gray */
+  border-bottom: 2px solid #aaa;
+}
+
+.type-row {
+  background-color: #ffe6e6; /* light pink */
+  font-style: italic;
+  border-bottom: 1px solid #ccc;
+}
 
 .context-menu {
-    position: fixed;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 10000;
-    min-width: 100px;
-  }
-  
-  .context-menu button {
-    display: block;
-    width: 100%;
-    padding: 8px;
-    text-align: left;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-  }
-  
-  .context-menu button:hover {
-    background-color: #eee;
-  }
-
+  position: fixed;
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  padding: 0;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+}
 
 .context-menu ul {
-  list-style-type: none;
+  list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .context-menu li {
-  padding: 8px 12px;
+  padding: 6px 12px;
   cursor: pointer;
 }
 
 .context-menu li:hover {
-  background-color: #ddd;
-}
-
-.table-container {
-  position: relative;
-}
-
-.ppt-table {
-  border-collapse: collapse;
-  width: auto;
-  table-layout: fixed;
-}
-  
-.ppt-table tr:hover {
-  background-color: #f1f1f1;
-}
-.ppt-table th,
-.ppt-table td {
-  border: 1px solid #ccc;
-  padding: 2px;
-  text-align: center;
-  vertical-align: bottom;
-  min-width: 30px;
-  max-width: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Rotated header cell */
-.vertical-header {
-  position: relative;
-  height: 120px;
-  padding: 0;
-}
-
-/* Actual rotated text */
-.rotated-text {
-  transform: rotate(-90deg);
-  transform-origin: left bottom;
-  position: absolute;
-  bottom: 5px;
-  left: 25px;
-  white-space: nowrap;
-  font-size: 11px;
+  background-color: #eee;
 }
 
 
-.table-scroll-wrapper {
-  overflow-x: auto;
-  max-width: 100%;
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1rem;
 }
 
-
-::ng-deep .cell-observed {
-  color: black;
-  background-color: #88e788;
-  font-weight: bold;
-}
-
-::ng-deep .cell-excluded {
-  color: black;
-  background-color: #ffe6e6;
-  font-weight: bold;
-}
-
-::ng-deep .cell-na {
-  color: black;
-  background-color: #eeeeee;
-  font-weight: normal;
-}
-
-.cell-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 200px;
-  vertical-align: bottom;
-}
-
-
-
-
-.focus-table tr:hover {
-  background-color: #f1f1f1;
-}
-
-.focus-table th,
-.focus-table td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-  vertical-align: bottom;
-  max-width: 200px;
-  min-width: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Limit all columns by default */
-.focus-table th:not(:nth-child(3)):not(:nth-child(4)),
-.focus-table td:not(:nth-child(3)):not(:nth-child(4)) {
-  max-width: 80px;
-}
-
-/* Allow 3rd and 4th columns to grow fully */
-.focus-table th:not(:nth-child(1)):not(:nth-child(2)),
-.focus-table td:not(:nth-child(1)):not(:nth-child(2)) {
-  max-width: none;
-  white-space: normal; /* Allows wrapping if needed */
-  text-overflow: initial;
-  overflow: visible;
-}
-
-.error-banner {
-  background-color: #ffe5e5;
-  color: #a00000;
-  border: 1px solid #a00000;
-  padding: 8px 12px;
-  margin: 10px 0;
+.btn-outline-primary {
+  padding: 0.5em 1em;
+  border: 1px solid #007bff;
+  background-color: transparent;
+  color: #007bff;
   border-radius: 4px;
-  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
-
-.mat-tooltip {
-  background-color: #333 !important;    /* Dark background */
-  color: #fff !important;               /* White text */
-  font-size: 14px !important;           /* Slightly bigger font */
-  font-weight: 500 !important;          /* Medium weight */
-  padding: 8px 12px !important;         /* More padding for comfort */
-  border-radius: 6px !important;        /* Rounded corners */
-  max-width: 300px !important;          /* Max width to avoid very wide tooltips */
-  white-space: pre-line !important;     /* Support multiline tooltip with line breaks */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4) !important; /* Soft shadow */
-  opacity: 0.95 !important;              /* Slight transparency */
-}
-
-/* Optional: Add a subtle fade-in animation */
-.mat-tooltip-show {
-  animation: fadeInTooltip 0.2s ease-in forwards;
-}
-
-@keyframes fadeInTooltip {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 0.95; transform: translateY(0); }
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
 }

@@ -181,10 +181,27 @@ export class ConfigService {
   }
 
   /**
-   * Load an external Excel table (e.g., supplemental material) that we want to transform into a collection of phenopacket rows
+   * Load an external Excel table (e.g., supplemental material) that we want to transform into a collection of phenopacket rows (columns based)
    */
   async loadExternalExcel(): Promise<ColumnTableDto> {
-    return invoke<ColumnTableDto>("load_external_excel");
+    return invoke<ColumnTableDto>("load_external_excel", {rowBased: false}
+    );
   }
+
+    /**
+   * Load an external Excel table (e.g., supplemental material) that we want to transform into a collection of phenopacket rows (row-based)
+   */
+  async loadExternalExcelRowBased(): Promise<ColumnTableDto> {
+    return invoke<ColumnTableDto>("load_external_excel", {rowBased: true});
+  }
+
+
+  async saveJsonExternalTemplate(template: ColumnTableDto) {
+    await invoke('save_external_template_json', {  template });
+  }
+
+async loadTemplate(path: string): Promise<ColumnTableDto> {
+  return await invoke('load_external_template_json');
+}
 
 }

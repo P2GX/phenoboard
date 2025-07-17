@@ -1,0 +1,33 @@
+<h1 mat-dialog-title>Edit Column</h1>
+
+<div mat-dialog-content>
+  <mat-form-field appearance="fill" class="w-full">
+    <mat-label>Header</mat-label>
+    <input matInput [(ngModel)]="data.column.header">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="w-full">
+    <mat-label>Column Type</mat-label>
+    <mat-select [(ngModel)]="data.column.columnType">
+      <mat-option *ngFor="let type of columnTypes" [value]="type">
+        {{ type }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-slide-toggle [(ngModel)]="data.column.transformed">
+    Transformed
+  </mat-slide-toggle>
+
+  <h3>Values</h3>
+  <div style="max-height: 200px; overflow-y: auto;">
+    <mat-form-field appearance="outline" class="w-full" *ngFor="let value of data.column.values; let i = index">
+      <input matInput [(ngModel)]="data.column.values[i]" placeholder="Row {{ i + 1 }}">
+    </mat-form-field>
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()">Save</button>
+</div>

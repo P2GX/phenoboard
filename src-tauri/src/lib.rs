@@ -9,7 +9,7 @@ use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, temp
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
-use std::sync::{Arc, Mutex};
+use std::{fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -46,7 +46,8 @@ pub fn run() {
             submit_variant_dto,
             validate_variant_list_dto,
             export_ppkt,
-            load_external_excel
+            load_external_template_json,
+            save_external_template_json
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -326,7 +327,6 @@ fn submit_autocompleted_hpo_term(
 #[tauri::command]
 fn submit_variant_dto(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    app: AppHandle,
     variant_dto: VariantDto,
 ) -> Result<VariantDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -407,7 +407,6 @@ fn validate_variant_list_dto(
 -> Result<Vec<VariantDto>, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-   
     singleton.validate_variant_list_dto( variant_dto_list) 
 }
 
@@ -418,7 +417,7 @@ fn validate_variant_list_dto(
 async fn load_external_excel(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    fix_errors: bool
+    row_based:bool
 ) -> Result<ColumnTableDto, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -429,7 +428,7 @@ async fn load_external_excel(
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                match singleton.load_external_excel(&path_str) {
+                match singleton.load_external_excel(&path_str, row_based) {
                     Ok(dto) => {
                         let status = singleton.get_status();
                         let _ = app_handle.emit("backend_status", &status);
@@ -448,6 +447,71 @@ async fn load_external_excel(
                 let _ = app_handle.emit("templateLoaded", "failure");
                 Err("User cancelled file selection".to_string())
             }
+        }
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+
+
+
+
+/// Allow the user to choose an existing PheTools template file from the file system and load it
+#[tauri::command]
+async fn save_external_template_json(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    template: ColumnTableDto
+) -> Result<(), String> {
+    //let phenoboard_arc: Arc::clone(&*singleton);
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let app_handle = app.clone();
+    
+    tokio::task::spawn_blocking(move || {
+        match app_handle.dialog().file().blocking_pick_file() {
+            Some(file) => {
+                let fpath = file.to_string();
+                let json = serde_json::to_string_pretty(&template)
+                    .map_err(|e| format!("Failed to serialize template: {}", e))?;
+                fs::write(&fpath, json)
+                    .map_err(|e| format!("Failed to write file: {}", e))?;
+                Ok(())
+            },
+            None => {
+                let _ = app_handle.emit("templateLoaded", "failure");
+                Err("User cancelled file selection".to_string())
+            }
+        }
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+
+
+#[tauri::command]
+async fn load_external_template_json(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+) -> Result<ColumnTableDto, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let app_handle = app.clone();
+
+    tokio::task::spawn_blocking(move || {
+        let fpath =  app_handle.dialog().file().blocking_pick_file();
+        match fpath {
+            Some(file_path) => {
+                let mut singleton = phenoboard_arc.lock().unwrap();
+                let path_str = file_path.to_string();
+                let contents = fs::read_to_string(path_str)
+                    .map_err(|e| format!("Failed to read file: {}", e))?;
+                let dto: ColumnTableDto = serde_json::from_str(&contents)
+                    .map_err(|e| format!("Failed to deserialize JSON: {}", e))?;
+                singleton.set_external_template_dto(&dto);
+                Ok(dto)
+            }
+            None => todo!(),
         }
     })
     .await

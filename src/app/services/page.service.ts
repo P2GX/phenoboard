@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type Page = "home" | "table" | "addcase" | "phetools" | "pttemplate" | "variant_list" | "help";
+export type Page = "home" | "table" | "addcase" | "table_editor" | "pttemplate" | "variant_list" | "help";
 
-const validPages = ["home", "table", "addcase", "phetools", "pttemplate", "variant_list", "help"] as const;
+const validPages = ["home", "table", "addcase", "table_editor", "pttemplate", "variant_list", "help"] as const;
 
 export function isPage(value: string): value is Page {
     return (validPages as readonly string[]).includes(value);

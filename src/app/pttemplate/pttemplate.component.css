@@ -1,18 +1,4 @@
-.pt-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 14px;
-}
 
-.pt-table th {
-  border: none;
-  border-bottom: 1px solid #ccc; 
-  padding: 5px;
-}
-.pt-table td {
-  border: 1px solid #ccc;
-  padding: 5px;
-}
 
 .rotate-header {
   height: 80px; /* or less */

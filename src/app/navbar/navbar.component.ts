@@ -44,16 +44,16 @@ export class NavbarComponent {
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
   {
-    id: 'phetools',
-    label: 'Edit PheTools Table',
-    disabledFn: (status) => !status?.ptTemplateLoaded
-  },
-  {
     id: 'pttemplate',
     label: 'Edit Template',
     disabledFn: (status) => !status?.ptTemplateLoaded
   },
   { id: 'variant_list', label: 'Edit variants' },
+   {
+    id: 'table_editor',
+    label: 'Edit External Table',
+    disabledFn: (status) => !status?.hpoLoaded
+  },
   { id: 'help', label: 'Help' }
 ];
 

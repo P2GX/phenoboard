@@ -3,7 +3,7 @@
   <main class="flex-1">
     <app-home *ngIf="currentView === 'home'"></app-home>
    <app-newtemplate *ngIf="currentView === 'table'"></app-newtemplate>
-   <app-tableeditor *nfIG="currentView === 'tableeditor'"></app-tableeditor>
+   <app-tableeditor *ngIf="currentView === 'table_editor'"></app-tableeditor>
    <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
     <app-pttemplate *ngIf="currentView === 'pttemplate'"></app-pttemplate>
     <app-variant_list *ngIf="currentView === 'variant_list'"></app-variant_list>

@@ -1,13 +1,103 @@
-<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
-  <!-- Title -->
-  <h2 class="text-xl font-semibold text-gray-800">Table Editor12</h2>
-</div>
 <div class="primary-box">
+<h1 class="h1-primary">External Table Editor</h1>
+  <p class="text-xs">Ingest external tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column. You can save and load the external templates to continue work later. In general, however, these json files should not be stored long-term (or checked into GitHub).</p>
+</div>
+<div class="button-row">
   <button 
     class="btn-outline-primary"
     (click)="loadExcel()">
-
+    Load External Excel File (Column-based)
   </button>
 
+  <button 
+    class="btn-outline-primary"
+    (click)="loadExcelRowBased()">
+    Load External Excel File (Row-based)
+  </button>
+
+  <button 
+    class="btn-outline-primary"
+    (click)="saveExternalTemplateJson()">
+    Save External Template JSON
+  </button>
+
+  <button 
+    class="btn-outline-primary"
+    (click)="loadExternalTemplateJson()">
+    Load External Template JSON
+  </button>
 </div>
 
+
+<div class="error-container" *ngIf="errorMessage">
+  <div class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>
+<div *ngIf="!externalTable">
+  <p>No table loaded yet.</p>
+</div>
+
+
+<table class="pt-table">
+  <ng-container *ngFor="let row of displayRows; let rowIndex = index">
+    <tr [ngClass]="{
+          'header-row': rowIndex === 0,
+          'type-row': rowIndex === 1
+        }">
+      <ng-container *ngFor="let cell of row; let colIndex = index">
+        <ng-container *ngIf="!editModeActive || colIndex === 0 || colIndex === visibleColIndex">
+          <td
+            [ngClass]="{
+              'edit-mode-narrow': editModeActive && (colIndex === 0 || colIndex === visibleColIndex)
+            }"  
+            [ngStyle]="{
+              'background-color': colIndex === 0 ? '#f0f8ff' : 'transparent'
+            }"
+            (contextmenu)="rowIndex === 0
+                ? onRightClickHeader($event, colIndex)
+                : onRightClickCell($event, rowIndex, colIndex)"
+          >
+            {{ cell }}
+          </td>
+        </ng-container>
+      </ng-container>
+    </tr>
+  </ng-container>
+</table>
+
+<!-- Context menu for column headers -->
+<div
+  *ngIf="columnContextMenuVisible"
+  [style.top.px]="columnContextMenuY"
+  [style.left.px]="columnContextMenuX"
+  class="context-menu"
+  (click)="columnContextMenuVisible = false"
+>
+  <div style="padding: 5px 12px; font-weight: bold;">
+    Column: {{ contextMenuColHeader }}<br />
+    Type: {{ contextMenuColType }}
+  </div>
+  <ul>
+    <li (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
+    <li (click)="applyTransform(contextMenuColIndex)">Transform Column</li>
+    <li (click)="showOnlyColumn(contextMenuColIndex)">Show Only This Column</li>
+    <li (click)="clearColumnFilter()">Show All Columns</li>
+  </ul>
+</div>
+
+<div
+  *ngIf="contextMenuCellVisible"
+  class="context-menu"
+  [style.top.px]="contextMenuCellX"
+  [style.left.px]="contextMenuCellY"
+  (click)="contextMenuCellVisible = false"
+>
+  <div style="padding: 5px 12px; font-weight: bold;">
+    Value: "{{ contextMenuCellValue }}"<br />
+    Type: {{ contextMenuCellType }}
+  </div>
+  <ul>
+    <li (click)="editValueManually()">Edit Value...</li>
+  </ul>
+</div>

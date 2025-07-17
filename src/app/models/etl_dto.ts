@@ -1,16 +1,17 @@
 export enum EtlColumnType {
-  Raw = "Raw",
-  FamilyId = "FamilyId",
-  PatientId = "PatientId",
-  SingleHpoTerm = "SingleHpoTerm",
-  MultipleHpoTerm = "MultipleHpoTerm",
-  GeneSymbol = "GeneSymbol",
-  Variant = "Variant",
-  Disease = "Disease",
-  Age = "Age",
-  Sex = "Sex",
-  Ignore = "Ignore"
+  raw = "raw",
+  familyId = "familyId",
+  patientId = "patientId",
+  singleHpoTerm = "singleHpoTerm",
+  multipleHpoTerm = "multipleHpoTerm",
+  geneSymbol = "geneSymbol",
+  variant = "variant",
+  disease = "disease",
+  age = "age",
+  sex = "sex",
+  ignore = "ignore"
 }
+
 
 export interface ColumnDto {
   columnType: EtlColumnType;
