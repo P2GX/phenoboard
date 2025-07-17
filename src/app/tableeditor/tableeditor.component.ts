@@ -12,6 +12,7 @@ import { MatIconModule } from "@angular/material/icon";
 
 
 import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
+import { EtlSessionService } from '../services/etl_session_service';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 
@@ -33,7 +34,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     templateService: TemplateDtoService,
     ngZone: NgZone,
     cdRef: ChangeDetectorRef,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private etl_service: EtlSessionService,
   ) {
     super(templateService, ngZone, cdRef);
   }
@@ -58,6 +60,14 @@ contextMenuColIndex: number | null = null;
   transformationPanelVisible: boolean = false;
   editPreviewColumnVisible: boolean = false;
   
+contextMenuCellVisible = false;
+contextMenuCellX = 0;
+contextMenuCellY = 0;
+contextMenuCellRow: number | null = null;
+contextMenuCellCol: number | null = null;
+contextMenuCellValue: string | null = null;
+contextMenuCellType: EtlColumnType | null = null;
+transformedColumnValues: string[] = [];
 
 columnTypeColors: ColumnTypeColorMap = {
   raw: '#ffffff',
@@ -235,6 +245,7 @@ editUniqueValuesInColumn(index: number) {
   this.contextMenuColType = column.columnType;
   this.uniqueValuesToMap = unique;
   this.transformationPanelVisible = true;
+  this.columnBeingTransformed = index;
 
   console.debug("Preparing transformation for:", this.contextMenuColHeader);
 }
@@ -254,6 +265,7 @@ transformationMap: { [original: string]: string } = {};
 uniqueValuesToMap: string[] = [];
 
 startTransformColumn(colIndex: number) {
+  console.log("calling startTransformColumn, colIndex=", colIndex);
   this.uniqueValuesToMap = this.getUniqueValues(colIndex);
   this.transformationMap = {};
   this.uniqueValuesToMap.forEach(val => {
@@ -263,7 +275,7 @@ startTransformColumn(colIndex: number) {
   this.transformationPanelVisible = true;
 }
 
-transformedColumnValues: string[] = [];
+
 
 finalizeColumnTransformation() {
   if (this.columnBeingTransformed == null || !this.externalTable) return;
@@ -318,30 +330,30 @@ applyTransform(colIndex: number | null): void {
   this.columnContextMenuVisible = false;
 }
 
+/**
+ * This function is called up right click in the editing window when the user indicates
+ * to replace values with the correctly formated values, e.g., "Female" => "F"
+ */
 applyValueTransform() {
-  console.log("applyValueTransform")
-  if (this.columnBeingTransformed == null || !this.externalTable) return;
-
+  if (this.externalTable == null) {
+    // should never happen
+    console.error("Attempt to apply value transform with externalTable being null");
+    return;
+  }
+  if (this.columnBeingTransformed == null) {
+    console.error("Attempt to apply value transform with columnBeingTransformed being null");
+    return;
+  } 
   const colIndex = this.columnBeingTransformed;
   const column = this.externalTable.columns[colIndex];
-  const transformedValues = column.values.map(val => this.transformationMap[val] || val);
-console.log(" tr val", transformedValues)
-  // Store for review
+  const transformedValues = column.values.map(val => this.transformationMap[val.trim()] || val);
+  this.externalTable.columns[this.columnBeingTransformed].values = [...transformedValues];
   this.transformedColumnValues = transformedValues;
-
-  // Now show the third "preview" column next to original
+  this.transformationPanelVisible = false;
   this.editPreviewColumnVisible = true;
-
-  // Optionally, allow user to confirm/apply final change
+  // rebuild the table
+  this.buildTableRows();
 }
-
-contextMenuCellVisible = false;
-contextMenuCellX = 0;
-contextMenuCellY = 0;
-contextMenuCellRow: number | null = null;
-contextMenuCellCol: number | null = null;
-contextMenuCellValue: string | null = null;
-contextMenuCellType: EtlColumnType | null = null;
 
 onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   event.preventDefault();
@@ -417,7 +429,85 @@ getVisibleColumns(row: string[]): number[] {
   return indices;
 }
 
+async confirmValueTransformation() {
+  if (
+    this.externalTable == null ||
+    this.columnBeingTransformed == null ||
+    !this.transformedColumnValues.length
+  ) {
+    // should never happen...
+    await alert("Could not confirm value transformation because table or column was null");
+    return;
+  }
+  const col = this.externalTable.columns[this.columnBeingTransformed];
+  col.values = [...this.transformedColumnValues];
+  col.transformed = true;
+  const orig_col = this.externalTable.columns[this.visibleColIndex];
+  orig_col.values = col.values;
+  orig_col.transformed = true;
+  this.transformedColIndex = -1; // make it invisible
+
+  // Reset preview
+  this.transformedColumnValues = [];
+  this.editPreviewColumnVisible = false;
+ 
+
+  // Refresh table
+  this.buildTableRows();
+  console.log("✅ Transformation applied to original column");
+}
 
 
+
+cancelTransformation() {
+  this.transformedColumnValues = [];
+  this.transformationPanelVisible = false;
+  this.editPreviewColumnVisible = false;
+}
+
+deleteColumn(index: number | null) {
+  if (index === null || this.externalTable == null) return;
+
+  // Remove the column from the array
+  this.externalTable.columns.splice(index, 1);
+
+  // Update metadata
+  this.externalTable.totalColumns = this.externalTable.columns.length;
+
+  // Optional: Update totalRows if needed (usually rows remain unchanged)
+
+  // Rebuild the table display
+  this.buildTableRows();
+}
+  /**
+   * 
+   * @param index Used by the angular code to determine if a column is transformed and
+   * thus should be displayed differently
+   * @returns true iff column is transformed
+   */
+  isTransformedColumn(index: number): boolean {
+    return !!this.externalTable?.columns[index]?.transformed;
+  }
+
+  applyIso8601AgeTransform() {
+  if (this.externalTable == null || this.columnBeingTransformed == null) {
+    console.error("No column selected or data missing");
+    return;
+  }
+
+  const colIndex = this.columnBeingTransformed;
+  const column = this.externalTable.columns[colIndex];
+
+  const transformed = column.values.map((val, idx) => {
+    const iso = this.etl_service.parseAgeToIso8601(val);
+    if (!iso) {
+      console.warn(`Could not parse age value "${val}" at row ${idx}`);
+    }
+    return iso ?? val; // fallback to original if parsing fails
+  });
+
+  this.transformedColumnValues = transformed;
+  this.editPreviewColumnVisible = true;
+}
   
 }

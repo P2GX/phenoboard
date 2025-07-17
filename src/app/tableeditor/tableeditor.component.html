@@ -51,9 +51,13 @@
             'edit-mode-narrow': editModeActive
           }"
           [ngStyle]="{
-            'background-color': colIndex === 0 ? '#f0f8ff' :
-                                colIndex === visibleColIndex ? '#fffbe6' :
-                                colIndex === transformedColIndex ? '#e6ffe6' : 'transparent'
+            'background-color': colIndex === 0
+              ? '#f0f8ff'
+              : isTransformedColumn(colIndex)
+                ? '#e6ffe6'
+                : colIndex === visibleColIndex
+                  ? '#fffbe6'
+                  : 'transparent'
           }"
           (contextmenu)="rowIndex === 0
               ? onRightClickHeader($event, colIndex)
@@ -94,6 +98,8 @@
         </li>
       </ul>
     </li>
+    <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
+    <li (click)="applyIso8601AgeTransform()">Convert Ages to ISO8601</li>
   </ul>
 </div>
 
@@ -126,4 +132,8 @@
     </label>
   </div>
   <button (click)="applyValueTransform()">Apply Transformation</button>
+</div>
+<div *ngIf="editPreviewColumnVisible" class="confirm-transform-box">
+  <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
+  <button (click)="cancelTransformation()">❌ Cancel</button>
 </div>

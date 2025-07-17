@@ -1,75 +1,48 @@
 import { Injectable } from "@angular/core";
-import { ColumnType, EtlSessionDto, RawTableDto } from "../models/etl_dto";
+
 
 // 4. ETL Session Service
 @Injectable({
   providedIn: 'root'
 })
 export class EtlSessionService {
-  private sessions = new Map<string, EtlSessionDto>();
   
-  createSession(rawTable: RawTableDto): EtlSessionDto {
-    const sessionId = this.generateId();
-    const session: EtlSessionDto = {
-      id: sessionId,
-      rawTable,
-      columnTransformations: rawTable.headers.map((header, index) => ({
-        columnIndex: index,
-        originalHeader: header,
-        columnType: ColumnType.RAW,
-        transformedHeader: header,
-        originalValues: rawTable.rows.map(row => row[index] || ''),
-        transformedValues: rawTable.rows.map(row => row[index] || ''),
-        transformationRules: [],
-        validationErrors: []
-      })),
-      currentColumnIndex: 0,
-      isComplete: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.sessions.set(sessionId, session);
-    return session;
-  }
   
-  getSession(sessionId: string): EtlSessionDto | undefined {
-    return this.sessions.get(sessionId);
-  }
-  
-  updateSession(session: EtlSessionDto): void {
-    session.updatedAt = new Date();
-    this.sessions.set(session.id, session);
-  }
-  
-  deleteSession(sessionId: string): void {
-    this.sessions.delete(sessionId);
-  }
-  
-  exportTransformedData(sessionId: string): any[] {
-    const session = this.getSession(sessionId);
-    if (!session) return [];
-    
-    const result: any[] = [];
-    
-    // Create header row
-    const headers = session.columnTransformations
-      .filter(col => col.columnType !== ColumnType.IGNORE)
-      .map(col => col.transformedHeader);
-    
-    // Create data rows
-    for (let rowIndex = 0; rowIndex < session.rawTable.totalRows; rowIndex++) {
-      const row: any = {};
-      session.columnTransformations
-        .filter(col => col.columnType !== ColumnType.IGNORE)
-        .forEach(col => {
-          row[col.transformedHeader] = col.transformedValues[rowIndex] || '';
-        });
-      result.push(row);
+  parseAgeToIso8601(ageStr: string): string | null {
+    const lower = ageStr.trim().toLowerCase();
+
+    // Match decimal years like "2.5 y" or "2.5 years"
+    const decimalYearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
+    if (decimalYearMatch && !lower.includes('month') && !lower.includes('day')) {
+      const yearsFloat = parseFloat(decimalYearMatch[1]);
+      const years = Math.floor(yearsFloat);
+      const months = Math.round((yearsFloat - years) * 12);
+      let result = 'P';
+      if (years > 0) result += `${years}Y`;
+      if (months > 0) result += `${months}M`;
+      return result;
     }
-    
-    return result;
+
+    const yearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
+    const monthMatch = /(\d+(?:\.\d+)?)\s*(m|month|months)\b/.exec(lower);
+    const dayMatch = /(\d+)\s*(d|day|days)\b/.exec(lower);
+
+    const rawYears = yearMatch ? parseFloat(yearMatch[1]) : 0;
+    const rawMonths = monthMatch ? parseFloat(monthMatch[1]) : 0;
+    const days = dayMatch ? parseInt(dayMatch[1], 10) : 0;
+
+    const years = Math.floor(rawYears);
+    const extraMonths = Math.round((rawYears - years) * 12);
+    const months = Math.floor(rawMonths) + extraMonths;
+
+    let result = 'P';
+    if (years > 0) result += `${years}Y`;
+    if (months > 0) result += `${months}M`;
+    if (days > 0) result += `${days}D`;
+
+    return result !== 'P' ? result : null;
   }
+
   
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
