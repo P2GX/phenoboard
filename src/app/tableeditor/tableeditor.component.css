@@ -54,28 +54,54 @@
   border-bottom: 1px solid #ccc;
 }
 
+
 .context-menu {
   position: fixed;
   background-color: white;
   border: 1px solid #ccc;
   z-index: 1000;
   padding: 0;
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
 }
 
 .context-menu ul {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 5px 0;
 }
 
 .context-menu li {
   padding: 6px 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .context-menu li:hover {
-  background-color: #eee;
+  background-color: #f0f0f0;
+}
+
+/* Submenu styles */
+.has-submenu {
+  position: relative;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 1px;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1001;
+}
+
+.has-submenu:hover .submenu {
+  display: block;
 }
 
 
@@ -100,4 +126,25 @@
 .btn-outline-primary:hover {
   background-color: #007bff;
   color: white;
+}
+
+
+.transformation-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  background-color: #fdfdfd;
+  border-radius: 8px;
+  max-width: 600px;
+  font-size: 14px;
+}
+
+.transform-row {
+  margin-bottom: 0.5rem;
+}
+
+.transform-input {
+  margin-left: 0.5rem;
+  padding: 2px 6px;
+  width: 150px;
 }

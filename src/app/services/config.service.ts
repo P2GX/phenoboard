@@ -200,7 +200,7 @@ export class ConfigService {
     await invoke('save_external_template_json', {  template });
   }
 
-async loadTemplate(path: string): Promise<ColumnTableDto> {
+async loadJsonExternalTemplate(): Promise<ColumnTableDto> {
   return await invoke('load_external_template_json');
 }
 

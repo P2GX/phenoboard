@@ -46,6 +46,7 @@ pub fn run() {
             submit_variant_dto,
             validate_variant_list_dto,
             export_ppkt,
+            load_external_excel,
             load_external_template_json,
             save_external_template_json
         ])
@@ -469,7 +470,7 @@ async fn save_external_template_json(
     let app_handle = app.clone();
     
     tokio::task::spawn_blocking(move || {
-        match app_handle.dialog().file().blocking_pick_file() {
+        match app_handle.dialog().file().blocking_save_file() {
             Some(file) => {
                 let fpath = file.to_string();
                 let json = serde_json::to_string_pretty(&template)

@@ -45,26 +45,27 @@
           'header-row': rowIndex === 0,
           'type-row': rowIndex === 1
         }">
-      <ng-container *ngFor="let cell of row; let colIndex = index">
-        <ng-container *ngIf="!editModeActive || colIndex === 0 || colIndex === visibleColIndex">
-          <td
-            [ngClass]="{
-              'edit-mode-narrow': editModeActive && (colIndex === 0 || colIndex === visibleColIndex)
-            }"  
-            [ngStyle]="{
-              'background-color': colIndex === 0 ? '#f0f8ff' : 'transparent'
-            }"
-            (contextmenu)="rowIndex === 0
-                ? onRightClickHeader($event, colIndex)
-                : onRightClickCell($event, rowIndex, colIndex)"
-          >
-            {{ cell }}
-          </td>
-        </ng-container>
+      <ng-container *ngFor="let colIndex of getVisibleColumns(row)">
+        <td
+          [ngClass]="{
+            'edit-mode-narrow': editModeActive
+          }"
+          [ngStyle]="{
+            'background-color': colIndex === 0 ? '#f0f8ff' :
+                                colIndex === visibleColIndex ? '#fffbe6' :
+                                colIndex === transformedColIndex ? '#e6ffe6' : 'transparent'
+          }"
+          (contextmenu)="rowIndex === 0
+              ? onRightClickHeader($event, colIndex)
+              : onRightClickCell($event, rowIndex, colIndex)"
+        >
+          {{ row[colIndex] }}
+        </td>
       </ng-container>
     </tr>
   </ng-container>
 </table>
+
 
 <!-- Context menu for column headers -->
 <div
@@ -79,10 +80,20 @@
     Type: {{ contextMenuColType }}
   </div>
   <ul>
-    <li (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
+    <li *ngIf="contextMenuColIndex !== null" (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
     <li (click)="applyTransform(contextMenuColIndex)">Transform Column</li>
+    <li *ngIf="contextMenuColIndex !== null" (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>
     <li (click)="showOnlyColumn(contextMenuColIndex)">Show Only This Column</li>
     <li (click)="clearColumnFilter()">Show All Columns</li>
+    <!-- Submenu -->
+    <li class="has-submenu">
+      Set Column Type ▸
+      <ul class="submenu">
+        <li *ngFor="let type of etlTypes" (click)="assignColumnType(type)">
+          {{ type }}
+        </li>
+      </ul>
+    </li>
   </ul>
 </div>
 
@@ -100,4 +111,19 @@
   <ul>
     <li (click)="editValueManually()">Edit Value...</li>
   </ul>
+</div>
+
+
+<div 
+  *ngIf="transformationPanelVisible"
+  class="transformation-panel"
+>
+  <h3>Transform values in column: {{ contextMenuColHeader }}</h3>
+  <div *ngFor="let val of uniqueValuesToMap" class="transform-row">
+    <label>
+      {{ val }} →
+      <input [(ngModel)]="transformationMap[val]" class="transform-input" />
+    </label>
+  </div>
+  <button (click)="applyValueTransform()">Apply Transformation</button>
 </div>
