@@ -8,7 +8,10 @@ import { Injectable } from "@angular/core";
 export class EtlSessionService {
   
   
-  parseAgeToIso8601(ageStr: string): string | null {
+  parseAgeToIso8601(ageStr: string | null | undefined): string {
+    if (ageStr == null || ageStr == undefined) {
+      return '';
+    }
     const lower = ageStr.trim().toLowerCase();
 
     // Match decimal years like "2.5 y" or "2.5 years"
@@ -40,7 +43,7 @@ export class EtlSessionService {
     if (months > 0) result += `${months}M`;
     if (days > 0) result += `${days}D`;
 
-    return result !== 'P' ? result : null;
+    return result !== 'P' ? result : '';
   }
 
   

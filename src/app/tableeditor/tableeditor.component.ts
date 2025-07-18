@@ -84,6 +84,33 @@ columnTypeColors: ColumnTypeColorMap = {
 };
 
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
+
+  /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
+  editingValue: string = '';
+  editModalVisible = false;
+
+  /** These are transformations that we can apply to a column while editing. They appear on right click */
+  transformOptions = [
+  'Trim Whitespace',
+  'To Uppercase',
+  'To Lowercase',
+  'Extract Numbers',
+  'Iso8601 Age'
+];
+
+transformHandlers: { [key: string]:(value: string | null | undefined) => string } = {
+  'Trim Whitespace': (val) => (val ?? '').trim(),
+  'To Uppercase': (val) => (val ?? '').toUpperCase(),
+  'To Lowercase': (val) => (val ?? '').toLowerCase(),
+  'Extract Numbers': (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
+  'Iso8601 Age': (val) => this.etl_service.parseAgeToIso8601(val ),
+};
+
+previewModalVisible = false;
+previewOriginal: string[] = [];
+previewTransformed: string[] = [];
+previewTransformName: string = '';
+previewColumnIndex: number = -1;
   
   override ngOnInit(): void {
     super.ngOnInit();
@@ -369,8 +396,13 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   this.contextMenuCellType = col.columnType;
 }
 
-editValueManually() {
-  alert("Manual edit placeholder. Implement input modal.");
+async editCellValueManually() {
+  if (this.contextMenuCellValue == null) {
+    await alert("Could not edit cell because we could not get context menu cell value.");
+    return;
+  }
+  this.editingValue = this.contextMenuCellValue;
+  this.editModalVisible = true;
   this.contextMenuCellVisible = false;
 }
 
@@ -509,5 +541,78 @@ deleteColumn(index: number | null) {
   this.transformedColumnValues = transformed;
   this.editPreviewColumnVisible = true;
 }
-  
+
+  async saveManualEdit(): Promise<void> {
+    if (this.contextMenuCellCol == null) {
+      await alert("Could not save value because contextMenuCellCol was null");
+      return;
+    }
+    if (this.contextMenuCellRow == null) {
+      await alert("Could not save value because contextMenuCellRow was null");
+      return;
+    }
+    const col = this.externalTable?.columns?.[this.contextMenuCellCol];
+    if (col) {
+      const rowIndex = this.contextMenuCellRow - 2;
+      if (rowIndex >= 0 && rowIndex < col.values.length) {
+        col.values[rowIndex] = this.editingValue;
+        this.contextMenuCellValue = this.editingValue;
+        this.buildTableRows(); // if your table needs refreshing
+      }
+    }
+    this.editModalVisible = false;
+  }
+
+  applyNamedTransform(colIndex: number | null, transformName: string): void {
+    if (colIndex === null || !this.externalTable) return;
+
+    const handler = this.transformHandlers[transformName];
+    if (!handler) return;
+
+    const col = this.externalTable.columns[colIndex];
+    const originalValues = col.values.map(v => v ?? '');
+    const transformedValues = originalValues.map(v => handler(v));
+
+    // Set up preview modal data
+    this.previewOriginal = originalValues;
+    this.previewTransformed = transformedValues;
+    this.previewTransformName = transformName;
+    this.previewColumnIndex = colIndex;
+    this.previewModalVisible = true;
+
+    // Hide context menu
+    this.contextMenuCellVisible = false;
+  }
+
+  /** After the user applies a transform to a column, the user sees a model dialog with
+   * the results. If all is good, the user presses confirm, which causes this method to
+   * run and change the contents of the original column.
+   */
+  async applyTransformConfirmed(): Promise<void> {
+    if (!this.externalTable || this.previewColumnIndex < 0) {
+      // should never happen, but...
+      await alert("Could not apply transform because external table/preview column was null");
+      return;
+    } 
+
+    const sourceCol = this.externalTable.columns[this.previewColumnIndex];
+
+    const newColumn: ColumnDto = {
+      columnType: sourceCol.columnType,
+      transformed: true,
+      header: sourceCol.header, //`${sourceCol.header}_${this.previewTransformName.replace(/\s+/g, '').toLowerCase()}`,
+      values: this.previewTransformed
+    };
+
+    this.externalTable.columns[this.previewColumnIndex] = newColumn;
+    this.transformedColIndex = this.previewColumnIndex;
+    this.visibleColIndex = this.previewColumnIndex;
+
+    this.buildTableRows();
+
+    // Reset preview modal
+    this.previewModalVisible = false;
+    this.previewColumnIndex = -1;
+  }
+    
 }

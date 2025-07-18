@@ -63,7 +63,16 @@
               ? onRightClickHeader($event, colIndex)
               : onRightClickCell($event, rowIndex, colIndex)"
         >
-          {{ row[colIndex] }}
+           <div
+              *ngIf="rowIndex === 0; else normalCell"
+              class="multiline-ellipsis"
+              title="{{ row[colIndex] }}"
+            >
+              {{ row[colIndex] }}
+            </div>
+            <ng-template #normalCell>
+              {{ row[colIndex] }}
+            </ng-template>
         </td>
       </ng-container>
     </tr>
@@ -85,7 +94,17 @@
   </div>
   <ul>
     <li *ngIf="contextMenuColIndex !== null" (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
-    <li (click)="applyTransform(contextMenuColIndex)">Transform Column</li>
+    <li class="has-submenu">
+      Transform Column ▸
+      <ul class="submenu">
+        <li
+          *ngFor="let transform of transformOptions"
+          (click)="applyNamedTransform(contextMenuColIndex, transform)"
+        >
+          {{ transform }}
+        </li>
+      </ul>
+    </li>
     <li *ngIf="contextMenuColIndex !== null" (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>
     <li (click)="showOnlyColumn(contextMenuColIndex)">Show Only This Column</li>
     <li (click)="clearColumnFilter()">Show All Columns</li>
@@ -99,23 +118,37 @@
       </ul>
     </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
-    <li (click)="applyIso8601AgeTransform()">Convert Ages to ISO8601</li>
   </ul>
 </div>
 
 <div
   *ngIf="contextMenuCellVisible"
-  class="context-menu"
-  [style.top.px]="contextMenuCellX"
-  [style.left.px]="contextMenuCellY"
+  [ngStyle]="{
+    position: 'fixed',
+    top: contextMenuCellY + 'px',
+    left: contextMenuCellX + 'px',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    boxShadow: '2px 2px 8px rgba(0,0,0,0.3)',
+    zIndex: 1000,
+    padding: '10px',
+    borderRadius: '4px',
+    minWidth: '180px'
+  }"
   (click)="contextMenuCellVisible = false"
 >
-  <div style="padding: 5px 12px; font-weight: bold;">
+  <div style="padding: 5px 0; font-weight: bold;">
     Value: "{{ contextMenuCellValue }}"<br />
     Type: {{ contextMenuCellType }}
   </div>
-  <ul>
-    <li (click)="editValueManually()">Edit Value...</li>
+  <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
+    <li
+      style="padding: 4px 8px; cursor: pointer;"
+      (click)="editCellValueManually()"
+    >
+      ✏️ Edit column
+    </li>
+    <!-- Add more options as needed -->
   </ul>
 </div>
 
@@ -136,4 +169,68 @@
 <div *ngIf="editPreviewColumnVisible" class="confirm-transform-box">
   <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
   <button (click)="cancelTransformation()">❌ Cancel</button>
+</div>
+
+<div
+  *ngIf="editModalVisible"
+  style="
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -30%);
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    min-width: 300px;
+  "
+>
+  <h4>Edit Cell Value</h4>
+  <input [(ngModel)]="editingValue" style="width: 100%; margin-top: 10px;" />
+  <div style="margin-top: 16px; text-align: right;">
+    <button (click)="saveManualEdit()">Save</button>
+    <button (click)="editModalVisible = false" style="margin-left: 8px;">Cancel</button>
+  </div>
+</div>
+
+<div
+  *ngIf="previewModalVisible"
+  style="
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    z-index: 1002;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+  "
+>
+  <h3>Preview: {{ previewTransformName }} on Column</h3>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+    <thead>
+      <tr>
+        <th style="text-align: left; border-bottom: 1px solid #ccc;">Original</th>
+        <th style="text-align: left; border-bottom: 1px solid #ccc;">Transformed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let orig of previewOriginal; let i = index">
+        <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
+        <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="text-align: right; margin-top: 16px;">
+    <button (click)="applyTransformConfirmed()">✅ Apply</button>
+    <button style="margin-left: 8px;" (click)="previewModalVisible = false">Cancel</button>
+  </div>
 </div>

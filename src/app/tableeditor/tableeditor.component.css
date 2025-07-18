@@ -48,6 +48,20 @@
   border-bottom: 2px solid #aaa;
 }
 
+/* Styling for the first row to deal with very long cell contents */
+.multiline-ellipsis {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;         /* Show up to 3 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.5em;             /* 3 lines * 1.5em line height */
+  line-height: 1.5em;
+  font-size: 14px;
+  word-break: break-word;
+  max-width: 200px;              /* Control column width */
+}
+
 .type-row {
   background-color: #ffe6e6; /* light pink */
   font-style: italic;
@@ -152,4 +166,32 @@
 .confirm-transform-box {
   margin-top: 1rem;
   padding: 0.5rem;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  padding: 4px 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+li.has-submenu:hover > .submenu {
+  display: block;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 1px;
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 1001;
+  min-width: 180px;
 }
