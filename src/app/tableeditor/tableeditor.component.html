@@ -119,6 +119,7 @@
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
     <li (click)="processHpoColumn(contextMenuColIndex)">Process HPO column</li>
+    <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
   </ul>
 </div>
 
@@ -147,7 +148,7 @@
       style="padding: 4px 8px; cursor: pointer;"
       (click)="editCellValueManually()"
     >
-      ✏️ Edit column
+      ✏️ Edit cell contents
     </li>
     <!-- Add more options as needed -->
   </ul>
@@ -188,8 +189,19 @@
     min-width: 300px;
   "
 >
-  <h4>Edit Cell Value</h4>
-  <input [(ngModel)]="editingValue" style="width: 100%; margin-top: 10px;" />
+  <h4><strong>Edit Cell Value</strong>:</h4>
+  <input
+    [(ngModel)]="editingValue"
+    style="
+      width: 100%;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border: 2px solid #007acc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    "
+  />
   <div style="margin-top: 16px; text-align: right;">
     <button (click)="saveManualEdit()">Save</button>
     <button (click)="editModalVisible = false" style="margin-left: 8px;">Cancel</button>

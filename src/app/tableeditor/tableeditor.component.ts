@@ -36,6 +36,7 @@ interface HpoMappingResult {
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+
   constructor(private configService: ConfigService, 
     templateService: TemplateDtoService,
     ngZone: NgZone,
@@ -668,6 +669,7 @@ cancelTransformation() {
     }
     try {
       let hit = await this.configService.getAutocompleteHpo(header);
+      console.log("hut", hit, "for header", header);
       if ( hit.length != 1) {
         throw Error(`Did not get unique text mining result: "{hit}"`);
       }
@@ -695,7 +697,7 @@ cancelTransformation() {
   const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
 
   const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-
+    console.log("LINE 699");
   // Open dialog
   const dialogRef = this.dialog.open(HpoHeaderComponent, {
     data: {
@@ -783,6 +785,18 @@ applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
     alert("Could not identify HPO term: " + error);
   }
 }
+
+  markTransformed(colIndex: number | null) {
+    if (colIndex == null) {
+      return; // should never happen
+    }
+    if (this.externalTable == null) {
+      return;
+    }
+    let col = this.externalTable.columns[colIndex];
+    col.transformed = true;
+    this.buildTableRows();
+  }
 
 }
 
