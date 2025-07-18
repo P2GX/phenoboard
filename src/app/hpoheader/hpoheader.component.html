@@ -1,0 +1,13 @@
+<h3>Map "{{ header }}" to HPO Term</h3>
+    <p>Suggested HPO: {{ hpoLabel }} ({{ hpoId }})</p>
+    <div *ngFor="let value of uniqueValues">
+      <label>{{ value }}: 
+        <select [(ngModel)]="valueToStateMap[value]">
+          <option value="observed">observed</option>
+          <option value="excluded">excluded</option>
+          <option value="notApplicable">not applicable</option>
+        </select>
+      </label>
+    </div>
+    <button (click)="confirm()">OK</button>
+    <button (click)="cancel()">Cancel</button>

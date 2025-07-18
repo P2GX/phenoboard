@@ -13,8 +13,17 @@ import { MatIconModule } from "@angular/material/icon";
 
 import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
+import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
+
+/** This is used to transmit a text mining result for a header (column representing an HPO term) */
+interface HpoMappingResult {
+  hpoLabel: string;
+  hpoId: string;
+  valueToStateMap: { [key: string]: 'observed' | 'excluded' | 'na' };
+}
+  
 
 /**
  * Component for editing external tables (e.g., supplemental files)
@@ -27,9 +36,6 @@ type ColumnTypeColorMap = { [key in EtlColumnType]: string };
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-
-
- 
   constructor(private configService: ConfigService, 
     templateService: TemplateDtoService,
     ngZone: NgZone,
@@ -41,77 +47,79 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
   
 
-contextMenuColHeader: string | null = null;
-contextMenuColType: string | null = null;
-columnContextMenuVisible = false;
-columnContextMenuX = 0;
-columnContextMenuY = 0;
-
-editModeActive = false;
-visibleColIndex: number = -1;
-transformedColIndex: number = -1;
-contextMenuColIndex: number | null = null;
+  contextMenuColHeader: string | null = null;
+  contextMenuColType: string | null = null;
+  columnContextMenuVisible = false;
+  columnContextMenuX = 0;
+  columnContextMenuY = 0;
+  editModeActive = false;
+  visibleColIndex: number = -1;
+  transformedColIndex: number = -1;
+  contextMenuColIndex: number | null = null;
   displayRows: string[][] = [];
   externalTable: ColumnTableDto  | null = null;
   errorMessage: string | null = null;
-
-
   columnBeingTransformed: number | null = null;
   transformationPanelVisible: boolean = false;
   editPreviewColumnVisible: boolean = false;
   
-contextMenuCellVisible = false;
-contextMenuCellX = 0;
-contextMenuCellY = 0;
-contextMenuCellRow: number | null = null;
-contextMenuCellCol: number | null = null;
-contextMenuCellValue: string | null = null;
-contextMenuCellType: EtlColumnType | null = null;
-transformedColumnValues: string[] = [];
+  contextMenuCellVisible = false;
+  contextMenuCellX = 0;
+  contextMenuCellY = 0;
+  contextMenuCellRow: number | null = null;
+  contextMenuCellCol: number | null = null;
+  contextMenuCellValue: string | null = null;
+  contextMenuCellType: EtlColumnType | null = null;
+  transformedColumnValues: string[] = [];
 
-columnTypeColors: ColumnTypeColorMap = {
-  raw: '#ffffff',
-  familyId: '#f0f8ff',
-  patientId: '#e6ffe6',
-  singleHpoTerm: '#fff0f5',
-  multipleHpoTerm: '#ffe4e1',
-  geneSymbol: '#f5f5dc',
-  variant: '#f0fff0',
-  disease: '#fdf5e6',
-  age: '#e0ffff',
-  sex: '#f5f5f5',
-  ignore: '#d3d3d3'
-};
+  columnTypeColors: ColumnTypeColorMap = {
+    raw: '#ffffff',
+    familyId: '#f0f8ff',
+    patientId: '#e6ffe6',
+    singleHpoTerm: '#fff0f5',
+    multipleHpoTerm: '#ffe4e1',
+    geneSymbol: '#f5f5dc',
+    variant: '#f0fff0',
+    disease: '#fdf5e6',
+    age: '#e0ffff',
+    sex: '#f5f5f5',
+    ignore: '#d3d3d3'
+  };
 
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
 
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
   editingValue: string = '';
   editModalVisible = false;
+  /** Show a preview of a transformed column */
+  previewModalVisible = false;
+  previewOriginal: string[] = [];
+  previewTransformed: string[] = [];
+  previewTransformName: string = '';
+  previewColumnIndex: number = -1;
+
+  transformationMap: { [original: string]: string } = {};
+  uniqueValuesToMap: string[] = [];
 
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = [
-  'Trim Whitespace',
-  'To Uppercase',
-  'To Lowercase',
-  'Extract Numbers',
-  'Iso8601 Age'
-];
+    'Trim Whitespace',
+    'To Uppercase',
+    'To Lowercase',
+    'Extract Numbers',
+    'Iso8601 Age',
+  ];
 
-transformHandlers: { [key: string]:(value: string | null | undefined) => string } = {
-  'Trim Whitespace': (val) => (val ?? '').trim(),
-  'To Uppercase': (val) => (val ?? '').toUpperCase(),
-  'To Lowercase': (val) => (val ?? '').toLowerCase(),
-  'Extract Numbers': (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
-  'Iso8601 Age': (val) => this.etl_service.parseAgeToIso8601(val ),
-};
+  transformHandlers: { [key: string]:(value: string | null | undefined) => string } = {
+    'Trim Whitespace': (val) => (val ?? '').trim(),
+    'To Uppercase': (val) => (val ?? '').toUpperCase(),
+    'To Lowercase': (val) => (val ?? '').toLowerCase(),
+    'Extract Numbers': (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
+    'Iso8601 Age': (val) => this.etl_service.parseAgeToIso8601(val ),
+  };
 
-previewModalVisible = false;
-previewOriginal: string[] = [];
-previewTransformed: string[] = [];
-previewTransformName: string = '';
-previewColumnIndex: number = -1;
-  
+  columnMappingMemory: { [columnHeader: string]: HpoMappingResult } = {};
+
   override ngOnInit(): void {
     super.ngOnInit();
   }
@@ -124,9 +132,10 @@ previewColumnIndex: number = -1;
     console.log("TableEditorComponent:onTemplateLoaded");
   }
 
- 
-  async loadExcel() {
-    console.log('loadExcel');
+  /** Load an external Excel file, e.g., a Supplementary Table from a publication
+   * that describes a cohort of individuals (one per column).
+   */
+  async loadExcelColumnBased() {
     this.errorMessage = null;
     try {
       const table = await this.configService.loadExternalExcel();
@@ -143,55 +152,66 @@ previewColumnIndex: number = -1;
         this.errorMessage = String(error);
         console.log("Error table", this.errorMessage);
     }
-}
+  }
 
-async loadExcelRowBased() {
-  this.errorMessage = null;
-  try {
-      const table = await this.configService.loadExternalExcel();
-      if (table != null) {
-        this.externalTable = table;
-        console.log("Got the table", this.externalTable);
-        this.ngZone.run(() => {
-        this.buildTableRows();
-        });
-      } else {
-        this.errorMessage = "Could not retrieve external table";
+  /** Load an external Excel file, e.g., a Supplementary Table from a publication
+   * that describes a cohort of individuals (one per row).
+   */
+  async loadExcelRowBased() {
+    this.errorMessage = null;
+    try {
+        const table = await this.configService.loadExternalExcel();
+        if (table != null) {
+          this.externalTable = table;
+          console.log("Got the table", this.externalTable);
+          this.ngZone.run(() => {
+          this.buildTableRows();
+          });
+        } else {
+          this.errorMessage = "Could not retrieve external table";
+        }
+      } catch (error) {
+          this.errorMessage = String(error);
+          console.log("Error table", this.errorMessage);
       }
-    } catch (error) {
-        this.errorMessage = String(error);
-        console.log("Error table", this.errorMessage);
+  }
+
+  /** Our internal representation has objects for each column. However, it
+   * is easier to display an HTML table using a row-based architecture. Therefore,
+   * this method takes the table data (source of truth) in this.externalData, and transforms
+   * it into a matrix of strings.
+   */
+  async buildTableRows(): Promise<void> {
+    if (this.externalTable == null) {
+      return;
     }
-}
+    if (!this.externalTable?.columns?.length) {
+      await alert("Could not create table because externalTable had no columns");
+      return;
+    }
+    const headers = this.externalTable.columns.map(col => col.header);
+    const types = this.externalTable.columns.map(col => col.columnType);
+    const rowCount = Math.max(...this.externalTable.columns.map(col => col.values.length));
+    const valueRows: string[][] = [];
 
-buildTableRows(): void {
-  if (this.externalTable == null) {
-    return;
-  }
-  if (!this.externalTable?.columns?.length) {
-    console.log("Could not create table because externalTable had no columns");
-    return;
-  }
-  console.log("buildTableRows - len",this.externalTable?.columns?.length)
-  const headers = this.externalTable.columns.map(col => col.header);
-  const types = this.externalTable.columns.map(col => col.columnType);
-  console.log("type=",types);
-  const rowCount = Math.max(...this.externalTable.columns.map(col => col.values.length));
-  const valueRows: string[][] = [];
-
-  for (let i = 0; i < rowCount; i++) {
-    const row: string[] = this.externalTable.columns.map(col => col.values[i] ?? '');
-    valueRows.push(row);
-  }
-
+    for (let i = 0; i < rowCount; i++) {
+      const row: string[] = this.externalTable.columns.map(col => col.values[i] ?? '');
+      valueRows.push(row);
+    }
     this.displayRows = [
       headers,
       types,
       ...valueRows
     ];
-    console.log("got display rows", this.displayRows);
   }
 
+  /**
+   * The point of this component is to transform columns one by one into the form
+   * required for our curation tool. We display columns that have been already transformed
+   * in a green color.
+   * @param colIndex 
+   * @returns true iff this column was already transformed
+   */
   isTransformed(colIndex: number): boolean {
     if (this.externalTable == null) {
       return false;
@@ -199,153 +219,114 @@ buildTableRows(): void {
     return this.externalTable.columns[colIndex].transformed;
   }
 
-openColumnDialog(index: number): void {
-  if (this.externalTable == null) {
-      return;
-    }
-  const column = this.externalTable.columns[index];
+  /**
+   * TODO document me
+   * @param index 
+   * @returns 
+   */
+  openColumnDialog(index: number): void {
+    if (this.externalTable == null) {
+        return;
+      }
+    const column = this.externalTable.columns[index];
 
-  const dialogRef = this.dialog.open(EtlColumnEditComponent, {
-    data: { column: structuredClone(column) }, // clone to avoid mutating until confirmed
-    width: '500px'
-  });
+    const dialogRef = this.dialog.open(EtlColumnEditComponent, {
+      data: { column: structuredClone(column) }, // clone to avoid mutating until confirmed
+      width: '500px'
+    });
 
-  dialogRef.afterClosed().subscribe((updatedColumn: ColumnDto | undefined) => {
-    if (updatedColumn && this.externalTable != null) {
-      this.externalTable.columns[index] = updatedColumn;
-      this.sendColumnToBackend(updatedColumn);
-    }
-  });
-}
+    dialogRef.afterClosed().subscribe((updatedColumn: ColumnDto | undefined) => {
+      if (updatedColumn && this.externalTable != null) {
+        this.externalTable.columns[index] = updatedColumn;
+        this.sendColumnToBackend(updatedColumn);
+      }
+    });
+  }
+
+  /** We may not need this actually. */
+  sendColumnToBackend(column: ColumnDto): void {
+    console.log("TODO SEND TO BACKEND")
+  }
 
 
-sendColumnToBackend(column: ColumnDto): void {
-  console.log("TODO SEND TO BACKEND")
-}
+  /** This method is called if the user right clicks on the header (first row) */
+  onRightClickHeader(event: MouseEvent, colIndex: number): void {
+    event.preventDefault();
+    this.contextMenuColIndex = colIndex;
+    this.contextMenuColHeader = this.externalTable?.columns?.[colIndex]?.header ?? null;
+    this.contextMenuColType = this.externalTable?.columns?.[colIndex]?.columnType ?? null;
+    this.columnContextMenuX = event.clientX;
+    this.columnContextMenuY = event.clientY;
+    this.columnContextMenuVisible = true;
+  }
 
-
-
-onRightClickHeader(event: MouseEvent, colIndex: number): void {
-  event.preventDefault();
-  this.contextMenuColIndex = colIndex;
-  this.contextMenuColHeader = this.externalTable?.columns?.[colIndex]?.header ?? null;
-  this.contextMenuColType = this.externalTable?.columns?.[colIndex]?.columnType ?? null;
-  this.columnContextMenuX = event.clientX;
-  this.columnContextMenuY = event.clientY;
-  this.columnContextMenuVisible = true;
-}
-
-// Show only selected column (plus first column)
-showOnlyColumn(colIndex: number | null): void {
-  if (colIndex !== null) {
-    this.editModeActive = true;
-    this.visibleColIndex = colIndex;
+  
+  /**
+   * Show all columns again (after editing a specific column)
+   */
+  clearColumnFilter(): void {
+    this.editModeActive = false;
+    this.visibleColIndex = -1;
     this.columnContextMenuVisible = false;
   }
-}
 
-// Show all columns again
-clearColumnFilter(): void {
-  this.editModeActive = false;
-  this.visibleColIndex = -1;
-  this.columnContextMenuVisible = false;
-}
+  /**
+   * This method is used if we want to transform all occurences of sets of strings (e.g., male, female)
+   * into the strings required for our template (e.g., M, F)
+   * @param index 
+   * @returns 
+   */
+  editUniqueValuesInColumn(index: number) {
+    if (!this.externalTable) return;
 
-editUniqueValuesInColumn(index: number) {
-  if (!this.externalTable) return;
+    const column = this.externalTable.columns[index];
+    const values = column.values || [];
 
-  const column = this.externalTable.columns[index];
-  const values = column.values || [];
+    // Step 1: Get unique, non-empty values
+    const unique = Array.from(new Set(values.map(v => v.trim()))).filter(v => v !== '');
 
-  // Step 1: Get unique, non-empty values
-  const unique = Array.from(new Set(values.map(v => v.trim()))).filter(v => v !== '');
+    // Step 2: Populate the transformation map with identity mappings
+    this.transformationMap = {};
+    unique.forEach(val => {
+      this.transformationMap[val] = val;
+    });
 
-  // Step 2: Populate the transformation map with identity mappings
-  this.transformationMap = {};
-  unique.forEach(val => {
-    this.transformationMap[val] = val;
-  });
+    // Step 3: Set UI control variables
+    this.contextMenuColIndex = index;
+    this.contextMenuColHeader = column.header;
+    this.contextMenuColType = column.columnType;
+    this.uniqueValuesToMap = unique;
+    this.transformationPanelVisible = true;
+    this.columnBeingTransformed = index;
 
-  // Step 3: Set UI control variables
-  this.contextMenuColIndex = index;
-  this.contextMenuColHeader = column.header;
-  this.contextMenuColType = column.columnType;
-  this.uniqueValuesToMap = unique;
-  this.transformationPanelVisible = true;
-  this.columnBeingTransformed = index;
-
-  console.debug("Preparing transformation for:", this.contextMenuColHeader);
-}
-
-
-getUniqueValues(colIndex: number): string[] {
-  if (!this.externalTable) return [];
-
-  const column = this.externalTable.columns[colIndex];
-  if (!column) return [];
-
-  const uniqueSet = new Set(column.values);
-  return Array.from(uniqueSet);
-}
-
-transformationMap: { [original: string]: string } = {};
-uniqueValuesToMap: string[] = [];
-
-startTransformColumn(colIndex: number) {
-  console.log("calling startTransformColumn, colIndex=", colIndex);
-  this.uniqueValuesToMap = this.getUniqueValues(colIndex);
-  this.transformationMap = {};
-  this.uniqueValuesToMap.forEach(val => {
-    this.transformationMap[val] = val; // default to same value
-  });
-  this.columnBeingTransformed = colIndex;
-  this.transformationPanelVisible = true;
-}
-
-
-
-finalizeColumnTransformation() {
-  if (this.columnBeingTransformed == null || !this.externalTable) return;
-  this.externalTable.columns[this.columnBeingTransformed].values = [...this.transformedColumnValues];
-  this.transformationPanelVisible = false;
-  this.editPreviewColumnVisible = false;
-  this.columnBeingTransformed = null;
-}
-
-applyValueReplacements(replacements: Record<string, string>) {
-  if (this.transformedColIndex === -1) return;
-
-  const targetCol = this.externalTable?.columns[this.visibleColIndex];
-  const transformedCol = this.externalTable?.columns[this.transformedColIndex];
-
-  if (!targetCol || !transformedCol) return;
-
-  transformedCol.values = targetCol.values.map(v => replacements[v] ?? v);
-  this.buildTableRows();
-}
-
-startEditColumn(index: number) {
-  if (this.externalTable == null) {
-    return;
+    console.debug("Preparing transformation for:", this.contextMenuColHeader);
   }
-  this.editModeActive = true;
-  this.visibleColIndex = index;
 
-  // Generate a third column by copying current values for editing
-  const newTransformed = this.externalTable?.columns[index]?.values.map(v => v ?? '');
 
-  const newColumn: ColumnDto = {
-    columnType: this.externalTable?.columns[index]?.columnType || 'raw' as EtlColumnType,
-    transformed: true,
-    header: `${this.externalTable?.columns[index]?.header}_edited`,
-    values: newTransformed || []
-  };
+  getUniqueValues(colIndex: number): string[] {
+    if (!this.externalTable) return [];
 
-  this.externalTable?.columns.push(newColumn);
-  this.transformedColIndex = this.externalTable.columns.length - 1;
+    const column = this.externalTable.columns[colIndex];
+    if (!column) return [];
 
-  this.buildTableRows(); // Rebuild the table display
-}
+    const uniqueSet = new Set(column.values);
+    return Array.from(uniqueSet);
+  }
+
+  /**
+   * This method will cause just the left-most column (with the individual identifiers)
+   * and the column to be edited to be visible. The user clicks on the column header
+   * to edit the specific column
+   * @param index - index of the column to be edited
+   */
+  startEditColumn(index: number) {
+    if (this.externalTable == null) {
+      return;
+    }
+    this.editModeActive = true;
+    this.visibleColIndex = index;
+    this.buildTableRows(); // Rebuild the table display
+  }
 
 // Example transform: trim + uppercase all strings in selected column
 applyTransform(colIndex: number | null): void {
@@ -367,17 +348,16 @@ applyValueTransform() {
     console.error("Attempt to apply value transform with externalTable being null");
     return;
   }
-  if (this.columnBeingTransformed == null) {
+  if (this.visibleColIndex == null) {
     console.error("Attempt to apply value transform with columnBeingTransformed being null");
     return;
   } 
-  const colIndex = this.columnBeingTransformed;
+  const colIndex = this.visibleColIndex;
   const column = this.externalTable.columns[colIndex];
   const transformedValues = column.values.map(val => this.transformationMap[val.trim()] || val);
-  this.externalTable.columns[this.columnBeingTransformed].values = [...transformedValues];
-  this.transformedColumnValues = transformedValues;
+  this.externalTable.columns[colIndex].values = [...transformedValues];
   this.transformationPanelVisible = false;
-  this.editPreviewColumnVisible = true;
+  this.editPreviewColumnVisible = false;
   // rebuild the table
   this.buildTableRows();
 }
@@ -396,22 +376,30 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   this.contextMenuCellType = col.columnType;
 }
 
-async editCellValueManually() {
-  if (this.contextMenuCellValue == null) {
-    await alert("Could not edit cell because we could not get context menu cell value.");
-    return;
+  /**
+   * Open a modal dialog to allow the user to manually edit the cell that was clicked
+   */
+  async editCellValueManually() {
+    if (this.contextMenuCellValue == null) {
+      await alert("Could not edit cell because we could not get context menu cell value.");
+      return;
+    }
+    this.editingValue = this.contextMenuCellValue;
+    this.editModalVisible = true;
+    this.contextMenuCellVisible = false;
   }
-  this.editingValue = this.contextMenuCellValue;
-  this.editModalVisible = true;
-  this.contextMenuCellVisible = false;
-}
 
+  /**
+   * This will close the modal dialog opened by editCellValueManually
+   */
   @HostListener('document:click')
   onDocumentClick() {
     this.columnContextMenuVisible = false;
   }
 
-
+  /**
+   * Save the current template data to file
+   */
   async saveExternalTemplateJson() {
     this.errorMessage = null;
     if (this.externalTable == null) {
@@ -419,8 +407,12 @@ async editCellValueManually() {
       return;
     }
     this.configService.saveJsonExternalTemplate(this.externalTable)
-}
+  }
 
+  /**
+   * Load a template data from file (usually this means we previously 
+   * saved an intermediate result and now want to continue work)
+   */
   async loadExternalTemplateJson() {
     this.errorMessage = null;
     try {
@@ -439,55 +431,65 @@ async editCellValueManually() {
     }
   }
 
-
-assignColumnType(type: EtlColumnType) {
-  if (this.contextMenuColIndex !== null && this.externalTable) {
-    this.externalTable.columns[this.contextMenuColIndex].columnType = type;
-    this.contextMenuCellVisible = false;
-    this.buildTableRows(); // re-render if needed
-  }
-}
-
-getVisibleColumns(row: string[]): number[] {
-  if (!this.editModeActive) {
-    return row.map((_, i) => i); // Show all columns normally
+  /**
+   * Assign one of the column types (which will be key to transforming to phenopacket rows)
+   * @param type 
+   */
+  assignColumnType(type: EtlColumnType) {
+    if (this.contextMenuColIndex !== null && this.externalTable) {
+      this.externalTable.columns[this.contextMenuColIndex].columnType = type;
+      this.contextMenuCellVisible = false;
+      this.buildTableRows(); // re-render if needed
+    }
   }
 
-  const indices = [0]; // Always show first column
+  /**
+   * This is used to hide all columns except the first and the edit column, 
+   * or to show all columns, depending on this.editModeActive
+   * @param row 
+   * @returns array of indices of columns that should be made visible
+   */
+  getVisibleColumns(row: string[]): number[] {
+    if (!this.editModeActive) {
+      return row.map((_, i) => i); // Show all columns normally
+    }
 
-  if (this.visibleColIndex >= 0) indices.push(this.visibleColIndex);
-  if (this.transformedColIndex >= 0) indices.push(this.transformedColIndex);
+    const indices = [0]; // Always show first column
 
-  return indices;
-}
+    if (this.visibleColIndex >= 0) indices.push(this.visibleColIndex);
+    if (this.transformedColIndex >= 0) indices.push(this.transformedColIndex);
 
-async confirmValueTransformation() {
-  if (
-    this.externalTable == null ||
-    this.columnBeingTransformed == null ||
-    !this.transformedColumnValues.length
-  ) {
-    // should never happen...
-    await alert("Could not confirm value transformation because table or column was null");
-    return;
+    return indices;
   }
-  const col = this.externalTable.columns[this.columnBeingTransformed];
-  col.values = [...this.transformedColumnValues];
-  col.transformed = true;
-  const orig_col = this.externalTable.columns[this.visibleColIndex];
-  orig_col.values = col.values;
-  orig_col.transformed = true;
-  this.transformedColIndex = -1; // make it invisible
 
-  // Reset preview
-  this.transformedColumnValues = [];
-  this.editPreviewColumnVisible = false;
- 
+  async confirmValueTransformation() {
+    if (
+      this.externalTable == null ||
+      this.visibleColIndex == null ||
+      !this.transformedColumnValues.length
+    ) {
+      // should never happen...
+      await alert("Could not confirm value transformation because table or column was null");
+      return;
+    }
+    const colIndex = this.visibleColIndex;
+    const col = this.externalTable.columns[colIndex];
+    col.values = [...this.transformedColumnValues];
+    col.transformed = true;
+    const orig_col = this.externalTable.columns[colIndex];
+    orig_col.values = col.values;
+    orig_col.transformed = true;
+    this.transformedColIndex = -1; // make it invisible
 
-  // Refresh table
-  this.buildTableRows();
-  console.log("✅ Transformation applied to original column");
-}
+    // Reset preview
+    this.transformedColumnValues = [];
+    this.editPreviewColumnVisible = false;
+  
+
+    // Refresh table
+    this.buildTableRows();
+    console.log("✅ Transformation applied to original column");
+  }
 
 
 
@@ -497,20 +499,23 @@ cancelTransformation() {
   this.editPreviewColumnVisible = false;
 }
 
-deleteColumn(index: number | null) {
-  if (index === null || this.externalTable == null) return;
+  /**
+   * External templates often have columns with no relevant information that we can delete.
+   * @param index 
+   * @returns 
+   */
+  deleteColumn(index: number | null) {
+    if (index === null || this.externalTable == null) return;
 
-  // Remove the column from the array
-  this.externalTable.columns.splice(index, 1);
+    // Remove the column from the array
+    this.externalTable.columns.splice(index, 1);
 
-  // Update metadata
-  this.externalTable.totalColumns = this.externalTable.columns.length;
+    // Update metadata
+    this.externalTable.totalColumns = this.externalTable.columns.length;
+    // Rebuild the table display
+    this.buildTableRows();
+  }
 
-  // Optional: Update totalRows if needed (usually rows remain unchanged)
-
-  // Rebuild the table display
-  this.buildTableRows();
-}
   /**
    * 
    * @param index Used by the angular code to determine if a column is transformed and
@@ -521,27 +526,9 @@ deleteColumn(index: number | null) {
     return !!this.externalTable?.columns[index]?.transformed;
   }
 
-  applyIso8601AgeTransform() {
-  if (this.externalTable == null || this.columnBeingTransformed == null) {
-    console.error("No column selected or data missing");
-    return;
-  }
-
-  const colIndex = this.columnBeingTransformed;
-  const column = this.externalTable.columns[colIndex];
-
-  const transformed = column.values.map((val, idx) => {
-    const iso = this.etl_service.parseAgeToIso8601(val);
-    if (!iso) {
-      console.warn(`Could not parse age value "${val}" at row ${idx}`);
-    }
-    return iso ?? val; // fallback to original if parsing fails
-  });
-
-  this.transformedColumnValues = transformed;
-  this.editPreviewColumnVisible = true;
-}
-
+  /**
+   * Save a manual edit to a table cell
+   */
   async saveManualEdit(): Promise<void> {
     if (this.contextMenuCellCol == null) {
       await alert("Could not save value because contextMenuCellCol was null");
@@ -604,9 +591,8 @@ deleteColumn(index: number | null) {
       values: this.previewTransformed
     };
 
-    this.externalTable.columns[this.previewColumnIndex] = newColumn;
-    this.transformedColIndex = this.previewColumnIndex;
-    this.visibleColIndex = this.previewColumnIndex;
+    this.externalTable.columns[this.visibleColIndex] = newColumn;
+    this.transformedColIndex = this.visibleColIndex;
 
     this.buildTableRows();
 
@@ -614,5 +600,189 @@ deleteColumn(index: number | null) {
     this.previewModalVisible = false;
     this.previewColumnIndex = -1;
   }
-    
+
+  async mergeIndividualAndFamilyColumns(): Promise<void> {
+    if (this.externalTable == null) {
+      return;
+    }
+    const columns = this.externalTable.columns;
+    try {
+      const fam_idx = await this.getEtlColumnIndex(EtlColumnType.familyId);
+      const individual_idx = await this.getEtlColumnIndex(EtlColumnType.patientId);
+      const fam_col = columns[fam_idx];
+      const individual_col = columns[individual_idx];
+      if (fam_col.values.length !== individual_col.values.length) {
+        await alert("familyId and patientId columns have different lengths.");
+        return;
+      }
+      const mergedValues = individual_col.values.map((ind, i) => `${fam_col.values[i] ?? ''} ${ind ?? ''}`);
+      const updatedPatientCol: ColumnDto = {
+        ...individual_col,
+        values: mergedValues,
+        transformed: true,
+        header: individual_col.header
+      };
+      columns[individual_idx] = updatedPatientCol;
+
+      // Move updated patientId column to index 0 if needed
+      if (individual_idx !== 0) {
+        const [col] = columns.splice(individual_idx, 1);
+        columns.unshift(col);
+      }
+    } catch (e) {
+      await alert("Could not merge family/id columns: " + String(e));
+    }
+    this.buildTableRows(); 
+  }
+  
+  /**
+   * Extract a specific column index or show an error
+   * @param columns  
+   * @returns 
+   */
+ async getEtlColumnIndex(columnType: EtlColumnType): Promise<number> {
+  if (!this.externalTable) {
+    await alert("Could not apply transform because external table was null");
+    throw new Error("Missing table");
+  }
+
+  const indices = this.externalTable.columns
+    .map((col, index) => ({ col, index }))
+    .filter(entry => entry.col.columnType === columnType);
+
+  if (indices.length === 0) {
+    throw new Error(`No column with type "${columnType}" found.`);
+  }
+
+  if (indices.length > 1) {
+    throw new Error(`Multiple columns with type "${columnType}" found.`);
+  }
+
+  return indices[0].index;
 }
+
+  /** Get a string like Ptosis - HP:0000508 from backend. */
+  async identifyHpoFromHeader(header: string): Promise<{ hpoId: string, label: string }> {
+    if (this.externalTable == null) {
+      throw Error("External tbale null");
+    }
+    try {
+      let hit = await this.configService.getAutocompleteHpo(header);
+      if ( hit.length != 1) {
+        throw Error(`Did not get unique text mining result: "{hit}"`);
+      }
+      const hit0 = hit[0];
+      const [label, hpoId] = hit0.split('-').map(part => part.trim());
+      return { hpoId, label};
+    } catch(error) {
+      console.error("Could not get HPO", error);
+    } 
+      return {hpoId: '', label: '' };
+    }
+
+  async mapColumnToHpo(colIndex: number): Promise<void> {
+    if (this.externalTable == null) {
+      return;
+    }
+    const column = this.externalTable.columns[colIndex];
+
+    // Check memory
+    if (this.columnMappingMemory[column.header]) {
+      this.applyHpoMapping(colIndex, this.columnMappingMemory[column.header]);
+      return;
+    }
+
+  const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
+
+  const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+
+  // Open dialog
+  const dialogRef = this.dialog.open(HpoHeaderComponent, {
+    data: {
+      header: column.header,
+      hpoId,
+      hpoLabel: label,
+      uniqueValues
+    }
+  });
+
+  dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
+    this.columnMappingMemory[column.header] = mapping;
+    this.applyHpoMapping(colIndex, mapping);
+    dialogRef.close();
+  });
+
+  dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
+}
+
+applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
+  if (this.externalTable == null) {
+    return; // should never happen
+  }
+  
+  const col = this.externalTable.columns[colIndex];
+
+  // Optionally update the values if needed
+  // Example: you may map "+" to "observed" or tag it for further logic
+
+  // Update header
+  col.header = `${col.header} - ${mapping.hpoId}`;
+
+  // Mark as transformed
+  col.transformed = true;
+
+  // Optionally change columnType:
+  col.columnType = EtlColumnType.singleHpoTerm;
+
+  this.buildTableRows();
+}
+  async processHpoColumn(colIndex: number | null): Promise<void> {
+    if (colIndex == null) {
+       alert("Null column index");
+      return;
+    }
+    if (!this.externalTable || colIndex < 0) {
+      alert("Invalid column index");
+      return;
+    }
+
+  const column = this.externalTable.columns[colIndex];
+
+  // Skip if already processed
+  if (column.header.includes("HP:")) {
+    alert("This column has already been processed.");
+    return;
+  }
+
+  try {
+    // 1. Identify HPO term
+    const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
+
+    // 2. Extract unique values (e.g., +, -, ?)
+    const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+
+    // 3. Open dialog to map values to observed/excluded/etc.
+    const dialogRef = this.dialog.open(HpoHeaderComponent, {
+      data: {
+        header: column.header,
+        hpoId,
+        hpoLabel: label,
+        uniqueValues
+      }
+    });
+
+    dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
+      this.columnMappingMemory[column.header] = mapping;
+      this.applyHpoMapping(colIndex, mapping);
+      dialogRef.close();
+    });
+
+    dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
+
+  } catch (error) {
+    alert("Could not identify HPO term: " + error);
+  }
+}
+
+}
+

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { HpoAutocompleteComponent } from './hpoautocomplete.component';
+import { HpoHeaderComponent } from './hpoheader.component';
 
-describe('HpoAutocompleteComponent', () => {
-  let component: HpoAutocompleteComponent;
-  let fixture: ComponentFixture<HpoAutocompleteComponent>;
+describe('HpoHeaderComponent', () => {
+  let component: HpoHeaderComponent;
+  let fixture: ComponentFixture<HpoHeaderComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HpoAutocompleteComponent]
+      imports: [HpoHeaderComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(HpoAutocompleteComponent);
+    fixture = TestBed.createComponent(HpoHeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

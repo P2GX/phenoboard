@@ -5,7 +5,7 @@
 <div class="button-row">
   <button 
     class="btn-outline-primary"
-    (click)="loadExcel()">
+    (click)="loadExcelColumnBased()">
     Load External Excel File (Column-based)
   </button>
 
@@ -106,7 +106,6 @@
       </ul>
     </li>
     <li *ngIf="contextMenuColIndex !== null" (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>
-    <li (click)="showOnlyColumn(contextMenuColIndex)">Show Only This Column</li>
     <li (click)="clearColumnFilter()">Show All Columns</li>
     <!-- Submenu -->
     <li class="has-submenu">
@@ -118,6 +117,8 @@
       </ul>
     </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
+    <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
+    <li (click)="processHpoColumn(contextMenuColIndex)">Process HPO column</li>
   </ul>
 </div>
 
