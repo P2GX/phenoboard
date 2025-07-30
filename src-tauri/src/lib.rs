@@ -38,6 +38,7 @@ pub fn run() {
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
             get_hpo_autocomplete_terms,
+            get_best_hpo_match,
             submit_autocompleted_hpo_term,
             validate_template,
             save_template,
@@ -307,6 +308,18 @@ fn get_hpo_autocomplete_terms(
             .cloned()
             .collect()
 }
+
+/// This function supplies the autocompletion candidates for angular for the HPO
+/// The JavaScript ensures that query is at least 3 letters
+#[tauri::command]
+fn get_best_hpo_match(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    query: String) -> String {
+        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+        let singleton = singleton_arc.lock().unwrap();
+        singleton.get_best_hpo_match(query)
+}
+
 
 
 

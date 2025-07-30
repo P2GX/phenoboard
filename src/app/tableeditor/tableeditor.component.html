@@ -63,16 +63,16 @@
               ? onRightClickHeader($event, colIndex)
               : onRightClickCell($event, rowIndex, colIndex)"
         >
-           <div
-              *ngIf="rowIndex === 0; else normalCell"
-              class="multiline-ellipsis"
-              title="{{ row[colIndex] }}"
-            >
-              {{ row[colIndex] }}
-            </div>
-            <ng-template #normalCell>
-              {{ row[colIndex] }}
-            </ng-template>
+          <div
+            *ngIf="rowIndex === 0; else normalCell"
+            class="multiline-ellipsis"
+            title="{{ row[colIndex] }}"
+          >
+            {{ row[colIndex] }}
+          </div>
+          <ng-template #normalCell>
+            {{ row[colIndex] }}
+          </ng-template>
         </td>
       </ng-container>
     </tr>
@@ -118,7 +118,7 @@
     </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
-    <li (click)="processHpoColumn(contextMenuColIndex)">Process HPO column</li>
+    <li (click)="processSingleHpoColumn(contextMenuColIndex)">Process single HPO column</li>
     <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
   </ul>
 </div>
@@ -228,20 +228,22 @@
   "
 >
   <h3>Preview: {{ previewTransformName }} on Column</h3>
-  <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-    <thead>
-      <tr>
-        <th style="text-align: left; border-bottom: 1px solid #ccc;">Original</th>
-        <th style="text-align: left; border-bottom: 1px solid #ccc;">Transformed</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let orig of previewOriginal; let i = index">
-        <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
-        <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="scrollable-table-container">
+    <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+      <thead>
+        <tr>
+          <th style="text-align: left; border-bottom: 1px solid #ccc;">Original</th>
+          <th style="text-align: left; border-bottom: 1px solid #ccc;">Transformed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let orig of previewOriginal; let i = index">
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
+          <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
+        </tr>
+      </tbody>
+    </table>
+</div>
   <div style="text-align: right; margin-top: 16px;">
     <button (click)="applyTransformConfirmed()">✅ Apply</button>
     <button style="margin-left: 8px;" (click)="previewModalVisible = false">Cancel</button>

@@ -1,10 +1,7 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { HpoMappingResult } from "../models/hpo_mapping_result";
 
-interface HpoMappingResult {
-  hpoLabel: string;
-  hpoId: string;
-  valueToStateMap: { [key: string]: 'observed' | 'excluded' | 'notApplicable' };
-}
+
 
 
 @Component({

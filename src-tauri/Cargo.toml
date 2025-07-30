@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.3.12"
+version = "0.3.13"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -20,6 +20,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 dirs = "6.0"
 html-escape = "0.2.13"
+fuzzy-matcher = "0.3"
 ontolius = "0.5.3" 
 reqwest = { version = "0.12.20", features = ["json", "blocking"] }
 rfd = { version = "0.15.3", default-features = false}

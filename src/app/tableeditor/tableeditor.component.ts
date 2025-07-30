@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {  MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { TemplateDtoService } from '../services/template_dto_service';
@@ -10,20 +10,14 @@ import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.compo
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
 
+import { HpoMappingResult } from "../models/hpo_mapping_result";
 
 import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
+import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
-
-/** This is used to transmit a text mining result for a header (column representing an HPO term) */
-interface HpoMappingResult {
-  hpoLabel: string;
-  hpoId: string;
-  valueToStateMap: { [key: string]: 'observed' | 'excluded' | 'na' };
-}
-  
 
 /**
  * Component for editing external tables (e.g., supplemental files)
@@ -493,12 +487,12 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   }
 
 
-
-cancelTransformation() {
-  this.transformedColumnValues = [];
-  this.transformationPanelVisible = false;
-  this.editPreviewColumnVisible = false;
-}
+  /** This is shown with the preview transformation window. If we cancel, nothing happens to the original data */
+  cancelTransformation() {
+    this.transformedColumnValues = [];
+    this.transformationPanelVisible = false;
+    this.editPreviewColumnVisible = false;
+  }
 
   /**
    * External templates often have columns with no relevant information that we can delete.
@@ -507,10 +501,8 @@ cancelTransformation() {
    */
   deleteColumn(index: number | null) {
     if (index === null || this.externalTable == null) return;
-
     // Remove the column from the array
     this.externalTable.columns.splice(index, 1);
-
     // Update metadata
     this.externalTable.totalColumns = this.externalTable.columns.length;
     // Rebuild the table display
@@ -562,14 +554,15 @@ cancelTransformation() {
     const transformedValues = originalValues.map(v => handler(v));
 
     // Set up preview modal data
+    this.showPreview(colIndex, transformedValues, transformName);
+    /*
     this.previewOriginal = originalValues;
     this.previewTransformed = transformedValues;
     this.previewTransformName = transformName;
     this.previewColumnIndex = colIndex;
     this.previewModalVisible = true;
-
     // Hide context menu
-    this.contextMenuCellVisible = false;
+    this.contextMenuCellVisible = false;*/
   }
 
   /** After the user applies a transform to a column, the user sees a model dialog with
@@ -588,7 +581,7 @@ cancelTransformation() {
     const newColumn: ColumnDto = {
       columnType: sourceCol.columnType,
       transformed: true,
-      header: sourceCol.header, //`${sourceCol.header}_${this.previewTransformName.replace(/\s+/g, '').toLowerCase()}`,
+      header: sourceCol.header, 
       values: this.previewTransformed
     };
 
@@ -602,6 +595,26 @@ cancelTransformation() {
     this.previewColumnIndex = -1;
   }
 
+  /**
+   * Open a dialog with a preview of the transformed data that the user can accept or cancel
+   * @param colIndex index of the column with the data being transformed
+   * @param transformedValues The new (trasnformed) cell contents
+   * @param transformName Name of the procedure used to trasnform
+   */
+  showPreview(colIndex: number, transformedValues: string[], transformName: string): void {
+    const originalValues = this.externalTable?.columns[colIndex].values.map(v => v ?? '') || [];
+
+    this.previewOriginal = originalValues;
+    this.previewTransformed = transformedValues;
+    this.previewTransformName = transformName;
+    this.previewColumnIndex = colIndex;
+    this.previewModalVisible = true;
+    this.contextMenuCellVisible = false;
+  }
+
+  /** If the original data has separate columns for family and individual id, we
+   * merge them to get a single individual identifier.
+   */
   async mergeIndividualAndFamilyColumns(): Promise<void> {
     if (this.externalTable == null) {
       return;
@@ -665,22 +678,22 @@ cancelTransformation() {
   /** Get a string like Ptosis - HP:0000508 from backend. */
   async identifyHpoFromHeader(header: string): Promise<{ hpoId: string, label: string }> {
     if (this.externalTable == null) {
-      throw Error("External tbale null");
+      throw Error("External table null");
     }
     try {
-      let hit = await this.configService.getAutocompleteHpo(header);
-      console.log("hut", hit, "for header", header);
-      if ( hit.length != 1) {
-        throw Error(`Did not get unique text mining result: "{hit}"`);
+      let hit = await this.configService.getBestHpoMatch(header);
+      if (!hit.includes("HP:")) {
+        alert("Could not parse {header}");
+        return {"hpoId":"n/a", "label": "n/a"};
       }
-      const hit0 = hit[0];
-      const [label, hpoId] = hit0.split('-').map(part => part.trim());
+      const [label, hpoId] = hit.split('-').map(part => part.trim());
+      console.log("identifyHpoFromHeader returning ", label, hpoId);
       return { hpoId, label};
     } catch(error) {
       console.error("Could not get HPO", error);
     } 
-      return {hpoId: '', label: '' };
-    }
+    return {hpoId: '', label: '' };
+  }
 
   async mapColumnToHpo(colIndex: number): Promise<void> {
     if (this.externalTable == null) {
@@ -694,50 +707,107 @@ cancelTransformation() {
       return;
     }
 
-  const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
+    const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
 
-  const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-    console.log("LINE 699");
-  // Open dialog
-  const dialogRef = this.dialog.open(HpoHeaderComponent, {
-    data: {
-      header: column.header,
-      hpoId,
-      hpoLabel: label,
-      uniqueValues
-    }
-  });
+    const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+    const dialogRef = this.dialog.open(HpoHeaderComponent, {
+      data: {
+        header: column.header,
+        hpoId,
+        hpoLabel: label,
+        uniqueValues
+      }
+    });
 
-  dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
-    this.columnMappingMemory[column.header] = mapping;
-    this.applyHpoMapping(colIndex, mapping);
-    dialogRef.close();
-  });
+    dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
+      this.columnMappingMemory[column.header] = mapping;
+      this.applyHpoMapping(colIndex, mapping);
+      dialogRef.close();
+    });
 
-  dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
-}
-
-applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
-  if (this.externalTable == null) {
-    return; // should never happen
+    dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
   }
-  
-  const col = this.externalTable.columns[colIndex];
 
-  // Optionally update the values if needed
-  // Example: you may map "+" to "observed" or tag it for further logic
+  /** apply a mapping for a column that has single-HPO term, e.g., +=> observed */
+  applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
+    if (this.externalTable == null) {
+      return; // should never happen
+    }
+    
+    const col = this.externalTable.columns[colIndex];
+    const transformedValues = col.values.map(val => {
+      const mapped = mapping.valueToStateMap[val];
+      return mapped !== undefined ? mapped : val; // keep original if no mapping
+    });
+    // show dialog with transformed data that the user can accept or cancel.
+    this.showPreview(colIndex, transformedValues, "single HPO column");
 
-  // Update header
-  col.header = `${col.header} - ${mapping.hpoId}`;
+    col.header = `${mapping.hpoLabel} - ${mapping.hpoId}`;
 
-  // Mark as transformed
-  col.transformed = true;
+    // Mark as transformed
+    col.transformed = true;
 
-  // Optionally change columnType:
-  col.columnType = EtlColumnType.singleHpoTerm;
+    // Optionally change columnType:
+    col.columnType = EtlColumnType.singleHpoTerm;
 
-  this.buildTableRows();
-}
+    this.buildTableRows();
+  }
+
+
+  /** Process a column that refers to a single HPO term  */ 
+  async processSingleHpoColumn(colIndex: number | null): Promise<void> {
+    if (colIndex == null) {
+      alert("Null column index");
+      return;
+    }
+    if (!this.externalTable || colIndex < 0) {
+      alert("table not initialized");
+      return;
+    }
+    const column = this.externalTable.columns[colIndex];
+    if (column.header.includes("HP:")) {
+      alert("WARNING: This column has already been processed.");
+    }
+
+    try {
+      // 1. Identify HPO term 
+      const bestMatch = await this.configService.getBestHpoMatch(column.header);
+      if (! bestMatch.includes("HP:")) {
+        return;
+      }
+      const [hpoId, label] = bestMatch.split('-').map(part => part.trim()); 
+      console.log("hpoId", hpoId, "label", label);
+      // 2. Extract unique values from the column of the original table (e.g., +, -, ?)
+      const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+      // 3. Open dialog to map values to observed/excluded/etc.
+      const dialogRef = this.dialog.open(ValueMappingComponent, {
+          data: {
+            header: column.header,
+            hpoId,
+            hpoLabel: label,
+            uniqueValues
+          }
+        });
+
+        dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
+          if (mapping) {
+            this.columnMappingMemory[column.header] = mapping;
+            
+            this.applyHpoMapping(colIndex, mapping);
+          }
+        });
+
+      //dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
+
+    } catch (error) {
+      alert("Could not identify HPO term: " + error);
+    }
+
+  }
+
+
+
+
   async processHpoColumn(colIndex: number | null): Promise<void> {
     if (colIndex == null) {
        alert("Null column index");

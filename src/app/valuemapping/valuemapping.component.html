@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>{{header}}: Transform cell values</h2>
+<mat-dialog-content class="dialog-content-small">
+  <div *ngFor="let val of data.uniqueValues" class="mapping-row">
+    <strong>{{ val }}</strong>
+    <mat-form-field appearance="fill">
+      <mat-label>Label</mat-label>
+      <input
+        matInput
+        [(ngModel)]="valueToStateMap[val]"
+        [matAutocomplete]="auto"
+      />
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option *ngFor="let opt of predefinedStates" [value]="opt">
+          {{ opt }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button class="btn-outline-primary" (click)="onCancel()">Cancel</button>
+  <button mat-button class="btn-outline-primary" style="margin-left: 12px" (click)="onSave()">Save</button>
+</mat-dialog-actions>

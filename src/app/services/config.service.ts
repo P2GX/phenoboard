@@ -124,6 +124,10 @@ export class ConfigService {
     return invoke<string[]>('get_hpo_autocomplete_terms', { query: value });
   }
 
+  async getBestHpoMatch(value: string): Promise<string> {
+    return invoke<string>('get_best_hpo_match', {query: value});
+  }
+
   async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }

@@ -195,3 +195,12 @@ li.has-submenu:hover > .submenu {
   z-index: 1001;
   min-width: 180px;
 }
+
+
+.scrollable-table-container {
+  max-height: 300px;
+  overflow-y: scroll;
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  padding-right: 8px; /* space for scrollbar */
+}

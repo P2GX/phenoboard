@@ -6,6 +6,7 @@
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
 use std::{fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
+use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
@@ -77,6 +78,24 @@ impl PhenoboardSingleton {
         &self.hpo_auto_complete
     }
 
+    /// We want to get the single best match of any HPO term label to the query string
+    pub fn get_best_hpo_match(&self, query: String) -> String {
+        let matcher = SkimMatcherV2::default();
+        self.hpo_auto_complete.iter()
+           .filter_map(|s| {
+                let parts: Vec<&str> = s.splitn(2, " - ").collect();
+                if parts.len() != 2 {
+                    return None;
+                }
+                let label = parts[1];
+                matcher.fuzzy_match(label, &query).map(|score| (s, score))
+        })
+        .max_by_key(|(_, score)| *score)
+        .map(|(s, _)| s.clone())
+        .unwrap_or_else(|| "n/a".to_string())
+    }
+
+    /// Set up autocomplete functionality that returns string with form HP:0000123 - Label
     fn initialize_hpo_autocomplete(&mut self) {
         // let phenotypic_abnormality: TermId = "HP:0000118".parse().unwrap();
         match &self.ontology {
