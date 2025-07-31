@@ -16,6 +16,9 @@ import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
+import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
+import { firstValueFrom } from 'rxjs';
+import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 
@@ -41,15 +44,15 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     super(templateService, ngZone, cdRef);
   }
   
-
+  INVISIBLE: number = -1; 
   contextMenuColHeader: string | null = null;
   contextMenuColType: string | null = null;
   columnContextMenuVisible = false;
   columnContextMenuX = 0;
   columnContextMenuY = 0;
   editModeActive = false;
-  visibleColIndex: number = -1;
-  transformedColIndex: number = -1;
+  visibleColIndex: number = this.INVISIBLE;
+  transformedColIndex: number = this.INVISIBLE;
   contextMenuColIndex: number | null = null;
   displayRows: string[][] = [];
   externalTable: ColumnTableDto  | null = null;
@@ -323,6 +326,27 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.buildTableRows(); // Rebuild the table display
   }
 
+  /* Open an autocomplete dialog to change the header of the column to an HPO term label */
+  async hpoAutoForColumnName(colIndex: number) {
+    if (this.externalTable == null) {
+      return;
+    }
+    const col = this.externalTable.columns[colIndex];
+    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
+      width: '500px'
+    });
+
+    const selectedTerm = await firstValueFrom(dialogRef.afterClosed());
+    if (selectedTerm) {
+      console.log('User selected HPO term:', selectedTerm);
+      const newHeader = `${selectedTerm} [original: ${col.header}]`;
+      col.header = newHeader;
+      this.buildTableRows();
+    } else {
+      console.log('User cancelled HPO selection');
+    }
+  }
+
 // Example transform: trim + uppercase all strings in selected column
 applyTransform(colIndex: number | null): void {
   if (colIndex !== null && this.externalTable?.columns?.[colIndex]) {
@@ -474,7 +498,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     const orig_col = this.externalTable.columns[colIndex];
     orig_col.values = col.values;
     orig_col.transformed = true;
-    this.transformedColIndex = -1; // make it invisible
+    this.transformedColIndex = this.INVISIBLE; 
 
     // Reset preview
     this.transformedColumnValues = [];
@@ -548,21 +572,12 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
 
     const handler = this.transformHandlers[transformName];
     if (!handler) return;
-
     const col = this.externalTable.columns[colIndex];
     const originalValues = col.values.map(v => v ?? '');
     const transformedValues = originalValues.map(v => handler(v));
-
     // Set up preview modal data
     this.showPreview(colIndex, transformedValues, transformName);
-    /*
-    this.previewOriginal = originalValues;
-    this.previewTransformed = transformedValues;
-    this.previewTransformName = transformName;
-    this.previewColumnIndex = colIndex;
-    this.previewModalVisible = true;
-    // Hide context menu
-    this.contextMenuCellVisible = false;*/
+    // if user clicks confirm, applyTransformConfirmed is executed
   }
 
   /** After the user applies a transform to a column, the user sees a model dialog with
@@ -586,13 +601,10 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     };
 
     this.externalTable.columns[this.visibleColIndex] = newColumn;
-    this.transformedColIndex = this.visibleColIndex;
-
+    this.transformedColIndex = this.INVISIBLE;
     this.buildTableRows();
+    this.resetPreviewModal();
 
-    // Reset preview modal
-    this.previewModalVisible = false;
-    this.previewColumnIndex = -1;
   }
 
   /**
@@ -610,6 +622,13 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.previewColumnIndex = colIndex;
     this.previewModalVisible = true;
     this.contextMenuCellVisible = false;
+  }
+
+  /* close the preview modal dialog */
+  resetPreviewModal(): void {
+    this.previewModalVisible = false;
+    this.previewColumnIndex = -1;
+    this.editModalVisible = false;
   }
 
   /** If the original data has separate columns for family and individual id, we
@@ -765,14 +784,16 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       return;
     }
     const column = this.externalTable.columns[colIndex];
-    if (column.header.includes("HP:")) {
-      alert("WARNING: This column has already been processed.");
-    }
+    let input = column.header;
+    const match = input.match(/^HP:\d+\s*-\s*(.+?)\s*\[original:/);
+    input = match ? match[1] : input;
+    console.log("label is ", input);
 
     try {
       // 1. Identify HPO term 
-      const bestMatch = await this.configService.getBestHpoMatch(column.header);
+      const bestMatch = await this.configService.getBestHpoMatch(input);
       if (! bestMatch.includes("HP:")) {
+        alert(`Could not retrieve HPO match for header : '"${bestMatch}"'`);
         return;
       }
       const [hpoId, label] = bestMatch.split('-').map(part => part.trim()); 

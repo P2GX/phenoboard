@@ -471,31 +471,34 @@ async fn load_external_excel(
 
 
 
-/// Allow the user to choose an existing PheTools template file from the file system and load it
+/// The external template JSON is an intermediate file representing our work on 
+/// an external table (e.g., supplemental material) that we save as a JSON to complete
+/// later on. This command opens a file chooser.
 #[tauri::command]
 async fn save_external_template_json(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     template: ColumnTableDto
 ) -> Result<(), String> {
-    //let phenoboard_arc: Arc::clone(&*singleton);
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let app_handle = app.clone();
-    
     tokio::task::spawn_blocking(move || {
-        match app_handle.dialog().file().blocking_save_file() {
-            Some(file) => {
-                let fpath = file.to_string();
+        if let Some(file) = app_handle.dialog().file().blocking_save_file() {
+            if let Some(path_ref) = file.as_path() {
+                let mut path = path_ref.to_path_buf();
+                if path.extension().is_none() {
+                    path.set_extension("json");
+                }
                 let json = serde_json::to_string_pretty(&template)
                     .map_err(|e| format!("Failed to serialize template: {}", e))?;
-                fs::write(&fpath, json)
+                fs::write(&path, json)
                     .map_err(|e| format!("Failed to write file: {}", e))?;
                 Ok(())
-            },
-            None => {
+            } else {
                 let _ = app_handle.emit("templateLoaded", "failure");
-                Err("User cancelled file selection".to_string())
+                Err("failed to extract path from FileDialogPath".to_string())
             }
+        } else {
+            let _ = app_handle.emit("templateLoaded", "failure");
+            Err("User cancelled file selection".to_string())
         }
     })
     .await

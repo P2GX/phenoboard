@@ -94,6 +94,7 @@
   </div>
   <ul>
     <li *ngIf="contextMenuColIndex !== null" (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
+    <li *ngIf="contextMenuColIndex !== null" (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name</li>
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
