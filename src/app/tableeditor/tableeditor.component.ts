@@ -714,39 +714,6 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     return {hpoId: '', label: '' };
   }
 
-  async mapColumnToHpo(colIndex: number): Promise<void> {
-    if (this.externalTable == null) {
-      return;
-    }
-    const column = this.externalTable.columns[colIndex];
-
-    // Check memory
-    if (this.columnMappingMemory[column.header]) {
-      this.applyHpoMapping(colIndex, this.columnMappingMemory[column.header]);
-      return;
-    }
-
-    const { hpoId, label } = await this.identifyHpoFromHeader(column.header);
-
-    const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-    const dialogRef = this.dialog.open(HpoHeaderComponent, {
-      data: {
-        header: column.header,
-        hpoId,
-        hpoLabel: label,
-        uniqueValues
-      }
-    });
-
-    dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
-      this.columnMappingMemory[column.header] = mapping;
-      this.applyHpoMapping(colIndex, mapping);
-      dialogRef.close();
-    });
-
-    dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
-  }
-
   /** apply a mapping for a column that has single-HPO term, e.g., +=> observed */
   applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
     if (this.externalTable == null) {
@@ -773,6 +740,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   }
 
 
+
   /** Process a column that refers to a single HPO term  */ 
   async processSingleHpoColumn(colIndex: number | null): Promise<void> {
     if (colIndex == null) {
@@ -785,9 +753,11 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     }
     const column = this.externalTable.columns[colIndex];
     let input = column.header;
+    // Some of our column names were transformed, and we retain the original label
+    // we extract the label of the HPO term so that the text mining works
     const match = input.match(/^HP:\d+\s*-\s*(.+?)\s*\[original:/);
     input = match ? match[1] : input;
-    console.log("label is ", input);
+  
 
     try {
       // 1. Identify HPO term 
@@ -797,7 +767,6 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         return;
       }
       const [hpoId, label] = bestMatch.split('-').map(part => part.trim()); 
-      console.log("hpoId", hpoId, "label", label);
       // 2. Extract unique values from the column of the original table (e.g., +, -, ?)
       const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
       // 3. Open dialog to map values to observed/excluded/etc.
@@ -813,17 +782,12 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
           if (mapping) {
             this.columnMappingMemory[column.header] = mapping;
-            
             this.applyHpoMapping(colIndex, mapping);
           }
         });
-
-      //dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
-
     } catch (error) {
       alert("Could not identify HPO term: " + error);
     }
-
   }
 
 
