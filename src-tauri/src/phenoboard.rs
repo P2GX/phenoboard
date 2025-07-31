@@ -478,9 +478,10 @@ impl PhenoboardSingleton {
     pub fn get_template_dto_from_seeds(
         &mut self,
         dto: DiseaseGeneDto,
-        input: &str
+        input: String
     ) -> Result<TemplateDto, String> {
-        let fresult = self.map_text_to_term_list(input);
+        println!("{}:{} - input {}", file!(), line!(), &input);
+        let fresult = self.map_text_to_term_list(&input);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);

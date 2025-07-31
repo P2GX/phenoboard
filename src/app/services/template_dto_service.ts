@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import type { TemplateDto } from '../models/template_dto';
-import { GeneTranscriptDto } from '../models/gene_dto';
+import { DiseaseGeneDto, TemplateDto, GeneTranscriptDto } from '../models/template_dto';
 import { ConfigService } from './config.service';
 import { VariantDto } from '../models/variant_dto';
-import { DiseaseGeneDto } from '../models/case_bundle';
+
 
 @Injectable({ providedIn: 'root' })
 export class TemplateDtoService {
@@ -14,8 +13,8 @@ export class TemplateDtoService {
     private templateSubject = new BehaviorSubject<TemplateDto | null>(null);
     template$ = this.templateSubject.asObservable();
 
-    private geneTranscriptDtoList = new BehaviorSubject<GeneTranscriptDto[] | null>(null);
-    geneTranscriptDtoList$ = this.geneTranscriptDtoList.asObservable();
+    private diseaseGeneDtoSubject = new BehaviorSubject<DiseaseGeneDto | null>(null);
+    diseaseGeneDto$ = this.diseaseGeneDtoSubject.asObservable();
 
     setTemplate(template: TemplateDto) {
         this.templateSubject.next(template);
@@ -29,6 +28,21 @@ export class TemplateDtoService {
     clearTemplate() {
         this.templateSubject.next(null);
     }
+
+    setDiseaseGeneDto(dto: DiseaseGeneDto) {
+        this.diseaseGeneDtoSubject.next(dto);
+    }
+
+    getDiseaseGeneDto(): DiseaseGeneDto | null {
+        const dto = this.diseaseGeneDtoSubject.getValue();
+        return dto;
+    }
+
+    clearDiseaseGeneDto() {
+        this.diseaseGeneDtoSubject.next(null);
+    }
+
+  
 
     async saveTemplate(): Promise<void> {
         const template = this.getTemplate();

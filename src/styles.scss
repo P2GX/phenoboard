@@ -139,3 +139,24 @@ button.btn-outline-cancel {
   border: 1px solid #ccc;
   padding: 5px;
 }
+
+
+
+  .error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px; 
+  }
+
+  .error-message {
+    background-color: #ffe6e6; /* light red background */
+    color: #a30000;            /* deep red text */
+    border: 1px solid #ff4d4d; /* red border */
+    padding: 1em;
+    margin-top: 1em;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+}

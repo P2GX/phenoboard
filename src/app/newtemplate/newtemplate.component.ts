@@ -4,11 +4,11 @@ import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { TemplateDto } from '../models/template_dto';
+import { DiseaseGeneDto, newMendelianTemplate, TemplateDto } from '../models/template_dto';
 
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
-import { newMendelianTemplate } from '../models/case_bundle';
+
 
 
 
@@ -82,7 +82,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       const transcript = this.mendelianDataForm.get('transcript')?.value;
       const multiText = this.mendelianDataForm.get('multiText')?.value;
 
-      const newTemplateDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
+      const newTemplateDto: DiseaseGeneDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);
@@ -90,12 +90,15 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       console.log("Symbol:", symbol);
       console.log("Transcript:", transcript);
       console.log("Multi Text:", multiText);
+      this.templateService.setDiseaseGeneDto(newTemplateDto);
 
       try {
-        const template = await this.configService.getNewTemplateFromSeeds(newTemplateDto);
+          console.log("onSubmitMendelian top of try");
+        const template = await this.configService.getNewTemplateFromSeeds(newTemplateDto, multiText);
+        console.log("onSubmitMendelian template=", template);
         this.templateService.setTemplate(template);
-        console.error("TODO REFACOT newtemplate");
       } catch (error) {
+        console.log("onSubmitMendelian IN ERR=");
           this.errorMessage = String(error);
       }
       

@@ -12,7 +12,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
 import { StructuralType, VariantDto } from '../models/variant_dto';
 import { TemplateDtoService } from '../services/template_dto_service';
-import { GeneTranscriptDto } from '../models/gene_dto';
+import { GeneTranscriptDto } from '../models/template_dto';
 
 
 

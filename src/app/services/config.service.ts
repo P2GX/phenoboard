@@ -3,11 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, NewTemplateDto, TemplateDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, TemplateDto, DiseaseGeneDto } from '../models/template_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { VariantDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
-import { DiseaseGeneDto } from '../models/case_bundle';
+
 
 @Injectable({
   providedIn: 'root'
@@ -37,9 +37,17 @@ export class ConfigService {
     return await invoke<TemplateDto>("get_phetools_template");
   }
 
-  async getNewTemplateFromSeeds(dto: DiseaseGeneDto):  Promise<TemplateDto> {
+  /**
+   * This is called when the user wants to create a new template from scratch. 
+   * @param dto DiseaseGeneDto information about the disease (label/id) and the gene (symbol/HGNC/transcript)
+   * @param input Seed text from which we generate initial HPO columns
+   * @returns 
+   */
+  async getNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<TemplateDto> {
+    console.log("getNewTemplateFromSeeds in service", dto, input);
     return await invoke<TemplateDto>("get_template_dto_from_seeds", {
-      'dto': dto
+      'dto': dto,
+      'input': input,
     });
   }
   

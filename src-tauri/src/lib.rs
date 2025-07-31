@@ -257,15 +257,14 @@ fn select_phetools_template_path(
 /// When we initialize a new Table (Excel file) for curation, we start with
 /// a text that contains candidate HPO terms for curation.
 /// This function performs text mining on that text and creates
-/// a Matrix of Strings with which we initialize the table in the GUI
-/// TODO: better documentation
-
+/// the initial Template DTO we use to add patient data to
 #[tauri::command]
 fn get_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseGeneDto,
-    input: &str
+    input: String
 ) -> Result<TemplateDto, String> {
+     println!("{}:{} - input {}", file!(), line!(), input);
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.get_template_dto_from_seeds(dto, input)
