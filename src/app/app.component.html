@@ -1,15 +1,9 @@
 <div class="flex flex-col min-h-screen">
   <app-navbar></app-navbar>
   <main class="flex-1">
-    <app-home *ngIf="currentView === 'home'"></app-home>
-   <app-newtemplate *ngIf="currentView === 'table'"></app-newtemplate>
-   <app-tableeditor *ngIf="currentView === 'table_editor'"></app-tableeditor>
-   <app-addcase *ngIf="currentView === 'addcase'"></app-addcase>
-    <app-pttemplate *ngIf="currentView === 'pttemplate'"></app-pttemplate>
-    <app-variant_list *ngIf="currentView === 'variant_list'"></app-variant_list>
-    <app-help *ngIf="currentView === 'help'"></app-help>
+    <router-outlet></router-outlet>
   </main>
-  <footer class="footer">
+  <footer class="bg-gray-100 text-center py-4 text-sm text-gray-600 shadow-inner">
     <p>&copy; 2025 GA4GH Phenoboard</p>
   </footer>
-  </div>
+</div>

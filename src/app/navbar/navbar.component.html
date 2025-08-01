@@ -1,15 +1,65 @@
 <nav class="flex flex-wrap items-center gap-2 bg-gray-800 px-4 py-3 shadow-md rounded-md">
-  <button
-    *ngFor="let tab of tabs"
-    [disabled]="isDisabled(tab)"
-    (click)="setView(tab.id)"
+  <a
+    routerLink="/home"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
     class="text-white px-4 py-2 rounded-md transition-colors duration-200
-          hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
-    [ngClass]="{
-      'bg-gray-700 font-semibold': currentView === tab.id,
-      'opacity-50 cursor-not-allowed': isDisabled(tab)
-    }"
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
   >
-    {{ tab.label }}
-  </button>
+    Home
+  </a>
+  <a
+    routerLink="/newtemplate"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    New Template
+  </a>
+  <a
+    routerLink="/addcase"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Add Case
+  </a>
+  <a
+    routerLink="/tableeditor"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Table Editor
+  </a>
+  <a
+    routerLink="/pttemplate"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Patient Template
+  </a>
+  <a
+    routerLink="/variant_list"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Variants
+  </a>
+  <a
+    routerLink="/help"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Help
+  </a>
 </nav>

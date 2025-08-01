@@ -1,76 +1,30 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Page, PageService } from '../services/page.service';
-import { StatusDto } from '../models/status_dto';
-import { Subscription } from 'rxjs';
-import { BackendStatusService } from '../services/backend_status_service';
-
-type Tab = {
-  id: Page;
-  label: string;
-  disabled?: boolean;
-  disabledFn?: (status: StatusDto | null) => boolean;
-};
-
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
+  styleUrls: ['./navbar.component.css'],
+  imports: [RouterLink, RouterLinkActive, NgClass],
 })
 export class NavbarComponent {
-  constructor(
-    private pageService: PageService,
-    private backendStatusService: BackendStatusService
-  ) {
-    this.statusSub = this.backendStatusService.status$.subscribe((status) => {
-      this.status = status;
-    });
-  }
+  tabs = [
+    { label: 'Home', path: '/home' },
+    { label: 'New Template', path: '/newtemplate' },
+    { label: 'Add Case', path: '/addcase' },
+    { label: 'Table Editor', path: '/tableeditor' },
+    { label: 'Patient Template', path: '/pttemplate' },
+    { label: 'Variants', path: '/variant_list' },
+    { label: 'Help', path: '/help' },
+  ];
 
-  currentView: Page = 'home' as Page;
-  status: StatusDto | null = null;
-  private statusSub: Subscription;
-
-
-  tabs: Tab[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'table', label: 'New PheTools Table' },
-  {
-    id: 'addcase',
-    label: 'Add case',
-    disabledFn: (status) => !status?.ptTemplateLoaded
-  },
-  {
-    id: 'pttemplate',
-    label: 'Edit Template',
-    disabledFn: (status) => !status?.ptTemplateLoaded
-  },
-  { id: 'variant_list', label: 'Edit variants' },
-   {
-    id: 'table_editor',
-    label: 'Edit External Table',
-    disabledFn: (status) => !status?.hpoLoaded
-  },
-  { id: 'help', label: 'Help' }
-];
-
-
-  isDisabled(tab: Tab): boolean {
-    return typeof tab.disabledFn === 'function' ? tab.disabledFn(this.status) : !!tab.disabled;
-  }
-
-  setView(page: string) {
-    const tab = this.tabs.find(t => t.id === page);
-    if (!tab || this.isDisabled(tab)) return;
-
-    this.pageService.setPage(page);
-    this.currentView = this.pageService.getPage();
-  }
-
-  ngOnDestroy(): void {
-    this.statusSub.unsubscribe();
+  isDisabled(tab: { path: string }) {
+    return false; // add logic here if needed
   }
 }
+function provideExperimentalFeatures(arg0: string[]) {
+  throw new Error('Function not implemented.');
+}
+
