@@ -455,11 +455,17 @@ impl PhenoboardSingleton {
         individual_dto: IndividualBundleDto, 
         hpo_annotations: Vec<HpoTermDto>,
         gene_variant_list: Vec<GeneVariantBundleDto>,
+        disease_gene_dto: DiseaseGeneDto,
         template_dto: TemplateDto) 
     -> std::result::Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                let updated_dto = ptools.add_new_row_to_cohort(individual_dto, hpo_annotations, gene_variant_list, template_dto)?;
+                let updated_dto = ptools.add_new_row_to_cohort(
+                    individual_dto, 
+                    hpo_annotations, 
+                    gene_variant_list, 
+                    disease_gene_dto,
+                    template_dto)?;
                 Ok(updated_dto)
             },
             None => {

@@ -169,15 +169,17 @@ export class ConfigService {
 
 
   async addNewRowToCohort(
-      individual_dto: IndividualDto, 
-      hpo_annotations: HpoTermDto[],
-      gene_variant_list: GeneVariantBundleDto[],
-      template_dto: TemplateDto): Promise<TemplateDto> {
+      individualDto: IndividualDto, 
+      hpoAnnotations: HpoTermDto[],
+      geneVariantList: GeneVariantBundleDto[],
+      diseaseGeneDto: DiseaseGeneDto,
+      templateDto: TemplateDto): Promise<TemplateDto> {
     return invoke<TemplateDto>('add_new_row_to_cohort', 
-      {individualDto: individual_dto, 
-        hpoAnnotations: hpo_annotations,
-        geneVariantList: gene_variant_list,
-        templateDto: template_dto
+      { individualDto, 
+         hpoAnnotations,
+         geneVariantList,
+         diseaseGeneDto,
+         templateDto
       });
   }
 

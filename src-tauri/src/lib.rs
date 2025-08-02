@@ -368,6 +368,7 @@ fn add_new_row_to_cohort(
     individual_dto: IndividualBundleDto, 
     hpo_annotations: Vec<HpoTermDto>,
     gene_variant_list: Vec<GeneVariantBundleDto>,
+    disease_gene_dto: DiseaseGeneDto,
     template_dto: TemplateDto) 
 -> Result<TemplateDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -376,6 +377,7 @@ fn add_new_row_to_cohort(
         individual_dto, 
         hpo_annotations, 
         gene_variant_list,
+        disease_gene_dto,
         template_dto)?;
     println!("rust, add_new_row: {:?}", updated_template);
     Ok(updated_template)

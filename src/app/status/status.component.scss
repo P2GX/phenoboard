@@ -1,0 +1,14 @@
+
+.status-anchor {
+  display: inline-flex;
+  align-items: center;
+  color: #2563eb; /* text-blue-600 */
+  font-weight: 500; /* font-medium */
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.status-anchor:hover {
+  color: #1e40af; /* hover:text-blue-800 */
+  text-decoration: underline;
+}

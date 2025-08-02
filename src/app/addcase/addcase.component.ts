@@ -141,18 +141,27 @@ export class AddcaseComponent {
         alert(this.errorString);
         return;
       }
-      let template_dto = this.templateService.getTemplate();
+      const template_dto = this.templateService.getTemplate();
+      const diseaseGeneDto = this.templateService.getDiseaseGeneDto();
+      if (diseaseGeneDto == null) {
+        alert("Could not retrieve disease+gene information");
+        return;
+      }
       if (template_dto != null) {
+         console.log("previous was not null", template_dto);
         try {
-          const updated_dto = await this.configService.addNewRowToCohort(
+          const updated_dto: TemplateDto = await this.configService.addNewRowToCohort(
               individual_dto, 
               hpoAnnotations, 
               [geneVariantBundle],
+              diseaseGeneDto,
               template_dto);
           console.log("Updated dto, " , updated_dto);
           this.templateService.setTemplate(updated_dto);
         } catch (error) {
-          this.errorString = "Could not add new row: ${error}";
+          this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
+          alert(this.errorString);
+          console.error(this.errorString);
         }
       } else {
         console.error("Attempt to add new row with null template_dto");
