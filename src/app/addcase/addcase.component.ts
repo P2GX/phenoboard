@@ -42,6 +42,8 @@ export class AddcaseComponent {
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
 
+
+
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
@@ -63,8 +65,8 @@ export class AddcaseComponent {
   showDropdownMap: { [termId: string]: boolean } = {};
   rightClickOptions: string[] = [];
   predefinedOptions: string[] = ["observed", "excluded", "na"];
-  selectedOptions: string[] = []; // Stores selected radio button values
-  customOptions: string[] = []; // Stores manually entered custom options
+  selectedOptions: string[] = []; //  selected radio button values
+  customOptions: string[] = []; // manually entered custom options
   hpoInitialized: boolean = false;
   errorString: string | null = null;
   hasError: boolean = false;
@@ -136,7 +138,7 @@ export class AddcaseComponent {
       const geneVariantBundle = this.createGeneVariantBundleDto();
       if (geneVariantBundle == null) {
         this.errorString = "Could not create Gene/Variant bundle";
-          console.log("submitNewRow - Could not create Gene/Variant bundle");
+        alert(this.errorString);
         return;
       }
       let template_dto = this.templateService.getTemplate();
@@ -359,7 +361,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
-    console.log("convertTextAnnotationToHpoAnnotation teAnn", textAnn);
     let status = 'na';
     
     if (textAnn.isObserved) {
@@ -370,7 +371,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     } else {
       status = 'excluded';
     }
-    console.log("convertTextAnnotationToHpoAnnotation stats=", status);
+    console.log("convertTextAnnotationToHpoAnnotation status (O/E)=", status);
     return {
       termId: textAnn.termId,
       termLabel: textAnn.label,

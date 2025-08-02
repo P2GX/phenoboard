@@ -54,6 +54,15 @@
     Variants
   </a>
   <a
+    routerLink="/status"
+    routerLinkActive="bg-gray-700 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="text-white px-4 py-2 rounded-md transition-colors duration-200
+           hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white"
+  >
+    Status
+  </a>
+  <a
     routerLink="/help"
     routerLinkActive="bg-gray-700 font-semibold"
     [routerLinkActiveOptions]="{ exact: true }"

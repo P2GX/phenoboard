@@ -5,7 +5,7 @@ import { noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { DiseaseGeneDto, newMendelianTemplate, TemplateDto } from '../models/template_dto';
-
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
 
@@ -16,7 +16,7 @@ import { PageService } from '../services/page.service';
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './newtemplate.component.html',
   styleUrls: ['./newtemplate.component.scss'],
 })
@@ -39,6 +39,9 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
         multiText: ['', [Validators.required]], // 
       });
   }
+
+  /* after the user submits data, we hide everything else and display a message */
+  showSuccessMessage = false;
 
   digenicTemplate = false;
   meldedTemplate = false;
@@ -93,12 +96,10 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       this.templateService.setDiseaseGeneDto(newTemplateDto);
 
       try {
-          console.log("onSubmitMendelian top of try");
-        const template = await this.configService.getNewTemplateFromSeeds(newTemplateDto, multiText);
-        console.log("onSubmitMendelian template=", template);
+        const template = await this.configService.createNewTemplateFromSeeds(newTemplateDto, multiText);
         this.templateService.setTemplate(template);
+        this.showSuccessMessage = true;
       } catch (error) {
-        console.log("onSubmitMendelian IN ERR=");
           this.errorMessage = String(error);
       }
       

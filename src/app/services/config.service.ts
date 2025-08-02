@@ -43,9 +43,9 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async getNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<TemplateDto> {
+  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<TemplateDto> {
     console.log("getNewTemplateFromSeeds in service", dto, input);
-    return await invoke<TemplateDto>("get_template_dto_from_seeds", {
+    return await invoke<TemplateDto>("create_template_dto_from_seeds", {
       'dto': dto,
       'input': input,
     });

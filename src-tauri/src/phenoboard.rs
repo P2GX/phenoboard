@@ -3,7 +3,7 @@
 //! Each table cell is modelled as having the ability to return a datatype and the contents as a String
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, io_util::select_or_create_folder, pubmed_retrieval::PubmedRetriever}};
 use std::{fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
@@ -31,11 +31,6 @@ pub struct PhenoboardSingleton {
     pt_template_path: Option<String>,
     /// PheTools is the heart of the application.
     phetools: Option<PheTools>,
-    current_row: Option<usize>,
-    current_column: Option<usize>,
-    current_operation: PptOperation,
-    /// this value is true if there are changes we have not yet saved to file
-    unsaved: bool,
     /// Strings for autocompletion
     hpo_auto_complete: Vec<String>,
 }
@@ -474,22 +469,28 @@ impl PhenoboardSingleton {
     }
 
     /// Generate a Template from seed HPO terms.
+    /// This method will create a new Phetools object and discard the previous one, if any.
     /// ToDo, this is Mendelian only, we need to extend it.
-    pub fn get_template_dto_from_seeds(
+    pub fn create_template_dto_from_seeds(
         &mut self,
         dto: DiseaseGeneDto,
         input: String
     ) -> Result<TemplateDto, String> {
         println!("{}:{} - input {}", file!(), line!(), &input);
         let fresult = self.map_text_to_term_list(&input);
+        let template_type = dto.template_type;
+        let directory = select_or_create_folder()?;
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
-                phetools.create_pyphetools_template_from_seeds(
-                    dto,
+                let dgdto = phetools.create_pyphetools_template_from_seeds(
+                    template_type,
+                    directory,
                     fresult,
-                )
+                )?;
+                self.phetools = Some(phetools);
+                return Ok(dgdto);
             },
             None =>  Err(format!("Could not retrieve ontology"))
             }
@@ -613,10 +614,6 @@ impl Default for PhenoboardSingleton {
             ontology: None, 
             pt_template_path: None, 
             phetools: None, 
-            current_row: None, 
-            current_column: None, 
-            current_operation: PptOperation::EntireTable, 
-            unsaved: false,
             hpo_auto_complete: vec![],
         }
     }

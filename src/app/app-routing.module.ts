@@ -7,6 +7,7 @@ import { TableEditorComponent } from './tableeditor/tableeditor.component';
 import { PtTemplateComponent } from './pttemplate/pttemplate.component';
 import { VariantListComponent } from './variant_list/variant_list.component';
 import { HelpComponent } from './help/help.component';
+import { StatusComponent } from './status/status.component';
 
 
 
@@ -19,6 +20,7 @@ export const appRoutes: Routes = [
   { path: 'tableeditor', component: TableEditorComponent },
   { path: 'pttemplate', component: PtTemplateComponent },
   { path: 'variant_list', component: VariantListComponent },
+  { path: 'status', component: StatusComponent },
   { path: 'help', component: HelpComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' } // Fallback route
@@ -28,5 +30,3 @@ export const appRoutes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
-
-console.log('=== ROUTING MODULE LOADING DONE ===');

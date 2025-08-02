@@ -13,7 +13,7 @@ use std::{fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, util::io_util::{self, select_or_create_folder}};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,7 +32,7 @@ pub fn run() {
             load_phetools_excel_template,
             load_hpo,
             map_text_to_annotations,
-            get_template_dto_from_seeds,
+            create_template_dto_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
             fetch_pmid_title,
@@ -224,42 +224,12 @@ fn get_pt_template_path(
 }
 
 
-
-/*
-#[tauri::command]
-fn select_phetools_template_path(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<String, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    // synchronous (blocking) file chooser
-    let result = FileDialog::new()
-        .add_filter("Phetools template file", &["xlsx"])
-        // .set_directory("/")
-        .pick_file();
-    match result {
-        Some(file) => {
-            let pbresult = file.canonicalize();
-            match pbresult {
-                Ok(abspath) => {
-                    let pt_path = abspath.canonicalize().unwrap().display().to_string();
-                    singleton.set_pt_template_path(&pt_path)?;
-                    return Ok(pt_path);
-                }
-                Err(e) => Err(format!("Could not get path: {:?}", e)),
-            }
-        }
-        None => Err(format!("Could not get path from file dialog")),
-    }
-} */
-
-
 /// When we initialize a new Table (Excel file) for curation, we start with
 /// a text that contains candidate HPO terms for curation.
 /// This function performs text mining on that text and creates
 /// the initial Template DTO we use to add patient data to
 #[tauri::command]
-fn get_template_dto_from_seeds(
+fn create_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseGeneDto,
     input: String
@@ -267,7 +237,7 @@ fn get_template_dto_from_seeds(
      println!("{}:{} - input {}", file!(), line!(), input);
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.get_template_dto_from_seeds(dto, input)
+    singleton.create_template_dto_from_seeds(dto, input)
 }
 
 

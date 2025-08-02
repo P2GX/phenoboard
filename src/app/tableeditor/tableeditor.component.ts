@@ -527,8 +527,6 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     if (index === null || this.externalTable == null) return;
     // Remove the column from the array
     this.externalTable.columns.splice(index, 1);
-    // Update metadata
-    this.externalTable.totalColumns = this.externalTable.columns.length;
     // Rebuild the table display
     this.buildTableRows();
   }

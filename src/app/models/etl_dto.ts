@@ -23,6 +23,4 @@ export interface ColumnDto {
 export interface ColumnTableDto {
   fileName: string;
   columns: ColumnDto[];
-  totalRows: number;
-  totalColumns: number;
 }

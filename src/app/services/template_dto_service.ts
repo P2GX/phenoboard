@@ -56,26 +56,18 @@ export class TemplateDtoService {
     /* Get all of the gene symbol/HGNC/transcript entries for the current
     cohort. For Mendelian, this should be just one */
     getAllGeneSymbolTranscriptPairs(): GeneTranscriptDto[] {
-        const seen = new Set<string>();
-        const template = this.getTemplate();
-        if (template == null) {
+        const dis_gene_dto = this.getDiseaseGeneDto();
+        if (dis_gene_dto == null) {
             console.error("Attempt to retrieve genes but template was null");
             return [];
         }
-        return template.rows
-            .flatMap(row => row.geneVarDtoList)
+        return  dis_gene_dto.geneTranscriptDtoList
             .map(dto => ({
                 hgncId: dto.hgncId,
                 geneSymbol: dto.geneSymbol,
                 transcript: dto.transcript
-            }))
-            .filter(dto => {
-                const key = `${dto.hgncId}|${dto.geneSymbol}|${dto.transcript}`;
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            });
-        }
+            }));
+    }
 
 
     /** Return a list of all variant strings represented in the cohort */
