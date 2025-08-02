@@ -172,13 +172,11 @@ export class ConfigService {
       individualDto: IndividualDto, 
       hpoAnnotations: HpoTermDto[],
       geneVariantList: GeneVariantBundleDto[],
-      diseaseGeneDto: DiseaseGeneDto,
       templateDto: TemplateDto): Promise<TemplateDto> {
     return invoke<TemplateDto>('add_new_row_to_cohort', 
       { individualDto, 
          hpoAnnotations,
          geneVariantList,
-         diseaseGeneDto,
          templateDto
       });
   }
@@ -214,8 +212,18 @@ export class ConfigService {
     await invoke('save_external_template_json', {  template });
   }
 
-async loadJsonExternalTemplate(): Promise<ColumnTableDto> {
-  return await invoke('load_external_template_json');
-}
+  async loadJsonExternalTemplate(): Promise<ColumnTableDto> {
+    return await invoke('load_external_template_json');
+  }
+
+  async getCurrentOrcid(): Promise<string> {
+    return await invoke<string>('get_biocurator_orcid');
+  }
+
+  async saveCurrentOrcid(orcid: string): Promise<void> {
+    return await invoke('save_biocurator_orcid',{
+      orcid
+    });
+  }
 
 }

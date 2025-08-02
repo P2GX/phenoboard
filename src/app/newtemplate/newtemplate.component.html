@@ -63,6 +63,19 @@
             </div>
         </div>
         <div class="form-group">
+            <label for="cohortAcronym" class="form-label">Cohort acronym</label>
+            <input 
+                id="cohortAcronym" 
+                type="text" 
+                formControlName="cohortAcronym"
+                class="form-input"
+                >
+            <div *ngIf="mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid" class="error-message">
+                    <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('required')" class="error-message">Cohort acronym is required.</span>
+                    <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('pattern')" class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+            </div>
+        </div>
+        <div class="form-group">
             <label for="hgnc" class="form-label">HGNC identifier</label>
             <input id="hgnc" type="text" formControlName="hgnc" class="form-input">
             <div *ngIf="mendelianDataForm.get('hgnc')?.touched && mendelianDataForm.get('hgnc')?.invalid" class="error-message">

@@ -142,11 +142,6 @@ export class AddcaseComponent {
         return;
       }
       const template_dto = this.templateService.getTemplate();
-      const diseaseGeneDto = this.templateService.getDiseaseGeneDto();
-      if (diseaseGeneDto == null) {
-        alert("Could not retrieve disease+gene information");
-        return;
-      }
       if (template_dto != null) {
          console.log("previous was not null", template_dto);
         try {
@@ -154,7 +149,6 @@ export class AddcaseComponent {
               individual_dto, 
               hpoAnnotations, 
               [geneVariantBundle],
-              diseaseGeneDto,
               template_dto);
           console.log("Updated dto, " , updated_dto);
           this.templateService.setTemplate(updated_dto);

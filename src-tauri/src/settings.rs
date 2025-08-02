@@ -61,6 +61,19 @@ impl HpoCuratorSettings {
         }
     }
 
+     pub fn get_biocurator_orcid(&self) -> Result<String, String> {
+       match &self.orcid_id {
+            Some(orcid) => Ok(orcid.clone()),
+            None => Err("ORCID not initialized".to_string()),
+        }
+    }
+
+    pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<(), String> {
+        self.orcid_id = Some(orcid);
+        self.save_settings()
+    }
+
+
 
     /// Returns the path of the HPO Curator directory/settings file
     fn settings_file_path() -> Result<PathBuf, String> {

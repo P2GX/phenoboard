@@ -4,7 +4,11 @@ import { DiseaseGeneDto, TemplateDto, GeneTranscriptDto } from '../models/templa
 import { ConfigService } from './config.service';
 import { VariantDto } from '../models/variant_dto';
 
-
+/**
+ * This service is the one source of truth for the Cohort data (Template). The data is sent to the back end to add
+ * new rows, to serialize, etc., but the updated tempalte is sent back and capture here. 
+ * We consider this service to have the one source of truth
+ */
 @Injectable({ providedIn: 'root' })
 export class TemplateDtoService {
     constructor(private configService: ConfigService){
@@ -13,9 +17,7 @@ export class TemplateDtoService {
     private templateSubject = new BehaviorSubject<TemplateDto | null>(null);
     template$ = this.templateSubject.asObservable();
 
-    private diseaseGeneDtoSubject = new BehaviorSubject<DiseaseGeneDto | null>(null);
-    diseaseGeneDto$ = this.diseaseGeneDtoSubject.asObservable();
-
+    
     setTemplate(template: TemplateDto) {
         this.templateSubject.next(template);
     }
@@ -29,20 +31,22 @@ export class TemplateDtoService {
         this.templateSubject.next(null);
     }
 
-    setDiseaseGeneDto(dto: DiseaseGeneDto) {
-        this.diseaseGeneDtoSubject.next(dto);
-    }
-
     getDiseaseGeneDto(): DiseaseGeneDto | null {
-        const dto = this.diseaseGeneDtoSubject.getValue();
-        return dto;
+        const templateDto = this.templateSubject.getValue();
+        const dto = templateDto?.diseaseGeneDto;
+        return dto || null;
     }
 
-    clearDiseaseGeneDto() {
-        this.diseaseGeneDtoSubject.next(null);
+    getCohortAcronym(): string | null {
+        const templateDto = this.templateSubject.getValue();
+        if (templateDto == null) {
+            console.error("Attempt tpo get acronym but cohort template was null");
+            return null;
+        }
+        const dto = templateDto.diseaseGeneDto;
+        return dto.cohortAcronym;
     }
 
-  
 
     async saveTemplate(): Promise<void> {
         const template = this.getTemplate();

@@ -56,6 +56,7 @@ export interface HeaderDto {
 
 export interface TemplateDto {
     cohortType: string,
+    diseaseGeneDto: DiseaseGeneDto,
     hpoHeaders: HeaderDupletDto[],
     rows: RowDto[]
 }
@@ -78,13 +79,19 @@ export type CohortType = 'mendelian' | 'melded' | 'digenic';
 /// Digenic: disease_dto of length 1, gene_variant_dto of length 2
 export interface DiseaseGeneDto {
     templateType: CohortType,
+    /// Abbreviation of disease that is used in file name
+    cohortAcronym: string,
+    /// Disease (or diseases, for Melded) diagnosed in individuals of the cohort
     diseaseDtoList: DiseaseDto[],
+    /// Gene (or genes, for digenic/Melded) diagnosed in individuals of the cohort
     geneTranscriptDtoList: GeneTranscriptDto[],
+
 }
 
 export function newMendelianTemplate(
     diseaseId: string, 
     diseaseLabel: string, 
+    cohortAcronym: string,
     hgnc: string, 
     symbol: string, 
     transcript: string): DiseaseGeneDto {
@@ -105,6 +112,7 @@ export function newMendelianTemplate(
     
     return {
         templateType: 'mendelian',
+        cohortAcronym: cohortAcronym,
         diseaseDtoList: [disease_dto],
         geneTranscriptDtoList: [gvb_dto],
     };

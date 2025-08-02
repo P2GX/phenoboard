@@ -5,10 +5,12 @@ import { CommonModule, NgIf } from '@angular/common';
 import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
-import { PageService } from '../services/page.service';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { TemplateDto } from '../models/template_dto';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { OrcidDialogComponent } from './orcid-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -24,7 +26,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     private configService: ConfigService,
     private backendStatusService: BackendStatusService,
     override templateService: TemplateDtoService,
-    private pageService: PageService,
+    private router: Router,
+    private dialog: MatDialog,
     override cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
     }
@@ -41,6 +44,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   loadError: any;
   newTemplateMessage: string = "not initialized";
   templateFileMessage: string = "not initialized";
+  biocuratorOrcid: string | null = "not initialized";
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
 
@@ -49,9 +53,9 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
 
   override async ngOnInit() {
-    console.log("HomeComponent ngInit");
     super.ngOnInit();
-
+    const currentOrcid = await this.getCurrentOrcid();
+    this.biocuratorOrcid = currentOrcid || "not initialized";
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
@@ -79,13 +83,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
 
   protected override onTemplateLoaded(template: TemplateDto): void {
-    console.log("✅ Template loaded into HomeComponent:", template);
     this.cdRef.detectChanges();
   }
 
   protected override onTemplateMissing(): void {
-    console.warn("⚠️ Template is missing in HomeComponent");
-    // Optionally fetch it again or show an error
   }
   
   async update_gui_variables() {
@@ -110,7 +111,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
   
   override ngOnDestroy() {
-    console.log("HomeComponent - ngOnDestroy");
     super.ngOnDestroy();
     if (this.unlisten) {
       this.unlisten();
@@ -135,31 +135,54 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   async chooseExistingTemplateFile() {
     this.errorMessage = null;
     try {
-      console.log("chooseExistingTemplateFile TRY TOP");
       const data = await this.configService.loadPtExcelTemplate();
       if (data == null) {
         this.errorMessage = "Could not retrieve template (null error)"
         return;
       }
-      console.log("chooseExistingTemplateFile data=", data);
-      
       this.templateService.setTemplate(data);
-      console.log("chooseExistingTemplateFile After set template=");
-      /*const newTemplate = JSON.parse(JSON.stringify(data));
-      console.log("chooseExistingTemplateFile newTemplate=", newTemplate);
-      
-      this.templateService.setTemplate(newTemplate);*/
-    } catch (error: any) {
-      this.errorMessage = String(error);
-      console.error('Template load failed:', error);
+      } catch (error: any) {
+        this.errorMessage = String(error);
+        console.error('Template load failed:', error);
+      }
     }
+
+
+  /* After loading HPO, we may create a new template (new cohort) */
+  async createNewPhetoolsTemplate() {
+     await this.router.navigate(['/newtemplate']);
   }
 
 
+  async setBiocuratorOrcid() {
+    const currentOrcid = await this.getCurrentOrcid();
+    const dialogRef = this.dialog.open(OrcidDialogComponent, {
+      width: '400px',
+      data: { 
+        currentOrcid: currentOrcid
+      }
+    });
 
-  async createNewPhetoolsTemplate() {
-     alert("Function called!");
-    console.error("TODO REFACTOR");
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('ORCID entered:', result);
+        this.saveOrcid(result);
+      }
+    });
+  }
+
+  private async getCurrentOrcid(): Promise<string | undefined> {
+    try {
+      return await this.configService.getCurrentOrcid();
+    } catch (error) {
+      console.log('No existing ORCID found:', error);
+      return undefined;
+    }
+  }
+
+  private saveOrcid(orcid: string): void {
+    console.log('Saving ORCID:', orcid);
+    this.configService.saveCurrentOrcid(orcid);
 
   }
 

@@ -159,20 +159,20 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
 
-openDiseaseEditor(disease: DiseaseDto) {
-  const dialogRef = this.dialog.open(DiseaseEditComponent, {
-    width: '500px',
-    data: { ...disease }, // pass a copy
-  });
+  openDiseaseEditor(disease: DiseaseDto) {
+    const dialogRef = this.dialog.open(DiseaseEditComponent, {
+      width: '500px',
+      data: { ...disease }, // pass a copy
+    });
 
-  dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
-    if (result) {
-      // Apply changes back to the original
-      Object.assign(disease, result);
-      // Optional: trigger change detection or save to backend
-    }
-  });
-}
+    dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
+      if (result) {
+        // Apply changes back to the original
+        Object.assign(disease, result);
+        // Optional: trigger change detection or save to backend
+      }
+    });
+  }
   
 /**
  * Opens a dialog that allows us to edit the current gene/transcript/alleles
@@ -238,15 +238,15 @@ openDiseaseEditor(disease: DiseaseDto) {
   }
 
 
-showSuccess(message: string): void {
-  this.successMessage = message;
-  setTimeout(() => this.successMessage = null, 5000); // hide after 5 sec
-}
+  showSuccess(message: string): void {
+    this.successMessage = message;
+    setTimeout(() => this.successMessage = null, 5000); // hide after 5 sec
+  }
 
-showError(message: string): void {
-  this.errorMessage = message;
-  setTimeout(() => this.errorMessage = null, 5000);
-}
+  showError(message: string): void {
+    this.errorMessage = message;
+    setTimeout(() => this.errorMessage = null, 5000);
+  }
 
   submitSelectedHpo = async () => {
     await this.addHpoTermToCohort(this.selectedHpoTerm);
@@ -337,15 +337,23 @@ showError(message: string): void {
   }
 
   saveCohort() {
-    const template_dto = this.templateService.getTemplate();
-    if (template_dto != null) {
-      this.configService.saveCohort(template_dto);
-    } else {
-      console.error("Attempt to save nill cohort.");
+    const acronym = this.templateService.getCohortAcronym();
+    if (acronym == null) {
+      alert("Cannot save cohort with null acronym");
+      return; // should never happen!
     }
+    const template_dto = this.templateService.getTemplate();
+    if (template_dto == null) {
+      alert("Cannot save null cohort (template_dto is null");
+      return; // should never happen!
+    }
+    
+    this.configService.saveCohort(template_dto);
+    
   }
 
   async exportPpkt() {
+    
     const template_dto = this.templateService.getTemplate();
       if (template_dto != null) {
         try {

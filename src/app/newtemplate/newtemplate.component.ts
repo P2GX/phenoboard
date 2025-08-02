@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { noLeadingTrailingSpacesValidator } from '../validators/validators';
+import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
 import { TemplateDtoService } from '../services/template_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { DiseaseGeneDto, newMendelianTemplate, TemplateDto } from '../models/template_dto';
@@ -12,7 +12,10 @@ import { PageService } from '../services/page.service';
 
 
 
-
+/**
+ * Component for creating a Template for a new disease. This is the first thing we need to use
+ * when we are creating a Template for a new OMIM entry etc.
+ */
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
@@ -26,15 +29,15 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     private fb: FormBuilder, 
     private configService: ConfigService,
     ngZone: NgZone, 
-    private pageService: PageService,
     templateService: TemplateDtoService,
     cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
       this.mendelianDataForm = this.fb.group({
         diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
         diseaseName: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+        cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
         hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
-        symbol: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+        symbol: ['', [Validators.required, noWhitespaceValidator]],
         transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
         multiText: ['', [Validators.required]], // 
       });
@@ -80,23 +83,24 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     }
       const diseaseId = this.mendelianDataForm.get('diseaseId')?.value;
       const diseaseName = this.mendelianDataForm.get('diseaseName')?.value;
+      const cohortAcronym = this.mendelianDataForm.get('cohortAcronym')?.value;
       const hgnc = this.mendelianDataForm.get('hgnc')?.value;
       const symbol = this.mendelianDataForm.get('symbol')?.value;
       const transcript = this.mendelianDataForm.get('transcript')?.value;
       const multiText = this.mendelianDataForm.get('multiText')?.value;
 
-      const newTemplateDto: DiseaseGeneDto = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
+      const diseaseGeneDto: DiseaseGeneDto = newMendelianTemplate(diseaseId, diseaseName, cohortAcronym, hgnc, symbol, transcript);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);
+      console.log("cohortAcronym:", cohortAcronym);
       console.log("HGNC:", hgnc);
       console.log("Symbol:", symbol);
       console.log("Transcript:", transcript);
       console.log("Multi Text:", multiText);
-      this.templateService.setDiseaseGeneDto(newTemplateDto);
 
       try {
-        const template = await this.configService.createNewTemplateFromSeeds(newTemplateDto, multiText);
+        const template = await this.configService.createNewTemplateFromSeeds(diseaseGeneDto, multiText);
         this.templateService.setTemplate(template);
         this.showSuccessMessage = true;
       } catch (error) {

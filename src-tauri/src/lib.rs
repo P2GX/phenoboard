@@ -13,7 +13,7 @@ use std::{fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, util::io_util::{self, select_or_create_folder}};
+use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -49,7 +49,9 @@ pub fn run() {
             export_ppkt,
             load_external_excel,
             load_external_template_json,
-            save_external_template_json
+            save_external_template_json,
+            get_biocurator_orcid,
+            save_biocurator_orcid,
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -368,7 +370,6 @@ fn add_new_row_to_cohort(
     individual_dto: IndividualBundleDto, 
     hpo_annotations: Vec<HpoTermDto>,
     gene_variant_list: Vec<GeneVariantBundleDto>,
-    disease_gene_dto: DiseaseGeneDto,
     template_dto: TemplateDto) 
 -> Result<TemplateDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -377,7 +378,6 @@ fn add_new_row_to_cohort(
         individual_dto, 
         hpo_annotations, 
         gene_variant_list,
-        disease_gene_dto,
         template_dto)?;
     println!("rust, add_new_row: {:?}", updated_template);
     Ok(updated_template)
@@ -506,3 +506,24 @@ async fn load_external_template_json(
     .map_err(|e| format!("Task join error: {}", e))?
 }
 
+
+#[tauri::command]
+async fn get_biocurator_orcid(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+) -> Result<String, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = phenoboard_arc.lock().unwrap();
+    singleton.get_biocurator_orcid()
+}
+
+#[tauri::command]
+async fn save_biocurator_orcid(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    orcid: String
+) -> Result<(), String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = phenoboard_arc.lock().unwrap();
+    singleton.save_biocurator_orcid(orcid)
+}
+
+ 

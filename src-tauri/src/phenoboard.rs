@@ -358,16 +358,30 @@ impl PhenoboardSingleton {
         }
     }
 
+    fn extract_template_name(&self, template: &TemplateDto) -> String {
+        let acronym = &template.disease_gene_dto.cohort_acronym;
+        if ! template.is_mendelian() {
+            return "template.json".to_string(); // requires different logic, TODO
+        }
+        let dg_dto = &template.disease_gene_dto;
+        if (dg_dto.gene_transcript_dto_list.len() != 1) {
+             return "template.json".to_string(); // Should never happen
+        }
+        let symbol = &dg_dto.gene_transcript_dto_list[0].gene_symbol;
+        return format!("{}_{}_individuals.json", symbol, acronym);
+    }
+
     fn save_template_json(&self, template: &TemplateDto) -> Result<(), String> {
         let dir_opt = self.get_default_template_dir();
         if dir_opt.is_none() {
             return Err("Could not get default path".to_string());
         }
         let default_dir = dir_opt.unwrap();
+        let template_name = self.extract_template_name(template);
         let save_path: Option<PathBuf> = FileDialog::new()
             .set_directory(default_dir)
             .set_title("Save PheTools JSON template")
-            .set_file_name("template.json")
+            .set_file_name(template_name)
             .save_file();
 
         if let Some(path) = save_path {
@@ -378,9 +392,8 @@ impl PhenoboardSingleton {
 
             println!("Saved JSON to {:?}", path);
         } else {
-            println!("Save cancelled by user");
-        }
-
+            return Err("Save cancelled by user".to_string());
+        };
         Ok(())
     }
 
@@ -423,9 +436,17 @@ impl PhenoboardSingleton {
             Some(dir) => dir,
             None =>  { return Err("Could not get phenopackets output directory".to_string());},
         };
+        let mut orcid = match self.settings.get_biocurator_orcid() {
+            Ok(orcid_id) => orcid_id,
+            Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
+        };
+        // note that we store the orcid number without the http prefix. add that here
+        if ! orcid.starts_with("http") {
+            orcid = format!("https://orcid.org/{}", orcid);
+        };
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.write_ppkt_list(cohort_dto, out_dir)
+                ptools.write_ppkt_list(cohort_dto, out_dir, orcid)
             },
             None => {
                 Err("Phetools template not initialized".to_string())
@@ -455,7 +476,6 @@ impl PhenoboardSingleton {
         individual_dto: IndividualBundleDto, 
         hpo_annotations: Vec<HpoTermDto>,
         gene_variant_list: Vec<GeneVariantBundleDto>,
-        disease_gene_dto: DiseaseGeneDto,
         template_dto: TemplateDto) 
     -> std::result::Result<TemplateDto, Vec<String>> {
         match self.phetools.as_mut() {
@@ -464,7 +484,6 @@ impl PhenoboardSingleton {
                     individual_dto, 
                     hpo_annotations, 
                     gene_variant_list, 
-                    disease_gene_dto,
                     template_dto)?;
                 Ok(updated_dto)
             },
@@ -492,6 +511,7 @@ impl PhenoboardSingleton {
                 let mut phetools = PheTools::new(hpo_arc);
                 let dgdto = phetools.create_pyphetools_template_from_seeds(
                     template_type,
+                    dto,
                     directory,
                     fresult,
                 )?;
@@ -610,6 +630,17 @@ impl PhenoboardSingleton {
             None => Err(format!("phetools not initialized")),
         }
     }
+
+
+    pub fn get_biocurator_orcid(&self) -> Result<String, String> {
+       self.settings.get_biocurator_orcid()
+    }
+
+    pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<(), String> {
+        self.settings.save_biocurator_orcid(orcid)
+    }
+
+
 }
 
 

@@ -68,6 +68,23 @@
 </div>
 
 
+<div class="flex items-center gap-3">
+  <div class="relative group">
+    <button
+        (click)="setBiocuratorOrcid()"
+        [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
+        class="btn-outline-primary w-[300px]"
+    >Set biocurator ORCID
+    </button>
+    <!-- Tooltip -->
+    <div
+      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
+    >
+      Set the researcher identifier (ORCID) (enabled after HPO is loaded)
+    </div>
+    </div>
+    <span class="text-sm text-gray-500 italic">{{ biocuratorOrcid }}</span>
+</div>
 
 
 </div>
