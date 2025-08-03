@@ -302,13 +302,13 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   annotateSelectedText() {
     throw new Error('Method not implemented.');
   }
+
+  /* This is called by the button to submit the annotations obtained by fenominal text mining
+    of an input text. */
   submitAnnotations() {
     this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
     this.showAnnotationTable = true;
-    /*console.log('Annotations:');
-    this.annotations.forEach((annotation, index) => {
-      console.log(`Annotation ${index + 1}:`, annotation);
-    });*/
+    this.showTextArea = false;
   }
 
   /* About half of the TextAnnotationDto objects represent the text between the fenominal hits
