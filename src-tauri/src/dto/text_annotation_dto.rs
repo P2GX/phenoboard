@@ -55,6 +55,7 @@ impl TextAnnotationDto {
         dto.term_id = term_id.to_string();
         dto.label = term_label.to_string();
         dto.is_fenominal_hit = true;
+        dto.is_observed = true;
         dto
     }
     

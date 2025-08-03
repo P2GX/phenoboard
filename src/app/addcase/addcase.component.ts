@@ -20,7 +20,9 @@ import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 
-
+/**
+ * Component to add a single case using text mining and HPO autocompletion.
+ */
 @Component({
   selector: 'app-addcase',
   standalone: true,
@@ -109,7 +111,6 @@ export class AddcaseComponent {
       }
       
     });
-  
   }
 
   
@@ -124,6 +125,10 @@ export class AddcaseComponent {
   async submitNewRow(): Promise<void> {
     console.log("submitNewRow - top");
       let pmid_dto = this.pubmedComponent.getPmidDto();
+      if (pmid_dto == null) {
+        alert("Cannot submit row unless PMID information is initialized");
+        return;
+      }
       if (this.demographData == null) {
         alert("Cannot submit row unless demographic information is initialized");
         return;
@@ -149,7 +154,7 @@ export class AddcaseComponent {
       }
       const template_dto = this.templateService.getTemplate();
       if (template_dto != null) {
-         console.log("previous was not null", template_dto);
+         console.log("previous template was not null", template_dto);
         try {
           const updated_dto: TemplateDto = await this.configService.addNewRowToCohort(
               individual_dto, 
@@ -164,7 +169,7 @@ export class AddcaseComponent {
           console.error(this.errorString);
         }
       } else {
-        console.error("Attempt to add new row with null template_dto");
+        alert("Attempt to add new row with null template_dto")
       }
       this.resetAllInputVars();
   }
