@@ -47,7 +47,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       super(templateService, ngZone, cdRef)
     }
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
-  @ViewChild('addagesComponent') addagesComponent!: AddagesComponent;
+  @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
 
   tableData: TemplateDto | null = null;
   selectedCell: any = null;
@@ -367,7 +367,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
           }
         }
       } else {
-        console.error("Attempt to export phenopackets from nill cohort.");
+        console.error("Attempt to export phenopackets from null cohort.");
       }
   }
 }

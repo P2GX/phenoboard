@@ -7,7 +7,7 @@ mod util;
 
 use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
 use std::{fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
@@ -64,6 +64,15 @@ pub fn run() {
                 }
             });
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // Prevent the default close behavior
+                api.prevent_close();
+                // TODO -- CHECK IF THERE IS UNSAVE WORK ETC.
+                // Then close the window manually
+                window.close().unwrap_or_default();
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

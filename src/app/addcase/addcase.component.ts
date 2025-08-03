@@ -18,6 +18,7 @@ import { TemplateDtoService } from '../services/template_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
 import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
+import { DemographDto } from '../models/demograph_dto';
 
 
 @Component({
@@ -58,6 +59,7 @@ export class AddcaseComponent {
   allele2: VariantDto | null = null;
 
   tableData: TemplateDto | null = null;
+  demographData: DemographDto | null = null;
  
 
   selectionRange: Range | null = null;
@@ -122,17 +124,21 @@ export class AddcaseComponent {
   async submitNewRow(): Promise<void> {
     console.log("submitNewRow - top");
       let pmid_dto = this.pubmedComponent.getPmidDto();
-      let demogr_dto = this.demographics_component.getDemograph();
+      if (this.demographData == null) {
+        alert("Cannot submit row unless demographic information is initialized");
+        return;
+      }
+
       // combine the above
       const individual_dto: IndividualDto = {
         pmid: pmid_dto.pmid,
         title: pmid_dto.title,
-        individualId: demogr_dto.individualId,
-        comment: demogr_dto.comment,
-        ageOfOnset: demogr_dto.ageOfOnset,
-        ageAtLastEncounter: demogr_dto.ageAtLastEncounter,
-        deceased: demogr_dto.deceased,
-        sex: demogr_dto.sex
+        individualId: this.demographData.individualId,
+        comment: this.demographData.comment,
+        ageOfOnset: this.demographData.ageOfOnset,
+        ageAtLastEncounter: this.demographData.ageAtLastEncounter,
+        deceased: this.demographData.deceased,
+        sex: this.demographData.sex
       };
       const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
       const geneVariantBundle = this.createGeneVariantBundleDto();
@@ -263,12 +269,13 @@ handleMouseLeave() {
 }
 
 /** This is run when the user enters demographic information via the child component */
-  handleDemographicData(hide_demographic: boolean) {
-    if (hide_demographic) {
+  handleDemographicData(event: {dto: DemographDto, hideDemo: boolean}) {
+    if (event.hideDemo) {
       this.showAgeEntryArea = false;
     } else {
       this.showAgeEntryArea = true;
     }
+    this.demographData = event.dto;
   }
 
 

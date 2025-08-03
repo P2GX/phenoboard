@@ -16,6 +16,9 @@ import { defaultDemographDto, DemographDto} from '../models/demograph_dto'
 export class AdddemoComponent {
  constructor(public ageService: AgeInputService) {}
 
+  @Output() demoSubmitted = new EventEmitter<{dto: DemographDto, hideDemo: boolean}>();
+  
+
   demograph: DemographDto = defaultDemographDto();
 
   showCommentBox: boolean = false;
@@ -45,7 +48,6 @@ export class AdddemoComponent {
 
 
   getDemograph(): DemographDto {
-    
     return this.demograph;
   }
   
@@ -77,14 +79,17 @@ export class AdddemoComponent {
     this.showCommentModal = false;
   }
 
-  submitDemo(hideDemograpic: boolean) {
-    if (hideDemograpic) {
+  /** Emit the demographic to the parent component. */
+  submitDemo(hideDemographic: boolean) {
+    if (hideDemographic) {
       this.allDataEntered = true;
-      this.dataEnteredChange.emit(hideDemograpic);
     } else {
       this.allDataEntered = false;
-      this.dataEnteredChange.emit(hideDemograpic);
     }
+    this.demoSubmitted.emit({
+      dto: this.demograph,
+      hideDemo: hideDemographic
+    });
   }
 
   isReady(): boolean {
@@ -98,6 +103,32 @@ export class AdddemoComponent {
     this.demograph = defaultDemographDto();
     this.ageService.clearSelectedTerms();
     this.allDataEntered = false;
+  }
+
+  get demographicSummary(): string {
+    const id = this.demograph.individualId;
+    const onst = this.demograph.ageOfOnset;
+    const encounter = this.demograph.ageAtLastEncounter;
+    const s = this.demograph.sex;
+    const deceased = this.demograph.deceased;
+    if (id == "") {
+      return "not initialized";
+    }
+    const smry = `Individual: ${id} (age: ${encounter}, onset: ${onst}; sex: ${s}; deceased?: ${deceased})`
+    return smry
+  }
+
+  get demographicComment(): string {
+     const comment = this.demograph.comment;
+     if (comment == '') {
+      return '';
+     } else {
+      return `comment: "${comment}"`
+     }
+  }
+
+  isInitialized(): boolean {
+    return this.demograph.individualId != '';
   }
 
 }

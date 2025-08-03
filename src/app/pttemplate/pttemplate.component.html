@@ -36,7 +36,7 @@
       <th class="narrow-column bottom-align">Disease</th>
       <th class="narrow-column bottom-align">Gene</th>
       <!-- The following creates the series of headers for the HPO columns.
-            We use the function shouldDisplayHpoColumn to allow the user to focus on a 1-10 columns at a time-->
+          The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       <ng-container *ngFor="let header of tableData.hpoHeaders; let i = index">
       <th
         class="rotate-header hpo-col"
@@ -75,6 +75,9 @@
           class="cursor-pointer"
         >
           {{ row.individualDto.individualId }}
+           <span *ngIf="!row.individualDto.individualId" class="text-red-500 text-xs">
+        [ID is null/empty] row={{row}}
+      </span>
         <div
           *ngIf="hoveredIndividual === row.individualDto"
           class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
