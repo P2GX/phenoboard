@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, variant_dto::VariantDto};
+use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{CohortDto, DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto}, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -27,7 +27,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
-            get_phetools_template,
             hpo_can_be_updated,
             load_phetools_excel_template,
             load_hpo,
@@ -120,7 +119,7 @@ async fn load_phetools_excel_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     fix_errors: bool
-) -> Result<TemplateDto, Vec<String>> {
+) -> Result<CohortDto, Vec<String>> {
     //let phenoboard_arc: Arc::clone(&*singleton);
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let app_handle = app.clone();
@@ -166,18 +165,6 @@ fn map_text_to_annotations(
     return singleton.map_text_to_annotations(input_text);
 }
 
-
-
-
-
-#[tauri::command]
-fn get_phetools_template(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-) -> Result<TemplateDto, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    return singleton.get_phetools_template();
-}
 
 
 /// Check whether the HPO version we are using is the latest version
@@ -244,7 +231,7 @@ fn create_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseGeneDto,
     input: String
-) -> Result<TemplateDto, String> {
+) -> Result<CohortDto, String> {
      println!("{}:{} - input {}", file!(), line!(), input);
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
@@ -331,7 +318,7 @@ fn submit_variant_dto(
 #[tauri::command]
 fn validate_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
+    cohort_dto: CohortDto) -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     singleton.validate_template(cohort_dto)
@@ -340,16 +327,16 @@ fn validate_template(
 #[tauri::command]
 fn save_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: TemplateDto) -> Result<(), Vec<String>> {
+    cohort_dto: CohortDto) -> Result<(), Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.save_template(&cohort_dto)
+    singleton.save_template(cohort_dto)
 }
 
 #[tauri::command]
 fn export_ppkt(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: TemplateDto) -> Result<(), String> {
+    cohort_dto: CohortDto) -> Result<(), String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.export_ppkt(cohort_dto)
@@ -364,8 +351,8 @@ fn add_hpo_term_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     hpo_id: &str,
     hpo_label: &str,
-    cohort_dto: TemplateDto) 
--> Result<TemplateDto, Vec<String>> {
+    cohort_dto: CohortDto) 
+-> Result<CohortDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
@@ -379,8 +366,8 @@ fn add_new_row_to_cohort(
     individual_dto: IndividualBundleDto, 
     hpo_annotations: Vec<HpoTermDto>,
     gene_variant_list: Vec<GeneVariantBundleDto>,
-    template_dto: TemplateDto) 
--> Result<TemplateDto, Vec<String>> {
+    template_dto: CohortDto) 
+-> Result<CohortDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     let updated_template = singleton.add_new_row_to_cohort(

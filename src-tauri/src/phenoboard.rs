@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto, TemplateDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{CohortDto, DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto}, validation_errors::ValidationErrors, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -147,7 +147,7 @@ impl PhenoboardSingleton {
     pub fn load_excel_template(
         &mut self, 
         excel_file: &str,
-        fix_errors: bool) -> Result<TemplateDto, Vec<String>> {
+        fix_errors: bool) -> Result<CohortDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(excel_file, fix_errors) {
                 Ok(dto) => {
@@ -203,7 +203,6 @@ impl PhenoboardSingleton {
                 status.pt_template_path = String::default();
             },
         }
-        status.n_phenopackets = self.phenopacket_count();
         status.new_cohort = false; // TODO
         status.unsaved_changes = false; // TODO
         return status;
@@ -319,24 +318,15 @@ impl PhenoboardSingleton {
         }
     }
 
-    /// TODO Refactor
-    pub fn phenopacket_count(&self) -> usize {
-  
-       /*match &self.phetools {
-            Some(ptools) => ptools.nrows() -2,
-            None => 0,
-        }*/
-        0
-    }
 
 
     pub fn validate_template(
         &self, 
-        cohort_dto: TemplateDto) 
+        cohort_dto: CohortDto) 
     -> Result<(), Vec<String>> {
         match &self.phetools {
             Some(ptools) => {
-                let _template = ptools.validate_template(&cohort_dto)?;
+                let _template = ptools.validate_template(cohort_dto)?;
                 return Ok(());
             },
             None => {
@@ -345,11 +335,12 @@ impl PhenoboardSingleton {
         }
     }
 
-
+    /// Get the directory in which the legacy (Excel) template is stored,
+    /// which is {cohort_name}/input
     fn get_default_template_dir(&self) -> Option<PathBuf> {
         match &self.phetools {
             Some(phetools) => {
-                phetools.get_default_cohort_dir().map(|mut dir| {
+                phetools.get_cohort_dir().map(|mut dir| {
                     dir.push("input");
                     dir
                 })
@@ -358,26 +349,27 @@ impl PhenoboardSingleton {
         }
     }
 
-    fn extract_template_name(&self, template: &TemplateDto) -> String {
-        let acronym = &template.disease_gene_dto.cohort_acronym;
-        if ! template.is_mendelian() {
+    /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
+    fn extract_template_name(&self, cohort_dto: &CohortDto) -> String {
+        let acronym = &cohort_dto.disease_gene_dto.cohort_acronym;
+        if ! cohort_dto.is_mendelian() {
             return "template.json".to_string(); // requires different logic, TODO
         }
-        let dg_dto = &template.disease_gene_dto;
-        if (dg_dto.gene_transcript_dto_list.len() != 1) {
+        let dg_dto = &cohort_dto.disease_gene_dto;
+        if dg_dto.gene_transcript_dto_list.len() != 1 {
              return "template.json".to_string(); // Should never happen
         }
         let symbol = &dg_dto.gene_transcript_dto_list[0].gene_symbol;
         return format!("{}_{}_individuals.json", symbol, acronym);
     }
 
-    fn save_template_json(&self, template: &TemplateDto) -> Result<(), String> {
+    fn save_template_json(&self, cohort_dto: CohortDto) -> Result<(), String> {
         let dir_opt = self.get_default_template_dir();
         if dir_opt.is_none() {
             return Err("Could not get default path".to_string());
         }
         let default_dir = dir_opt.unwrap();
-        let template_name = self.extract_template_name(template);
+        let template_name = self.extract_template_name(&cohort_dto);
         let save_path: Option<PathBuf> = FileDialog::new()
             .set_directory(default_dir)
             .set_title("Save PheTools JSON template")
@@ -386,7 +378,7 @@ impl PhenoboardSingleton {
 
         if let Some(path) = save_path {
             // Serialize DTO to JSON string
-            let json = serde_json::to_string_pretty(&template).map_err(|_|"Could not serialize to JSON".to_string())?;
+            let json = serde_json::to_string_pretty(&cohort_dto).map_err(|_|"Could not serialize to JSON".to_string())?;
             let mut file = File::create(&path).map_err(|_|"Could not create file".to_string())?;
             file.write_all(json.as_bytes()).map_err(|_|"Could not write file".to_string())?;
 
@@ -399,12 +391,12 @@ impl PhenoboardSingleton {
 
     pub fn save_template(
         &mut self, 
-        cohort_dto: &TemplateDto) 
+        cohort_dto: CohortDto) 
     -> Result<(), Vec<String>> {
         let mut verrs = ValidationErrors::new();
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.save_template(cohort_dto)?;
+                //ptools.save_template(cohort_dto)?;
                 match self.save_template_json(cohort_dto){
                     Ok(_) => Ok(()),
                     Err(e) => Err(vec![e]),
@@ -418,7 +410,7 @@ impl PhenoboardSingleton {
     }
 
     fn get_phenopackets_output_dir(&self) -> Option<PathBuf> {
-        let default_dir = self.phetools.as_ref()?.get_default_cohort_dir().map(|mut dir| {
+        let default_dir = self.phetools.as_ref()?.get_cohort_dir().map(|mut dir| {
             dir.push("phenopackets");
             dir
         })?;
@@ -431,7 +423,7 @@ impl PhenoboardSingleton {
 
     pub fn export_ppkt(
         &mut self,
-        cohort_dto: TemplateDto) -> Result<(), String> {
+        cohort_dto: CohortDto) -> Result<(), String> {
         let out_dir = match self.get_phenopackets_output_dir() {
             Some(dir) => dir,
             None =>  { return Err("Could not get phenopackets output directory".to_string());},
@@ -458,8 +450,8 @@ impl PhenoboardSingleton {
         &mut self,
         hpo_id: &str,
         hpo_label: &str,
-        cohort_dto: TemplateDto) 
-    -> std::result::Result<TemplateDto, Vec<String>> {
+        cohort_dto: CohortDto) 
+    -> std::result::Result<CohortDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
@@ -476,15 +468,15 @@ impl PhenoboardSingleton {
         individual_dto: IndividualBundleDto, 
         hpo_annotations: Vec<HpoTermDto>,
         gene_variant_list: Vec<GeneVariantBundleDto>,
-        template_dto: TemplateDto) 
-    -> std::result::Result<TemplateDto, Vec<String>> {
+        cohort_dto: CohortDto) 
+    -> std::result::Result<CohortDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 let updated_dto = ptools.add_new_row_to_cohort(
                     individual_dto, 
                     hpo_annotations, 
                     gene_variant_list, 
-                    template_dto)?;
+                    cohort_dto)?;
                 Ok(updated_dto)
             },
             None => {
@@ -500,7 +492,7 @@ impl PhenoboardSingleton {
         &mut self,
         dto: DiseaseGeneDto,
         input: String
-    ) -> Result<TemplateDto, String> {
+    ) -> Result<CohortDto, String> {
         println!("{}:{} - input {}", file!(), line!(), &input);
         let fresult = self.map_text_to_term_list(&input);
         let template_type = dto.template_type;
@@ -590,30 +582,24 @@ impl PhenoboardSingleton {
     }
 
 
-    /// Todo better documentation
-    pub fn get_phetools_template(&self) -> Result<TemplateDto, String> {
-        match &self.phetools {
-            Some(phetools) => phetools.get_template_dto(),
-            None => Err(format!("{}:{}-phetools not initialized", file!(), line!())),
-        }
-    }
-
-
     pub fn validate_variant_list_dto(
         &mut self,
         variant_dto_list: Vec<VariantDto>) 
     -> Result<Vec<VariantDto>, String> {
-        match self.phetools.as_mut() {
+       /* match self.phetools.as_mut() {
             Some(phetools) => phetools.validate_variant_dto_list( variant_dto_list),
             None => Err(format!("phetools not initialized")),
         }
+         */
+        Err("Needs refactor, we should submit the CohortDto".to_string())
     }
 
     pub fn submit_variant_dto(&mut self, dto: VariantDto) -> Result<VariantDto, String> {
-        match self.phetools.as_mut() {
+       /* match self.phetools.as_mut() {
             Some(phetools) => phetools.validate_variant(dto),
             None => Err(format!("phetools not initialized")),
-        }
+        } */
+          Err("Needs refactor, we should submit the CohortDto".to_string())
     }
 
     pub fn load_external_excel(&mut self, external_excel_file: &str, row_based: bool) 
