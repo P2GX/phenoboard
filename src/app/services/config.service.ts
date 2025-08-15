@@ -3,9 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, TemplateDto, DiseaseGeneDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto } from '../models/cohort_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
-import { VariantDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantValidationDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
 
 
@@ -33,8 +33,8 @@ export class ConfigService {
     return await invoke<string | string>("get_hp_json_path");
   }
 
-  async getPhetoolsTemplate(): Promise<TemplateDto> {
-    return await invoke<TemplateDto>("get_phetools_template");
+  async getPhetoolsTemplate(): Promise<CohortDto> {
+    return await invoke<CohortDto>("get_phetools_template");
   }
 
   /**
@@ -43,9 +43,9 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<TemplateDto> {
+  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<CohortDto> {
     console.log("getNewTemplateFromSeeds in service", dto, input);
-    return await invoke<TemplateDto>("create_template_dto_from_seeds", {
+    return await invoke<CohortDto>("create_template_dto_from_seeds", {
       'dto': dto,
       'input': input,
     });
@@ -53,13 +53,13 @@ export class ConfigService {
   
 
   /** Load the version-one format Excel template (all of which are Mendelian) */
-  async loadPtExcelTemplate(): Promise<TemplateDto> {
-    return await invoke<TemplateDto>("load_phetools_excel_template", { "fixErrors": false});
+  async loadPtExcelTemplate(): Promise<CohortDto> {
+    return await invoke<CohortDto>("load_phetools_excel_template", { "fixErrors": false});
   }
 
   /** Load an excel template file and try to fix some common errors (outdated HPO labels, whitespace) */
-  async loadAndFixPtTemplate(): Promise<TemplateDto> {
-    return await invoke<TemplateDto>("load_phetools_template", { "fixErrors": true});
+  async loadAndFixPtTemplate(): Promise<CohortDto> {
+    return await invoke<CohortDto>("load_phetools_template", { "fixErrors": true});
   }
 
   async fetchStatus(): Promise<void> {
@@ -140,19 +140,24 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
-  async submitVariantDto(dto: VariantDto): Promise<VariantDto> {
-    return invoke<VariantDto>('submit_variant_dto', {variantDto: dto});
-  }
-  
-  async validateCohort(cohort_dto: TemplateDto): Promise<void> {
-    return invoke<void>('validate_template', {cohortDto: cohort_dto});
+  async validateHgvs(dto: VariantValidationDto): Promise<HgvsVariant> {
+    return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto})
   }
 
-   async saveCohort(cohort_dto: TemplateDto): Promise<void> {
+  async validateSv(dto: VariantValidationDto): Promise<StructuralVariant> {
+    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto})
+  }
+  
+
+   async saveCohort(cohort_dto: CohortDto): Promise<void> {
     return invoke<void>('save_template', {cohortDto: cohort_dto});
   }
 
-  async exportPpkt(cohort_dto: TemplateDto): Promise<void> {
+  async validateCohort(cohort_dto: CohortDto): Promise<void> {
+    return invoke<void>('validate_template', {cohortDto: cohort_dto});
+  }
+
+  async exportPpkt(cohort_dto: CohortDto): Promise<void> {
     return invoke<void>('export_ppkt', {cohortDto: cohort_dto});
   }
 
@@ -162,8 +167,8 @@ export class ConfigService {
    * @param id - The HPO term ID (e.g., "HP:0004322")
    * @param label - The human-readable label (e.g., "Seizures")
    */
-  async addHpoToCohort(id: string, label: string, cohortDto: TemplateDto): Promise<TemplateDto> {
-    return invoke<TemplateDto>('add_hpo_term_to_cohort', 
+  async addHpoToCohort(id: string, label: string, cohortDto: CohortDto): Promise<CohortDto> {
+    return invoke<CohortDto>('add_hpo_term_to_cohort', 
         {hpoId: id, hpoLabel: label, cohortDto: cohortDto});
   }
 
@@ -172,8 +177,8 @@ export class ConfigService {
       individualDto: IndividualDto, 
       hpoAnnotations: HpoTermDto[],
       geneVariantList: GeneVariantBundleDto[],
-      templateDto: TemplateDto): Promise<TemplateDto> {
-    return invoke<TemplateDto>('add_new_row_to_cohort', 
+      templateDto: CohortDto): Promise<CohortDto> {
+    return invoke<CohortDto>('add_new_row_to_cohort', 
       { individualDto, 
          hpoAnnotations,
          geneVariantList,
@@ -186,8 +191,8 @@ export class ConfigService {
    * @param variantList: Variants derived from the template in the frontend
    * @returns List of the same variants, with the validated flag set to true if validations was 
    */
-  async validateVariantDtoList(variantList: VariantDto[]): Promise<VariantDto[]> {
-    return invoke<VariantDto[]>('validate_variant_list_dto', {
+  async validateVariantDtoList(variantList: VariantValidationDto[]): Promise<VariantValidationDto[]> {
+    return invoke<VariantValidationDto[]>('validate_variant_list_dto', {
         variantDtoList: variantList
     });
   }

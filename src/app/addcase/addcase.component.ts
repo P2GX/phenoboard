@@ -9,14 +9,14 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, TemplateDto } from '../models/template_dto';
+import { GeneVariantBundleDto, IndividualDto, CohortDto } from '../models/cohort_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { MatIconModule } from '@angular/material/icon';
-import { TemplateDtoService } from '../services/template_dto_service';
+import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
-import { VariantDto } from '../models/variant_dto';
+import { VariantDisplayDto, VariantValidationDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 
@@ -36,7 +36,7 @@ export class AddcaseComponent {
     private ngZone: NgZone,
     private configService: ConfigService,
     public ageService: AgeInputService,
-    private templateService: TemplateDtoService,
+    private cohortService: CohortDtoService,
     private dialog: MatDialog
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
@@ -44,9 +44,10 @@ export class AddcaseComponent {
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
+  /* subscribe to state in the service layer */
+  cohortDto$ = this.cohortService.cohortDto$;
 
-
-
+ 
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
@@ -57,10 +58,10 @@ export class AddcaseComponent {
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
 
-  allele1: VariantDto | null = null;
-  allele2: VariantDto | null = null;
+  allele1: VariantDisplayDto | null = null;
+  allele2: VariantDisplayDto | null = null;
 
-  tableData: TemplateDto | null = null;
+  tableData: CohortDto | null = null;
   demographData: DemographDto | null = null;
  
 
@@ -103,7 +104,7 @@ export class AddcaseComponent {
       })
     );
     // 
-    this.templateService.template$.subscribe(template => {
+    this.cohortService.cohortDto$.subscribe(template => {
       if (template) {
         this.tableData = template;
       } else {
@@ -152,17 +153,18 @@ export class AddcaseComponent {
         alert(this.errorString);
         return;
       }
-      const template_dto = this.templateService.getTemplate();
-      if (template_dto != null) {
-         console.log("previous template was not null", template_dto);
+      const cohort_dto = this.cohortService.getCohortDto();
+      console.log("submitNewRow - previous", cohort_dto);
+      if (cohort_dto != null) {
         try {
-          const updated_dto: TemplateDto = await this.configService.addNewRowToCohort(
+          console.log("addNewRowToCohort", cohort_dto);
+          const updated_dto: CohortDto = await this.configService.addNewRowToCohort(
               individual_dto, 
               hpoAnnotations, 
               [geneVariantBundle],
-              template_dto);
+              cohort_dto);
           console.log("Updated dto, " , updated_dto);
-          this.templateService.setTemplate(updated_dto);
+          this.cohortService.setCohortDto(updated_dto);
         } catch (error) {
           this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
           alert(this.errorString);
@@ -313,6 +315,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   submitAnnotations() {
     this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
     this.showAnnotationTable = true;
+    this.showCollapsed = false;
     this.showTextArea = false;
   }
 
@@ -369,7 +372,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       await this.configService.submitAutocompleteHpoTerm(id, label);
       this.clearError();
       this.ngZone.run(() => {
-        this.resetWindow();
         this.demographics_component.reset();
       });
     }
@@ -377,7 +379,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
   convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
     let status = 'na';
-    
     if (textAnn.isObserved) {
       status = 'observed';
       if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
@@ -394,21 +395,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     };
   }
 
-  handleVariantAllele1(variant: VariantDto) {
-    this.allele1 = variant;
-  }
 
-  handleVariantAllele2(variant: VariantDto) {
-    this.allele2 = variant;
-  }
-
+  /** Allow the user to enter data about Allele1 */
   openAddAllele1Dialog() {
-    console.log("openAddAllele1Dialog-top")
     const dialogRef = this.dialog.open(AddVariantComponent, {
       width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+    dialogRef.afterClosed().subscribe((result: VariantDisplayDto | undefined) => {
       if (result) {
         this.allele1 = result;
         console.log('allele1 added:', result);
@@ -423,7 +417,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+    dialogRef.afterClosed().subscribe((result: VariantDisplayDto | undefined) => {
       if (result) {
         this.allele2 = result;
         console.log('Variant added:', result);
@@ -440,14 +434,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       return null; // need at least allele1 to move forward
     }
     let allele2_string = "na";
-    if (this.allele2 != null && this.allele2.validated) {
-      allele2_string = this.allele2.variant_string
+    if (this.allele2 != null ) {
+      allele2_string = this.allele2.variantString
     }
     return  {
-      hgncId: this.allele1.hgnc_id,
-      geneSymbol: this.allele1.gene_symbol,
+      hgncId: this.allele1.hgncId,
+      geneSymbol: this.allele1.geneSymbol,
       transcript: this.allele1.transcript || "na",
-      allele1: this.allele1.variant_string,
+      allele1: this.allele1.variantString,
       allele2: allele2_string,
       variantComment: '',
     }

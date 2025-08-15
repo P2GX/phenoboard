@@ -1,34 +1,48 @@
-<p *ngIf="tableData">
-    ✅ Template loaded in component with {{ tableData.rows.length }} rows
-  </p>
-
-
-<p *ngIf="!tableData">
-    ✅ Template NOT LOADED
-  </p>
-
+@let cohort = (cohortDto$ | async);
+@if (cohort) {
+  <p><span>✅</span> Template loaded in component with {{ cohort.rows.length }} rows.</p>
+  <pre>{{ cohort | json }}</pre>
+  <p>END</p>
+} @else {
+  <p><span>❌</span> Template NOT LOADED.</p>
+}
 <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
-  <!-- Title and description of cohort-->
-  <div *ngIf="cohortDescription" class="mb-4 text-sm text-gray-700">
-    <h2 class="text-xl font-semibold text-gray-800">
-        {{cohortDescription.geneSymbol}}: {{ cohortDescription.diseaseLabel }}</h2>
-    This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort with 
-    <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
-    <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms. Most individuals are diagnosed with 
-    <a *ngIf="cohortDescription.diseaseDatabase === 'OMIM'" 
-      [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
-      target="_blank" class="text-blue-600 underline">
-    {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-    </a>
-    <span *ngIf="cohortDescription.diseaseDatabase !== 'OMIM'">
-      {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-    </span>, associated with 
-    <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" target="_blank" class="text-blue-600 underline">
-      {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
-    </a>, transcript <code>{{ cohortDescription.transcript }}</code>.
-  </div>
+  <!-- Title and description of cohort -->
+  @if (cohortDescription) {
+    <div class="mb-4 text-sm text-gray-700">
+      <h2 class="text-xl font-semibold text-gray-800">
+        {{ cohortDescription.geneSymbol }}: {{ cohortDescription.diseaseLabel }}
+      </h2>
+
+      <p>
+        This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort with 
+        <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
+        <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms.
+        Most individuals are diagnosed with 
+      </p>
+
+      @if (cohortDescription.diseaseDatabase == "OMIM") {
+        <a [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
+           target="_blank" class="text-blue-600 underline">
+          {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
+        </a>
+      } @else {
+        <span>{{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})</span>
+      }
+
+      <p>
+        , associated with 
+        <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" 
+           target="_blank" class="text-blue-600 underline">
+          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
+        </a>,
+        transcript <code>{{ cohortDescription.transcript }}</code>.
+      </p>
+    </div>
+  }
+</div>
   <!-- Table with one row per phenopacket -->
-  <div *ngIf="tableData != null">
+  @if (cohort){
   <table class="pt-table">
     <thead>
     <tr>
@@ -37,41 +51,41 @@
       <th class="narrow-column bottom-align">Gene</th>
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
-      <ng-container *ngFor="let header of tableData.hpoHeaders; let i = index">
-      <th
-        class="rotate-header hpo-col"
-        *ngIf="shouldDisplayHpoColumn(i)"
-        (mouseenter)="hoveredHpoHeader = header"
-        (mouseleave)="hoveredHpoHeader = null"
-      >
-      <div class="rotated-text"
-      [ngClass]="{ 'hover-underline': hoveredHpoHeader === header }">
-        {{ header.h1 }}
-      </div>
-      <!-- Popup shown on hover over column header (HPO label, rotated) with link to HPO website-->
-      <div
-        *ngIf="hoveredHpoHeader === header"
-        class="hpo-popup"
-      >
-        <a
-          [href]="'https://hpo.jax.org/browse/term/' + header.h2"
-          target="_blank"
-          rel="noopener"
-        >
-          🔗 {{ header.h2 }}
-        </a>
-      </div>
-    </th>
-  </ng-container>
+      @if (cohort) {
+          <ng-container *ngFor="let header of cohort.hpoHeaders; let i = index">
+           <th
+              class="rotate-header hpo-col"
+              *ngIf="shouldDisplayHpoColumn(i)"
+              (mouseenter)="setHover('hpoHeader', 0, i, true)"
+              (mouseleave)="setHover('hpoHeader', 0, i, false)"
+            >
+              <div class="rotated-text" *ngIf="isHovered('hpoHeader', 0, i)" [ngClass]="{ 'hover-underline': true }">
+                {{ header.h1 }}
+              </div>
+
+              <!-- Popup shown on hover -->
+              <div *ngIf="isHovered('hpoHeader', 0, i)" class="hpo-popup">
+                <a
+                  [href]="'https://hpo.jax.org/browse/term/' + header.h2"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  🔗 {{ header.h2 }}
+                </a>
+              </div>
+            </th>
+
+          </ng-container>
+        }
   </tr>
   </thead>
     <tbody>
-      <tr *ngFor="let row of tableData.rows">
+      <tr *ngFor="let row of cohort.rows; let rowIndex = index">
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column">
-        <div
-          (mouseenter)="hoveredIndividual = row.individualDto"
-          (mouseleave)="hoveredIndividual = null"
+        <div 
+            (mouseenter)="setHover('individual', rowIndex, 0, true)"
+            (mouseenter)="setHover('individual', rowIndex, 0, false)"
           class="cursor-pointer"
         >
           {{ row.individualDto.individualId }}
@@ -79,10 +93,10 @@
         [ID is null/empty] row={{row}}
       </span>
         <div
-          *ngIf="hoveredIndividual === row.individualDto"
+          *ngIf="isHovered('hpoHeader', rowIndex, 0)"
           class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
-          (mouseenter)="hoveredIndividual = row.individualDto"
-          (mouseleave)="hoveredIndividual = null"
+            (mouseenter)="setHover('individual', rowIndex, 0, true)"
+            (mouseenter)="setHover('individual', rowIndex, 0, false)"
         >
           <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
             <li><strong>{{ row.individualDto.individualId }}</strong></li>
@@ -111,57 +125,40 @@
 
 <!-- Second column: disease/id -->
 <td class="relative narrow-column">
-  <div 
-    *ngFor="let disease of row.diseaseDtoList ?? []" 
+  <div
+    *ngFor="let disease of row.diseaseDtoList ?? []; let di = index"
     class="relative inline-block"
-    (mouseenter)="hoveredDisease = disease"
-    (mouseleave)="hoveredDisease = null"
-    >
-    <span class="cursor-pointer">
-      {{ disease.diseaseId }}
-    </span>
+    (mouseenter)="setHover('disease', rowIndex, di, true)"
+    (mouseleave)="setHover('disease', rowIndex, di, false)"
+  >
+    <span class="cursor-pointer">{{ disease.diseaseId }}</span>
 
-    <!-- Hover popup for disease -->
     <div
-      *ngIf="hoveredDisease === disease"
+      *ngIf="isHovered('disease', rowIndex, di)"
       class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
-      (mouseenter)="hoveredDisease = disease"
-      (mouseleave)="hoveredDisease = null"
+      (mouseenter)="setHover('disease', rowIndex, di, true)"
+      (mouseleave)="setHover('disease', rowIndex, di, false)"
     >
-      <ul class="list-disc list-inside text-sm text-gray-800">
-        <li><strong>{{ disease.diseaseLabel }}</strong></li>
-        <li>ID: {{ disease.diseaseId }}</li>
-      </ul>
-      <!-- Edit button in popup -->
-      <button
-        mat-stroked-button
-        color="primary"
-        class="text-xs py-0 px-2"
-        (click)="openDiseaseEditor(disease); $event.stopPropagation();"
-      >
-        ✏️ Edit
-      </button>
+      <!-- popup content -->
     </div>
   </div>
 </td>
 
  <!-- Third column for gene/var-->
   <td class="relative narrow-column">
-  <div *ngFor="let gene of row.geneVarDtoList ?? []" 
-      class="relative inline-block mr-2"
-      (mouseenter)="hoveredGene = gene"
-      (mouseleave)="hoveredGene = null">
-    <span
-      class="cursor-pointer"
+  <div
+      *ngFor="let gene of row.geneVarDtoList ?? []; let gi = index"
+      class="relative inline-block"
+      (mouseenter)="setHover('gene', rowIndex, gi, true)"
+      (mouseleave)="setHover('gene', rowIndex, gi, false)"
     >
-      {{ gene.geneSymbol }}
-    </span>
+      <span class="cursor-pointer">{{ gene.geneSymbol }}</span>
     <div
-      *ngIf="hoveredGene === gene"
-      class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 max-w-xs overflow-auto"
-      (mouseenter)="hoveredGene = gene"
-      (mouseleave)="hoveredGene = null"
-    >
+        *ngIf="isHovered('gene', rowIndex, gi)"
+        class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
+        (mouseenter)="setHover('gene', rowIndex, gi, true)"
+        (mouseleave)="setHover('gene', rowIndex, gi, false)"
+      >
       <ul class="list-disc list-inside text-sm text-gray-800 break-words">
         <li><strong>{{ gene.geneSymbol }}</strong></li>
         <li>{{ gene.hgncId }}</li>
@@ -188,7 +185,7 @@
     <ng-container *ngFor="let cell of row.hpoData; let i = index">
       <td  *ngIf="shouldDisplayHpoColumn(i)"
           class="hpo-col"
-          (contextmenu)="onRightClick($event, i, cell)"
+          (contextmenu)="onRightClick($event, i, rowIndex, cell)"
           [ngClass]="{
             'observed-cell': cell.value === 'observed',
             'excluded-cell': cell.value === 'excluded',
@@ -213,7 +210,7 @@
       </tr>
     </tbody>
   </table>
-</div>
+} <!-- close  @if (cohort){ -->
 
 
   <!-- Left side: Inputs -->
@@ -243,26 +240,28 @@
   </div>
 
   </div>
-  
 
-  
-</div>
-
-
-<div
-  *ngIf="contextMenuVisible"
-  [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
-  class="absolute z-50 bg-white border border-gray-300 rounded shadow-md p-2 text-sm w-40"
-  role="menu"
-  aria-label="Annotation context menu"
->
-  <button
-    *ngFor="let option of contextMenuOptions"
-    class="block w-full text-left hover:bg-gray-100 px-2 py-1 rounded focus:outline-none focus:bg-gray-200"
-    role="menuitem"
-    (click)="onMenuOptionClick(option.value)"
-    type="button"
+@if(contextMenuVisible) {
+  <div
+    [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+    class="absolute z-50 bg-white border border-gray-300 rounded shadow-md p-2 text-sm w-40"
+    role="menu"
+    aria-label="Annotation context menu"
   >
-    {{ option.label }}
-  </button>
-</div>
+  @for (option of contextMenuOptions; track option) {
+    <button
+      class="block w-full text-left hover:bg-gray-100 px-2 py-1 rounded focus:outline-none focus:bg-gray-200"
+      role="menuitem"
+      (click)="onMenuOptionClick(option.value)"
+      type="button"
+    >
+      {{ option.label }}
+    </button>
+  }
+  </div>
+}
+
+@if (cohort) {
+    <pre>{{ cohort | json }}</pre>
+}
+

@@ -2,9 +2,9 @@ import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angula
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
-import { TemplateDtoService } from '../services/template_dto_service';
+import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { DiseaseGeneDto, newMendelianTemplate, TemplateDto } from '../models/template_dto';
+import { DiseaseGeneDto, newMendelianTemplate, CohortDto } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
@@ -29,7 +29,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     private fb: FormBuilder, 
     private configService: ConfigService,
     ngZone: NgZone, 
-    templateService: TemplateDtoService,
+    templateService: CohortDtoService,
     cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
       this.mendelianDataForm = this.fb.group({
@@ -63,7 +63,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
   
-  protected override onTemplateLoaded(template: TemplateDto): void {
+  protected override onTemplateLoaded(template: CohortDto): void {
     console.log("✅ Template loaded into HomeComponent:", template);
     this.cdRef.detectChanges();
   }
@@ -101,7 +101,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
 
       try {
         const template = await this.configService.createNewTemplateFromSeeds(diseaseGeneDto, multiText);
-        this.templateService.setTemplate(template);
+        this.cohortService.setCohortDto(template);
         this.showSuccessMessage = true;
       } catch (error) {
           this.errorMessage = String(error);

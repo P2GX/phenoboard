@@ -7,9 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
-import { TemplateDtoService } from '../services/template_dto_service';
-import { VariantDto } from '../models/variant_dto';
-import { TemplateDto } from '../models/template_dto';
+import { CohortDtoService } from '../services/cohort_dto_service';
+import { VariantValidationDto } from '../models/variant_dto';
+import { CohortDto } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 
 
@@ -22,25 +22,25 @@ import { TemplateBaseComponent } from '../templatebase/templatebase.component';
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-  protected override onTemplateLoaded(template: TemplateDto): void {
+  protected override onTemplateLoaded(template: CohortDto): void {
     throw new Error('Method not implemented.');
   }
   constructor(
     private configService: ConfigService, 
-    override templateService: TemplateDtoService,
+    override cohortService: CohortDtoService,
     ngZone: NgZone, 
     override cdRef: ChangeDetectorRef) {
-      super(templateService, ngZone, cdRef)
+      super(cohortService, ngZone, cdRef)
     }
 
   errorMessage: string | null = null;
-  variantListDto: VariantDto[] | [] = [];
-  tableData: TemplateDto | null = null;
+  variantListDto: VariantValidationDto[] | [] = [];
+  tableData: CohortDto | null = null;
 
   override async ngOnInit() {
     super.ngOnInit();
 
-    const variant_dtos = this.templateService.getVariantDtos();
+    const variant_dtos = this.cohortService.getVariantDtos();
     try {
       this.variantListDto = await this.configService.validateVariantDtoList(variant_dtos);
     } catch (err) {

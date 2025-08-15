@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { DiseaseGeneDto, TemplateDto, GeneTranscriptDto } from '../models/template_dto';
+import { DiseaseGeneDto, CohortDto, GeneTranscriptDto } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
-import { VariantDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantValidationDto } from '../models/variant_dto';
+
 
 /**
  * This service is the one source of truth for the Cohort data (Template). The data is sent to the back end to add
@@ -10,50 +11,99 @@ import { VariantDto } from '../models/variant_dto';
  * We consider this service to have the one source of truth
  */
 @Injectable({ providedIn: 'root' })
-export class TemplateDtoService {
+export class CohortDtoService {
     constructor(private configService: ConfigService){
-        console.log('🟡 TemplateDtoService instance created');
+        console.log('🟡 CohortDtoService instance created');
     }
-    private templateSubject = new BehaviorSubject<TemplateDto | null>(null);
-    template$ = this.templateSubject.asObservable();
+    private cohortDtoSubject = new BehaviorSubject<CohortDto | null>(null);
+    cohortDto$ = this.cohortDtoSubject.asObservable();
 
     
-    setTemplate(template: TemplateDto) {
-        this.templateSubject.next(template);
+    setCohortDto(template: CohortDto) {
+        this.cohortDtoSubject.next(template);
     }
 
-    getTemplate(): TemplateDto | null {
-        const current = this.templateSubject.getValue();
+    getCohortDto(): CohortDto | null {
+        const current = this.cohortDtoSubject.getValue();
         return current;
     }
 
-    clearTemplate() {
-        this.templateSubject.next(null);
+    clearCohortDto() {
+        this.cohortDtoSubject.next(null);
     }
 
     getDiseaseGeneDto(): DiseaseGeneDto | null {
-        const templateDto = this.templateSubject.getValue();
+        const templateDto = this.cohortDtoSubject.getValue();
         const dto = templateDto?.diseaseGeneDto;
         return dto || null;
     }
 
     getCohortAcronym(): string | null {
-        const templateDto = this.templateSubject.getValue();
+        const templateDto = this.cohortDtoSubject.getValue();
         if (templateDto == null) {
-            console.error("Attempt tpo get acronym but cohort template was null");
+            console.error("Attempt to get acronym but cohort template was null");
             return null;
         }
         const dto = templateDto.diseaseGeneDto;
         return dto.cohortAcronym;
     }
 
+    /** We make keys from parts of the variants. This function ensures that we remove leading/trailing
+     * whitespace, replace internal whitespace with underscores, strip non-alphanumeric characters except - and _,
+     * and connect the parts with underscore.
+     */
+    makeSafeKey(...parts: string[]): string {
+        return parts
+            .map(p => p.trim())           
+            .map(p => p.replace(/\s+/g, "_")) 
+            .map(p => p.replace(/[^a-zA-Z0-9_-]/g, "")) 
+            .join("_");       
+    }
 
-    async saveTemplate(): Promise<void> {
-        const template = this.getTemplate();
-        if (template != null) {
-            return await this.configService.validateCohort(template);
+    /** Add an HGVS object that has been validated in the backend */
+    addHgvsVariant(hgvs: HgvsVariant) {
+        const current = this.cohortDtoSubject.value;
+        if (!current) {
+            alert("No CohortDto available to update");
+            return;
+        }
+        const key = this.makeSafeKey(hgvs.hgvs, hgvs.symbol, hgvs.transcript);
+        // Create a new object so we don't mutate the existing one directly
+        const updated: CohortDto = {
+            ...current,
+            hgvsVariants: {
+                ...current.hgvsVariants,
+                [key]: hgvs
+            }
+        };
+        this.cohortDtoSubject.next(updated);
+    }
+
+    /** Add an SV object that has been validated in the backend */
+    addStructuralVariant(sv: StructuralVariant) {
+        const current = this.cohortDtoSubject.value;
+        if (!current) {
+            alert("No CohortDto available to update");
+            return;
+        }
+        const key = this.makeSafeKey(sv.label, sv.geneSymbol, sv. svType);
+        const updated: CohortDto = {
+            ...current,
+            structuralVariants: {
+                ...current.structuralVariants,
+                [key]: sv
+            }
+        };
+        this.cohortDtoSubject.next(updated);
+    }
+
+
+    async saveCohortDto(): Promise<void> {
+        const cohort = this.getCohortDto();
+        if (cohort != null) {
+            return await this.configService.validateCohort(cohort);
         } else {
-            console.error("Attempt to save null template");
+            console.error("Attempt to save null CohortDto");
         }
     }
 
@@ -74,15 +124,16 @@ export class TemplateDtoService {
     }
 
 
-    /** Return a list of all variant strings represented in the cohort */
-    getVariantDtos(): VariantDto[] {
-        const template = this.getTemplate();
+    /** Return a list of all variant strings for structural variants */
+    getVariantDtos(): VariantValidationDto[] {
+       /*
+        const template = this.getCohortDto();
         const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
         if (template == null) {
             return [];
         }
         const seen = new Set<string>();
-        const dto_list: VariantDto[] = [];
+        const dto_list: VariantValidationDto[] = [];
 
         for (const row of template.rows) {
             for (const geneVar of row.geneVarDtoList) {
@@ -117,9 +168,12 @@ export class TemplateDtoService {
             }
         }
         return dto_list;
+        */
+       return [];
     }
 
-    toDiseaseGeneDtoList(template: TemplateDto): DiseaseGeneDto[] {
+    /** TODO */
+toDiseaseGeneDtoList(template: CohortDto): DiseaseGeneDto[] {
     if (template.rows.length == 0) {
       return [];
     }

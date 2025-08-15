@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { TemplateDtoService } from '../services/template_dto_service';
-import { TemplateDto } from '../models/template_dto';
+import { CohortDtoService } from '../services/cohort_dto_service';
+import { CohortDto } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.component';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +35,7 @@ type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
 
   constructor(private configService: ConfigService, 
-    templateService: TemplateDtoService,
+    templateService: CohortDtoService,
     ngZone: NgZone,
     cdRef: ChangeDetectorRef,
     private dialog: MatDialog,
@@ -126,7 +126,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  protected override onTemplateLoaded(template: TemplateDto): void {
+  protected override onTemplateLoaded(template: CohortDto): void {
     console.log("TableEditorComponent:onTemplateLoaded");
   }
 

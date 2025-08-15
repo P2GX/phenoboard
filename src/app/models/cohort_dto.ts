@@ -3,6 +3,8 @@
  * template_dto.rs. 
 */
 
+import { HgvsVariant, StructuralVariant } from "./variant_dto";
+
 export interface IndividualDto {
     pmid: string;
     title: string; 
@@ -54,12 +56,17 @@ export interface HeaderDto {
     data: HeaderDupletDto[];
 }
 
-export interface TemplateDto {
+export interface CohortDto {
     cohortType: string,
     diseaseGeneDto: DiseaseGeneDto,
     hpoHeaders: HeaderDupletDto[],
-    rows: RowDto[]
+    rows: RowDto[],
+    hgvsVariants: Record<string, HgvsVariant>;
+    structuralVariants: Record<string, StructuralVariant>;
 }
+
+
+
 
 export interface GeneTranscriptDto {
     hgncId: string;

@@ -5,9 +5,9 @@ import { CommonModule, NgIf } from '@angular/common';
 import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
-import { TemplateDtoService } from '../services/template_dto_service';
+import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { TemplateDto } from '../models/template_dto';
+import { CohortDto } from '../models/cohort_dto';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
@@ -25,11 +25,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     ngZone: NgZone, 
     private configService: ConfigService,
     private backendStatusService: BackendStatusService,
-    override templateService: TemplateDtoService,
+    override cohortService: CohortDtoService,
     private router: Router,
     private dialog: MatDialog,
     override cdRef: ChangeDetectorRef) {
-      super(templateService, ngZone, cdRef);
+      super(cohortService, ngZone, cdRef);
     }
 
   private unlisten: UnlistenFn | null = null;
@@ -82,7 +82,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.configService.emitStatusFromBackend();
   }
 
-  protected override onTemplateLoaded(template: TemplateDto): void {
+  protected override onTemplateLoaded(template: CohortDto): void {
     this.cdRef.detectChanges();
   }
 
@@ -140,7 +140,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.errorMessage = "Could not retrieve template (null error)"
         return;
       }
-      this.templateService.setTemplate(data);
+      this.cohortService.setCohortDto(data);
       } catch (error: any) {
         this.errorMessage = String(error);
         console.error('Template load failed:', error);

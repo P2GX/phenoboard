@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{etl_dto::ColumnTableDto, hpo_term_dto::HpoTermDto, template_dto::{CohortDto, DiseaseGeneDto, GeneVariantBundleDto, IndividualBundleDto}, variant_dto::VariantDto};
+use ga4ghphetools::dto::{cohort_dto::{CohortDto, DiseaseGeneDto, GeneVariantDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantValidationDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -43,8 +43,9 @@ pub fn run() {
             save_template,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            submit_variant_dto,
-            validate_variant_list_dto,
+            validate_all_variants,
+            validate_hgvs_variant,
+            validate_structural_variant,
             export_ppkt,
             load_external_excel,
             load_external_template_json,
@@ -54,7 +55,6 @@ pub fn run() {
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
-            let app_handle = app.app_handle().clone();
             win.on_window_event(move |event| {
                 if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
                     //app_handle.exit(0);
@@ -119,7 +119,7 @@ async fn load_phetools_excel_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     fix_errors: bool
-) -> Result<CohortDto, Vec<String>> {
+) -> Result<CohortDto, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let app_handle = app.clone();
@@ -146,12 +146,12 @@ async fn load_phetools_excel_template(
             },
             None => {
                 let _ = app_handle.emit("templateLoaded", "failure");
-                Err(vec!["User cancelled file selection".to_string()])
+                Err("User cancelled file selection".to_string())
             }
         }
     })
     .await
-    .map_err(|e| vec![format!("Task join error: {}", e)])?
+    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 
@@ -305,20 +305,12 @@ fn submit_autocompleted_hpo_term(
     }
 
 
-#[tauri::command]
-fn submit_variant_dto(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    variant_dto: VariantDto,
-) -> Result<VariantDto, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    singleton.submit_variant_dto(variant_dto) 
-}
+
 
 #[tauri::command]
 fn validate_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortDto) -> Result<(), Vec<String>> {
+    cohort_dto: CohortDto) -> Result<(), String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     singleton.validate_template(cohort_dto)
@@ -327,10 +319,11 @@ fn validate_template(
 #[tauri::command]
 fn save_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortDto) -> Result<(), Vec<String>> {
+    cohort_dto: CohortDto) 
+-> Result<(), String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    singleton.save_template(cohort_dto)
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.save_template_json(cohort_dto)
 }
 
 #[tauri::command]
@@ -352,7 +345,7 @@ fn add_hpo_term_to_cohort(
     hpo_id: &str,
     hpo_label: &str,
     cohort_dto: CohortDto) 
--> Result<CohortDto, Vec<String>> {
+-> Result<CohortDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
@@ -363,18 +356,18 @@ fn add_hpo_term_to_cohort(
 #[tauri::command]
 fn add_new_row_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    individual_dto: IndividualBundleDto, 
+    individual_dto: IndividualDto, 
     hpo_annotations: Vec<HpoTermDto>,
-    gene_variant_list: Vec<GeneVariantBundleDto>,
-    template_dto: CohortDto) 
--> Result<CohortDto, Vec<String>> {
+    gene_variant_list: Vec<GeneVariantDto>,
+    cohort_dto: CohortDto) 
+-> Result<CohortDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     let updated_template = singleton.add_new_row_to_cohort(
         individual_dto, 
         hpo_annotations, 
         gene_variant_list,
-        template_dto)?;
+        cohort_dto)?;
     println!("rust, add_new_row: {:?}", updated_template);
     Ok(updated_template)
 }
@@ -382,13 +375,34 @@ fn add_new_row_to_cohort(
 
 
 #[tauri::command]
-fn validate_variant_list_dto(
+fn validate_all_variants(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    variant_dto_list: Vec<VariantDto>) 
--> Result<Vec<VariantDto>, String> {
+    cohort_dto: CohortDto) 
+-> Result<CohortDto, Vec<String>> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.validate_variant_list_dto( variant_dto_list) 
+    singleton.validate_all_variants(cohort_dto) 
+}
+
+#[tauri::command]
+fn validate_hgvs_variant(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    dto: VariantValidationDto)
+-> Result<HgvsVariant, String> {
+  let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.validate_hgvs_variant(dto) 
+}
+
+
+#[tauri::command]
+fn validate_structural_variant(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    dto: VariantValidationDto)
+-> Result<StructuralVariant, String> {
+  let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.validate_structural_variant(dto) 
 }
 
 

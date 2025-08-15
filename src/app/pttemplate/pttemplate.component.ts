@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { CellDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, TemplateDto } from '../models/template_dto';
+import { CellDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, CohortDto } from '../models/cohort_dto';
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -13,8 +13,9 @@ import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
-import { TemplateDtoService } from '../services/template_dto_service';
+import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
+import { take } from 'rxjs';
 
 
 type Option = { label: string; value: string };
@@ -35,26 +36,25 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
-  
 
   constructor(
     private configService: ConfigService, 
     private dialog: MatDialog,
     public ageService: AgeInputService,
     ngZone: NgZone,
-    templateService: TemplateDtoService,
+    cohortService: CohortDtoService,
     override cdRef: ChangeDetectorRef) {
-      super(templateService, ngZone, cdRef)
+      super(cohortService, ngZone, cdRef)
     }
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
 
-  tableData: TemplateDto | null = null;
-  selectedCell: any = null;
-  hoveredIndividual: IndividualDto | null = null;
-  hoveredDisease: DiseaseDto | null = null;
-  hoveredGene: GeneVariantBundleDto | null = null;
-  hoveredHpoHeader: HeaderDupletDto | null = null;
+  cohortDto$ = this.cohortService.cohortDto$;
+
+  selectedCellContents: CellDto | null = null;
+
+  
+
   cohortDescription: CohortDescriptionDto | null = null;
   successMessage: string | null = null;
   errorMessage: string | null = null;
@@ -67,7 +67,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   contextMenuX:number = 0;
   contextMenuY: number = 0;
   
-  pendingHpoIndex: number | null = null;
+  pendingHpoColumnIndex: number | null = null;
+  pendingHpoRowIndex: number | null = null;
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
   
@@ -97,16 +98,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   override ngOnDestroy(): void {
     super.ngOnDestroy();
     document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
-    /* consider
-    if (this.tableData) {
-    await this.templateService.saveTemplate();
-  }*/
   }
 
-  protected override onTemplateLoaded(template: TemplateDto): void {
-    console.log("✅ Template loaded into PtTemplateComponent:", template);
-    this.tableData = template;
-    this.cohortDescription = this.generateCohortDescriptionDto(template);
+  protected override onTemplateLoaded(cohortDto: CohortDto): void {
+    console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
+    this.cohortService.setCohortDto(cohortDto);
+    this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     this.cdRef.detectChanges();
   }
 
@@ -117,12 +114,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
   async loadTemplate(): Promise<void> {
-    const existing = this.templateService.getTemplate();
+    const existing = this.cohortService.getCohortDto();
     if (!existing) {
       console.log("🏗️ Loading template from backend...");
       try {
         const data = await this.configService.getPhetoolsTemplate();
-        this.templateService.setTemplate(data); // 🟢 base class reacts here
+        this.cohortService.setCohortDto(data); // 🟢 base class reacts here
       } catch (error) {
         console.error("❌ Failed to load template:", error);
       }
@@ -137,8 +134,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
   async loadTemplateFromBackend(): Promise<void> {
-    this.configService.getPhetoolsTemplate().then((data: TemplateDto) => {
-        this.templateService.setTemplate(data);
+    this.configService.getPhetoolsTemplate().then((data: CohortDto) => {
+        this.cohortService.setCohortDto(data);
   });
   }
 
@@ -194,7 +191,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  generateCohortDescriptionDto(tableData: TemplateDto | null): CohortDescriptionDto | null {
+  generateCohortDescriptionDto(tableData: CohortDto | null): CohortDescriptionDto | null {
     if (tableData == null) {
       return null;
     }
@@ -224,13 +221,16 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   async validateCohort() {
     console.log("validate")
-    if (this.tableData == null) {
-      // TODO error warning
+    if (this.cohortDto$ == null) {
+      alert("Cohort DTO not initialized");
       return;
     }
     try {
-      await this.configService.validateCohort(this.tableData);
-      alert('✅ Cohort is valid!');
+      this.cohortDto$.pipe(take(1)).subscribe(async dto => {
+      if (!dto) return;
+        await this.configService.validateCohort(dto);
+        alert("Cohort successfuly validated")
+      }); 
     } catch (err: any) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Validation failed:\n' + JSON.stringify(err));
@@ -254,19 +254,17 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   };
 
   async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
-    const template = this.templateService.getTemplate();
+    const template = this.cohortService.getCohortDto();
     if (template == null) {
       console.error("Attempt to add HPO Term to cohort but template is null");
       return;
     }
     if (autocompletedTerm) {
-      // save any chancgs from the front end first
-      this.templateService.saveTemplate();
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
         let updated_template = await this.configService.addHpoToCohort(id, label, template);
         this.showSuccess(`Successfully added ${label} (${id})`);
-        this.templateService.setTemplate(updated_template);
+        this.cohortService.setCohortDto(updated_template);
       } catch (err) {
         console.error(err);
         this.showError(`Failed to add term ${label} (${id})`);
@@ -276,13 +274,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   
 
-  onRightClick(event: MouseEvent, hpoColumnIndex: number, cell: CellDto) {
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, cell: CellDto) {
     event.preventDefault();
     this.contextMenuVisible = true;
     this.contextMenuX = event.clientX;
     this.contextMenuY = event.clientY;
-    this.pendingHpoIndex = hpoColumnIndex;
-    this.selectedCell = cell;
+    this.pendingHpoColumnIndex = hpoColumnIndex;
+    this.pendingHpoRowIndex = hpoRowIndex;
+    this.selectedCellContents = cell;
     this.contextMenuOptions = [
       ...this.predefinedOptions,
       ...this.ageService.getSelectedTerms().map(term => ({
@@ -302,6 +301,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     );
   }
 
+  /* This function can only be called if contextMenuVisible is set true; this happens with the
+  *  onRightClick function, which shows an option menu of actions for the cell. Then, when the user clicks
+  * on one of those options, this function is called. The goal is to change the value of the cell 
+  * and to persist it.
+  */
   onMenuOptionClick(option: string): void {
     console.log("onMenuOptionClick option=",option);
     if (option.startsWith('focus')) {
@@ -310,20 +314,28 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         this.focusedHpoIndex = null;
         this.hpoFocusRange = 0;
       } else {
-        this.focusedHpoIndex = this.pendingHpoIndex;
+        this.focusedHpoIndex = this.pendingHpoColumnIndex;
         this.hpoFocusRange = parseInt(parts[1], 10);
       }
-    } else if (this.selectedCell) {
-      console.log('selectedCell in tableData?', this.tableData?.rows.some(r => r.hpoData.includes(this.selectedCell)));
-      // if we get here, then the option is 'observed', 'na', 'P4M', etc
+    } else if (this.selectedCellContents) {
       this.focusedHpoIndex = null;
-      this.selectedCell.value = option;
-      if (this.tableData) { // persist the data to the service
-        console.log("trying to persist");
-        this.templateService.setTemplate({ ...this.tableData });
+      const currentDto = this.cohortService.getCohortDto();
+      if (! currentDto) {
+        alert("Cohort object is null (should never happen, please report to developers).");
+        return;
       }
+      const updatedRows = currentDto.rows.map((row, rIndex) => {
+        if ( rIndex !== this.pendingHpoRowIndex) return row; // not the row we want to change, just return as-is
+      const updatedHpoData = row.hpoData.map((cell, cIndex) => {
+        cIndex === this.pendingHpoColumnIndex ? { ...cell, value: option } : cell;
+      }); 
+
+      return {...row, hpoData: updatedHpoData };
+      });
+      
     } 
-    this.pendingHpoIndex = null;
+    this.pendingHpoColumnIndex = null;
+    this.pendingHpoRowIndex = null;
     this.contextMenuVisible = false;
   }
 
@@ -337,12 +349,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   saveCohort() {
-    const acronym = this.templateService.getCohortAcronym();
+    const acronym = this.cohortService.getCohortAcronym();
     if (acronym == null) {
       alert("Cannot save cohort with null acronym");
       return; // should never happen!
     }
-    const template_dto = this.templateService.getTemplate();
+    const template_dto = this.cohortService.getCohortDto();
     if (template_dto == null) {
       alert("Cannot save null cohort (template_dto is null");
       return; // should never happen!
@@ -352,22 +364,38 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     
   }
 
+  
+
   async exportPpkt() {
     
-    const template_dto = this.templateService.getTemplate();
-      if (template_dto != null) {
+    const cohort_dto = this.cohortService.getCohortDto();
+      if (cohort_dto != null) {
         try {
-          await this.configService.exportPpkt(template_dto);
+          await this.configService.exportPpkt(cohort_dto);
         } catch (err) {
           if (Array.isArray(err)) {
             console.error("Validation errors:", err);
-            // TODO handle validation errors in UI
+            this.errorMessage = String(err);
           } else {
             console.error("Unexpected error:", err);
+            this.errorMessage = String(err);
           }
         }
       } else {
         console.error("Attempt to export phenopackets from null cohort.");
+        this.errorMessage = String("Attempt to export phenopackets from null cohort.");
       }
   }
+
+
+
+  /* Keep track of which cell is hovered over. The key is something like `${category}-${rowIndex}-${itemIndex}` */
+  hoverState: Record<string, boolean> = {};
+  setHover(category: string, rowIndex: number, itemIndex: number, hovered: boolean) {
+    this.hoverState[`${category}-${rowIndex}-${itemIndex}`] = hovered;
+  }
+  isHovered(category: string, rowIndex: number, itemIndex: number): boolean {
+    return !!this.hoverState[`${category}-${rowIndex}-${itemIndex}`];
+  }
+
 }

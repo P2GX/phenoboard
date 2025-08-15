@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
-import { TemplateDtoService } from '../services/template_dto_service';
-import { DiseaseGeneDto, TemplateDto } from '../models/template_dto';
+import { CohortDtoService } from '../services/cohort_dto_service';
+import { DiseaseGeneDto, CohortDto } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 
 
@@ -17,7 +17,7 @@ import { MatIconModule } from "@angular/material/icon";
 export class StatusComponent implements OnInit {
 
   constructor(private configService: ConfigService, 
-    private templateService: TemplateDtoService,
+    private templateService: CohortDtoService,
     private etl_service: EtlSessionService,
   ) {
   
@@ -25,13 +25,13 @@ export class StatusComponent implements OnInit {
 
   
   diseaseGeneDto: DiseaseGeneDto | null = null;
-  templateDto: TemplateDto | null = null;
+  templateDto: CohortDto | null = null;
 
 
 
   ngOnInit(): void {
     this.diseaseGeneDto = this.templateService.getDiseaseGeneDto();
-    this.templateDto = this.templateService.getTemplate();
+    this.templateDto = this.templateService.getCohortDto();
   }
 
 

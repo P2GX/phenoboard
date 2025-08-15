@@ -10,27 +10,33 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
-import { StructuralType, VariantDto } from '../models/variant_dto';
-import { TemplateDtoService } from '../services/template_dto_service';
-import { GeneTranscriptDto } from '../models/template_dto';
+import { HgvsVariant, StructuralType, StructuralVariant, VariantDisplayDto, displaySv, displayHgvs, VariantValidationDto } from '../models/variant_dto';
+import { CohortDtoService } from '../services/cohort_dto_service';
+import { GeneTranscriptDto } from '../models/cohort_dto';
 
 
-
+/**
+ * A modal component that pops up when the user clicks on Add Allele
+ * It can enter HGVS or SV
+ * The component validates each variant using VariantValidator and
+ * creates either an HgvsVariant or a StructuralVariant object. It also 
+ * creates a key (string) that is used to represent the variant in the
+ * HGVS or SV maps of our CohortDto. 
+ */
 @Component({
   selector: 'app-addvariant',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatInputModule,
-    MatFormFieldModule, MatOption, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, 
+      MatCardModule, MatInputModule, MatFormFieldModule, 
+      MatOption, MatSelectModule],
   templateUrl: './addvariant.component.html',
   styleUrl: './addvariant.component.css'
 })
 export class AddVariantComponent {
-
-
   constructor(
     private configService: ConfigService, 
-    private templateService: TemplateDtoService,
-    private dialogRef: MatDialogRef<AddVariantComponent>
+    private templateService: CohortDtoService,
+    private dialogRef: MatDialogRef<AddVariantComponent, VariantDisplayDto | null>
   ){}
   
   async ngOnInit(): Promise<void> {
@@ -38,9 +44,13 @@ export class AddVariantComponent {
   }
 
   /** This will emit an event that can be captured by the parent component (see method addVariantToDto)  */
-  @Output() variantAccepted = new EventEmitter<VariantDto>();
+  @Output() variantAccepted = new EventEmitter<string>();
+  
+  /* If the current variant was HGVS and was validated, this variant is non-null */
+  currentHgvsVariant: HgvsVariant | null = null;
+  /* If the current variant was structural and was validated, this variant is non-null */
+  currentStructuralVariant: StructuralVariant | null = null;
 
-  variant: VariantDto | null = null;
   variant_string: string = '';
   isHgvs: boolean = false;
 
@@ -63,10 +73,12 @@ export class AddVariantComponent {
   isSubmitting = false;
   validationComplete = false;
 
-
+  /** This is called from -   (input)="onVariantInput()" -- everytime the value of the input field changes.
+   * The main purpose is to determine if we have an HGVS variant or not. If we do, then the SV drop down is hidden,
+   * if not, we show the Sv dropdown menu with the SV types.
+   */
   onVariantInput(): void {
     this.resetVars();
-    //const hgvsRegex = /^(c|n)\.\d+(_\d+)?([A-Z]+>[A-Z]+|del|dup|ins)?$/;
     if (!this.variant_string) {
       this.errorMessage = 'Empty variant not allowed';
       this.isHgvs = false;
@@ -85,24 +97,39 @@ export class AddVariantComponent {
     this.isHgvs = false;
   }
 
+  /** This function is called if the user has entered data about a structural variant and
+   * clicks on the "Submit SV" button. If successful, the variant currentStructuralVariant is initialized.
+   */
   async submitSvDto(): Promise<void> {
-    if (!this.variant || !this.selectedGene) {
-      this.errorMessage = 'Please enter a valid variant and select a gene.';
+    if (!this.variant_string || !this.selectedGene || !this.selectedStructuralType) {
+      this.errorMessage = 'Please enter a valid variant and select a gene and a SV type';
       this.variantValidated = false;
       return;
     }
     this.errorMessage = null;
-    this.variant = {
-      variant_string: this.variant_string,
+    const vv_dto: VariantValidationDto = {
+      variantString: this.variant_string,
       transcript: this.selectedGene.transcript,
-      hgnc_id: this.selectedGene.hgncId,
-      gene_symbol:this.selectedGene.geneSymbol,
-      validated: false,
-      is_structural: true
+      hgncId: this.selectedGene.hgncId,
+      geneSymbol:this.selectedGene.geneSymbol,
+      validationType: "SV"
+    };
+    this.configService.validateSv(vv_dto)
+        .then((sv) => {
+          console.log("Adding sv", sv);
+          this.currentStructuralVariant = sv;
+          this.variantValidated = true;
+        })
+        .catch((error) => {
+          alert(String(error));
+        });
     }
-    return await this.submitVariantDto(this.variant);
-  }
+  
 
+  /** This is called when the user has finished entering an HGVS variant 
+   * and clicks on the "Submit HGVS" button. If we are successful, the methods
+   * sets the currentHgvsVariant variable. The user then needs to click on the
+   *  */
   async submitHgvsDto(): Promise<void> {
     console.log("submitHgvsDto line 113, variant=", this.variant_string)
     if (!this.variant_string || !this.selectedGene) {
@@ -111,45 +138,23 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const dto: VariantDto = {
-      variant_string: this.variant_string,
+    const vv_dto: VariantValidationDto = {
+      variantString: this.variant_string,
       transcript: this.selectedGene.transcript,
-      hgnc_id: this.selectedGene.hgncId,
-      gene_symbol:this.selectedGene.geneSymbol,
-      validated: false,
-      is_structural: false
-    }
-    return await this.submitVariantDto(dto);
+      hgncId: this.selectedGene.hgncId,
+      geneSymbol:this.selectedGene.geneSymbol,
+      validationType: "HGVS"
+    };
+    this.configService.validateHgvs(vv_dto)
+        .then((hgvs) => {
+          console.log("adding hgvs", hgvs);
+          this.currentHgvsVariant = hgvs;
+           this.variantValidated = true;
+        })
+        .catch((error) => {
+          alert(String(error));
+        });
   }
-
-
-
-  async submitVariantDto(dto: VariantDto): Promise<void> {
-    this.isSubmitting = true;
-    this.configService.submitVariantDto(dto)
-      .then((updated_dto) => {
-        if (updated_dto.validated) {
-          this.variantValidated = true;
-          this.validationComplete = true;
-          this.isSubmitting = false;
-          this.variant = updated_dto;
-        } else {
-          this.variantValidated = false;
-          this.validationComplete = true; // failure, but completed, we will show error
-          this.errorMessage = 'Variant is not valid';
-          this.isSubmitting = false;
-          console.log("submitHgvsDto-error")
-        }
-      })
-      .catch((err) => {
-        this.variantValidated = false;
-        this.validationComplete = true; // failure, but completed, we will show error
-        this.variantValidated = false;
-        this.isSubmitting = false;
-        this.errorMessage = `Variant submission failed: ${err}`;
-      })
-    }
-  
 
   openHgvs($event: MouseEvent) {
     const url = "https://hgvs-nomenclature.org/"
@@ -187,11 +192,21 @@ export class AddVariantComponent {
    * ```
    */
   addVariantToPpkt() {
-    if (this.variantValidated && this.variant) {
-      this.dialogRef.close(this.variant);
+    console.log("addVariantToPpkt - top");
+    if (this.variantValidated && this.currentHgvsVariant != null) {
+       this.templateService.addHgvsVariant(this.currentHgvsVariant);
+       const varDisplay = displayHgvs(this.currentHgvsVariant, true);
+       this.dialogRef.close(varDisplay);
+    } else if (this.variantValidated && this.currentStructuralVariant != null) {
+      this.templateService.addStructuralVariant(this.currentStructuralVariant);
+      const varDisplay = displaySv(this.currentStructuralVariant, true);
+      this.dialogRef.close(varDisplay);
     } else {
+      alert("Unable to add variant")
       this.errorMessage = "attempt to add invalid variant";
     }
   }
 
 }
+
+

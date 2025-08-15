@@ -1,5 +1,5 @@
-import { TemplateDtoService } from "../services/template_dto_service";
-import { TemplateDto } from '../models/template_dto';
+import { CohortDtoService } from "../services/cohort_dto_service";
+import { CohortDto } from '../models/cohort_dto';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 
@@ -10,14 +10,14 @@ export abstract class TemplateBaseComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
   constructor(
-    protected templateService: TemplateDtoService,
+    protected cohortService: CohortDtoService,
     protected ngZone: NgZone,
     protected cdRef: ChangeDetectorRef){
   }
 
   ngOnInit(): void {
     console.log(`🔄 ${this.constructor.name}: Setting up template subscription`);
-    this.templateService.template$
+    this.cohortService.cohortDto$
       .pipe(takeUntil(this.destroy$))
       .subscribe(template => {
         console.log(`📡 ${this.constructor.name}: template update`, template);
@@ -45,7 +45,7 @@ export abstract class TemplateBaseComponent implements OnInit, OnDestroy {
   }
 
   /** Called when a valid template is available */
-  protected abstract onTemplateLoaded(template: TemplateDto): void;
+  protected abstract onTemplateLoaded(template: CohortDto): void;
 
   /** Called when template is still missing (optional override) */
   protected onTemplateMissing(): void {

@@ -1,8 +1,11 @@
-<div class="w-full px-[5%]"><app-pubmed #pmidChild></app-pubmed>
-  <app-addages #addagesComponent *ngIf="showAgeEntryArea"></app-addages>
+<div class="w-full px-[5%]">
+  <app-pubmed #pmidChild></app-pubmed>
+  @if (showAgeEntryArea) {
+    <app-addages #addagesComponent></app-addages>
+  }
   <app-adddemo #adddemoComponent (demoSubmitted)="handleDemographicData($event)"></app-adddemo>
   <div class="w-full mx-auto p-4">
-    <div *ngIf="showTextArea">
+    @if (showTextArea) {
       <label class="label-primary">
           Paste clinical text
       </label>
@@ -19,7 +22,7 @@
           class="btn-outline-primary"
         >Run HPO Text Mining</button>
       </div>
-    </div>
+    }
   </div>
 <div *ngIf="showDataEntryArea">
   <button
@@ -30,8 +33,8 @@
   </button>
   <div *ngIf="showCollapsed" class="p-2 space-y-2">
     <div class="whitespace-pre-wrap text-sm font-mono mb-4 relative">
-      <ng-container *ngFor="let ann of annotations">
-        <ng-container *ngIf="ann.isFenominalHit; else plainText">
+      @for (ann of annotations; track ann.termId) {
+        @if (ann.isFenominalHit) {
           <span
             class="cursor-pointer px-1 rounded"
             (click)="openPopup(ann, $event)"
@@ -43,11 +46,10 @@
           >
             {{ ann.originalText }}
           </span>
-        </ng-container>
-        <ng-template #plainText>
+        } @else {
           {{ ann.originalText }}
-        </ng-template>
-      </ng-container>
+        }
+      }
     </div>
 <!-- Open a popup menu if the user clicks on an annotation.-->
 <div
@@ -71,27 +73,27 @@
     >Mark as {{ selectedAnnotation?.isObserved ? 'Excluded' : 'Observed' }}</button>
     <div class="mt-2">
       <div  *ngIf="selectedAnnotation">
-  <label class="text-xs block mb-1">Select Onset:</label>
-    <div *ngFor="let onset of rightClickOptions" class="text-xs mb-1">
-      <label class="inline-flex items-center">
-        <input
-          type="radio"
-          name="onsetGroup"
-          class="mr-1"
-          [value]="onset"
-          [(ngModel)]="selectedAnnotation.onsetString"
-        />
-        {{ onset }}
-      </label>
-  </div>
+      <label class="text-xs block mb-1">Select Onset:</label>
+        @for(onset of rightClickOptions; track onset) {
+          <div class="text-xs mb-1">
+            <label class="inline-flex items-center">
+              <input
+                type="radio"
+                name="onsetGroup"
+                class="mr-1"
+                [value]="onset"
+                [(ngModel)]="selectedAnnotation.onsetString"
+              />
+              {{ onset }}
+            </label>
+        </div>
+      }
   </div>
 </div>
   </div>
 <!-- end.-->
 </div>
 <div class="flex gap-2 mt-3">
-  
-
   <button
     (click)="submitAnnotations()"
     class="btn-outline-primary"
@@ -123,8 +125,8 @@
     <tr *ngFor="let annotation of getFenominalAnnotations(); let i = index">
       <td class="border px-1 py-[1px]">
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
-  {{ annotation.termId }}
-</a></td>
+            {{ annotation.termId }}
+          </a></td>
 <td class="border px-1 py-[1px] relative">
   <span (click)="toggleDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
     {{ annotation.label }} ▼
@@ -134,9 +136,11 @@
     *ngIf="showDropdownMap[annotation.termId]"
     class="absolute left-0 top-full z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg"
   >
-    <div *ngIf="!parentChildHpoTermMap[annotation.termId]" class="p-2 text-gray-500 text-sm italic">
-      Loading...
-    </div>
+    @if(!parentChildHpoTermMap[annotation.termId]) {
+      <div class="p-2 text-gray-500 text-sm italic">
+        Loading...
+      </div>
+    }
 
     <div *ngIf="parentChildHpoTermMap[annotation.termId]">
       <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
@@ -152,13 +156,14 @@
 
       <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
       <ul>
-        <li
-          *ngFor="let child of parentChildHpoTermMap[annotation.termId].children"
-          (click)="replaceTerm(annotation, child)"
-          class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-        >
-          {{ child.label }} ({{ child.termId }})
-        </li>
+        @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
+          <li
+            (click)="replaceTerm(annotation, child)"
+            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+          >
+            {{ child.label }} ({{ child.termId }})
+          </li>
+        }
       </ul>
     </div>
   </div>
@@ -208,47 +213,51 @@
 <!-- ALLELE 1 -->
 <div class="flex items-center gap-4 w-full">
   <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 1</button>
-  <span *ngIf="allele1" class="flex items-center gap-2 text-sm text-gray-700">
-  <span
-    class="inline-block w-2.5 h-2.5 rounded-full"
-    [ngClass]="{
-      'bg-green-500': allele1.validated,
-      'bg-red-500': !allele1.validated
-    }"
-  ></span>
-  {{ allele1.variant_string }} ({{allele1.gene_symbol}})
-
-  <button mat-icon-button 
-          *ngIf="allele1" 
-          (click)="allele1 = null" 
-          aria-label="Clear variant" 
-          class="flex-shrink p-0 w-5 h-5">
-    <mat-icon>close</mat-icon>
-  </button>
+  @if (allele1 != null){
+  <span class="flex items-center gap-2 text-sm text-gray-700">
+    <span
+      class="inline-block w-2.5 h-2.5 rounded-full"
+      [ngClass]="{
+        'bg-green-500': true,
+        'bg-red-500': false
+      }"
+    ></span>
+    {{ allele1.variantString }} ({{allele1.geneSymbol}})
+    <button mat-icon-button 
+            (click)="allele1 = null" 
+            aria-label="Clear variant" 
+            class="flex-shrink p-0 w-5 h-5">
+      <mat-icon>close</mat-icon>
+    </button>
   </span>
-   <p *ngIf="!allele1" class="text-gray-400">na</p>
+  } @else {
+   <p class="text-gray-400">na</p>
+   }
 </div>
 <!-- ALLELE 2 -->
 <div class="flex items-center gap-4 w-full">
   <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 2</button>
-  <span *ngIf="allele2" class="flex items-center gap-2 text-sm text-gray-700">
-  <span
-    class="inline-block w-2.5 h-2.5 rounded-full"
-    [ngClass]="{
-      'bg-green-500': allele2.validated,
-      'bg-red-500': !allele2.validated
-    }"
-  ></span>
-  {{ allele2.variant_string }} ({{allele2.gene_symbol}})
-  <button mat-icon-button 
-    *ngIf="allele2" 
-    (click)="allele2 = null" 
-    aria-label="Clear variant" 
-    class="flex-shrink p-0 w-5 h-5">
-    <mat-icon>close</mat-icon>
-  </button>
-  </span>
-  <p *ngIf="!allele2" class="text-gray-400">na</p>
+  @if (allele2) {
+    <span class="flex items-center gap-2 text-sm text-gray-700">
+      <span
+          class="inline-block w-2.5 h-2.5 rounded-full"
+          [ngClass]="{
+            'bg-green-500': true,
+            'bg-red-500': false
+          }"
+      ></span>
+      {{ allele2.variantString }} ({{allele2.geneSymbol}})
+      @if (!allele2) {
+      <button mat-icon-button 
+          (click)="allele2 = null" 
+          aria-label="Clear variant" 
+          class="flex-shrink p-0 w-5 h-5">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </span>
+    }
+    @if (!allele2) { <p class="text-gray-400">na</p> }
 </div>
 
 <div class="space-y-1">
@@ -258,3 +267,8 @@
     >Submit row</button>
 </div>
 
+<!-- for debugging -->
+ @let cohort = cohortDto$ | async;
+ @if (cohort) {
+    <pre>{{ cohort | json }}</pre>
+ }

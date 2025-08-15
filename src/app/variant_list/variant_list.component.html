@@ -14,25 +14,23 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let variant of variantListDto" class="border-t">
-        <td class="px-4 py-1">{{ variant.gene_symbol }}</td>
-        <td class="px-4 py-1">{{ variant.variant_string }}</td>
+      @for (variant of variantListDto; track variant.variantString) {
+      <tr class="border-t">
+        <td class="px-4 py-1">{{ variant.geneSymbol }}</td>
+        <td class="px-4 py-1">{{ variant.variantString }}</td>
         <td class="px-4 py-1">{{ variant.transcript || 'n/a' }}</td>
-        <td class="px-4 py-1">{{ variant.hgnc_id }}</td>
+        <td class="px-4 py-1">{{ variant.hgncId }}</td>
         <td class="px-4 py-1">
-          {{ variant.is_structural ? 'Structural' : 'Sequence' }}
+          {{ variant.validationType =="HGVS" ? 'HGVS' : 'Structural' }}
         </td>
         <td class="px-4 py-1">
           <span
             class="inline-block w-2.5 h-2.5 rounded-full mr-1"
-            [ngClass]="{
-              'bg-green-500': variant.validated,
-              'bg-red-500': !variant.validated
-            }"
           ></span>
-          {{ variant.validated ? 'Yes' : 'No' }}
+          {{ variant != null ? 'TODO' : 'TODO' }}
         </td>
       </tr>
+    }
     </tbody>
   </table>
 </div>
