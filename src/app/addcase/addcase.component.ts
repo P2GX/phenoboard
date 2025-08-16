@@ -123,6 +123,10 @@ export class AddcaseComponent {
     
   }
 
+  /** This function is called when the user wants to finalize
+   * the creation of a new Phenopacket row with all information
+   * for one new case.
+   */
   async submitNewRow(): Promise<void> {
     console.log("submitNewRow - top");
       let pmid_dto = this.pubmedComponent.getPmidDto();
@@ -380,14 +384,13 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
     let status = 'na';
     if (textAnn.isObserved) {
-      status = 'observed';
+      status = 'observed'; // status could be observed or an age of onset.
       if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
         status = textAnn.onsetString; // if there is a non-empty/non-na onset, use it for our value
       }
     } else {
       status = 'excluded';
     }
-    console.log("convertTextAnnotationToHpoAnnotation status (O/E)=", status);
     return {
       termId: textAnn.termId,
       termLabel: textAnn.label,
@@ -451,6 +454,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.resetWindow();
     this.allele1 = null;
     this.allele2 = null;
+    
     this.demographics_component.reset();
     this.pubmedComponent.reset_pmid();
     if (this.addagesComponent) {

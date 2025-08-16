@@ -177,12 +177,12 @@ export class ConfigService {
       individualDto: IndividualDto, 
       hpoAnnotations: HpoTermDto[],
       geneVariantList: GeneVariantBundleDto[],
-      templateDto: CohortDto): Promise<CohortDto> {
+      cohortDto: CohortDto): Promise<CohortDto> {
     return invoke<CohortDto>('add_new_row_to_cohort', 
       { individualDto, 
          hpoAnnotations,
          geneVariantList,
-         templateDto
+         cohortDto
       });
   }
 

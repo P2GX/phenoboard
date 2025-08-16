@@ -22,7 +22,7 @@ import { TemplateBaseComponent } from '../templatebase/templatebase.component';
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-  protected override onTemplateLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortDto): void {
     throw new Error('Method not implemented.');
   }
   constructor(

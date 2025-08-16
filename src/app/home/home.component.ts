@@ -82,11 +82,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.configService.emitStatusFromBackend();
   }
 
-  protected override onTemplateLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortDto): void {
     this.cdRef.detectChanges();
   }
 
-  protected override onTemplateMissing(): void {
+  protected override onCohortDtoMissing(): void {
   }
   
   async update_gui_variables() {

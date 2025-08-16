@@ -126,7 +126,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  protected override onTemplateLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortDto): void {
     console.log("TableEditorComponent:onTemplateLoaded");
   }
 

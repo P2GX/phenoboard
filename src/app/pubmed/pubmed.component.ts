@@ -14,7 +14,6 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 export class PubmedComponent {
 
   constructor(
-      private ngZone: NgZone,
       private configService: ConfigService
     ) {}
     
@@ -22,7 +21,9 @@ export class PubmedComponent {
   pmidDto: PmidDto = defaultPmidDto();
 
 
-
+  /** Called after the user has entered a string such as PMID: 33332558 or 33332558 and
+   * presses button to retrieve the title of the article from PubMed.
+   */
   async retrieve_pmid_title() {
     if (this.pmidDto.pmid == null) return;
     const input = this.pmidDto.pmid.trim();
@@ -33,7 +34,6 @@ export class PubmedComponent {
       this.pmidDto.hasError = false;
       this.pmidDto.retrievedPmid = true;
     } catch (error) {
-      console.error('PMID lookup failed:', error);
       this.pmidDto.title = '';
       this.pmidDto.hasError = true;
       this.pmidDto.errorMessage = 'Error retrieving title: ' + String(error);

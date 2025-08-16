@@ -52,9 +52,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   cohortDto$ = this.cohortService.cohortDto$;
 
   selectedCellContents: CellDto | null = null;
-
-  
-
   cohortDescription: CohortDescriptionDto | null = null;
   successMessage: string | null = null;
   errorMessage: string | null = null;
@@ -100,14 +97,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
   }
 
-  protected override onTemplateLoaded(cohortDto: CohortDto): void {
+  protected override onCohortDtoLoaded(cohortDto: CohortDto): void {
     console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
-    this.cohortService.setCohortDto(cohortDto);
     this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     this.cdRef.detectChanges();
   }
 
-  protected override onTemplateMissing(): void {
+  protected override onCohortDtoMissing(): void {
     console.warn("⚠️ Template is missing in PtTemplateComponent");
   }
 

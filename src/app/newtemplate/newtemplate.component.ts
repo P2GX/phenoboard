@@ -63,12 +63,12 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
   
-  protected override onTemplateLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortDto): void {
     console.log("✅ Template loaded into HomeComponent:", template);
     this.cdRef.detectChanges();
   }
   
-    protected override onTemplateMissing(): void {
+    protected override onCohortDtoMissing(): void {
       // When we open the page, the template will still be missing
     }
 
