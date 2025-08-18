@@ -4,7 +4,7 @@
   @if (cohortDescription) {
     <div class="text-sm text-gray-700 space-y-2">
       <h2 class="text-xl font-semibold text-gray-800">
-        {{ cohortDescription.geneSymbol }}: {{ cohortDescription.diseaseLabel }}
+        {{ cohortDescription.diseaseLabel }} (<i>{{ cohortDescription.geneSymbol }}</i>)
       </h2>
 
       <p>
@@ -12,7 +12,6 @@
         <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
         <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms.
         Most individuals are diagnosed with 
-      </p>
 
       @if (cohortDescription.diseaseDatabase == "OMIM") {
         <a [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
@@ -22,15 +21,12 @@
       } @else {
         <span>
           {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-        </span>
-      }
-
-      <p>
-        , associated with 
+        </span>,
+      } associated with 
         <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" 
            target="_blank" class="text-blue-600 underline">
-          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
-        </a>,
+          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }}),
+        </a>
         transcript <code>{{ cohortDescription.transcript }}</code>.
       </p>
     </div>
@@ -113,7 +109,8 @@
   </tr>
   </thead>
     <tbody>
-      <tr *ngFor="let row of cohort.rows; let rowIndex = index">
+      @for (row of cohort.rows; track row; let rowIndex = $index) {
+      <tr>
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column">
         <div 
@@ -240,57 +237,73 @@
         </ng-container>
       </td>
     </ng-container>
-      </tr>
+  } <!-- end of for over the tr -->
     </tbody>
   </table>
 } <!-- close  @if (cohort){ -->
 
 
-  <!-- Left side: Inputs -->
-  <div class="flex items-center gap-6">
-    <!-- HPO Autocomplete -->
-    <div class="space-y-1">
-      <app-hpoautocomplete
-        [inputString]="hpoInputString"
-        (selected)="selectedHpoTerm = $event"
-        [onSubmit]="submitSelectedHpo"
-        #hpoAutocomplete
-      >
-        <span card-title>Add a new HPO term to template</span>
-      </app-hpoautocomplete>
-    </div>
-
-    <!-- Add Ages -->
-    <app-addages #addagesComponent><span card-title>Add a new Onset</span></app-addages>
-    <div class="primary-box  flex  gap-4 h-full">
-    <button (click)="validateCohort()" 
-          class="btn-outline-primary whitespace-nowrap align-middle leading-none"
-          >Validate</button>
-    <button (click)="saveCohort()" 
-          class="btn-outline-primary whitespace-nowrap align-middle leading-none">Save</button>
-    <button (click)="exportPpkt()" 
-          class="btn-outline-primary whitespace-nowrap align-middle leading-none">Export phenopackets</button>
+  <!-- Toolbar / Controls -->
+<div class="flex items-center gap-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+  <!-- HPO Autocomplete -->
+  <div class="flex flex-col ">
+    <label class="text-xs font-medium text-gray-600 mb-1">Add HPO Term</label>
+    <app-hpoautocomplete
+      [inputString]="hpoInputString"
+      (selected)="selectedHpoTerm = $event"
+      [onSubmit]="submitSelectedHpo"
+      #hpoAutocomplete
+      class="w-full"
+    ></app-hpoautocomplete>
   </div>
 
+  <!-- Add Ages -->
+  <div class="flex flex-col">
+    <label class="text-xs font-medium text-gray-600 mb-1">Add Onset</label>
+    <app-addages #addagesComponent class="w-full"></app-addages>
   </div>
 
-@if(contextMenuVisible) {
+  <!-- Actions -->
+  <div class="flex items-center gap-3 ml-auto">
+    <button 
+      (click)="validateCohort()" 
+      class="px-4 py-2 text-sm rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
+    >
+      Validate
+    </button>
+    <button 
+      (click)="saveCohort()" 
+      class="px-4 py-2 text-sm rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition"
+    >
+      Save
+    </button>
+    <button 
+      (click)="exportPpkt()" 
+      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-purple-50 transition"
+    >
+      Export phenopackets
+    </button>
+  </div>
+</div>
+
+<!-- Context Menu -->
+@if (contextMenuVisible) {
   <div
     [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
-    class="absolute z-50 bg-white border border-gray-300 rounded shadow-md p-2 text-sm w-40"
+    class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-md p-2 text-sm w-44"
     role="menu"
     aria-label="Annotation context menu"
   >
-  @for (option of contextMenuOptions; track option) {
-    <button
-      class="block w-full text-left hover:bg-gray-100 px-2 py-1 rounded focus:outline-none focus:bg-gray-200"
-      role="menuitem"
-      (click)="onMenuOptionClick(option.value)"
-      type="button"
-    >
-      {{ option.label }}
-    </button>
-  }
+    @for (option of contextMenuOptions; track option) {
+      <button
+        class="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:bg-gray-200 transition"
+        role="menuitem"
+        (click)="onMenuOptionClick(option.value)"
+        type="button"
+      >
+        {{ option.label }}
+      </button>
+    }
   </div>
 }
 

@@ -191,27 +191,42 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     if (cohortDto == null) {
       return null;
     }
-    const row = cohortDto.rows[0];
-    const disease = row?.diseaseDtoList?.[0];
-    const gene = row?.geneVarDtoList?.[0];
-
+    console.log("generateCohortDescriptionDto", cohortDto);
+    const dgDto = cohortDto.diseaseGeneDto;
+    if (dgDto == null) {
+      alert("Could not extract Disease Gene DTO object");
+      return null;
+    }
+    if (dgDto.diseaseDtoList.length < 1) {
+      alert("Could not find Disease DTO object");
+      return null;
+    }
+    if (dgDto.geneTranscriptDtoList.length < 1) {
+      alert("Could not find GeneTrascript DTO object");
+      return null;
+    }
+    const gt_dto = dgDto.geneTranscriptDtoList[0];
+    const diseaseDto = dgDto.diseaseDtoList[0];
+    const diseaseLabel = diseaseDto.diseaseLabel;
+    const diseaseId = diseaseDto.diseaseId;
+    
     let diseaseDatabase = 'N/A';
-    let diseaseId = 'N/A';
+    let idPart = '';
 
-    if (disease?.diseaseId?.includes(':')) {
-      [diseaseDatabase, diseaseId] = disease.diseaseId.split(':');
+    if (diseaseId.includes(':')) {
+      [diseaseDatabase, idPart] = diseaseId.split(':');
     }
 
     return {
       cohortType: cohortDto.cohortType,
       numIndividuals: cohortDto.rows.length,
       numHpos: cohortDto.hpoHeaders.length,
-      diseaseLabel: disease?.diseaseLabel || 'N/A',
+      diseaseLabel: diseaseLabel,
       diseaseId: diseaseId,
       diseaseDatabase,
-      geneSymbol: gene?.geneSymbol || 'N/A',
-      hgncId: gene?.hgncId || 'N/A',
-      transcript: gene?.transcript || 'N/A',
+      geneSymbol: gt_dto.geneSymbol,
+      hgncId: gt_dto.hgncId,
+      transcript: gt_dto.transcript,
     };
   }
 
@@ -350,13 +365,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       alert("Cannot save cohort with null acronym");
       return; // should never happen!
     }
-    const template_dto = this.cohortService.getCohortDto();
-    if (template_dto == null) {
+    const cohortDto = this.cohortService.getCohortDto();
+    if (cohortDto == null) {
       alert("Cannot save null cohort (template_dto is null");
       return; // should never happen!
     }
     
-    this.configService.saveCohort(template_dto);
+    this.configService.saveCohort(cohortDto);
+    this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     
   }
 
