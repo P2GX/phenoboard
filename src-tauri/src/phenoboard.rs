@@ -137,12 +137,18 @@ impl PhenoboardSingleton {
     /// 
     /// * Returns
     /// - Ok(()) if successful, list of errors (strings) otherwise
-    pub fn load_excel_template(
+    pub fn load_excel_template<F>(
         &mut self, 
         excel_file: &str,
-        fix_errors: bool) -> Result<CohortDto, String> {
+        fix_errors: bool,
+         progress_cb: F) 
+    -> Result<CohortDto, String> 
+    where F: FnMut(u32, u32) {
         match self.phetools.as_mut() {
-            Some(ptools) => match ptools.load_excel_template(excel_file, fix_errors) {
+            Some(ptools) => match ptools.load_excel_template(
+                excel_file, 
+                fix_errors,
+                progress_cb) {
                 Ok(dto) => {
                     self.pt_template_path = Some(excel_file.to_string());
                     let project_dir = Self::get_grandparent_dir(excel_file);
@@ -438,7 +444,7 @@ impl PhenoboardSingleton {
         &mut self,
         individual_dto: IndividualDto, 
         hpo_annotations: Vec<HpoTermDto>,
-        gene_variant_list: Vec<GeneVariantDto>,
+        variant_key_list: Vec<String>,
         cohort_dto: CohortDto) 
     -> std::result::Result<CohortDto, String> {
         match self.phetools.as_mut() {
@@ -446,7 +452,7 @@ impl PhenoboardSingleton {
                 let updated_dto = ptools.add_new_row_to_cohort(
                     individual_dto, 
                     hpo_annotations, 
-                    gene_variant_list, 
+                    variant_key_list,
                     cohort_dto)?;
                 Ok(updated_dto)
             },
@@ -472,7 +478,7 @@ impl PhenoboardSingleton {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
-                let dgdto = phetools.create_pyphetools_template_from_seeds(
+                let dgdto = phetools.create_cohort_dto_from_seeds(
                     template_type,
                     dto,
                     directory,
@@ -559,33 +565,42 @@ impl PhenoboardSingleton {
     -> Result<CohortDto, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
-                ptools.validate_all_variants(cohort_dto)
+                //ptools.validate_all_variants(cohort_dto)
+                Err(vec![format!("validate_all_variants- refactor")])
             },
             None => Err(vec![format!("phetools not initialized")]),
         }
     }
 
+    /// Validate an HGVS variant using VariantValidator; first check if the identical variant
+    /// is present in the CohortDto object
     pub fn validate_hgvs_variant(
         &self,
-        vv_dto: VariantValidationDto
+        vv_dto: VariantValidationDto,
+        cohort_dto: CohortDto
     ) -> Result<HgvsVariant, String> {
         match self.phetools.as_ref() {
-            Some(ptools) => ptools.validate_hgvs_variant(vv_dto),
+            Some(ptools) => ptools.validate_hgvs_variant(vv_dto, cohort_dto),
             None =>  Err(format!("phetools not initialized")),
         }
     }
 
+     /// Validate a structural variant using VariantValidator; first check if the identical variant
+    /// is present in the CohortDto object
      pub fn validate_structural_variant(
         &self,
-        vv_dto: VariantValidationDto
+        vv_dto: VariantValidationDto,
+        cohort_dto: CohortDto
     ) -> Result<StructuralVariant, String> {
         match self.phetools.as_ref() {
-            Some(ptools) => ptools.validate_structural_variant(vv_dto),
+            Some(ptools) => ptools.validate_structural_variant(vv_dto, cohort_dto),
             None =>  Err(format!("phetools not initialized")),
         }
     }
 
-    pub fn load_external_excel(&mut self, external_excel_file: &str, row_based: bool) 
+    pub fn load_external_excel(
+        &mut self, external_excel_file: &str, 
+        row_based: bool) 
     -> Result<ColumnTableDto, String> {
         match self.phetools.as_mut() {
             Some(phetools) => phetools.load_external_excel(external_excel_file, row_based),

@@ -13,7 +13,7 @@ use std::{fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -129,7 +129,9 @@ async fn load_phetools_excel_template(
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                match singleton.load_excel_template(&path_str, fix_errors) {
+                match singleton.load_excel_template(&path_str, fix_errors,|p, q|{
+                    let _ = app_handle.emit("progress", ProgressDto::new(p, q));
+                }) {
                     Ok(dto) => {
                         let status = singleton.get_status();
                         let _ = app_handle.emit("backend_status", &status);
@@ -358,7 +360,7 @@ fn add_new_row_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     individual_dto: IndividualDto, 
     hpo_annotations: Vec<HpoTermDto>,
-    gene_variant_list: Vec<GeneVariantDto>,
+    variant_key_list: Vec<String>,
     cohort_dto: CohortDto) 
 -> Result<CohortDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -366,7 +368,7 @@ fn add_new_row_to_cohort(
     let updated_template = singleton.add_new_row_to_cohort(
         individual_dto, 
         hpo_annotations, 
-        gene_variant_list,
+        variant_key_list,
         cohort_dto)?;
     println!("rust, add_new_row: {:?}", updated_template);
     Ok(updated_template)
@@ -387,22 +389,24 @@ fn validate_all_variants(
 #[tauri::command]
 fn validate_hgvs_variant(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantValidationDto)
+    dto: VariantValidationDto,
+    cohort_dto: CohortDto)
 -> Result<HgvsVariant, String> {
   let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_hgvs_variant(dto) 
+    singleton.validate_hgvs_variant(dto, cohort_dto) 
 }
 
 
 #[tauri::command]
 fn validate_structural_variant(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantValidationDto)
+    dto: VariantValidationDto,
+    cohort_dto: CohortDto)
 -> Result<StructuralVariant, String> {
   let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_structural_variant(dto) 
+    singleton.validate_structural_variant(dto, cohort_dto) 
 }
 
 

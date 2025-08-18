@@ -98,7 +98,12 @@ export class AddVariantComponent {
   }
 
   /** This function is called if the user has entered data about a structural variant and
-   * clicks on the "Submit SV" button. If successful, the variant currentStructuralVariant is initialized.
+   * clicks on the "Submit SV" button. We send the current cohortDto to the backend so that
+   * the backend calculates the variantKey and sees if we have already validated this variant,
+   * in which case, we return a copy of it. Otherwise, the backend creates a new variant.
+   * In either case, when the user activates addVariantToPpkt the new variant will be stored
+   * in the HashMap. This function itself only initializes the variant currentStructuralVariant,
+   * so that the user can cancel the variant for whatever reason.
    */
   async submitSvDto(): Promise<void> {
     if (!this.variant_string || !this.selectedGene || !this.selectedStructuralType) {
@@ -114,7 +119,13 @@ export class AddVariantComponent {
       geneSymbol:this.selectedGene.geneSymbol,
       validationType: "SV"
     };
-    this.configService.validateSv(vv_dto)
+    const cohortDto = this.templateService.getCohortDto();
+    if (cohortDto == null) {
+      // should never happen
+      console.error("Attempt to validate HGVS with null cohortDto");
+      return;
+    }
+    this.configService.validateSv(vv_dto, cohortDto)
         .then((sv) => {
           console.log("Adding sv", sv);
           this.currentStructuralVariant = sv;
@@ -128,8 +139,9 @@ export class AddVariantComponent {
 
   /** This is called when the user has finished entering an HGVS variant 
    * and clicks on the "Submit HGVS" button. If we are successful, the methods
-   * sets the currentHgvsVariant variable. The user then needs to click on the
-   *  */
+   * sets the currentHgvsVariant variable. See also submitSvDto for information
+   * on how the variants are processed.
+   */
   async submitHgvsDto(): Promise<void> {
     console.log("submitHgvsDto line 113, variant=", this.variant_string)
     if (!this.variant_string || !this.selectedGene) {
@@ -145,7 +157,13 @@ export class AddVariantComponent {
       geneSymbol:this.selectedGene.geneSymbol,
       validationType: "HGVS"
     };
-    this.configService.validateHgvs(vv_dto)
+    const cohortDto = this.templateService.getCohortDto();
+    if (cohortDto == null) {
+      // should never happen
+      console.error("Attempt to validate HGVS with null cohortDto");
+      return;
+    }
+    this.configService.validateHgvs(vv_dto, cohortDto)
         .then((hgvs) => {
           console.log("adding hgvs", hgvs);
           this.currentHgvsVariant = hgvs;

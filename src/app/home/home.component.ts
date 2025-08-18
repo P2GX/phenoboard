@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
-import { CommonModule, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
@@ -11,11 +11,12 @@ import { CohortDto } from '../models/cohort_dto';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgIf],
+  imports: [CommonModule, MatProgressBarModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -49,7 +50,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   pendingHpoNterms: string | null = null;
 
   errorMessage: string | null = null;
-
+  progressValue = 0;
+  isRunning = false;
 
 
   override async ngOnInit() {
@@ -71,6 +73,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       this.hpoMessage = null;
       this.errorMessage = '';
       this.hpoMessage = "loading ...";
+    });
+    await listen<{ current: number; total: number }>('progress', (event) => {
+      const { current, total } = event.payload;
+      this.progressValue = Math.round((current / total) * 100);
     });
     this.statusSubscription = this.backendStatusService.status$.subscribe(
       status => this.status = status
@@ -135,7 +141,9 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   async chooseExistingTemplateFile() {
     this.errorMessage = null;
     try {
+      this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate();
+       this.isRunning = false;
       if (data == null) {
         this.errorMessage = "Could not retrieve template (null error)"
         return;

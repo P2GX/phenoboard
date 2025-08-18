@@ -48,18 +48,6 @@ export class CohortDtoService {
         return dto.cohortAcronym;
     }
 
-    /** We make keys from parts of the variants. This function ensures that we remove leading/trailing
-     * whitespace, replace internal whitespace with underscores, strip non-alphanumeric characters except - and _,
-     * and connect the parts with underscore.
-     */
-    makeSafeKey(...parts: string[]): string {
-        return parts
-            .map(p => p.trim())           
-            .map(p => p.replace(/\s+/g, "_")) 
-            .map(p => p.replace(/[^a-zA-Z0-9_-]/g, "")) 
-            .join("_");       
-    }
-
     /** Add an HGVS object that has been validated in the backend */
     addHgvsVariant(hgvs: HgvsVariant) {
         const current = this.cohortDtoSubject.value;
@@ -67,7 +55,7 @@ export class CohortDtoService {
             alert("No CohortDto available to update");
             return;
         }
-        const key = this.makeSafeKey(hgvs.hgvs, hgvs.symbol, hgvs.transcript);
+        const key = hgvs.variantKey;
         // Create a new object so we don't mutate the existing one directly
         const updated: CohortDto = {
             ...current,
@@ -86,7 +74,7 @@ export class CohortDtoService {
             alert("No CohortDto available to update");
             return;
         }
-        const key = this.makeSafeKey(sv.label, sv.geneSymbol, sv. svType);
+        const key = sv.variantKey;
         const updated: CohortDto = {
             ...current,
             structuralVariants: {

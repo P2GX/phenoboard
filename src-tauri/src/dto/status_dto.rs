@@ -33,3 +33,16 @@ impl Default for StatusDto {
         }
     }
 }
+
+
+#[derive(Clone, Copy, Serialize)]
+pub struct ProgressDto {
+    current: u32,
+    total: u32,
+}
+
+impl ProgressDto {
+    pub fn new(current: u32, total: u32) -> Self {
+        Self { current, total }
+    }
+}

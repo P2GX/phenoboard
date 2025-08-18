@@ -140,12 +140,12 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
-  async validateHgvs(dto: VariantValidationDto): Promise<HgvsVariant> {
-    return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto})
+  async validateHgvs(dto: VariantValidationDto, cohort_dto: CohortDto): Promise<HgvsVariant> {
+    return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto, cohortDto: cohort_dto})
   }
 
-  async validateSv(dto: VariantValidationDto): Promise<StructuralVariant> {
-    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto})
+  async validateSv(dto: VariantValidationDto, cohort_dto: CohortDto): Promise<StructuralVariant> {
+    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto})
   }
   
 

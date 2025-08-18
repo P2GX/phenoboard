@@ -60,6 +60,7 @@ export interface HgvsVariant {
   transcript: string;
   gHgvs: string;
   variantId: string;
+  variantKey: string;
 }
 
 /** 
@@ -79,19 +80,7 @@ export interface StructuralVariant {
   hgncId: string;
   svType: SvType;
   chromosome: string;
-}
-
-
-function variantKeyHgvs(v: HgvsVariant): string {
-  return `${v.hgvs}_${v.symbol}_${v.transcript}`;
-}
-
-export function variantKeySv(sv: StructuralVariant): string {
-  const cleanLabel = sv.label
-    .split("")
-    .map(c => /[a-zA-Z0-9]/.test(c) ? c : "_")
-    .join("");
-  return `${sv.geneSymbol}_${sv.svType}_${cleanLabel}`;
+  variantKey: string
 }
 
 
@@ -116,7 +105,7 @@ export interface VariantDisplayDto {
 export function displayHgvs(hgvs: HgvsVariant, validated: boolean): VariantDisplayDto {
   const vdd: VariantDisplayDto = {
     variantString: hgvs.hgvs,
-    variantKey: variantKeyHgvs(hgvs),
+    variantKey: hgvs.variantKey,
     geneSymbol: hgvs.symbol,
     transcript: hgvs.transcript,
     hgncId: hgvs.hgncId,
@@ -130,7 +119,7 @@ export function displayHgvs(hgvs: HgvsVariant, validated: boolean): VariantDispl
 export function displaySv(sv: StructuralVariant, validated: boolean): VariantDisplayDto {
   const vdd: VariantDisplayDto = {
     variantString: sv.label,
-    variantKey: variantKeySv(sv),
+    variantKey: sv.variantKey,
     geneSymbol: sv.geneSymbol,
     transcript: "TODO",
     hgncId: sv.hgncId,

@@ -24,7 +24,11 @@
     </div>
     </div>
     <span [ngClass]="{'text-red-600': hpoMessage === 'loading ...'}"
-      class="text-sm text-gray-500 italic">{{ hpoMessage }} <span *ngIf="status.hpoLoaded">  ({{ status.nHpoTerms }} terms)</span>
+      class="text-sm text-gray-500 italic">
+      {{ hpoMessage }}
+      @if (status.hpoLoaded) {
+        <span>({{ status.nHpoTerms }} terms)</span>
+      }
     </span>
 </div>
 
@@ -32,7 +36,7 @@
   <div class="relative group">
     <button
       (click)="chooseExistingTemplateFile()"
-      [disabled]="!status.hpoLoaded || status.newCohort"
+      [disabled]="!status.hpoLoaded"
       class="btn-outline-primary w-[300px]"
     >
       {{ ptTemplateLoaded ? 'Update phetools template file' : 'Select phetools template file' }}
@@ -47,13 +51,19 @@
   </div>
 
   <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
+  @if (isRunning){
+    <div style="margin-top: 20px;">
+      <mat-progress-bar mode="determinate" [value]="progressValue"></mat-progress-bar>
+      <p>{{ progressValue }} %</p>
+    </div>
+  }
 </div>
 
 <div class="flex items-center gap-3">
   <div class="relative group">
     <button
         (click)="createNewPhetoolsTemplate()"
-        [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
+        [disabled]="!status.hpoLoaded"
         class="btn-outline-primary w-[300px]"
     >Create new template
     </button>
@@ -72,7 +82,6 @@
   <div class="relative group">
     <button
         (click)="setBiocuratorOrcid()"
-        [disabled]="!status.hpoLoaded || status.ptTemplateLoaded"
         class="btn-outline-primary w-[300px]"
     >Set biocurator ORCID
     </button>
@@ -80,7 +89,7 @@
     <div
       class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
     >
-      Set the researcher identifier (ORCID) (enabled after HPO is loaded)
+      Set the researcher identifier (ORCID)
     </div>
     </div>
     <span class="text-sm text-gray-500 italic">{{ biocuratorOrcid }}</span>
@@ -90,8 +99,8 @@
 </div>
 </div>
 
-<div class="error-container" *ngIf="errorMessage">
+@if (errorMessage){
   <div class="error-message">
     {{ errorMessage }}
   </div>
-</div>
+}

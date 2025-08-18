@@ -16,9 +16,10 @@ import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
-import { VariantDisplayDto, VariantValidationDto } from '../models/variant_dto';
+import { VariantDisplayDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
+import { Router } from '@angular/router';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -37,7 +38,8 @@ export class AddcaseComponent {
     private configService: ConfigService,
     public ageService: AgeInputService,
     private cohortService: CohortDtoService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
   @ViewChild(PubmedComponent) pubmedComponent!: PubmedComponent;
@@ -158,10 +160,8 @@ export class AddcaseComponent {
         return;
       }
       const cohort_dto = this.cohortService.getCohortDto();
-      console.log("submitNewRow - previous", cohort_dto);
       if (cohort_dto != null) {
         try {
-          console.log("addNewRowToCohort", cohort_dto);
           const updated_dto: CohortDto = await this.configService.addNewRowToCohort(
               individual_dto, 
               hpoAnnotations, 
@@ -178,6 +178,8 @@ export class AddcaseComponent {
         alert("Attempt to add new row with null template_dto")
       }
       this.resetAllInputVars();
+      /* After creating a new row, we jump to the template editor component. */
+     await this.router.navigate(['/newtemplate']);
   }
 
   private handleBackendStatus(payload: unknown): void {
