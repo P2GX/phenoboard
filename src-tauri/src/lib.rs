@@ -91,6 +91,7 @@ fn load_hpo(
         let mut singleton = phenoboard_arc.lock().unwrap(); 
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
+               
                 let _ = app.emit("loadedHPO", "loading");
                 match ontology_loader::load_ontology(file) {
                     Ok(ontology) => {

@@ -1,11 +1,5 @@
 @let cohort = (cohortDto$ | async);
-@if (cohort) {
-  <p><span>✅</span> Template loaded in component with {{ cohort.rows.length }} rows.</p>
-  <pre>{{ cohort | json }}</pre>
-  <p>END</p>
-} @else {
-  <p><span>❌</span> Template NOT LOADED.</p>
-}
+
 <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
   <!-- Title and description of cohort -->
   @if (cohortDescription) {

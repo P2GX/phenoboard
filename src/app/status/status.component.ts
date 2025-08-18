@@ -17,21 +17,19 @@ import { MatIconModule } from "@angular/material/icon";
 export class StatusComponent implements OnInit {
 
   constructor(private configService: ConfigService, 
-    private templateService: CohortDtoService,
+    private cohortService: CohortDtoService,
     private etl_service: EtlSessionService,
   ) {
-  
   }
+  cohortDto$ = this.cohortService.cohortDto$;
 
   
   diseaseGeneDto: DiseaseGeneDto | null = null;
-  templateDto: CohortDto | null = null;
-
+  showJson = false;
 
 
   ngOnInit(): void {
-    this.diseaseGeneDto = this.templateService.getDiseaseGeneDto();
-    this.templateDto = this.templateService.getCohortDto();
+    this.diseaseGeneDto = this.cohortService.getDiseaseGeneDto();
   }
 
 
@@ -61,20 +59,8 @@ export class StatusComponent implements OnInit {
     return null;
   }
 
-  get phenopacketCount(): number {
-    if (this.templateDto != null) {
-      return this.templateDto.rows.length;
-    }
-    return 0;
-  }
-
-  get hpoTermCount(): number {
-    if (this.templateDto != null) {
-      return this.templateDto.hpoHeaders.length;
-    }
-
-    return 0;
-  }
+  
+  
   
 
 }
