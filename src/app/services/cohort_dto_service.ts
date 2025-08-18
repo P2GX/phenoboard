@@ -85,6 +85,25 @@ export class CohortDtoService {
         this.cohortDtoSubject.next(updated);
     }
 
+    /** Update the disease cohort acronym, e.g., MFS for Marfan syndrome.
+     * This can be useful to set the acronym when we are importing from 
+     * a legacy excel file (which does not have a field for disease aronym).
+     */
+    async setCohortAcronym(acronym: string) {
+        const current = this.cohortDtoSubject.value;
+        if (!current) {
+            alert("No CohortDto available to update");
+            return;
+        }
+        const updated: CohortDto = {
+            ...current,
+            diseaseGeneDto: {
+            ...current.diseaseGeneDto,
+            cohortAcronym: acronym
+            }
+        };
+        this.cohortDtoSubject.next(updated);
+    }
 
     async saveCohortDto(): Promise<void> {
         const cohort = this.getCohortDto();

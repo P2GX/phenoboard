@@ -149,6 +149,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         return;
       }
       this.cohortService.setCohortDto(data);
+      this.router.navigate(['/pttemplate']);
       } catch (error: any) {
         this.errorMessage = String(error);
         console.error('Template load failed:', error);

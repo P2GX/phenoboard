@@ -187,11 +187,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  generateCohortDescriptionDto(tableData: CohortDto | null): CohortDescriptionDto | null {
-    if (tableData == null) {
+  generateCohortDescriptionDto(cohortDto: CohortDto | null): CohortDescriptionDto | null {
+    if (cohortDto == null) {
       return null;
     }
-    const row = tableData.rows[0];
+    const row = cohortDto.rows[0];
     const disease = row?.diseaseDtoList?.[0];
     const gene = row?.geneVarDtoList?.[0];
 
@@ -203,9 +203,9 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
     return {
-      cohortType: tableData.cohortType,
-      numIndividuals: tableData.rows.length,
-      numHpos: tableData.hpoHeaders.length,
+      cohortType: cohortDto.cohortType,
+      numIndividuals: cohortDto.rows.length,
+      numHpos: cohortDto.hpoHeaders.length,
       diseaseLabel: disease?.diseaseLabel || 'N/A',
       diseaseId: diseaseId,
       diseaseDatabase,
@@ -393,5 +393,24 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   isHovered(category: string, rowIndex: number, itemIndex: number): boolean {
     return !!this.hoverState[`${category}-${rowIndex}-${itemIndex}`];
   }
+
+
+
+
+showCohortAcronym = false;
+
+
+// Add these methods
+submitCohortAcronym(acronym: string) {
+  if (acronym.trim()) {
+    // Handle the submitted string here
+    this.cohortService.setCohortAcronym(acronym.trim());
+    this.showCohortAcronym = false;
+  }
+}
+
+cancelCohortAcronym() {
+  this.showCohortAcronym = false;
+}
 
 }
