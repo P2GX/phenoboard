@@ -5,7 +5,7 @@ import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto } from '../models/cohort_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
-import { HgvsVariant, StructuralVariant, VariantValidationDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantAnalysis, VariantValidationDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
 
 
@@ -228,6 +228,13 @@ export class ConfigService {
   async saveCurrentOrcid(orcid: string): Promise<void> {
     return await invoke('save_biocurator_orcid',{
       orcid
+    });
+  }
+
+  /** This is called by the initialize of the VariantList component to show the variants that have been validated or that still need validation */
+  async getVariantAnalysis(cohort: CohortDto): Promise<VariantAnalysis[]> {
+    return await invoke<VariantAnalysis[]>('get_variant_analysis', {
+      cohortDto: cohort
     });
   }
 

@@ -1,46 +1,45 @@
 <div class="primary-box">
 <h1 class="h1-primary">Variant Validation</h1>
-
-<div *ngIf="variantListDto.length > 0">
-  <table class="min-w-full border mt-4 text-sm">
-    <thead>
-      <tr class="bg-gray-100">
-        <th class="px-4 py-2 text-left">Gene</th>
-        <th class="px-4 py-2 text-left">Variant</th>
-        <th class="px-4 py-2 text-left">Transcript</th>
-        <th class="px-4 py-2 text-left">HGNC ID</th>
-        <th class="px-4 py-2 text-left">Type</th>
-        <th class="px-4 py-2 text-left">Validated</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (variant of variantListDto; track variant.variantString) {
-      <tr class="border-t">
-        <td class="px-4 py-1">{{ variant.geneSymbol }}</td>
-        <td class="px-4 py-1">{{ variant.variantString }}</td>
-        <td class="px-4 py-1">{{ variant.transcript || 'n/a' }}</td>
-        <td class="px-4 py-1">{{ variant.hgncId }}</td>
-        <td class="px-4 py-1">
-          {{ variant.validationType =="HGVS" ? 'HGVS' : 'Structural' }}
-        </td>
-        <td class="px-4 py-1">
-          <span
-            class="inline-block w-2.5 h-2.5 rounded-full mr-1"
-          ></span>
-          {{ variant != null ? 'TODO' : 'TODO' }}
-        </td>
+<table class="table-auto border-collapse border border-gray-400 w-full">
+  <thead>
+    <tr>
+      <th class="border border-gray-400 px-4 py-2">Variant String</th>
+      <th class="border border-gray-400 px-4 py-2">Variant Key</th>
+      <th class="border border-gray-400 px-4 py-2">Count</th>
+       <th class="border border-gray-400 px-4 py-2">HGVS?</th>
+      <th class="border border-gray-400 px-4 py-2">Validated?</th>
+      <th class="border border-gray-400 px-4 py-2">validate</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (v of variantAnalysisList; track v.variantKey) {
+      <tr>
+        <td class="border border-gray-400 px-4 py-2">{{ v.variantString }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ v.variantKey }}</td>
+         <td class="border border-gray-400 px-4 py-2">{{ v.count }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ v.isHgvs ? 'Yes' : 'No' }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ v.isValidated ? '✅' : '❌' }}</td>
+        <button
+          class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+          (click)="validateVariant(v)"
+        >
+          Validate
+        </button>
       </tr>
     }
-    </tbody>
-  </table>
-</div>
+  </tbody>
+</table>
 
-<div *ngIf="errorMessage==null && variantListDto.length == 0">
+@if (! errorMessage && variantAnalysisList.length == 0) {
   <p class="text-gray-400 mt-2">No variants available.</p>
+}
+
+@if ( errorMessage) {
+<p class="text-red-400 mt-2">Error: {{errorMessage}}</p>
+}
+
+
 </div>
 
-<div *ngIf="errorMessage">
-  <p class="text-red-400 mt-2">Error: {{errorMessage}}</p>
-</div>
 
-</div>
+

@@ -11,39 +11,58 @@ export interface StructuralType {
  * of structural variant with precise positions (not implemented yet), and the others are symbolic
  * structural variants such as DEL Ex 5-8
  */
-export type VariantValidationType =
-  | 'HGVS'
-  | 'DEL'
-  | 'INV'
-  | 'TRANSL'
-  | 'DUP'
-  | 'SV'
-  | 'PRECISE_SV';
+export type VariantType =
+  | "HGVS"
+  | "DEL"
+  | "INV"
+  | "TRANSL"
+  | "DUP"
+  | "SV"
+  | "PRECISESV"
+  | "UNKNOWN";
 
-
-/**
- * A Data Transfer Object for information about a Variant that we want to validate.
+  /**
+ * Simple structure to combine some data about a variant we have validated or still need to 
+ * validate. The information is mainly use to display the status of a variant in the GUI. Note
+ * that the alleles inthe phenopacket use the vairantKey to extract the full information from 
+ * one of the two variant maps (for HGVS and SV). We do not persist this DTO, it is designed merely
+ * to simplify handling of data for display in the GUI.
  */
-export interface VariantValidationDto {
-    variantString: string,
-    transcript: string,
-    hgncId: string,
-    geneSymbol: string,
-    validationType: VariantValidationType
+
+export interface VariantDto {
+  /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
+  variantString: string;
+  /** Key to be used in the HashMap */
+  variantKey?: string | null;
+  /** transcript of reference for the gene of interest (usually MANE) with version number, e.g. NM_000123.2 */
+  transcript: string;
+  /** HUGO Gene Nomenclature Committee identifier, e.g., HGNC:123 */
+  hgncId: string;
+  /** Symbol recommended by HGNC, e.g. FBN1 */
+  geneSymbol: string;
+  /** type of variant category */
+  variantType: VariantType;
+  /** Was this variant validated in the backend? */
+  isValidated: boolean;
+  /** How many alleles were reported with this variant in the cohort? */
+  count: number;
 }
+
 
 export function createHgvsValidationDto(
     variantString: string,
     transcript: string,
     hgncId: string,
     geneSymbol: string,
-): VariantValidationDto {
+): VariantDto {
     return {
-        variantString,
-        transcript,
-        hgncId,
-        geneSymbol,
-        validationType: 'HGVS'
+      variantString,
+      transcript,
+      hgncId,
+      geneSymbol,
+      variantType: 'HGVS',
+      isValidated: false,
+      count: 0
     };
 }
 
@@ -84,47 +103,34 @@ export interface StructuralVariant {
 }
 
 
-/**
- * Simple structure to combine some data about a variant we have validated or still need to 
- * validate. The information is mainly use to display the status of a variant in the GUI. Note
- * that the alleles inthe phenopacket use the vairantKey to extract the full information from 
- * one of the two variant maps (for HGVS and SV). We do not persist this DTO, it is designed merely
- * to simplify handling of data for display in the GUI.
- */
-export interface VariantDisplayDto {
-  variantString: string,
-  variantKey: string,
-  geneSymbol: string,
-  transcript: string,
-  hgncId: string,
-  validated: boolean,
-  isHgvs: boolean,
-}
 
 
-export function displayHgvs(hgvs: HgvsVariant, validated: boolean): VariantDisplayDto {
-  const vdd: VariantDisplayDto = {
+
+export function displayHgvs(hgvs: HgvsVariant, validated: boolean): VariantDto {
+  const vdd: VariantDto = {
     variantString: hgvs.hgvs,
     variantKey: hgvs.variantKey,
     geneSymbol: hgvs.symbol,
     transcript: hgvs.transcript,
     hgncId: hgvs.hgncId,
-    validated: validated,
-    isHgvs: true
+    isValidated: validated,
+    count: 0,
+    variantType: "HGVS"
   };
   return vdd;
 }
 
 
-export function displaySv(sv: StructuralVariant, validated: boolean): VariantDisplayDto {
-  const vdd: VariantDisplayDto = {
+export function displaySv(sv: StructuralVariant, validated: boolean): VariantDto {
+  const vdd: VariantDto = {
     variantString: sv.label,
     variantKey: sv.variantKey,
     geneSymbol: sv.geneSymbol,
     transcript: "TODO",
     hgncId: sv.hgncId,
-    validated: validated,
-    isHgvs: false
+    isValidated: validated,
+    variantType: "SV",
+    count: 0
   };
   return vdd;
 }

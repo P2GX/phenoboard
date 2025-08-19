@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{cohort_dto::{CohortDto, DiseaseGeneDto, GeneVariantDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantValidationDto};
+use ga4ghphetools::dto::{cohort_dto::{CohortDto, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -52,6 +52,7 @@ pub fn run() {
             save_external_template_json,
             get_biocurator_orcid,
             save_biocurator_orcid,
+            get_variant_analysis,
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -390,7 +391,7 @@ fn validate_all_variants(
 #[tauri::command]
 fn validate_hgvs_variant(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantValidationDto,
+    dto: VariantDto,
     cohort_dto: CohortDto)
 -> Result<HgvsVariant, String> {
   let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -402,7 +403,7 @@ fn validate_hgvs_variant(
 #[tauri::command]
 fn validate_structural_variant(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantValidationDto,
+    dto: VariantDto,
     cohort_dto: CohortDto)
 -> Result<StructuralVariant, String> {
   let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -541,4 +542,13 @@ async fn save_biocurator_orcid(
     singleton.save_biocurator_orcid(orcid)
 }
 
+#[tauri::command]
+async fn get_variant_analysis(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort_dto: CohortDto
+) -> Result<Vec<VariantDto>, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = phenoboard_arc.lock().unwrap();
+    singleton.get_variant_analysis(cohort_dto)
+}
  

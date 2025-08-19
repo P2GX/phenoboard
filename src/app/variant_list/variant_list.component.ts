@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { VariantValidationDto } from '../models/variant_dto';
+import { VariantAnalysis, VariantValidationDto } from '../models/variant_dto';
 import { CohortDto } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 
@@ -22,6 +22,7 @@ import { TemplateBaseComponent } from '../templatebase/templatebase.component';
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+
   protected override onCohortDtoLoaded(template: CohortDto): void {
     throw new Error('Method not implemented.');
   }
@@ -34,15 +35,18 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
     }
 
   errorMessage: string | null = null;
-  variantListDto: VariantValidationDto[] | [] = [];
-  tableData: CohortDto | null = null;
+  variantAnalysisList: VariantAnalysis[] | [] = [];
+  cohortDto: CohortDto | null = null;
 
   override async ngOnInit() {
     super.ngOnInit();
 
     const variant_dtos = this.cohortService.getVariantDtos();
     try {
-      this.variantListDto = await this.configService.validateVariantDtoList(variant_dtos);
+      const cohort = this.cohortService.getCohortDto();
+      if (cohort != null) {
+        this.variantAnalysisList = await this.configService.getVariantAnalysis(cohort);
+      }
     } catch (err) {
       this.errorMessage = String(err);
     }
@@ -52,8 +56,12 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
 
-
-
+  /** The user clicks on the button to validate a single variant. We therefore send the variant to the back end, where the resulting
+   * validated variant is added back to the CohortDto. If successful, we update the cohort Dto in the backend and update it in our service
+   */
+  validateVariant(vana: VariantAnalysis) {
+    throw new Error('Method not implemented.');
+  }
     
 }
 

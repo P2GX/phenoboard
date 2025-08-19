@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortDto, DiseaseGeneDto, GeneVariantDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantValidationDto}, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortDto, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -572,11 +572,12 @@ impl PhenoboardSingleton {
         }
     }
 
+
     /// Validate an HGVS variant using VariantValidator; first check if the identical variant
     /// is present in the CohortDto object
     pub fn validate_hgvs_variant(
         &self,
-        vv_dto: VariantValidationDto,
+        vv_dto: VariantDto,
         cohort_dto: CohortDto
     ) -> Result<HgvsVariant, String> {
         match self.phetools.as_ref() {
@@ -589,7 +590,7 @@ impl PhenoboardSingleton {
     /// is present in the CohortDto object
      pub fn validate_structural_variant(
         &self,
-        vv_dto: VariantValidationDto,
+        vv_dto: VariantDto,
         cohort_dto: CohortDto
     ) -> Result<StructuralVariant, String> {
         match self.phetools.as_ref() {
@@ -623,6 +624,17 @@ impl PhenoboardSingleton {
     pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<(), String> {
         self.settings.save_biocurator_orcid(orcid)
     }
+
+    pub fn get_variant_analysis(
+        &self,
+        cohort_dto: CohortDto
+    ) -> Result<Vec<VariantDto>, String> {
+        match &self.phetools {
+            Some(ptools) => ptools.analyze_variants(cohort_dto),
+            None => Err("Phetools not initialized".to_string()),
+        }
+}
+ 
 
 
 }
