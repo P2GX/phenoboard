@@ -5,7 +5,7 @@ import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto } from '../models/cohort_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
-import { HgvsVariant, StructuralVariant, VariantAnalysis, VariantValidationDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
 
 
@@ -140,11 +140,11 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
-  async validateHgvs(dto: VariantValidationDto, cohort_dto: CohortDto): Promise<HgvsVariant> {
+  async validateHgvs(dto: VariantDto, cohort_dto: CohortDto): Promise<HgvsVariant> {
     return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto, cohortDto: cohort_dto})
   }
 
-  async validateSv(dto: VariantValidationDto, cohort_dto: CohortDto): Promise<StructuralVariant> {
+  async validateSv(dto: VariantDto, cohort_dto: CohortDto): Promise<StructuralVariant> {
     return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto})
   }
   
@@ -191,8 +191,8 @@ export class ConfigService {
    * @param variantList: Variants derived from the template in the frontend
    * @returns List of the same variants, with the validated flag set to true if validations was 
    */
-  async validateVariantDtoList(variantList: VariantValidationDto[]): Promise<VariantValidationDto[]> {
-    return invoke<VariantValidationDto[]>('validate_variant_list_dto', {
+  async validateVariantDtoList(variantList: VariantDto[]): Promise<VariantDto[]> {
+    return invoke<VariantDto[]>('validate_variant_list_dto', {
         variantDtoList: variantList
     });
   }
@@ -232,8 +232,8 @@ export class ConfigService {
   }
 
   /** This is called by the initialize of the VariantList component to show the variants that have been validated or that still need validation */
-  async getVariantAnalysis(cohort: CohortDto): Promise<VariantAnalysis[]> {
-    return await invoke<VariantAnalysis[]>('get_variant_analysis', {
+  async getVariantAnalysis(cohort: CohortDto): Promise<VariantDto[]> {
+    return await invoke<VariantDto[]>('get_variant_analysis', {
       cohortDto: cohort
     });
   }

@@ -3,58 +3,73 @@
 <mat-dialog-content>
     <form [formGroup]="form">
         <mat-form-field appearance="fill" class="w-full">
-        <mat-label>HGNC Id</mat-label>
-        <input matInput formControlName="hgncId" (blur)="hgncIdTouched = true" />
-        <mat-error *ngIf="form.get('hgncId')?.hasError('required') && hgncIdTouched">
-            HGNC ID is required
-        </mat-error>
-        <mat-error *ngIf="form.get('hgncId')?.hasError('whitespace') && hgncIdTouched">
-            Leading or trailing whitespace is not allowed
-        </mat-error>
+            <mat-label>HGNC Id</mat-label>
+            <input matInput formControlName="hgncId" />
+            @if (form.get('hgncId')?.hasError('required') && form.get('hgncId')?.touched) {
+                <mat-error>HGNC ID is required</mat-error>
+            }
+            @if (form.get('hgncId')?.hasError('whitespace') && form.get('hgncId')?.touched) {
+                <mat-error>Leading or trailing whitespace is not allowed</mat-error>
+            }
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Gene symbol</mat-label>
+            <input matInput formControlName="geneSymbol"/>
+            @if(form.get('geneSymbol')?.hasError('required') && form.get('geneSymbol')?.touched){
+                <mat-error>
+                    Gene symbol is required
+                </mat-error>
+            }
+            @if(form.get('geneSymbol')?.hasError('whitespace') && form.get('geneSymbol')?.touched){
+                <mat-error>
+                    Leading or trailing whitespace is not allowed
+                </mat-error>
+            }
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Gene symbol</mat-label>
-        <input matInput formControlName="geneSymbol"/>
-        <mat-error *ngIf="form.get('geneSymbol')?.hasError('required')">
-            Gene symbol is required
-        </mat-error>
-        <mat-error *ngIf="form.get('geneSymbol')?.hasError('whitespace')">
-            Leading or trailing whitespace is not allowed
-        </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Transcript</mat-label>
-        <input matInput formControlName="transcript"/>
-        <mat-error *ngIf="form.get('transcript')?.hasError('required')">
-            Transcript is required
-        </mat-error>
-        <mat-error *ngIf="form.get('transcript')?.hasError('whitespace')">
-            Leading or trailing whitespace is not allowed
-        </mat-error>
+            <mat-label>Transcript</mat-label>
+            <input matInput formControlName="transcript"/>
+            @if(form.get('transcript')?.hasError('required') && form.get('transcript')?.touched){
+                <mat-error>
+                    Transcript is required
+                </mat-error>
+            }
+            @if (form.get('transcript')?.hasError('whitespace') && form.get('transcript')?.touched) {
+                <mat-error>
+                    Leading or trailing whitespace is not allowed
+                </mat-error>
+            }
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">
         <mat-label>Allele 1</mat-label>
         <input matInput formControlName="allele1"/>
-        <mat-error *ngIf="form.get('allele1')?.hasError('required')">
-            Allele 1 is required
-        </mat-error>
-        <mat-error *ngIf="form.get('allele1')?.hasError('whitespace')">
-            Leading or trailing whitespace is not allowed
-        </mat-error>
+        @if (form.get('allele1')?.hasError('required') && form.get('allele1')?.touched) {
+            <mat-error>
+                Allele 1 is required
+            </mat-error>
+        }
+        @if(form.get('allele1')?.hasError('whitespace')) {
+            <mat-error>
+                Leading or trailing whitespace is not allowed
+            </mat-error>
+        }
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">
         <mat-label>Allele 2</mat-label>
         <input matInput formControlName="allele1"/>
-        <mat-error *ngIf="form.get('allele2')?.hasError('required')">
-            Allele 2 is required
-        </mat-error>
-        <mat-error *ngIf="form.get('allele2')?.hasError('whitespace')">
-            Leading or trailing whitespace is not allowed
-        </mat-error>
+        @if (form.get('allele2')?.hasError('required') && form.get('allele2')?.touched) {
+            <mat-error>
+                Allele 2 is required
+            </mat-error>
+        }
+        @if(form.get('allele2')?.hasError('whitespace')) {
+            <mat-error>
+                Leading or trailing whitespace is not allowed
+            </mat-error>
+        }
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">

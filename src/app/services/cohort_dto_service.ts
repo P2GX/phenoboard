@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { DiseaseGeneDto, CohortDto, GeneTranscriptDto } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
-import { HgvsVariant, StructuralVariant, VariantValidationDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
 
 /**
@@ -132,7 +132,7 @@ export class CohortDtoService {
 
 
     /** Return a list of all variant strings for structural variants */
-    getVariantDtos(): VariantValidationDto[] {
+    getVariantDtos(): VariantDto[] {
        /*
         const template = this.getCohortDto();
         const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
@@ -140,7 +140,7 @@ export class CohortDtoService {
             return [];
         }
         const seen = new Set<string>();
-        const dto_list: VariantValidationDto[] = [];
+        const dto_list: VariantDto[] = [];
 
         for (const row of template.rows) {
             for (const geneVar of row.geneVarDtoList) {

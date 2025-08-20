@@ -16,7 +16,7 @@ import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
-import { VariantDisplayDto } from '../models/variant_dto';
+import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
@@ -60,8 +60,8 @@ export class AddcaseComponent {
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
 
-  allele1: VariantDisplayDto | null = null;
-  allele2: VariantDisplayDto | null = null;
+  allele1: VariantDto | null = null;
+  allele2: VariantDto | null = null;
 
   tableData: CohortDto | null = null;
   demographData: DemographDto | null = null;
@@ -407,7 +407,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((result: VariantDisplayDto | undefined) => {
+    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
       if (result) {
         this.allele1 = result;
         console.log('allele1 added:', result);
@@ -422,7 +422,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((result: VariantDisplayDto | undefined) => {
+    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
       if (result) {
         this.allele2 = result;
         console.log('Variant added:', result);

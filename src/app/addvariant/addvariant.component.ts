@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
-import { HgvsVariant, StructuralType, StructuralVariant, VariantDisplayDto, displaySv, displayHgvs, VariantValidationDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs } from '../models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { GeneTranscriptDto } from '../models/cohort_dto';
 
@@ -36,7 +36,7 @@ export class AddVariantComponent {
   constructor(
     private configService: ConfigService, 
     private templateService: CohortDtoService,
-    private dialogRef: MatDialogRef<AddVariantComponent, VariantDisplayDto | null>
+    private dialogRef: MatDialogRef<AddVariantComponent, VariantDto | null>
   ){}
   
   async ngOnInit(): Promise<void> {
@@ -112,12 +112,14 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const vv_dto: VariantValidationDto = {
+    const vv_dto: VariantDto = {
       variantString: this.variant_string,
       transcript: this.selectedGene.transcript,
       hgncId: this.selectedGene.hgncId,
-      geneSymbol:this.selectedGene.geneSymbol,
-      validationType: "SV"
+      geneSymbol: this.selectedGene.geneSymbol,
+      variantType: "SV",
+      isValidated: false,
+      count: 0
     };
     const cohortDto = this.templateService.getCohortDto();
     if (cohortDto == null) {
@@ -150,12 +152,14 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const vv_dto: VariantValidationDto = {
+    const vv_dto: VariantDto = {
       variantString: this.variant_string,
       transcript: this.selectedGene.transcript,
       hgncId: this.selectedGene.hgncId,
-      geneSymbol:this.selectedGene.geneSymbol,
-      validationType: "HGVS"
+      geneSymbol: this.selectedGene.geneSymbol,
+      variantType: "HGVS",
+      isValidated: false,
+      count: 0
     };
     const cohortDto = this.templateService.getCohortDto();
     if (cohortDto == null) {

@@ -6,18 +6,18 @@
       <th class="border border-gray-400 px-4 py-2">Variant String</th>
       <th class="border border-gray-400 px-4 py-2">Variant Key</th>
       <th class="border border-gray-400 px-4 py-2">Count</th>
-       <th class="border border-gray-400 px-4 py-2">HGVS?</th>
+       <th class="border border-gray-400 px-4 py-2">Category</th>
       <th class="border border-gray-400 px-4 py-2">Validated?</th>
       <th class="border border-gray-400 px-4 py-2">validate</th>
     </tr>
   </thead>
   <tbody>
-    @for (v of variantAnalysisList; track v.variantKey) {
+    @for (v of variantDtoList; track v.variantKey) {
       <tr>
         <td class="border border-gray-400 px-4 py-2">{{ v.variantString }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.variantKey }}</td>
          <td class="border border-gray-400 px-4 py-2">{{ v.count }}</td>
-        <td class="border border-gray-400 px-4 py-2">{{ v.isHgvs ? 'Yes' : 'No' }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ v.variantType }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.isValidated ? '✅' : '❌' }}</td>
         <button
           class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
@@ -30,7 +30,7 @@
   </tbody>
 </table>
 
-@if (! errorMessage && variantAnalysisList.length == 0) {
+@if (! errorMessage && variantDtoList.length == 0) {
   <p class="text-gray-400 mt-2">No variants available.</p>
 }
 

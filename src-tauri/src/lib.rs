@@ -548,7 +548,7 @@ async fn get_variant_analysis(
     cohort_dto: CohortDto
 ) -> Result<Vec<VariantDto>, String> {
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = phenoboard_arc.lock().unwrap();
+    let singleton = phenoboard_arc.lock().unwrap();
     singleton.get_variant_analysis(cohort_dto)
 }
  
