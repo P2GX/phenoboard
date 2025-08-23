@@ -425,8 +425,14 @@ submitCohortAcronym(acronym: string) {
   }
 }
 
-cancelCohortAcronym() {
-  this.showCohortAcronym = false;
-}
+  cancelCohortAcronym() {
+    this.showCohortAcronym = false;
+  }
+
+  /* Create an OMIM URL from a string such as OMIM:654123 */
+  getOmimId(diseaseId: string): string {
+    const parts = diseaseId.split(":");
+    return `https://omim.org/entry/${parts.length > 1 ? parts[1] : diseaseId}`;
+  }
 
 }

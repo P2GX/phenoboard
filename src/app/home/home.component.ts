@@ -45,6 +45,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   loadError: any;
   newTemplateMessage: string = "not initialized";
   templateFileMessage: string = "not initialized";
+  jsonTemplateFileMessage: string = "not initialized";
   biocuratorOrcid: string | null = "not initialized";
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
@@ -195,6 +196,22 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   }
 
-  
+  async chooseJsonTemplateFile() {
+    this.errorMessage = null;
+    try {
+      this.isRunning = true;
+      const data = await this.configService.loadPtJson();
+       this.isRunning = false;
+      if (data == null) {
+        this.errorMessage = "Could not retrieve template (null error)"
+        return;
+      }
+      this.cohortService.setCohortDto(data);
+      this.router.navigate(['/pttemplate']);
+      } catch (error: any) {
+        this.errorMessage = String(error);
+        console.error('Template load failed:', error);
+      }
+  }
 
 }

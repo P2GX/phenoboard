@@ -29,6 +29,7 @@ pub fn run() {
             get_ppkt_store_json,
             hpo_can_be_updated,
             load_phetools_excel_template,
+            load_ptools_json,
             load_hpo,
             map_text_to_annotations,
             create_template_dto_from_seeds,
@@ -157,6 +158,50 @@ async fn load_phetools_excel_template(
     .await
     .map_err(|e| format!("Task join error: {}", e))?
 }
+
+
+/// Allow the user to choose an existing PheTools JOSN file from the file system and load it
+#[tauri::command]
+async fn load_ptools_json(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+) -> Result<CohortDto, String> {
+    //let phenoboard_arc: Arc::clone(&*singleton);
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let app_handle = app.clone();
+    
+    tokio::task::spawn_blocking(move || {
+        match app_handle.dialog().file().blocking_pick_file() {
+            Some(file) => {
+                let mut singleton = phenoboard_arc.lock().unwrap();
+                let path_str = file.to_string();
+                match singleton.load_ptools_json(&path_str) {
+                    Ok(dto) => {
+                        let status = singleton.get_status();
+                        let _ = app_handle.emit("backend_status", &status);
+                        Ok(dto)
+                    },
+                    Err(e) => {
+                        let mut status = singleton.get_status();
+                        status.has_error = true;
+                        status.error_message = format!("{:?}", e);
+                        let _ = app_handle.emit("backend_status", &status);
+                        Err(e)
+                    },
+                }
+            },
+            None => {
+                let _ = app_handle.emit("templateLoaded", "failure");
+                Err("User cancelled file selection".to_string())
+            }
+        }
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
+}
+
+
+
 
 
 #[tauri::command]

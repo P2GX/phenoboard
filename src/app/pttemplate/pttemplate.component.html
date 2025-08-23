@@ -14,7 +14,7 @@
         Most individuals are diagnosed with 
 
       @if (cohortDescription.diseaseDatabase == "OMIM") {
-        <a [href]="'https://omim.org/entry/' + cohortDescription.diseaseId" 
+        <a [href]="'https://omim.org/entry/' + getOmimId(cohortDescription.diseaseId)" 
            target="_blank" class="text-blue-600 underline">
           {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
         </a>
@@ -82,28 +82,31 @@
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
           <ng-container *ngFor="let header of cohort.hpoHeaders; let i = index">
-           <th
-              class="rotate-header hpo-col"
-              *ngIf="shouldDisplayHpoColumn(i)"
-              (mouseenter)="setHover('hpoHeader', 0, i, true)"
-              (mouseleave)="setHover('hpoHeader', 0, i, false)"
-            >
-              <div class="rotated-text" *ngIf="isHovered('hpoHeader', 0, i)" [ngClass]="{ 'hover-underline': true }">
-                {{ header.h1 }}
-              </div>
-
+           @if(shouldDisplayHpoColumn(i)) {
+              <th
+                class="rotate-header hpo-col"
+                (mouseenter)="setHover('hpoHeader', 0, i, true)"
+                (mouseleave)="setHover('hpoHeader', 0, i, false)"
+              >
+              @if(isHovered('hpoHeader', 0, i)){
+                <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
+                  {{ header.h1 }}
+                </div>
+              }
               <!-- Popup shown on hover -->
-              <div *ngIf="isHovered('hpoHeader', 0, i)" class="hpo-popup">
-                <a
-                  [href]="'https://hpo.jax.org/browse/term/' + header.h2"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  🔗 {{ header.h2 }}
-                </a>
-              </div>
-            </th>
-
+              @if(isHovered('hpoHeader', 0, i)) {
+                  <div class="hpo-popup">
+                    <a
+                      [href]="'https://hpo.jax.org/browse/term/' + header.h2"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      🔗 {{ header.h2 }}
+                    </a>
+                  </div>
+                }
+              </th>
+            }
           </ng-container>
         }
   </tr>
@@ -119,9 +122,9 @@
           class="cursor-pointer"
         >
           {{ row.individualDto.individualId }}
-           <span *ngIf="!row.individualDto.individualId" class="text-red-500 text-xs">
-        [ID is null/empty] row={{row}}
-      </span>
+          @if(!row.individualDto.individualId){
+            <span class="text-red-500 text-xs">[ID is null/empty] row={{row}}</span>
+          }
         <div
           *ngIf="isHovered('hpoHeader', rowIndex, 0)"
           class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
@@ -212,31 +215,45 @@
   </div>
 </td>
 <!-- The values of the HPO columns-->
-    <ng-container *ngFor="let cell of row.hpoData; let i = index">
-      <td  *ngIf="shouldDisplayHpoColumn(i)"
-          class="hpo-col"
-          (contextmenu)="onRightClick($event, i, rowIndex, cell)"
-          [ngClass]="{
-            'observed-cell': cell.value === 'observed',
-            'excluded-cell': cell.value === 'excluded',
-            'na-cell': cell.value === 'na'
-          }"
+    @for (cell of row.hpoData; track i; let i = $index) {
+      @if(shouldDisplayHpoColumn(i)) {
+      <td
+        class="hpo-col"
+        (contextmenu)="onRightClick($event, i, rowIndex, cell)"
+        [ngClass]="{
+          'observed-cell': cell.value.type === 'Observed',
+          'excluded-cell': cell.value.type === 'Excluded',
+          'na-cell': cell.value.type === 'Na'
+        }"
       >
-        <ng-container [ngSwitch]="cell.value">
-          <ng-container *ngSwitchCase="'observed'">✅</ng-container>
-          <ng-container *ngSwitchCase="'excluded'">❌</ng-container>
-          <ng-container *ngSwitchCase="'na'">n/a</ng-container>
-          <ng-container *ngSwitchDefault>
+        @switch (cell.value.type) {
+          @case ('Observed') {  ✅. }
+          @case ('Excluded') {  ❌  }
+          @case ('Na') { n/a }
+          @case ('OnsetAge') {
             <div
               class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
-              [title]="cell.value"
+              [title]="cell.value.data"
             >
-              {{ cell.value }}
+              {{ cell.value.data }}
             </div>
-          </ng-container>
-        </ng-container>
+          }
+          @case ('Modifier') {
+            <div
+              class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
+              [title]="cell.value.data"
+            >
+              {{ cell.value.data }}
+            </div>
+          }
+          @default {
+            <span>Unknown</span>
+          }
+        }
       </td>
-    </ng-container>
+      }
+    }
+
   } <!-- end of for over the tr -->
     </tbody>
   </table>

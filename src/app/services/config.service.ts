@@ -57,6 +57,10 @@ export class ConfigService {
     return await invoke<CohortDto>("load_phetools_excel_template", { "fixErrors": false});
   }
 
+  async loadPtJson(): Promise<CohortDto> {
+    return await invoke<CohortDto>("load_ptools_json");
+  }
+
   /** Load an excel template file and try to fix some common errors (outdated HPO labels, whitespace) */
   async loadAndFixPtTemplate(): Promise<CohortDto> {
     return await invoke<CohortDto>("load_phetools_template", { "fixErrors": true});

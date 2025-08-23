@@ -167,6 +167,16 @@ impl PhenoboardSingleton {
         }
     }
 
+    pub fn load_ptools_json(
+        &mut self,
+        json_file: &str,
+    ) -> Result<CohortDto, String> {
+        match self.phetools.as_mut() {
+            Some(ptools) => { ptools.load_json_cohort(json_file) },
+             None => return Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
+        }
+    }
+
  
     /// Get a DTO that summarizes the status of the data in the backend
     /// The DTO is synchronized with the corresponding tscript in app/models

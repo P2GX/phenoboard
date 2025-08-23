@@ -34,8 +34,31 @@ export interface GeneVariantBundleDto {
 }
 
 
+export type CellValue =
+  | { type: "Observed" }
+  | { type: "Excluded" }
+  | { type: "Na" }
+  | { type: "OnsetAge"; data: string }
+  | { type: "Modifier"; data: string };
+
 export interface CellDto {
-    value: string;
+  value: CellValue;
+}
+
+function renderCell(cell: CellDto): string {
+  switch (cell.value.type) {
+    case "Observed":
+      return "✓ Observed";
+    case "Excluded":
+      return "✗ Excluded";
+    case "Na":
+      return "Not available";
+    case "OnsetAge":
+      return `Onset at ${cell.value.data}`;
+    case "Modifier":
+      return `Modifier: ${cell.value.data}`;
+    // if you forget a case, TS will error!
+  }
 }
 
 
