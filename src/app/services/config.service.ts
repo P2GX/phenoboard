@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto } from '../models/cohort_dto';
+import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto, CohortType } from '../models/cohort_dto';
 import { HpoTermDto } from '../models/hpo_annotation_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
@@ -43,18 +43,19 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, input: string):  Promise<CohortDto> {
+  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, cohortType: CohortType, input: string):  Promise<CohortDto> {
     console.log("getNewTemplateFromSeeds in service", dto, input);
     return await invoke<CohortDto>("create_template_dto_from_seeds", {
       'dto': dto,
+      'cohortType': cohortType,
       'input': input,
     });
   }
   
 
   /** Load the version-one format Excel template (all of which are Mendelian) */
-  async loadPtExcelTemplate(): Promise<CohortDto> {
-    return await invoke<CohortDto>("load_phetools_excel_template", { "fixErrors": false});
+  async loadPtExcelTemplate(updateLabels: boolean): Promise<CohortDto> {
+    return await invoke<CohortDto>("load_phetools_excel_template", { "updateLabels": updateLabels});
   }
 
   async loadPtJson(): Promise<CohortDto> {
@@ -163,6 +164,10 @@ export class ConfigService {
 
   async exportPpkt(cohort_dto: CohortDto): Promise<void> {
     return invoke<void>('export_ppkt', {cohortDto: cohort_dto});
+  }
+
+   async exportHpoa(cohort_dto: CohortDto): Promise<string> {
+    return invoke<string>('export_hpoa', {cohortDto: cohort_dto});
   }
 
   /**

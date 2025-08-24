@@ -41,12 +41,9 @@ export type CellValue =
   | { type: "OnsetAge"; data: string }
   | { type: "Modifier"; data: string };
 
-export interface CellDto {
-  value: CellValue;
-}
 
-function renderCell(cell: CellDto): string {
-  switch (cell.value.type) {
+function renderCell(cell: CellValue): string {
+  switch (cell.type) {
     case "Observed":
       return "✓ Observed";
     case "Excluded":
@@ -54,19 +51,23 @@ function renderCell(cell: CellDto): string {
     case "Na":
       return "Not available";
     case "OnsetAge":
-      return `Onset at ${cell.value.data}`;
+      return `Onset at ${cell.data}`;
     case "Modifier":
-      return `Modifier: ${cell.value.data}`;
-    // if you forget a case, TS will error!
+      return `Modifier: ${cell.data}`;
+    default: {
+      const _exhaustive: never = cell;
+      return _exhaustive;
+    }
   }
 }
+
 
 
 export interface RowDto {
     individualDto: IndividualDto;
     diseaseDtoList: DiseaseDto[];
-    geneVarDtoList: GeneVariantBundleDto[];
-    hpoData: CellDto[];
+    alleleCountMap: Record<string, number>;
+    hpoData: CellValue[];
 }
 
 export interface HeaderDupletDto {
@@ -79,13 +80,18 @@ export interface HeaderDto {
     data: HeaderDupletDto[];
 }
 
+
+export type CohortType = 'mendelian' | 'melded' | 'digenic';
+
 export interface CohortDto {
-    cohortType: string,
+    cohortType: CohortType,
     diseaseGeneDto: DiseaseGeneDto,
     hpoHeaders: HeaderDupletDto[],
     rows: RowDto[],
     hgvsVariants: Record<string, HgvsVariant>;
     structuralVariants: Record<string, StructuralVariant>;
+    dtoVersion: string;
+    cohortAcronym: string;
 }
 
 
@@ -98,7 +104,7 @@ export interface GeneTranscriptDto {
 }
 
 
-export type CohortType = 'mendelian' | 'melded' | 'digenic';
+
 
 
 /// This is used to transmit information about a new disease template

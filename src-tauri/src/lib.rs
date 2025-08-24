@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{cohort_dto::{CohortDto, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto};
+use ga4ghphetools::dto::{cohort_dto::{CohortDto, CohortType, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -42,6 +42,7 @@ pub fn run() {
             submit_autocompleted_hpo_term,
             validate_template,
             save_template,
+            export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
             validate_all_variants,
@@ -121,7 +122,7 @@ fn load_hpo(
 async fn load_phetools_excel_template(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    fix_errors: bool
+    update_labels: bool
 ) -> Result<CohortDto, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
@@ -132,7 +133,7 @@ async fn load_phetools_excel_template(
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                match singleton.load_excel_template(&path_str, fix_errors,|p, q|{
+                match singleton.load_excel_template(&path_str, update_labels,|p, q|{
                     let _ = app_handle.emit("progress", ProgressDto::new(p, q));
                 }) {
                     Ok(dto) => {
@@ -279,12 +280,13 @@ fn get_pt_template_path(
 fn create_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseGeneDto,
+    cohort_type: CohortType,
     input: String
 ) -> Result<CohortDto, String> {
      println!("{}:{} - input {}", file!(), line!(), input);
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.create_template_dto_from_seeds(dto, input)
+    singleton.create_template_dto_from_seeds(dto, cohort_type, input)
 }
 
 
@@ -384,7 +386,14 @@ fn export_ppkt(
     singleton.export_ppkt(cohort_dto)
 }
 
-
+#[tauri::command]
+fn export_hpoa(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort_dto: CohortDto) -> Result<String, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.export_hpoa(cohort_dto)
+}
 
 
 

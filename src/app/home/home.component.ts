@@ -12,11 +12,14 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FormsModule } from '@angular/forms';
+import {MatCheckboxModule } from '@angular/material/checkbox'
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MatProgressBarModule],
+  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -29,7 +32,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     override cohortService: CohortDtoService,
     private router: Router,
     private dialog: MatDialog,
-    override cdRef: ChangeDetectorRef) {
+    override cdRef: ChangeDetectorRef,
+    private notificationService: NotificationService) {
       super(cohortService, ngZone, cdRef);
     }
 
@@ -40,6 +44,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   ptTemplateLoaded: boolean = false;
   newFileCreated: boolean = false;
   hpoMessage: string | null = null;
+  updateLabels = false;
 
   newFilePath: any;
   loadError: any;
@@ -132,8 +137,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     try {
       this.errorMessage = null;
       await this.configService.loadHPO();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to call load_hpo:", error);
+      const msg = error?.message ?? String(error);
+      this.notificationService.showError(`❌ Failed to load HPO:\n${msg}`);
       this.hpoMessage = "Error calling load_hpo";
     } 
   }
@@ -143,7 +150,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.errorMessage = null;
     try {
       this.isRunning = true;
-      const data = await this.configService.loadPtExcelTemplate();
+      const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
        this.isRunning = false;
       if (data == null) {
         this.errorMessage = "Could not retrieve template (null error)"

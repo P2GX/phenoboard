@@ -97,10 +97,7 @@ export class CohortDtoService {
         }
         const updated: CohortDto = {
             ...current,
-            diseaseGeneDto: {
-            ...current.diseaseGeneDto,
             cohortAcronym: acronym
-            }
         };
         this.cohortDtoSubject.next(updated);
     }
@@ -178,34 +175,4 @@ export class CohortDtoService {
         */
        return [];
     }
-
-    /** TODO */
-toDiseaseGeneDtoList(template: CohortDto): DiseaseGeneDto[] {
-    if (template.rows.length == 0) {
-      return [];
-    }
-    
-    if (template.cohortType === "mendelian") {
-      const row0 = template.rows[0];
-      if (row0.diseaseDtoList.length != 1) {
-        // should never happen
-        console.error("Malformed Mendelian template, expected only one disease");
-      }
-      const disease0 = row0.diseaseDtoList[0];
-      const diseaseId = disease0.diseaseId; 
-      const diseaseLabel = disease0.diseaseLabel;
-      if (row0.geneVarDtoList.length != 1) {
-         // should never happen
-        console.error("Malformed Mendelian template, expected only one gene");
-      }
-      const gene0 = row0.geneVarDtoList[0];
-      const hgnc = gene0.hgncId;
-      const symbol = gene0.geneSymbol;
-      const trascript = gene0.transcript;
-      
-      console.log("x");
-    }
-
-    return [];
-  }
 }

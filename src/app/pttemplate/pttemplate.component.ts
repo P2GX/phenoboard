@@ -2,9 +2,10 @@ import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit, ViewChild }
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { CellDto, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, CohortDto } from '../models/cohort_dto';
+import { CellValue, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, CohortDto, RowDto } from '../models/cohort_dto';
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -15,7 +16,8 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { take } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
+import { NotificationService } from '../services/notification.service';
 
 
 type Option = { label: string; value: string };
@@ -30,7 +32,7 @@ type Option = { label: string; value: string };
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
   ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -43,18 +45,18 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     public ageService: AgeInputService,
     ngZone: NgZone,
     cohortService: CohortDtoService,
-    override cdRef: ChangeDetectorRef) {
+    override cdRef: ChangeDetectorRef,
+    private notificationService: NotificationService) {
       super(cohortService, ngZone, cdRef)
     }
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
+    Object = Object; // <-- expose global Object to template
+  cohortDto: CohortDto | null = null;
 
-  cohortDto$ = this.cohortService.cohortDto$;
-
-  selectedCellContents: CellDto | null = null;
+  selectedCellContents: CellValue | null = null;
   cohortDescription: CohortDescriptionDto | null = null;
   successMessage: string | null = null;
-  errorMessage: string | null = null;
 
   /* used for autocomplete widget */
   hpoInputString: string = '';
@@ -88,6 +90,9 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   override ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit");
     super.ngOnInit();
+    this.cohortService.cohortDto$.subscribe(dto => {
+      this.cohortDto = dto;
+    });
     document.addEventListener('click', this.onClickAnywhere.bind(this));
     this.contextMenuOptions = [...this.predefinedOptions];
   }
@@ -232,16 +237,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   async validateCohort() {
     console.log("validate")
-    if (this.cohortDto$ == null) {
+    if (! this.cohortDto) {
       alert("Cohort DTO not initialized");
       return;
     }
     try {
-      this.cohortDto$.pipe(take(1)).subscribe(async dto => {
-      if (!dto) return;
-        await this.configService.validateCohort(dto);
-        alert("Cohort successfuly validated")
-      }); 
+      await this.configService.validateCohort(this.cohortDto);
+      alert("✅ Cohort successfully validated");
     } catch (err: any) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Validation failed:\n' + JSON.stringify(err));
@@ -249,15 +251,33 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  showSuccess(message: string): void {
-    this.successMessage = message;
-    setTimeout(() => this.successMessage = null, 5000); // hide after 5 sec
-  }
+  showError(err: any): void {
+      let errorMessage: string;
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = (err as any).message;
+      } else {
+        errorMessage = 'Unknown error occurred';
+      }
+       this.notificationService.showError(errorMessage);
+    }
 
-  showError(message: string): void {
-    this.errorMessage = message;
-    setTimeout(() => this.errorMessage = null, 5000);
-  }
+  showSuccess(msg: any): void {
+      let okMessage: string;
+      if (msg instanceof Error) {
+        okMessage = msg.message;
+      } else if (typeof msg === 'string') {
+        okMessage = msg;
+      } else if (msg && typeof msg === 'object' && 'message' in msg) {
+        okMessage = (msg as any).message;
+      } else {
+        okMessage = 'Success';
+      }
+        this.notificationService.showSuccess(`✅ ${okMessage}`);
+    }
 
   submitSelectedHpo = async () => {
     await this.addHpoTermToCohort(this.selectedHpoTerm);
@@ -285,7 +305,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   
 
-  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, cell: CellDto) {
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, cell: CellValue) {
     event.preventDefault();
     this.contextMenuVisible = true;
     this.contextMenuX = event.clientX;
@@ -359,19 +379,20 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     this.contextMenuVisible = false;
   }
 
-  saveCohort() {
-    const acronym = this.cohortService.getCohortAcronym();
+  async saveCohort() {
+    let acronym = this.cohortService.getCohortAcronym();
     if (acronym == null) {
-      alert("Cannot save cohort with null acronym");
-      return; // should never happen!
+      alert("Cannot save cohort with null acronym -- adding TEMP");
+      acronym = "temp";
+
     }
     const cohortDto = this.cohortService.getCohortDto();
     if (cohortDto == null) {
-      alert("Cannot save null cohort (template_dto is null");
+      this.showError("Cannot save null cohort (cohort_dto is null");
       return; // should never happen!
     }
     
-    this.configService.saveCohort(cohortDto);
+    await this.configService.saveCohort(cohortDto);
     this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     
   }
@@ -379,51 +400,60 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   
 
   async exportPpkt() {
-    
-    const cohort_dto = this.cohortService.getCohortDto();
-      if (cohort_dto != null) {
-        try {
-          await this.configService.exportPpkt(cohort_dto);
-        } catch (err) {
-          if (Array.isArray(err)) {
-            console.error("Validation errors:", err);
-            this.errorMessage = String(err);
-          } else {
-            console.error("Unexpected error:", err);
-            this.errorMessage = String(err);
-          }
-        }
-      } else {
-        console.error("Attempt to export phenopackets from null cohort.");
-        this.errorMessage = String("Attempt to export phenopackets from null cohort.");
+    if (! this.cohortDto) {
+      alert("Cohort DTO not initialized");
+      return;
+    }
+    const cohort_dto = this.cohortDto;
+    try {
+      await this.configService.exportPpkt(cohort_dto);
+    } catch (err) {
+      this.showError(String(err));
+    }
+  }
+
+  /** Export the aggregate file for use in phenotype.hpoa (part of a small file) */
+    async exportHpoa() {
+      if (! this.cohortDto) {
+        alert("Cohort DTO not initialized");
+        return;
       }
+      const cohort_dto = this.cohortDto;
+      console.log("exportHpoa", cohort_dto);
+      try {
+        const message = await this.configService.exportHpoa(cohort_dto);
+        this.showSuccess(message);
+      } catch (err) {
+        this.showError(err);
+      }
+    }
+
+
+
+    /* Keep track of which cell is hovered over. The key is something like `${category}-${rowIndex}-${itemIndex}` */
+    hoverState: Record<string, boolean> = {};
+    setHover(category: string, rowIndex: number, itemIndex: number, hovered: boolean) {
+      this.hoverState[`${category}-${rowIndex}-${itemIndex}`] = hovered;
+    }
+    isHovered(category: string, rowIndex: number, itemIndex: number): boolean {
+      return !!this.hoverState[`${category}-${rowIndex}-${itemIndex}`];
+    }
+
+
+
+  /* flag -- if true, the GUI shows the dialog to enter an acronym */
+  showCohortAcronym = false;
+
+ async submitCohortAcronym(acronym: string) {
+     const cohort_dto: CohortDto | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    console.log("submitCohortAcronym before", cohort_dto);
+    if (acronym.trim()) {
+      this.cohortService.setCohortAcronym(acronym.trim());
+      this.showCohortAcronym = false;
+    }
+    const cohort_dto2: CohortDto | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    console.log("submitCohortAcronym afteter", cohort_dto2);
   }
-
-
-
-  /* Keep track of which cell is hovered over. The key is something like `${category}-${rowIndex}-${itemIndex}` */
-  hoverState: Record<string, boolean> = {};
-  setHover(category: string, rowIndex: number, itemIndex: number, hovered: boolean) {
-    this.hoverState[`${category}-${rowIndex}-${itemIndex}`] = hovered;
-  }
-  isHovered(category: string, rowIndex: number, itemIndex: number): boolean {
-    return !!this.hoverState[`${category}-${rowIndex}-${itemIndex}`];
-  }
-
-
-
-
-showCohortAcronym = false;
-
-
-// Add these methods
-submitCohortAcronym(acronym: string) {
-  if (acronym.trim()) {
-    // Handle the submitted string here
-    this.cohortService.setCohortAcronym(acronym.trim());
-    this.showCohortAcronym = false;
-  }
-}
 
   cancelCohortAcronym() {
     this.showCohortAcronym = false;
@@ -434,5 +464,51 @@ submitCohortAcronym(acronym: string) {
     const parts = diseaseId.split(":");
     return `https://omim.org/entry/${parts.length > 1 ? parts[1] : diseaseId}`;
   }
+
+    // Convert the map into entries
+    getAlleleEntries(row: RowDto): [string, number][] {
+      return Object.entries(row.alleleCountMap);
+    }
+
+    /* Function to return list of strings for display for an individuals pathogenic alleles.
+      Returns a 5-element array. We could transform to a DTO (todo)  */
+    getAlleleDisplay(key: string, count: number): string[] {
+      const cohort = this.cohortService.getCohortDto();
+      let symbol = "na";
+      let transcript = "na";
+      let allele = "na";
+      let allelecount = "na";
+      if (cohort != null) {
+        const hgvs = cohort.hgvsVariants[key];
+        const sv = cohort.structuralVariants[key];
+        allelecount = `n=${count}`;
+        if (  hgvs) {
+          symbol = hgvs.symbol;
+          transcript = hgvs.transcript;
+          allele = hgvs.hgvs;
+        } else if (sv) {
+          symbol = sv.geneSymbol;
+          transcript = "na";
+          allele = sv.label;
+        }
+      }
+      return [allele, symbol, transcript, allelecount, key];
+    }
+
+    getShortAlleleDisplay(key: string, count: number): string {
+      const cohort = this.cohortService.getCohortDto();
+      let label = key;
+      const allelecount = count.toString();
+      if (cohort != null) {
+        const hgvs = cohort.hgvsVariants[key];
+          const sv = cohort.structuralVariants[key];
+          if ( hgvs) {
+            label = hgvs.hgvs;
+          } else if (sv) {
+            label = sv.label;
+          }
+      }
+      return `${label} (n=${allelecount})`;
+    }
 
 }

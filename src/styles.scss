@@ -160,3 +160,35 @@ button.btn-outline-cancel {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     max-width: 600px;
 }
+/* Base for all snackbars */
+.mat-mdc-snack-bar-container {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-line; /* preserve newlines */
+}
+
+/* Error snackbar */
+.error-snackbar {
+  background-color: #1e1e1e !important; /* dark background */
+  color: #f44336 !important;            /* bright red text */
+  font-weight: bold !important;
+  border: 2px solid #f44336 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+/* Success snackbar */
+.success-snackbar {
+  background-color: #1e1e1e !important; /* dark background */
+  color: #4caf50 !important;            /* green text */
+  font-weight: bold !important;
+  border: 2px solid #4caf50 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+/* Action button styling */
+.mat-mdc-snack-bar-action button {
+  color: #ffffff !important; /* white dismiss button */
+  font-weight: bold;
+  text-transform: uppercase;
+}

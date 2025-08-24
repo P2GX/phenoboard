@@ -1,4 +1,4 @@
-@let cohort = (cohortDto$ | async);
+@let cohort = cohortDto;
 
 <div class="p-6 bg-gray-50">
   @if (cohortDescription) {
@@ -81,20 +81,18 @@
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
-          <ng-container *ngFor="let header of cohort.hpoHeaders; let i = index">
-           @if(shouldDisplayHpoColumn(i)) {
+          @for (header of cohort.hpoHeaders; track $index) {
+           @if(shouldDisplayHpoColumn($index)) {
               <th
                 class="rotate-header hpo-col"
-                (mouseenter)="setHover('hpoHeader', 0, i, true)"
-                (mouseleave)="setHover('hpoHeader', 0, i, false)"
+                (mouseenter)="setHover('hpoHeader', 0, $index, true)"
+                (mouseleave)="setHover('hpoHeader', 0, $index, false)"
               >
-              @if(isHovered('hpoHeader', 0, i)){
                 <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
                   {{ header.h1 }}
                 </div>
-              }
               <!-- Popup shown on hover -->
-              @if(isHovered('hpoHeader', 0, i)) {
+              @if(isHovered('hpoHeader', 0, $index)) {
                   <div class="hpo-popup">
                     <a
                       [href]="'https://hpo.jax.org/browse/term/' + header.h2"
@@ -107,7 +105,7 @@
                 }
               </th>
             }
-          </ng-container>
+          }
         }
   </tr>
   </thead>
@@ -118,132 +116,145 @@
         <td class="relative narrow-column">
         <div 
             (mouseenter)="setHover('individual', rowIndex, 0, true)"
-            (mouseenter)="setHover('individual', rowIndex, 0, false)"
+            (mouseleave)="setHover('individual', rowIndex, 0, false)"
           class="cursor-pointer"
         >
           {{ row.individualDto.individualId }}
           @if(!row.individualDto.individualId){
             <span class="text-red-500 text-xs">[ID is null/empty] row={{row}}</span>
           }
-        <div
-          *ngIf="isHovered('hpoHeader', rowIndex, 0)"
-          class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
-            (mouseenter)="setHover('individual', rowIndex, 0, true)"
-            (mouseenter)="setHover('individual', rowIndex, 0, false)"
-        >
-          <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-            <li><strong>{{ row.individualDto.individualId }}</strong></li>
-            <li>{{ row.individualDto.pmid }}</li>
-            <li>{{ row.individualDto.title }}</li>
-            <li *ngIf="row.individualDto.comment.length > 0">
-              <strong>Comment:</strong> {{ row.individualDto.comment }}
-            </li>
-            <li>onset: {{ row.individualDto.ageOfOnset }}</li>
-            <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
-            <li>deceased: {{ row.individualDto.deceased }}</li>
-            <li>sex: {{ row.individualDto.sex }}</li>
-          </ul>
-          <!-- Edit button in popup -->
-          <button
-            mat-stroked-button
-            color="primary"
-            class="text-xs py-0 px-2"
-            (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
-          >
-            ✏️ Edit
-          </button>
-        </div>
+          @if(isHovered('individual', rowIndex, 0)){
+            <div
+              class="absolute top-0 left-0 ml-2 bg-white shadow-md border p-2 rounded z-50 w-64"
+                (mouseenter)="setHover('individual', rowIndex, 0, true)"
+                (mouseleave)="setHover('individual', rowIndex, 0, false)"
+            >
+            <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+              <li><strong>{{ row.individualDto.individualId }}</strong></li>
+              <li>{{ row.individualDto.pmid }}</li>
+              <li>{{ row.individualDto.title }}</li>
+              @if(row.individualDto.comment.length > 0){
+                <li><strong>Comment:</strong> {{ row.individualDto.comment }}</li>
+              }
+              <li>onset: {{ row.individualDto.ageOfOnset }}</li>
+              <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
+              <li>deceased: {{ row.individualDto.deceased }}</li>
+              <li>sex: {{ row.individualDto.sex }}</li>
+            </ul>
+            <!-- Edit button in popup -->
+            <button
+              mat-stroked-button
+              color="primary"
+              class="text-xs py-0 px-2"
+              (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
+            >
+              ✏️ Edit
+            </button>
+          </div>
+        }
       </div>
     </td>
 
 <!-- Second column: disease/id -->
 <td class="relative narrow-column">
-  <div
-    *ngFor="let disease of row.diseaseDtoList ?? []; let di = index"
-    class="relative inline-block"
-    (mouseenter)="setHover('disease', rowIndex, di, true)"
-    (mouseleave)="setHover('disease', rowIndex, di, false)"
-  >
-    <span class="cursor-pointer">{{ disease.diseaseId }}</span>
-
+  @for (disease of row.diseaseDtoList; track $index; let di = $index) {
     <div
-      *ngIf="isHovered('disease', rowIndex, di)"
-      class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
+      class="relative inline-block"
       (mouseenter)="setHover('disease', rowIndex, di, true)"
       (mouseleave)="setHover('disease', rowIndex, di, false)"
     >
-      <!-- popup content -->
+      <span class="cursor-pointer">{{ disease.diseaseId }}</span>
+      @if(isHovered('disease', rowIndex, di)) {
+        <div
+          class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
+          (mouseenter)="setHover('disease', rowIndex, di, true)"
+          (mouseleave)="setHover('disease', rowIndex, di, false)"
+        >
+           <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+              <li><strong>{{ disease.diseaseId }}</strong></li>
+              <li>{{ disease.diseaseLabel }}</li>
+            </ul>
+            <!-- Edit button in popup -->
+            <button
+              mat-stroked-button
+              color="primary"
+              class="text-xs py-0 px-2"
+              (click)="openDiseaseEditor(disease); $event.stopPropagation();"
+            >
+              ✏️ Edit
+            </button>
+          </div>
+      }
     </div>
-  </div>
+  }
 </td>
 
  <!-- Third column for gene/var-->
-  <td class="relative narrow-column">
-  <div
-      *ngFor="let gene of row.geneVarDtoList ?? []; let gi = index"
+  <!-- Third column for gene/allele -->
+<td class="relative narrow-column">
+  @for (entry of Object.entries(row.alleleCountMap); track $index; let gi = $index) {
+    <div
       class="relative inline-block"
       (mouseenter)="setHover('gene', rowIndex, gi, true)"
       (mouseleave)="setHover('gene', rowIndex, gi, false)"
     >
-      <span class="cursor-pointer">{{ gene.geneSymbol }}</span>
-    <div
-        *ngIf="isHovered('gene', rowIndex, gi)"
-        class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
-        (mouseenter)="setHover('gene', rowIndex, gi, true)"
-        (mouseleave)="setHover('gene', rowIndex, gi, false)"
-      >
-      <ul class="list-disc list-inside text-sm text-gray-800 break-words">
-        <li><strong>{{ gene.geneSymbol }}</strong></li>
-        <li>{{ gene.hgncId }}</li>
-        <li>transcript: {{ gene.transcript }}</li>
-        <li>allele 1: {{ gene.allele1 }}</li>
-        <li *ngIf="gene.allele2!=='na'">allele 2: {{ gene.allele2 }}</li>
-        <li *ngIf="gene.variantComment.length > 0">
-          <strong>Comment:</strong> {{ gene.variantComment }}
-        </li>
-      </ul>
+      <!-- Display gene symbol / allele key -->
+      <span class="cursor-pointer">{{ getShortAlleleDisplay(entry[0], entry[1]) }}</span>
 
-      <button
-        mat-stroked-button
-        color="primary"
-        class="text-xs py-0 px-2"
-        (click)="openGeneEditor(gene); $event.stopPropagation();"
-      >
-        ✏️ Edit
-      </button>
+      @if (isHovered('gene', rowIndex, gi)) {
+        <div
+          class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64 break-words"
+          (mouseenter)="setHover('gene', rowIndex, gi, true)"
+          (mouseleave)="setHover('gene', rowIndex, gi, false)"
+        >
+         <ul class="list-disc list-inside text-sm text-gray-800 break-words">
+            @for (displayString of getAlleleDisplay(entry[0], entry[1]); track $index) {
+              <li>{{ displayString }}</li>
+            }
+          </ul>
+
+          <!-- <button
+            mat-stroked-button
+            color="primary"
+            class="text-xs py-0 px-2"
+            (click)="openAlleleEditor(alleleKey); $event.stopPropagation();"
+          >
+            ✏️ Edit
+          </button> -->
+        </div>
+      }
     </div>
-  </div>
+  }
 </td>
+
 <!-- The values of the HPO columns-->
     @for (cell of row.hpoData; track i; let i = $index) {
       @if(shouldDisplayHpoColumn(i)) {
       <td
         class="hpo-col"
         (contextmenu)="onRightClick($event, i, rowIndex, cell)"
-        [ngClass]="{
-          'observed-cell': cell.value.type === 'Observed',
-          'excluded-cell': cell.value.type === 'Excluded',
-          'na-cell': cell.value.type === 'Na'
-        }"
+        [class.observed-cell]="cell.type=='Observed'"
+        [class.excluded-cell]="cell.type=='Excluded'"
+        [class.na-cell]="cell.type=='Na'"
       >
-        @switch (cell.value.type) {
+        @switch (cell.type) {
           @case ('Observed') {  ✅. }
           @case ('Excluded') {  ❌  }
           @case ('Na') { n/a }
           @case ('OnsetAge') {
             <div
               class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
-              [title]="cell.value.data"
+              [title]="cell.data"
             >
-              {{ cell.value.data }}
+              {{ cell.data }}
             </div>
           }
           @case ('Modifier') {
             <div
               class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
-              [title]="cell.value.data"
+              [title]="cell.data"
             >
-              {{ cell.value.data }}
+              {{ cell.data }}
             </div>
           }
           @default {
@@ -299,6 +310,12 @@
       class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-purple-50 transition"
     >
       Export phenopackets
+    </button>
+     <button 
+      (click)="exportHpoa()" 
+      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
+    >
+      Export Hpoa
     </button>
   </div>
 </div>

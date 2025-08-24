@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { DiseaseGeneDto, newMendelianTemplate, CohortDto } from '../models/cohort_dto';
+import { DiseaseGeneDto, newMendelianTemplate, CohortDto, CohortType } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
@@ -100,7 +100,8 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       console.log("Multi Text:", multiText);
 
       try {
-        const template = await this.configService.createNewTemplateFromSeeds(diseaseGeneDto, multiText);
+        const ctype: CohortType = "mendelian";
+        const template = await this.configService.createNewTemplateFromSeeds(diseaseGeneDto, ctype, multiText);
         this.cohortService.setCohortDto(template);
         this.showSuccessMessage = true;
       } catch (error) {

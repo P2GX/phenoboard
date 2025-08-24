@@ -4,14 +4,14 @@
 //! We garantee that if these objects are created, then we are ready to create phenopackets.
 
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, io_util::select_or_create_folder, pubmed_retrieval::PubmedRetriever}};
-use std::{fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
+use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortDto, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortDto, CohortType, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -133,21 +133,21 @@ impl PhenoboardSingleton {
     /// * Arguments
     /// 
     /// - `excel_file` - the template file
-    /// - `fix errors` - attempt to fix errors including outdated HPO ids or labels and stray-whitespace errors
+    /// - `update_labels` - attempt to fix errors including outdated HPO ids or labels and stray-whitespace errors
     /// 
     /// * Returns
     /// - Ok(()) if successful, list of errors (strings) otherwise
     pub fn load_excel_template<F>(
         &mut self, 
         excel_file: &str,
-        fix_errors: bool,
+        update_labels: bool,
          progress_cb: F) 
     -> Result<CohortDto, String> 
     where F: FnMut(u32, u32) {
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(
                 excel_file, 
-                fix_errors,
+                update_labels,
                 progress_cb) {
                 Ok(dto) => {
                     self.pt_template_path = Some(excel_file.to_string());
@@ -357,17 +357,21 @@ impl PhenoboardSingleton {
     }
 
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
-    fn extract_template_name(&self, cohort_dto: &CohortDto) -> String {
-        let acronym = &cohort_dto.disease_gene_dto.cohort_acronym;
+    fn extract_template_name(&self, cohort_dto: &CohortDto) -> Result<String, String> {
+        
         if ! cohort_dto.is_mendelian() {
-            return "template.json".to_string(); // requires different logic, TODO
+            return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
         let dg_dto = &cohort_dto.disease_gene_dto;
         if dg_dto.gene_transcript_dto_list.len() != 1 {
-             return "template.json".to_string(); // Should never happen
+            return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
         let symbol = &dg_dto.gene_transcript_dto_list[0].gene_symbol;
-        return format!("{}_{}_individuals.json", symbol, acronym);
+        match &cohort_dto.cohort_acronym {
+            Some(acronym) => Ok(format!("{}_{}_individuals.json", symbol, acronym)),
+            None => Err(format!("Cannot get template name if acronym is missing.")),
+        }
+  
     }
 
     pub fn save_template_json(&self, cohort_dto: CohortDto) -> Result<(), String> {
@@ -376,7 +380,7 @@ impl PhenoboardSingleton {
             return Err("Could not get default path".to_string());
         }
         let default_dir = dir_opt.unwrap();
-        let template_name = self.extract_template_name(&cohort_dto);
+        let template_name = self.extract_template_name(&cohort_dto)?;
         let save_path: Option<PathBuf> = FileDialog::new()
             .set_directory(default_dir)
             .set_title("Save PheTools JSON template")
@@ -396,24 +400,41 @@ impl PhenoboardSingleton {
         Ok(())
     }
 
-    fn get_phenopackets_output_dir(&self) -> Option<PathBuf> {
-        let default_dir = self.phetools.as_ref()?.get_cohort_dir().map(|mut dir| {
-            dir.push("phenopackets");
-            dir
-        })?;
 
+    /// Get the default directory for the current cohort. Used to figure out where to save files.
+    fn get_default_dir(&self) -> Result<PathBuf, String> {
+        // First try to get the cohort directory
+        if let Some(phetools) = &self.phetools {
+            if let Some(cohort_dir) = phetools.get_cohort_dir() {
+                return Ok(cohort_dir);
+            }
+        }
+        // Fall back to user's home directory
+        let home_dir = env::var("HOME")
+            .or_else(|_| env::var("USERPROFILE")) // Windows fallback
+            .map_err(|_| "Failed to get home directory".to_string())?;
+        
+        Ok(PathBuf::from(home_dir))
+    }
+
+    fn get_phenopackets_output_dir(&self) -> Result<PathBuf, String> {
+        let default_dir = self.get_default_dir()?;
+        println!("default_dir {:?}", default_dir);
+
+        // Try to open file dialog
         FileDialog::new()
             .set_directory(default_dir)
-            .set_title("Select Output Directory for Phenopackets")
+            .set_title("Select Output Directory")
             .pick_folder()
+            .ok_or_else(|| "User canceled or dialog failed".to_string())
     }
 
     pub fn export_ppkt(
         &mut self,
         cohort_dto: CohortDto) -> Result<(), String> {
         let out_dir = match self.get_phenopackets_output_dir() {
-            Some(dir) => dir,
-            None =>  { return Err("Could not get phenopackets output directory".to_string());},
+            Ok(dir) => dir,
+            Err(e) =>  { return Err(e);},
         };
         let mut orcid = match self.settings.get_biocurator_orcid() {
             Ok(orcid_id) => orcid_id,
@@ -432,6 +453,47 @@ impl PhenoboardSingleton {
             },
         }
     }
+
+    /// Exports the HPOA (Human Phenotype Ontology Annotations) for a given cohort.
+    ///
+    /// # Arguments
+    ///
+    /// * `cohort_dto` - A `CohortDto` struct containing information about the cohort,
+    ///   including individuals, diseases, genes, and phenotypes.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(String)` - A string to summarize the successful result.
+    /// * `Err(String)` - An error message if the export fails.
+    ///
+    /// # Notes
+    ///
+    /// - The output format follows the HPO project guidelines for phenotype annotations.
+    /// - Each individual in the cohort is converted to one or more HPOA rows.
+    /// - This function may fail if required fields in `CohortDto` are missing or invalid.
+    pub fn export_hpoa(
+        &mut self,
+        cohort_dto: CohortDto)
+    -> Result<String, String> {
+        let out_dir = self.get_phenopackets_output_dir()?;
+        let mut orcid = match self.settings.get_biocurator_orcid() {
+            Ok(orcid_id) => orcid_id,
+            Err(e) => { return Err(format!("Cannot save HPOA without ORCID id: {}", e)); }
+        };
+        // note that we store the orcid number without the http prefix. add that here
+        if ! orcid.starts_with("http") {
+            orcid = format!("https://orcid.org/{}", orcid);
+        };
+        match self.phetools.as_mut() {
+            Some(ptools) => {
+                ptools.write_hpoa_table(cohort_dto, out_dir, orcid)
+            },
+            None => {
+                Err("Phetools template not initialized".to_string())
+            },
+        }
+    }
+
 
     pub fn add_hpo_term_to_cohort(
         &mut self,
@@ -478,18 +540,18 @@ impl PhenoboardSingleton {
     pub fn create_template_dto_from_seeds(
         &mut self,
         dto: DiseaseGeneDto,
+        cohort_type: CohortType,
         input: String
     ) -> Result<CohortDto, String> {
         println!("{}:{} - input {}", file!(), line!(), &input);
         let fresult = self.map_text_to_term_list(&input);
-        let template_type = dto.template_type;
         let directory = select_or_create_folder()?;
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let mut phetools = PheTools::new(hpo_arc);
                 let dgdto = phetools.create_cohort_dto_from_seeds(
-                    template_type,
+                    cohort_type,
                     dto,
                     directory,
                     fresult,
