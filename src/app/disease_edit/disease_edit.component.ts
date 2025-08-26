@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DiseaseDto } from '../models/cohort_dto';
+import { DiseaseData } from '../models/cohort_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,7 +37,7 @@ export class DiseaseEditComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<DiseaseEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DiseaseDto
+    @Inject(MAT_DIALOG_DATA) public data: DiseaseData
   ) {
     this.form = this.fb.group({
       diseaseId:  [

@@ -7,7 +7,7 @@ import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { CohortDto } from '../models/cohort_dto';
+import { CohortData } from '../models/cohort_dto';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
@@ -94,7 +94,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.configService.emitStatusFromBackend();
   }
 
-  protected override onCohortDtoLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortData): void {
     this.cdRef.detectChanges();
   }
 

@@ -9,10 +9,10 @@ import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, CohortDto } from '../models/cohort_dto';
+import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
-import { HpoTermDto } from '../models/hpo_annotation_dto';
+import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
@@ -63,7 +63,7 @@ export class AddcaseComponent {
   allele1: VariantDto | null = null;
   allele2: VariantDto | null = null;
 
-  tableData: CohortDto | null = null;
+  tableData: CohortData | null = null;
   demographData: DemographDto | null = null;
  
 
@@ -142,7 +142,7 @@ export class AddcaseComponent {
       }
 
       // combine the above
-      const individual_dto: IndividualDto = {
+      const individual_dto: IndividualData = {
         pmid: pmid_dto.pmid,
         title: pmid_dto.title,
         individualId: this.demographData.individualId,
@@ -152,7 +152,7 @@ export class AddcaseComponent {
         deceased: this.demographData.deceased,
         sex: this.demographData.sex
       };
-      const hpoAnnotations: HpoTermDto[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
+      const hpoAnnotations: HpoTermData[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
       const geneVariantBundle = this.createGeneVariantBundleDto();
       if (geneVariantBundle == null) {
         this.errorString = "Could not create Gene/Variant bundle";
@@ -162,7 +162,7 @@ export class AddcaseComponent {
       const cohort_dto = this.cohortService.getCohortDto();
       if (cohort_dto != null) {
         try {
-          const updated_dto: CohortDto = await this.configService.addNewRowToCohort(
+          const updated_dto: CohortData = await this.configService.addNewRowToCohort(
               individual_dto, 
               hpoAnnotations, 
               [geneVariantBundle],
@@ -383,20 +383,30 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     }
   }
 
-  convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermDto {
-    let status = 'na';
+  convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermData {
+    let cellValue: CellValue | null = null;
     if (textAnn.isObserved) {
-      status = 'observed'; // status could be observed or an age of onset.
+      let status = 'observed'; // status could be observed or an age of onset.
       if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
         status = textAnn.onsetString; // if there is a non-empty/non-na onset, use it for our value
+        cellValue = {
+          type: "OnsetAge",
+          data: status
+        }
+      } else {
+        cellValue = { type: "Observed"}
       }
     } else {
-      status = 'excluded';
+       cellValue = { type: "Excluded"}
     }
+    const duplet: HpoTermDuplet = {
+      hpoLabel: textAnn.termId,
+      hpoId:  textAnn.label,
+    };
+    
     return {
-      termId: textAnn.termId,
-      termLabel: textAnn.label,
-      entry: status,
+      termDuplet: duplet, 
+      entry: cellValue,
     };
   }
 
@@ -433,7 +443,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
 
-  createGeneVariantBundleDto(): GeneVariantBundleDto | null {
+  createGeneVariantBundleDto(): GeneVariantData | null {
     if (this.allele1 == null ) {
       console.error("allele 1 was null, cannot create GeneVariant bundle");
       return null; // need at least allele1 to move forward

@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { VariantDto } from '../models/variant_dto';
-import { CohortDto } from '../models/cohort_dto';
+import { CohortData } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 
 
@@ -33,7 +33,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   errorMessage: string | null = null;
   variantDtoList: VariantDto[] | [] = [];
   
-  protected override onCohortDtoLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortData): void {
       /* no op */
     }
   override async ngOnInit() {

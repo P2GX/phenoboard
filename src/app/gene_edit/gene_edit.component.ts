@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GeneVariantBundleDto } from '../models/cohort_dto';
+import { GeneVariantData } from '../models/cohort_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,7 +37,7 @@ export class GeneEditComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<GeneEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: GeneVariantBundleDto
+    @Inject(MAT_DIALOG_DATA) public data: GeneVariantData
   ) {
     this.form = this.fb.group({
       hgncId:  [

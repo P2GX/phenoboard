@@ -31,7 +31,7 @@
       </p>
     </div>
   } @else {
-    <p class="error-message">Could not extract Cohort Description data.</p>
+    <p class="error-message">Cohort not initialized.</p>
   }
 
   <!-- String input section -->
@@ -66,6 +66,10 @@
         </button>
       </div>
     }
+    @if (cohort) {
+       <p class="text-sm text-gray-500">{{ cohort.cohortAcronym != "na" ? cohort.cohortAcronym : "not initialized" }}</p>
+    }
+   
   </div>
 
 </div> 
@@ -89,17 +93,17 @@
                 (mouseleave)="setHover('hpoHeader', 0, $index, false)"
               >
                 <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
-                  {{ header.h1 }}
+                  {{ header.hpoLabel }}
                 </div>
               <!-- Popup shown on hover -->
               @if(isHovered('hpoHeader', 0, $index)) {
                   <div class="hpo-popup">
                     <a
-                      [href]="'https://hpo.jax.org/browse/term/' + header.h2"
+                      [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
                       target="_blank"
                       rel="noopener"
                     >
-                      🔗 {{ header.h2 }}
+                      🔗 {{ header.hpoId }}
                     </a>
                   </div>
                 }

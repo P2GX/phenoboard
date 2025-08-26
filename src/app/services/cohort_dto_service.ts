@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { DiseaseGeneDto, CohortDto, GeneTranscriptDto } from '../models/cohort_dto';
+import { DiseaseGeneData, CohortData, GeneTranscriptDto } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
@@ -15,15 +15,15 @@ export class CohortDtoService {
     constructor(private configService: ConfigService){
         console.log('🟡 CohortDtoService instance created');
     }
-    private cohortDtoSubject = new BehaviorSubject<CohortDto | null>(null);
+    private cohortDtoSubject = new BehaviorSubject<CohortData | null>(null);
     cohortDto$ = this.cohortDtoSubject.asObservable();
 
     
-    setCohortDto(template: CohortDto) {
+    setCohortDto(template: CohortData) {
         this.cohortDtoSubject.next(template);
     }
 
-    getCohortDto(): CohortDto | null {
+    getCohortDto(): CohortData | null {
         const current = this.cohortDtoSubject.getValue();
         return current;
     }
@@ -32,9 +32,9 @@ export class CohortDtoService {
         this.cohortDtoSubject.next(null);
     }
 
-    getDiseaseGeneDto(): DiseaseGeneDto | null {
+    getDiseaseGeneDto(): DiseaseGeneData | null {
         const templateDto = this.cohortDtoSubject.getValue();
-        const dto = templateDto?.diseaseGeneDto;
+        const dto = templateDto?.diseaseGeneData;
         return dto || null;
     }
 
@@ -44,7 +44,7 @@ export class CohortDtoService {
             console.error("Attempt to get acronym but cohort template was null");
             return null;
         }
-        const dto = templateDto.diseaseGeneDto;
+        const dto = templateDto.diseaseGeneData;
         return dto.cohortAcronym;
     }
 
@@ -57,7 +57,7 @@ export class CohortDtoService {
         }
         const key = hgvs.variantKey;
         // Create a new object so we don't mutate the existing one directly
-        const updated: CohortDto = {
+        const updated: CohortData = {
             ...current,
             hgvsVariants: {
                 ...current.hgvsVariants,
@@ -75,7 +75,7 @@ export class CohortDtoService {
             return;
         }
         const key = sv.variantKey;
-        const updated: CohortDto = {
+        const updated: CohortData = {
             ...current,
             structuralVariants: {
                 ...current.structuralVariants,
@@ -95,7 +95,7 @@ export class CohortDtoService {
             alert("No CohortDto available to update");
             return;
         }
-        const updated: CohortDto = {
+        const updated: CohortData = {
             ...current,
             cohortAcronym: acronym
         };

@@ -4,7 +4,7 @@ import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortDto } from '../models/cohort_dto';
+import { CohortData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.component';
 import { FormsModule } from '@angular/forms';
@@ -126,7 +126,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  protected override onCohortDtoLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortData): void {
     console.log("TableEditorComponent:onTemplateLoaded");
   }
 

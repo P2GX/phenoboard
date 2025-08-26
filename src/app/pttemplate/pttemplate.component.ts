@@ -2,10 +2,9 @@ import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit, ViewChild }
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { CellValue, DiseaseDto, GeneVariantBundleDto, HeaderDupletDto, IndividualDto, CohortDto, RowDto } from '../models/cohort_dto';
+import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue } from '../models/cohort_dto';
 import { CohortDescriptionDto} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -52,7 +51,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
     Object = Object; // <-- expose global Object to template
-  cohortDto: CohortDto | null = null;
+  cohortDto: CohortData | null = null;
 
   selectedCellContents: CellValue | null = null;
   cohortDescription: CohortDescriptionDto | null = null;
@@ -102,7 +101,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
   }
 
-  protected override onCohortDtoLoaded(cohortDto: CohortDto): void {
+  protected override onCohortDtoLoaded(cohortDto: CohortData): void {
     console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
     this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     this.cdRef.detectChanges();
@@ -135,18 +134,18 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
   async loadTemplateFromBackend(): Promise<void> {
-    this.configService.getPhetoolsTemplate().then((data: CohortDto) => {
+    this.configService.getPhetoolsTemplate().then((data: CohortData) => {
         this.cohortService.setCohortDto(data);
   });
   }
 
 
-  openIndividualEditor(individual: IndividualDto) {
+  openIndividualEditor(individual: IndividualData) {
     const dialogRef = this.dialog.open(IndividualEditComponent, {
       width: '500px',
       data: { ...individual }, // pass a copy
     });
-    dialogRef.afterClosed().subscribe((result: IndividualDto | null) => {
+    dialogRef.afterClosed().subscribe((result: IndividualData | null) => {
       if (result) {
         // Apply changes back to the original
         Object.assign(individual, result);
@@ -157,13 +156,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
 
-  openDiseaseEditor(disease: DiseaseDto) {
+  openDiseaseEditor(disease: DiseaseData) {
     const dialogRef = this.dialog.open(DiseaseEditComponent, {
       width: '500px',
       data: { ...disease }, // pass a copy
     });
 
-    dialogRef.afterClosed().subscribe((result: DiseaseDto | null) => {
+    dialogRef.afterClosed().subscribe((result: DiseaseData | null) => {
       if (result) {
         // Apply changes back to the original
         Object.assign(disease, result);
@@ -176,13 +175,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
  * Opens a dialog that allows us to edit the current gene/transcript/alleles
  * @param gene 
  */
-  openGeneEditor(gene: GeneVariantBundleDto) {
+  openGeneEditor(gene: GeneVariantData) {
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
       data: { ...gene }, // pass a copy
     });
 
-    dialogRef.afterClosed().subscribe((result: GeneVariantBundleDto | null) => {
+    dialogRef.afterClosed().subscribe((result: GeneVariantData | null) => {
       if (result) {
         // Apply changes back to the original
         Object.assign(gene, result);
@@ -192,22 +191,22 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  generateCohortDescriptionDto(cohortDto: CohortDto | null): CohortDescriptionDto | null {
+  generateCohortDescriptionDto(cohortDto: CohortData | null): CohortDescriptionDto | null {
     if (cohortDto == null) {
       return null;
     }
     console.log("generateCohortDescriptionDto", cohortDto);
-    const dgDto = cohortDto.diseaseGeneDto;
+    const dgDto = cohortDto.diseaseGeneData;
     if (dgDto == null) {
-      alert("Could not extract Disease Gene DTO object");
+      this.notificationService.showError("Could not extract Disease Gene DTO object");
       return null;
     }
     if (dgDto.diseaseDtoList.length < 1) {
-      alert("Could not find Disease DTO object");
+      this.notificationService.showError("Could not find Disease DTO object");
       return null;
     }
     if (dgDto.geneTranscriptDtoList.length < 1) {
-      alert("Could not find GeneTrascript DTO object");
+      this.notificationService.showError("Could not find GeneTrascript DTO object");
       return null;
     }
     const gt_dto = dgDto.geneTranscriptDtoList[0];
@@ -380,20 +379,18 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   async saveCohort() {
-    let acronym = this.cohortService.getCohortAcronym();
+    const cohort = this.cohortDto;
+    if (cohort == null) {
+      this.notificationService.showError("Cannot save null cohort");
+      return;
+    }
+    let acronym = cohort.cohortAcronym;
     if (acronym == null) {
-      alert("Cannot save cohort with null acronym -- adding TEMP");
-      acronym = "temp";
-
+      this.notificationService.showError("Need to specify acronym before saving cohort");
+      return;
     }
-    const cohortDto = this.cohortService.getCohortDto();
-    if (cohortDto == null) {
-      this.showError("Cannot save null cohort (cohort_dto is null");
-      return; // should never happen!
-    }
-    
-    await this.configService.saveCohort(cohortDto);
-    this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
+    await this.configService.saveCohort(cohort);
+    this.cohortDescription = this.generateCohortDescriptionDto(cohort);
     
   }
 
@@ -445,13 +442,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   showCohortAcronym = false;
 
  async submitCohortAcronym(acronym: string) {
-     const cohort_dto: CohortDto | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
     console.log("submitCohortAcronym before", cohort_dto);
     if (acronym.trim()) {
       this.cohortService.setCohortAcronym(acronym.trim());
       this.showCohortAcronym = false;
     }
-    const cohort_dto2: CohortDto | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    const cohort_dto2: CohortData | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
     console.log("submitCohortAcronym afteter", cohort_dto2);
   }
 
@@ -462,11 +459,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   /* Create an OMIM URL from a string such as OMIM:654123 */
   getOmimId(diseaseId: string): string {
     const parts = diseaseId.split(":");
-    return `https://omim.org/entry/${parts.length > 1 ? parts[1] : diseaseId}`;
+    return `${parts.length > 1 ? parts[1] : diseaseId}`;
   }
 
     // Convert the map into entries
-    getAlleleEntries(row: RowDto): [string, number][] {
+    getAlleleEntries(row: RowData): [string, number][] {
       return Object.entries(row.alleleCountMap);
     }
 

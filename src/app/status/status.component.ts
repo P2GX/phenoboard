@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseGeneDto, CohortDto } from '../models/cohort_dto';
+import { DiseaseGeneData, CohortData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 
 
@@ -24,7 +24,7 @@ export class StatusComponent implements OnInit {
   cohortDto$ = this.cohortService.cohortDto$;
 
   
-  diseaseGeneDto: DiseaseGeneDto | null = null;
+  diseaseGeneDto: DiseaseGeneData | null = null;
   showJson = false;
 
 

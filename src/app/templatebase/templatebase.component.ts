@@ -1,5 +1,5 @@
 import { CohortDtoService } from "../services/cohort_dto_service";
-import { CohortDto } from '../models/cohort_dto';
+import { CohortData } from '../models/cohort_dto';
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 
@@ -51,7 +51,7 @@ export abstract class TemplateBaseComponent implements OnInit, OnDestroy {
   }
 
   /** Called when a valid template is available */
-  protected abstract onCohortDtoLoaded(template: CohortDto): void;
+  protected abstract onCohortDtoLoaded(template: CohortData): void;
 
   /** Called when template is still missing (optional override) */
   protected onCohortDtoMissing(): void {

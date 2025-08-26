@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IndividualDto } from '../models/cohort_dto';
+import { IndividualData } from '../models/cohort_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +31,7 @@ export class IndividualEditComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<IndividualEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: IndividualDto
+    @Inject(MAT_DIALOG_DATA) public data: IndividualData
   ) {
     this.form = this.fb.group({
       pmid: [data.pmid, Validators.required],

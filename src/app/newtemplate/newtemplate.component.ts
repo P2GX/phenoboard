@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { DiseaseGeneDto, newMendelianTemplate, CohortDto, CohortType } from '../models/cohort_dto';
+import { DiseaseGeneData, newMendelianTemplate, CohortData, CohortType } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { PageService } from '../services/page.service';
@@ -63,7 +63,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
   
-  protected override onCohortDtoLoaded(template: CohortDto): void {
+  protected override onCohortDtoLoaded(template: CohortData): void {
     console.log("✅ Template loaded into HomeComponent:", template);
     this.cdRef.detectChanges();
   }
@@ -89,7 +89,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       const transcript = this.mendelianDataForm.get('transcript')?.value;
       const multiText = this.mendelianDataForm.get('multiText')?.value;
 
-      const diseaseGeneDto: DiseaseGeneDto = newMendelianTemplate(diseaseId, diseaseName, cohortAcronym, hgnc, symbol, transcript);
+      const diseaseGeneDto: DiseaseGeneData = newMendelianTemplate(diseaseId, diseaseName, cohortAcronym, hgnc, symbol, transcript);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);

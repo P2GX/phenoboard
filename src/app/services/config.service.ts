@@ -3,8 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantBundleDto, IndividualDto, CohortDto, DiseaseGeneDto, CohortType } from '../models/cohort_dto';
-import { HpoTermDto } from '../models/hpo_annotation_dto';
+import { GeneVariantData, IndividualData, CohortData, DiseaseGeneData, CohortType } from '../models/cohort_dto';
+import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
 
@@ -33,8 +33,8 @@ export class ConfigService {
     return await invoke<string | string>("get_hp_json_path");
   }
 
-  async getPhetoolsTemplate(): Promise<CohortDto> {
-    return await invoke<CohortDto>("get_phetools_template");
+  async getPhetoolsTemplate(): Promise<CohortData> {
+    return await invoke<CohortData>("get_phetools_template");
   }
 
   /**
@@ -43,9 +43,9 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplateFromSeeds(dto: DiseaseGeneDto, cohortType: CohortType, input: string):  Promise<CohortDto> {
+  async createNewTemplateFromSeeds(dto: DiseaseGeneData, cohortType: CohortType, input: string):  Promise<CohortData> {
     console.log("getNewTemplateFromSeeds in service", dto, input);
-    return await invoke<CohortDto>("create_template_dto_from_seeds", {
+    return await invoke<CohortData>("create_template_dto_from_seeds", {
       'dto': dto,
       'cohortType': cohortType,
       'input': input,
@@ -54,17 +54,17 @@ export class ConfigService {
   
 
   /** Load the version-one format Excel template (all of which are Mendelian) */
-  async loadPtExcelTemplate(updateLabels: boolean): Promise<CohortDto> {
-    return await invoke<CohortDto>("load_phetools_excel_template", { "updateLabels": updateLabels});
+  async loadPtExcelTemplate(updateLabels: boolean): Promise<CohortData> {
+    return await invoke<CohortData>("load_phetools_excel_template", { "updateLabels": updateLabels});
   }
 
-  async loadPtJson(): Promise<CohortDto> {
-    return await invoke<CohortDto>("load_ptools_json");
+  async loadPtJson(): Promise<CohortData> {
+    return await invoke<CohortData>("load_ptools_json");
   }
 
   /** Load an excel template file and try to fix some common errors (outdated HPO labels, whitespace) */
-  async loadAndFixPtTemplate(): Promise<CohortDto> {
-    return await invoke<CohortDto>("load_phetools_template", { "fixErrors": true});
+  async loadAndFixPtTemplate(): Promise<CohortData> {
+    return await invoke<CohortData>("load_phetools_template", { "fixErrors": true});
   }
 
   async fetchStatus(): Promise<void> {
@@ -145,28 +145,28 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
-  async validateHgvs(dto: VariantDto, cohort_dto: CohortDto): Promise<HgvsVariant> {
+  async validateHgvs(dto: VariantDto, cohort_dto: CohortData): Promise<HgvsVariant> {
     return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto, cohortDto: cohort_dto})
   }
 
-  async validateSv(dto: VariantDto, cohort_dto: CohortDto): Promise<StructuralVariant> {
+  async validateSv(dto: VariantDto, cohort_dto: CohortData): Promise<StructuralVariant> {
     return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto})
   }
   
 
-   async saveCohort(cohort_dto: CohortDto): Promise<void> {
+   async saveCohort(cohort_dto: CohortData): Promise<void> {
     return invoke<void>('save_template', {cohortDto: cohort_dto});
   }
 
-  async validateCohort(cohort_dto: CohortDto): Promise<void> {
+  async validateCohort(cohort_dto: CohortData): Promise<void> {
     return invoke<void>('validate_template', {cohortDto: cohort_dto});
   }
 
-  async exportPpkt(cohort_dto: CohortDto): Promise<void> {
+  async exportPpkt(cohort_dto: CohortData): Promise<void> {
     return invoke<void>('export_ppkt', {cohortDto: cohort_dto});
   }
 
-   async exportHpoa(cohort_dto: CohortDto): Promise<string> {
+   async exportHpoa(cohort_dto: CohortData): Promise<string> {
     return invoke<string>('export_hpoa', {cohortDto: cohort_dto});
   }
 
@@ -176,18 +176,18 @@ export class ConfigService {
    * @param id - The HPO term ID (e.g., "HP:0004322")
    * @param label - The human-readable label (e.g., "Seizures")
    */
-  async addHpoToCohort(id: string, label: string, cohortDto: CohortDto): Promise<CohortDto> {
-    return invoke<CohortDto>('add_hpo_term_to_cohort', 
+  async addHpoToCohort(id: string, label: string, cohortDto: CohortData): Promise<CohortData> {
+    return invoke<CohortData>('add_hpo_term_to_cohort', 
         {hpoId: id, hpoLabel: label, cohortDto: cohortDto});
   }
 
 
   async addNewRowToCohort(
-      individualDto: IndividualDto, 
-      hpoAnnotations: HpoTermDto[],
-      geneVariantList: GeneVariantBundleDto[],
-      cohortDto: CohortDto): Promise<CohortDto> {
-    return invoke<CohortDto>('add_new_row_to_cohort', 
+      individualDto: IndividualData, 
+      hpoAnnotations: HpoTermData[],
+      geneVariantList: GeneVariantData[],
+      cohortDto: CohortData): Promise<CohortData> {
+    return invoke<CohortData>('add_new_row_to_cohort', 
       { individualDto, 
          hpoAnnotations,
          geneVariantList,
@@ -241,7 +241,7 @@ export class ConfigService {
   }
 
   /** This is called by the initialize of the VariantList component to show the variants that have been validated or that still need validation */
-  async getVariantAnalysis(cohort: CohortDto): Promise<VariantDto[]> {
+  async getVariantAnalysis(cohort: CohortData): Promise<VariantDto[]> {
     return await invoke<VariantDto[]>('get_variant_analysis', {
       cohortDto: cohort
     });

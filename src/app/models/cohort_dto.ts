@@ -3,9 +3,10 @@
  * template_dto.rs. 
 */
 
+import { CellValue, HpoTermDuplet } from "./hpo_term_dto";
 import { HgvsVariant, StructuralVariant } from "./variant_dto";
 
-export interface IndividualDto {
+export interface IndividualData {
     pmid: string;
     title: string; 
     individualId: string;
@@ -17,14 +18,14 @@ export interface IndividualDto {
 }
 
 
-export interface DiseaseDto {
+export interface DiseaseData {
     diseaseId: string;
     diseaseLabel: string;
 }
 
 
 
-export interface GeneVariantBundleDto {
+export interface GeneVariantData {
     hgncId: string;
     geneSymbol: string;
     transcript: string;
@@ -34,60 +35,25 @@ export interface GeneVariantBundleDto {
 }
 
 
-export type CellValue =
-  | { type: "Observed" }
-  | { type: "Excluded" }
-  | { type: "Na" }
-  | { type: "OnsetAge"; data: string }
-  | { type: "Modifier"; data: string };
 
-
-function renderCell(cell: CellValue): string {
-  switch (cell.type) {
-    case "Observed":
-      return "✓ Observed";
-    case "Excluded":
-      return "✗ Excluded";
-    case "Na":
-      return "Not available";
-    case "OnsetAge":
-      return `Onset at ${cell.data}`;
-    case "Modifier":
-      return `Modifier: ${cell.data}`;
-    default: {
-      const _exhaustive: never = cell;
-      return _exhaustive;
-    }
-  }
-}
-
-
-
-export interface RowDto {
-    individualDto: IndividualDto;
-    diseaseDtoList: DiseaseDto[];
+export interface RowData {
+    individualData: IndividualData;
+    diseaseDataList: DiseaseData[];
     alleleCountMap: Record<string, number>;
     hpoData: CellValue[];
 }
 
-export interface HeaderDupletDto {
-    h1: string;
-    h2: string;
-}
 
-export interface HeaderDto {
-    individualHeader: HeaderDupletDto[];
-    data: HeaderDupletDto[];
-}
+
 
 
 export type CohortType = 'mendelian' | 'melded' | 'digenic';
 
-export interface CohortDto {
+export interface CohortData {
     cohortType: CohortType,
-    diseaseGeneDto: DiseaseGeneDto,
-    hpoHeaders: HeaderDupletDto[],
-    rows: RowDto[],
+    diseaseGeneData: DiseaseGeneData,
+    hpoHeaders: HpoTermDuplet[],
+    rows: RowData[],
     hgvsVariants: Record<string, HgvsVariant>;
     structuralVariants: Record<string, StructuralVariant>;
     dtoVersion: string;
@@ -113,12 +79,12 @@ export interface GeneTranscriptDto {
 /// Mendelian: disease_dto_list and gene_variant_dto_list must both be of length 1
 /// Melded: both of length two
 /// Digenic: disease_dto of length 1, gene_variant_dto of length 2
-export interface DiseaseGeneDto {
+export interface DiseaseGeneData {
     templateType: CohortType,
     /// Abbreviation of disease that is used in file name
     cohortAcronym: string,
     /// Disease (or diseases, for Melded) diagnosed in individuals of the cohort
-    diseaseDtoList: DiseaseDto[],
+    diseaseDtoList: DiseaseData[],
     /// Gene (or genes, for digenic/Melded) diagnosed in individuals of the cohort
     geneTranscriptDtoList: GeneTranscriptDto[],
 
@@ -130,14 +96,14 @@ export function newMendelianTemplate(
     cohortAcronym: string,
     hgnc: string, 
     symbol: string, 
-    transcript: string): DiseaseGeneDto {
+    transcript: string): DiseaseGeneData {
 
-    const disease_dto: DiseaseDto = {
+    const disease_dto: DiseaseData = {
         diseaseId: diseaseId,
         diseaseLabel: diseaseLabel
     }
     
-    const gvb_dto: GeneVariantBundleDto = {
+    const gvb_dto: GeneVariantData = {
         hgncId: hgnc,
         geneSymbol: symbol,
         transcript: transcript,
@@ -153,3 +119,5 @@ export function newMendelianTemplate(
         geneTranscriptDtoList: [gvb_dto],
     };
 }
+
+export { CellValue };

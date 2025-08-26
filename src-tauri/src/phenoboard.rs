@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortDto, CohortType, DiseaseGeneDto, IndividualDto}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermDto, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseGeneData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -22,6 +22,8 @@ pub struct PhenoboardSingleton {
     ontology: Option<Arc<FullCsrOntology>>,
     /// Path to save the phetools template
     pt_template_path: Option<String>,
+    /// Path to the directory where we store the template and the phenopackets
+    pt_template_dir_path: Option<PathBuf>,
     /// PheTools is the heart of the application.
     phetools: Option<PheTools>,
     /// Strings for autocompletion
@@ -128,6 +130,13 @@ impl PhenoboardSingleton {
         path.parent()?.parent().map(|p| p.to_path_buf())
     }
 
+     /// The JSON files are located in a sub directory of the project directory.
+    /// This function retrieves a PathBuf that points to the project directory.
+    fn get_parent_dir(file_path: &str) -> Option<PathBuf> {
+        let path = Path::new(file_path);
+        path.parent().map(|p| p.to_path_buf())
+    }
+
 
     /// Load an excel file containing a phetools template (version 1). Use this to initialize the Phetools backend
     /// * Arguments
@@ -142,7 +151,7 @@ impl PhenoboardSingleton {
         excel_file: &str,
         update_labels: bool,
          progress_cb: F) 
-    -> Result<CohortDto, String> 
+    -> Result<CohortData, String> 
     where F: FnMut(u32, u32) {
         match self.phetools.as_mut() {
             Some(ptools) => match ptools.load_excel_template(
@@ -170,10 +179,18 @@ impl PhenoboardSingleton {
     pub fn load_ptools_json(
         &mut self,
         json_file: &str,
-    ) -> Result<CohortDto, String> {
+    ) -> Result<CohortData, String> {
         match self.phetools.as_mut() {
-            Some(ptools) => { ptools.load_json_cohort(json_file) },
-             None => return Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
+            Some(ptools) => { 
+                match Self::get_parent_dir(json_file) {
+                    Some(project_dir) => {
+                          ptools.initialize_project_dir(project_dir)?;
+                          ptools.load_json_cohort(json_file)
+                    },
+                    None => Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
+                }
+            },
+            None => return Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
         }
     }
 
@@ -235,20 +252,12 @@ impl PhenoboardSingleton {
         let path = Path::new(&file_path);
         let parent = match path.parent() {
             Some(parent_path) => parent_path,
-            None => {return Err(format!("Template prent path not initialized"));},
+            None => {return Err(format!("Template parent path not initialized"));},
         };
         let dirman = DirectoryManager::new(parent.to_string_lossy())?;
         return dirman.get_json();
     }
 
-
-    pub fn check_readiness(&self) -> bool {
-        return self.ontology.is_some() && self.pt_template_path.is_some();
-    }
-
-    pub fn hpo_ready(&self) -> bool {
-        self.ontology.is_some()
-    }
 
     /// Use our rust fenominal implementation to perform HPO text mining.
     /// 
@@ -317,19 +326,9 @@ impl PhenoboardSingleton {
     }
 
 
-
-    pub fn hpo_initialized(&self) -> bool {
-        match &self.ontology {
-            Some(_) => true,
-            None => false,
-        }
-    }
-
-
-
     pub fn validate_template(
         &self, 
-        cohort_dto: CohortDto) 
+        cohort_dto: CohortData) 
     -> Result<(), String> {
         match &self.phetools {
             Some(ptools) => {
@@ -357,12 +356,12 @@ impl PhenoboardSingleton {
     }
 
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
-    fn extract_template_name(&self, cohort_dto: &CohortDto) -> Result<String, String> {
+    fn extract_template_name(&self, cohort_dto: &CohortData) -> Result<String, String> {
         
         if ! cohort_dto.is_mendelian() {
             return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
-        let dg_dto = &cohort_dto.disease_gene_dto;
+        let dg_dto = &cohort_dto.disease_gene_data;
         if dg_dto.gene_transcript_dto_list.len() != 1 {
             return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
@@ -374,7 +373,7 @@ impl PhenoboardSingleton {
   
     }
 
-    pub fn save_template_json(&self, cohort_dto: CohortDto) -> Result<(), String> {
+    pub fn save_template_json(&self, cohort_dto: CohortData) -> Result<(), String> {
         let dir_opt = self.get_default_template_dir();
         if dir_opt.is_none() {
             return Err("Could not get default path".to_string());
@@ -431,7 +430,7 @@ impl PhenoboardSingleton {
 
     pub fn export_ppkt(
         &mut self,
-        cohort_dto: CohortDto) -> Result<(), String> {
+        cohort_dto: CohortData) -> Result<(), String> {
         let out_dir = match self.get_phenopackets_output_dir() {
             Ok(dir) => dir,
             Err(e) =>  { return Err(e);},
@@ -473,7 +472,7 @@ impl PhenoboardSingleton {
     /// - This function may fail if required fields in `CohortDto` are missing or invalid.
     pub fn export_hpoa(
         &mut self,
-        cohort_dto: CohortDto)
+        cohort_dto: CohortData)
     -> Result<String, String> {
         let out_dir = self.get_phenopackets_output_dir()?;
         let mut orcid = match self.settings.get_biocurator_orcid() {
@@ -499,8 +498,8 @@ impl PhenoboardSingleton {
         &mut self,
         hpo_id: &str,
         hpo_label: &str,
-        cohort_dto: CohortDto) 
-    -> std::result::Result<CohortDto, String> {
+        cohort_dto: CohortData) 
+    -> std::result::Result<CohortData, String> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
@@ -514,11 +513,11 @@ impl PhenoboardSingleton {
     /// Add a new phenopacket (row) to the cohort
     pub fn add_new_row_to_cohort(
         &mut self,
-        individual_dto: IndividualDto, 
-        hpo_annotations: Vec<HpoTermDto>,
+        individual_dto: IndividualData, 
+        hpo_annotations: Vec<HpoTermData>,
         variant_key_list: Vec<String>,
-        cohort_dto: CohortDto) 
-    -> std::result::Result<CohortDto, String> {
+        cohort_dto: CohortData) 
+    -> std::result::Result<CohortData, String> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 let updated_dto = ptools.add_new_row_to_cohort(
@@ -539,10 +538,10 @@ impl PhenoboardSingleton {
     /// ToDo, this is Mendelian only, we need to extend it.
     pub fn create_template_dto_from_seeds(
         &mut self,
-        dto: DiseaseGeneDto,
+        dto: DiseaseGeneData,
         cohort_type: CohortType,
         input: String
-    ) -> Result<CohortDto, String> {
+    ) -> Result<CohortData, String> {
         println!("{}:{} - input {}", file!(), line!(), &input);
         let fresult = self.map_text_to_term_list(&input);
         let directory = select_or_create_folder()?;
@@ -633,8 +632,8 @@ impl PhenoboardSingleton {
 
     pub fn validate_all_variants(
         &mut self,
-        cohort_dto: CohortDto) 
-    -> Result<CohortDto, Vec<String>> {
+        cohort_dto: CohortData) 
+    -> Result<CohortData, Vec<String>> {
         match self.phetools.as_mut() {
             Some(ptools) => {
                 //ptools.validate_all_variants(cohort_dto)
@@ -650,7 +649,7 @@ impl PhenoboardSingleton {
     pub fn validate_hgvs_variant(
         &self,
         vv_dto: VariantDto,
-        cohort_dto: CohortDto
+        cohort_dto: CohortData
     ) -> Result<HgvsVariant, String> {
         match self.phetools.as_ref() {
             Some(ptools) => ptools.validate_hgvs_variant(vv_dto, cohort_dto),
@@ -663,7 +662,7 @@ impl PhenoboardSingleton {
      pub fn validate_structural_variant(
         &self,
         vv_dto: VariantDto,
-        cohort_dto: CohortDto
+        cohort_dto: CohortData
     ) -> Result<StructuralVariant, String> {
         match self.phetools.as_ref() {
             Some(ptools) => ptools.validate_structural_variant(vv_dto, cohort_dto),
@@ -699,7 +698,7 @@ impl PhenoboardSingleton {
 
     pub fn get_variant_analysis(
         &self,
-        cohort_dto: CohortDto
+        cohort_dto: CohortData
     ) -> Result<Vec<VariantDto>, String> {
         match &self.phetools {
             Some(ptools) => ptools.analyze_variants(cohort_dto),
@@ -718,6 +717,7 @@ impl Default for PhenoboardSingleton {
             settings: HpoCuratorSettings::load_settings(), 
             ontology: None, 
             pt_template_path: None, 
+            pt_template_dir_path: None,
             phetools: None, 
             hpo_auto_complete: vec![],
         }
