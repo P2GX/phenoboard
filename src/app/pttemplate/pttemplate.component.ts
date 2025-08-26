@@ -17,6 +17,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { firstValueFrom, take } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
+import { getCellValue, HpoTermData } from '../models/hpo_term_dto';
 
 
 type Option = { label: string; value: string };
@@ -250,33 +251,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  showError(err: any): void {
-      let errorMessage: string;
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
-      } else if (err && typeof err === 'object' && 'message' in err) {
-        errorMessage = (err as any).message;
-      } else {
-        errorMessage = 'Unknown error occurred';
-      }
-       this.notificationService.showError(errorMessage);
-    }
-
-  showSuccess(msg: any): void {
-      let okMessage: string;
-      if (msg instanceof Error) {
-        okMessage = msg.message;
-      } else if (typeof msg === 'string') {
-        okMessage = msg;
-      } else if (msg && typeof msg === 'object' && 'message' in msg) {
-        okMessage = (msg as any).message;
-      } else {
-        okMessage = 'Success';
-      }
-        this.notificationService.showSuccess(`✅ ${okMessage}`);
-    }
 
   submitSelectedHpo = async () => {
     await this.addHpoTermToCohort(this.selectedHpoTerm);
@@ -293,11 +267,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
         let updated_template = await this.configService.addHpoToCohort(id, label, template);
-        this.showSuccess(`Successfully added ${label} (${id})`);
+        this.notificationService.showSuccess(`Successfully added ${label} (${id})`);
         this.cohortService.setCohortDto(updated_template);
       } catch (err) {
-        console.error(err);
-        this.showError(`Failed to add term ${label} (${id})`);
+        const errMsg =`Failed to add term ${label} (${id}): ${err}`
+        this.notificationService.showError(errMsg);
       }
     }
   }
@@ -331,6 +305,30 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     );
   }
 
+
+
+  updateHpoCell(
+    cohort: CohortData,
+    rowIndex: number,
+    colIndex: number,
+    newValue: CellValue
+  ): CohortData {
+    return {
+      ...cohort,
+      rows: cohort.rows.map((row, rIdx) => {
+        if (rIdx !== rowIndex) return row;
+
+        return {
+          ...row,
+          hpoData: row.hpoData.map((cell, cIdx) =>
+            cIdx === colIndex ? { ...cell, entry: newValue } : cell
+          )
+        };
+      })
+    };
+  }
+
+
   /* This function can only be called if contextMenuVisible is set true; this happens with the
   *  onRightClick function, which shows an option menu of actions for the cell. Then, when the user clicks
   * on one of those options, this function is called. The goal is to change the value of the cell 
@@ -338,6 +336,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   */
   onMenuOptionClick(option: string): void {
     console.log("onMenuOptionClick option=",option);
+    if (this.pendingHpoColumnIndex == null) {
+      this.notificationService.showError("Attempt to perform right-option with null column index");
+      return;
+    }
+    if (this.pendingHpoRowIndex == null) {
+      this.notificationService.showError("Attempt to perform right-option with null row index");
+      return;
+    }
     if (option.startsWith('focus')) {
       const parts = option.split('-');
       if (parts[1] === 'reset') {
@@ -349,21 +355,18 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       }
     } else if (this.selectedCellContents) {
       this.focusedHpoIndex = null;
-      const currentDto = this.cohortService.getCohortDto();
+      const currentDto = this.cohortDto; //this.cohortService.getCohortDto();
       if (! currentDto) {
-        alert("Cohort object is null (should never happen, please report to developers).");
+        this.notificationService.showError("Cohort object is null (should never happen, please report to developers).");
         return;
       }
-      const updatedRows = currentDto.rows.map((row, rIndex) => {
-        if ( rIndex !== this.pendingHpoRowIndex) return row; // not the row we want to change, just return as-is
-      const updatedHpoData = row.hpoData.map((cell, cIndex) => {
-        cIndex === this.pendingHpoColumnIndex ? { ...cell, value: option } : cell;
-      }); 
 
-      return {...row, hpoData: updatedHpoData };
-      });
+      const cellValue: CellValue = getCellValue(option);
+      const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingHpoRowIndex, this.pendingHpoColumnIndex, cellValue);
+      this.cohortDto = updatedCohort;
+    }  
       
-    } 
+    
     this.pendingHpoColumnIndex = null;
     this.pendingHpoRowIndex = null;
     this.contextMenuVisible = false;
@@ -405,23 +408,23 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     try {
       await this.configService.exportPpkt(cohort_dto);
     } catch (err) {
-      this.showError(String(err));
+      this.notificationService.showError(String(err));
     }
   }
 
   /** Export the aggregate file for use in phenotype.hpoa (part of a small file) */
     async exportHpoa() {
       if (! this.cohortDto) {
-        alert("Cohort DTO not initialized");
+        this.notificationService.showError("Cohort DTO not initialized");
         return;
       }
       const cohort_dto = this.cohortDto;
       console.log("exportHpoa", cohort_dto);
       try {
         const message = await this.configService.exportHpoa(cohort_dto);
-        this.showSuccess(message);
+        this.notificationService.showSuccess(message);
       } catch (err) {
-        this.showError(err);
+        this.notificationService.showError(String(err));
       }
     }
 

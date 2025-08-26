@@ -55,7 +55,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
 
-  errorMessage: string | null = null;
   progressValue = 0;
   isRunning = false;
 
@@ -73,11 +72,12 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       });
     });
     await listen('failure', (event) => {
-      this.errorMessage = String(event.payload);
+      const errorMessage = String(event.payload);
+      this.notificationService.showError(errorMessage);
     });
     await listen('hpoLoading', (event) => {
       this.hpoMessage = null;
-      this.errorMessage = '';
+      
       this.hpoMessage = "loading ...";
     });
     await listen<{ current: number; total: number }>('progress', (event) => {
@@ -102,7 +102,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
   
   async update_gui_variables() {
-    this.errorMessage = null;
     const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
       console.log("in update_gui, status = ", status);
@@ -135,10 +134,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   async loadHpo() {
     try {
-      this.errorMessage = null;
       await this.configService.loadHPO();
     } catch (error: any) {
-      console.error("Failed to call load_hpo:", error);
       const msg = error?.message ?? String(error);
       this.notificationService.showError(`❌ Failed to load HPO:\n${msg}`);
       this.hpoMessage = "Error calling load_hpo";
@@ -147,20 +144,20 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
-    this.errorMessage = null;
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
        this.isRunning = false;
       if (data == null) {
-        this.errorMessage = "Could not retrieve template (null error)"
+        const errorMessage = "Could not retrieve template (null error)"
+        this.notificationService.showError(errorMessage);
         return;
       }
       this.cohortService.setCohortDto(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
-        this.errorMessage = String(error);
-        console.error('Template load failed:', error);
+        const errorMessage = String(error);
+        this.notificationService.showError(errorMessage);
       }
     }
 
@@ -192,32 +189,31 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     try {
       return await this.configService.getCurrentOrcid();
     } catch (error) {
-      console.log('No existing ORCID found:', error);
+      const errMessage = 'No existing ORCID found: ${error}';
+      this.notificationService.showError(errMessage);
       return undefined;
     }
   }
 
   private saveOrcid(orcid: string): void {
-    console.log('Saving ORCID:', orcid);
     this.configService.saveCurrentOrcid(orcid);
-
   }
 
   async chooseJsonTemplateFile() {
-    this.errorMessage = null;
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtJson();
        this.isRunning = false;
       if (data == null) {
-        this.errorMessage = "Could not retrieve template (null error)"
+        const errorMessage = "Could not retrieve JSON template (null error)"
+        this.notificationService.showError(errorMessage);
         return;
       }
       this.cohortService.setCohortDto(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
-        this.errorMessage = String(error);
-        console.error('Template load failed:', error);
+        const errorMessage = String(error);
+         this.notificationService.showError(errorMessage);
       }
   }
 

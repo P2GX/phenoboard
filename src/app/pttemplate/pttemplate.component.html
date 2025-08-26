@@ -85,7 +85,7 @@
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
-          @for (header of cohort.hpoHeaders; track $index) {
+          @for (header of cohort.hpoHeaders; track header.hpoId) {
            @if(shouldDisplayHpoColumn($index)) {
               <th
                 class="rotate-header hpo-col"
@@ -114,7 +114,7 @@
   </tr>
   </thead>
     <tbody>
-      @for (row of cohort.rows; track row; let rowIndex = $index) {
+      @for (row of cohort.rows; track row.individualData.individualId; let rowIndex = $index) {
       <tr>
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column">
@@ -123,8 +123,8 @@
             (mouseleave)="setHover('individual', rowIndex, 0, false)"
           class="cursor-pointer"
         >
-          {{ row.individualDto.individualId }}
-          @if(!row.individualDto.individualId){
+          {{ row.individualData.individualId }}
+          @if(!row.individualData.individualId){
             <span class="text-red-500 text-xs">[ID is null/empty] row={{row}}</span>
           }
           @if(isHovered('individual', rowIndex, 0)){
@@ -134,23 +134,23 @@
                 (mouseleave)="setHover('individual', rowIndex, 0, false)"
             >
             <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-              <li><strong>{{ row.individualDto.individualId }}</strong></li>
-              <li>{{ row.individualDto.pmid }}</li>
-              <li>{{ row.individualDto.title }}</li>
-              @if(row.individualDto.comment.length > 0){
-                <li><strong>Comment:</strong> {{ row.individualDto.comment }}</li>
+              <li><strong>{{ row.individualData.individualId }}</strong></li>
+              <li>{{ row.individualData.pmid }}</li>
+              <li>{{ row.individualData.title }}</li>
+              @if(row.individualData.comment.length > 0){
+                <li><strong>Comment:</strong> {{ row.individualData.comment }}</li>
               }
-              <li>onset: {{ row.individualDto.ageOfOnset }}</li>
-              <li>last encounter: {{ row.individualDto.ageAtLastEncounter }}</li>
-              <li>deceased: {{ row.individualDto.deceased }}</li>
-              <li>sex: {{ row.individualDto.sex }}</li>
+              <li>onset: {{ row.individualData.ageOfOnset }}</li>
+              <li>last encounter: {{ row.individualData.ageAtLastEncounter }}</li>
+              <li>deceased: {{ row.individualData.deceased }}</li>
+              <li>sex: {{ row.individualData.sex }}</li>
             </ul>
             <!-- Edit button in popup -->
             <button
               mat-stroked-button
               color="primary"
               class="text-xs py-0 px-2"
-              (click)="openIndividualEditor(row.individualDto); $event.stopPropagation();"
+              (click)="openIndividualEditor(row.individualData); $event.stopPropagation();"
             >
               ✏️ Edit
             </button>
@@ -161,7 +161,7 @@
 
 <!-- Second column: disease/id -->
 <td class="relative narrow-column">
-  @for (disease of row.diseaseDtoList; track $index; let di = $index) {
+  @for (disease of row.diseaseDataList; track disease.diseaseId; let di = $index) {
     <div
       class="relative inline-block"
       (mouseenter)="setHover('disease', rowIndex, di, true)"
@@ -196,7 +196,7 @@
  <!-- Third column for gene/var-->
   <!-- Third column for gene/allele -->
 <td class="relative narrow-column">
-  @for (entry of Object.entries(row.alleleCountMap); track $index; let gi = $index) {
+  @for (entry of Object.entries(row.alleleCountMap); track entry[0]; let gi = $index) {
     <div
       class="relative inline-block"
       (mouseenter)="setHover('gene', rowIndex, gi, true)"

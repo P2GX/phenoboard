@@ -11,7 +11,7 @@ export class NotificationService {
       panelClass: ['error-snackbar'],
       duration,
       horizontalPosition: 'center',
-      verticalPosition: 'top',
+      verticalPosition: 'bottom',
     });
   }
 

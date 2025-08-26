@@ -21,7 +21,7 @@ export type CellValue =
   | { type: "Modifier"; data: string };
 
 
-function renderCell(cell: CellValue): string {
+export function renderCellValue(cell: CellValue): string {
   switch (cell.type) {
     case "Observed":
       return "✓ Observed";
@@ -38,6 +38,19 @@ function renderCell(cell: CellValue): string {
       return _exhaustive;
     }
   }
+}
+
+export function getCellValue(value: string): CellValue {
+    switch(value) {
+        case "observed":
+            return {type: "Observed"};
+        case "excluded":
+            return { type: "Excluded"}
+        case "na":
+            return { type: "Na"}
+        default:
+            return { type: "OnsetAge", data: value };
+    }
 }
 
 

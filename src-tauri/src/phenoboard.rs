@@ -11,7 +11,8 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseGeneData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseGeneData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
+use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
@@ -307,8 +308,6 @@ impl PhenoboardSingleton {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let fenominal = Fenominal::new(hpo_arc);
-                let hpo_arc = Arc::clone(hpo);
-                let phetools = PheTools::new(hpo_arc);
                 let fenom_hits: Vec<FenominalHit> = fenominal.process(input_text);
                 let mut tid_list: Vec<TermId> = Vec::new();
                 for hit in fenom_hits {
@@ -316,7 +315,7 @@ impl PhenoboardSingleton {
                     let tid = TermId::from_str(&hit.term_id).unwrap();
                     tid_list.push(tid);
                 }
-                let ordered_hpo_ids = phetools.arrange_terms(&tid_list);
+                let ordered_hpo_ids = ga4ghphetools::hpo::hpo_terms_to_dfs_order(hpo.clone(), &tid_list);
                 return ordered_hpo_ids;
             }
             None => {
@@ -475,17 +474,14 @@ impl PhenoboardSingleton {
         cohort_dto: CohortData)
     -> Result<String, String> {
         let out_dir = self.get_phenopackets_output_dir()?;
-        let mut orcid = match self.settings.get_biocurator_orcid() {
+        let orcid = match self.settings.get_biocurator_orcid() {
             Ok(orcid_id) => orcid_id,
             Err(e) => { return Err(format!("Cannot save HPOA without ORCID id: {}", e)); }
         };
-        // note that we store the orcid number without the http prefix. add that here
-        if ! orcid.starts_with("http") {
-            orcid = format!("https://orcid.org/{}", orcid);
-        };
-        match self.phetools.as_mut() {
-            Some(ptools) => {
-                ptools.write_hpoa_table(cohort_dto, out_dir, orcid)
+        match &self.ontology {
+            Some(hpo) => {
+                hpoa::write_hpoa_tsv(cohort_dto, hpo.clone(), &orcid, &out_dir)?;
+                Ok(format!("Wrote HPOA file to {}", out_dir.to_string_lossy()))
             },
             None => {
                 Err("Phetools template not initialized".to_string())
