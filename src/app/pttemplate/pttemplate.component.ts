@@ -518,7 +518,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
     onMoiChange(mois: {id: string; label: string; pmid?: string}[]) {
       this.moiList = mois;
-      console.log("Received from child:", this.moiList);
+      this.notificationService.showSuccess(`Set ${this.moiList.length} modes of inheritance`)
     }
 
 }

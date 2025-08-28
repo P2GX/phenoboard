@@ -153,11 +153,12 @@ export class AddcaseComponent {
         sex: this.demographData.sex
       };
       const hpoAnnotations: HpoTermData[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
-      const geneVariantBundle = this.createGeneVariantBundleDto();
-      if (geneVariantBundle == null) {
-        this.errorString = "Could not create Gene/Variant bundle";
-        alert(this.errorString);
-        return;
+      let allele_keys: string[] = [];
+      if (this.allele1 != null && this.allele1.variantKey != null) {
+        allele_keys.push(this.allele1.variantKey);
+      }
+       if (this.allele2 != null && this.allele2.variantKey != null) {
+        allele_keys.push(this.allele2.variantKey);
       }
       const cohort_dto = this.cohortService.getCohortDto();
       if (cohort_dto != null) {
@@ -165,7 +166,7 @@ export class AddcaseComponent {
           const updated_dto: CohortData = await this.configService.addNewRowToCohort(
               individual_dto, 
               hpoAnnotations, 
-              [geneVariantBundle],
+              allele_keys,
               cohort_dto);
           console.log("Updated dto, " , updated_dto);
           this.cohortService.setCohortDto(updated_dto);

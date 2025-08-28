@@ -17,7 +17,7 @@ interface MoiTerm {
   imports: [PubmedComponent, FormsModule],
 })
 export class MoiSelector {
-  @Output() selectionChange = new EventEmitter<MoiTerm[]>();
+  @Output() moiChange = new EventEmitter<MoiTerm[]>();
 
   showMoi = true;
 
@@ -37,7 +37,7 @@ export class MoiSelector {
   }
 
   confirmSelection() {
-    this.selectionChange.emit(this.selectedMoiWithPmids);
+    this.moiChange.emit(this.selectedMoiWithPmids);
     this.showMoi = false;
   }
 

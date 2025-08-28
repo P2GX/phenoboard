@@ -72,6 +72,7 @@ export interface CohortData {
     hgvsVariants: Record<string, HgvsVariant>;
     structuralVariants: Record<string, StructuralVariant>;
     phetoolsSchemaVersion: string;
+    hpoVersion: string;
     cohortAcronym?: string | null;
 }
 

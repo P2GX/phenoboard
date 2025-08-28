@@ -185,15 +185,17 @@ export class ConfigService {
   async addNewRowToCohort(
       individualDto: IndividualData, 
       hpoAnnotations: HpoTermData[],
-      geneVariantList: GeneVariantData[],
+      variantKeyList: string[],
       cohortDto: CohortData): Promise<CohortData> {
     return invoke<CohortData>('add_new_row_to_cohort', 
       { individualDto, 
          hpoAnnotations,
-         geneVariantList,
+         variantKeyList,
          cohortDto
       });
   }
+
+  
 
   /**
    * Validate variants in the back end and return the results for display.
