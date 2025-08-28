@@ -12,7 +12,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
 import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs } from '../models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { GeneTranscriptDto } from '../models/cohort_dto';
+import { GeneTranscriptData } from '../models/cohort_dto';
 
 
 /**
@@ -65,8 +65,8 @@ export class AddVariantComponent {
     {'label':'translocation', 'id':'TRANSL'},
     {'label':'sv (general)', 'id':'SV'},];
 
-  geneOptions: GeneTranscriptDto[] = []; 
-  selectedGene: GeneTranscriptDto | null = null;
+  geneOptions: GeneTranscriptData[] = []; 
+  selectedGene: GeneTranscriptData | null = null;
   selectedStructuralType: StructuralType | null = null;
 
   validationMessage: string = '';

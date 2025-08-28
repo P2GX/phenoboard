@@ -152,7 +152,7 @@ impl DirectoryManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{json, to_string_pretty};
+    use serde_json::to_string_pretty;
 
     #[test]
     #[ignore = "directory path needs to be adjusted to visualize JSON (but function/test is working)"]

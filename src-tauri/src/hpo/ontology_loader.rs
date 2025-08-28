@@ -32,10 +32,4 @@ pub fn load_ontology(file_path: FilePath) -> Result<FullCsrOntology, String> {
     }
 }
 
-pub fn load_ontology_from_path(path: &Path) -> Result<FullCsrOntology, String> { 
-    let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-    let ontology: FullCsrOntology = loader
-        .load_from_path(path)
-        .expect("Could not load {file_path}");
-        return Ok(ontology);
-}
+

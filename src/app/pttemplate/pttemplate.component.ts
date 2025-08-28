@@ -5,19 +5,19 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
 import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue } from '../models/cohort_dto';
-import { CohortDescriptionDto} from '../models/cohort_description_dto'
+import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
-import { DiseaseEditComponent } from '../disease_edit/disease_edit.component';
 import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { firstValueFrom, take } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
-import { getCellValue, HpoTermData } from '../models/hpo_term_dto';
+import { getCellValue } from '../models/hpo_term_dto';
+import { MoiSelector } from "../moiselector/moiselector.component";
 
 
 type Option = { label: string; value: string };
@@ -25,7 +25,7 @@ type Option = { label: string; value: string };
 @Component({
   selector: 'app-pttemplate',
   standalone: true,
-  imports: [ 
+  imports: [
     AddagesComponent,
     HpoAutocompleteComponent,
     CommonModule,
@@ -33,7 +33,8 @@ type Option = { label: string; value: string };
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
-  ],
+    MoiSelector
+],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
@@ -86,6 +87,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   ];
 
   contextMenuOptions: Option[] = [];
+  /** Mode of inheritance list */
+  moiList: {id: string; label: string; pmid?: string}[] = [];
 
   override ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit");
@@ -157,20 +160,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
 
-  openDiseaseEditor(disease: DiseaseData) {
-    const dialogRef = this.dialog.open(DiseaseEditComponent, {
-      width: '500px',
-      data: { ...disease }, // pass a copy
-    });
-
-    dialogRef.afterClosed().subscribe((result: DiseaseData | null) => {
-      if (result) {
-        // Apply changes back to the original
-        Object.assign(disease, result);
-        // Optional: trigger change detection or save to backend
-      }
-    });
-  }
   
 /**
  * Opens a dialog that allows us to edit the current gene/transcript/alleles
@@ -192,28 +181,27 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  generateCohortDescriptionDto(cohortDto: CohortData | null): CohortDescriptionDto | null {
+  generateCohortDescriptionDto(cohortDto: CohortData | null): CohortDescriptionDto  {
     if (cohortDto == null) {
-      return null;
+      return EMPTY_COHORT_DESCRIPTION;
     }
     console.log("generateCohortDescriptionDto", cohortDto);
-    const dgDto = cohortDto.diseaseGeneData;
-    if (dgDto == null) {
-      this.notificationService.showError("Could not extract Disease Gene DTO object");
-      return null;
+    const diseaseList: DiseaseData[] = cohortDto.diseaseList;
+    if (diseaseList.length == 0) {
+      this.notificationService.showError("Cannot generate description of a cohort with an empty disease-list");
+      return EMPTY_COHORT_DESCRIPTION;
+    } else if (diseaseList.length > 1) {
+      this.notificationService.showError("Cohort description for Melded phenotypes not yet implemented");
+      return EMPTY_COHORT_DESCRIPTION;
     }
-    if (dgDto.diseaseDtoList.length < 1) {
-      this.notificationService.showError("Could not find Disease DTO object");
-      return null;
+    const diseaseData = diseaseList[0];
+    if (diseaseData.geneTranscriptList.length < 1) {
+      this.notificationService.showError("Could not find GeneTrascript Data");
+      return EMPTY_COHORT_DESCRIPTION;
     }
-    if (dgDto.geneTranscriptDtoList.length < 1) {
-      this.notificationService.showError("Could not find GeneTrascript DTO object");
-      return null;
-    }
-    const gt_dto = dgDto.geneTranscriptDtoList[0];
-    const diseaseDto = dgDto.diseaseDtoList[0];
-    const diseaseLabel = diseaseDto.diseaseLabel;
-    const diseaseId = diseaseDto.diseaseId;
+    const gt_dto = diseaseData.geneTranscriptList[0];
+    const diseaseLabel = diseaseData.diseaseLabel;
+    const diseaseId = diseaseData.diseaseId;
     
     let diseaseDatabase = 'N/A';
     let idPart = '';
@@ -223,6 +211,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
     return {
+      valid: true,
       cohortType: cohortDto.cohortType,
       numIndividuals: cohortDto.rows.length,
       numHpos: cohortDto.hpoHeaders.length,
@@ -306,7 +295,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-
+/**  Update the indicated table cell to have the new indicated CellValue (e.g., na, excluded, P14D)*/
   updateHpoCell(
     cohort: CohortData,
     rowIndex: number,
@@ -321,7 +310,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         return {
           ...row,
           hpoData: row.hpoData.map((cell, cIdx) =>
-            cIdx === colIndex ? { ...cell, entry: newValue } : cell
+            cIdx === colIndex ?  newValue  : cell
           )
         };
       })
@@ -360,10 +349,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         this.notificationService.showError("Cohort object is null (should never happen, please report to developers).");
         return;
       }
-
+      console.log(currentDto)
       const cellValue: CellValue = getCellValue(option);
       const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingHpoRowIndex, this.pendingHpoColumnIndex, cellValue);
       this.cohortDto = updatedCohort;
+        console.log("after",this.cohortDto)
     }  
       
     
@@ -406,7 +396,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
     const cohort_dto = this.cohortDto;
     try {
-      await this.configService.exportPpkt(cohort_dto);
+      const res = await this.configService.exportPpkt(cohort_dto);
+      this.notificationService.showSuccess(res);
     } catch (err) {
       this.notificationService.showError(String(err));
     }
@@ -443,6 +434,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   /* flag -- if true, the GUI shows the dialog to enter an acronym */
   showCohortAcronym = false;
+  showMoi = false;
 
  async submitCohortAcronym(acronym: string) {
     const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
@@ -509,6 +501,24 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
           }
       }
       return `${label} (n=${allelecount})`;
+    }
+
+    getDiseaseLabel(diseaseId: string): string {
+      const cohort = this.cohortDto;
+      if (cohort == null || cohort.diseaseList.length == 0) {
+        return "n/a";
+      }
+      if (cohort.diseaseList.length > 1) {
+        const disease = cohort.diseaseList.find(d => d.diseaseId === diseaseId)?.diseaseLabel;
+        return disease || "n/a";
+      } else {
+        return cohort.diseaseList[0].diseaseLabel;
+      }
+    }
+
+    onMoiChange(mois: {id: string; label: string; pmid?: string}[]) {
+      this.moiList = mois;
+      console.log("Received from child:", this.moiList);
     }
 
 }

@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseGeneData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -360,11 +360,15 @@ impl PhenoboardSingleton {
         if ! cohort_dto.is_mendelian() {
             return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
-        let dg_dto = &cohort_dto.disease_gene_data;
-        if dg_dto.gene_transcript_dto_list.len() != 1 {
+        let disease_data = match cohort_dto.disease_list.first() {
+            Some(data) => data.clone(),
+            None => { return Err("Could not extract disease data".to_string()); },
+        };
+        
+        if disease_data.gene_transcript_list.len() != 1 {
             return Err(format!("Todo-code logic for non-Mendelian templates.")); 
         }
-        let symbol = &dg_dto.gene_transcript_dto_list[0].gene_symbol;
+        let symbol = &disease_data.gene_transcript_list[0].gene_symbol;
         match &cohort_dto.cohort_acronym {
             Some(acronym) => Ok(format!("{}_{}_individuals.json", symbol, acronym)),
             None => Err(format!("Cannot get template name if acronym is missing.")),
@@ -427,28 +431,21 @@ impl PhenoboardSingleton {
             .ok_or_else(|| "User canceled or dialog failed".to_string())
     }
 
+    /// Export a list of phenopackets derived from the cohort.
     pub fn export_ppkt(
         &mut self,
-        cohort_dto: CohortData) -> Result<(), String> {
+        cohort_dto: CohortData) -> Result<String, String> {
         let out_dir = match self.get_phenopackets_output_dir() {
             Ok(dir) => dir,
             Err(e) =>  { return Err(e);},
         };
-        let mut orcid = match self.settings.get_biocurator_orcid() {
+        let orcid = match self.settings.get_biocurator_orcid() {
             Ok(orcid_id) => orcid_id,
             Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
         };
-        // note that we store the orcid number without the http prefix. add that here
-        if ! orcid.starts_with("http") {
-            orcid = format!("https://orcid.org/{}", orcid);
-        };
-        match self.phetools.as_mut() {
-            Some(ptools) => {
-                ptools.write_ppkt_list(cohort_dto, out_dir, orcid)
-            },
-            None => {
-                Err("Phetools template not initialized".to_string())
-            },
+        match &self.ontology {
+            Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort_dto, out_dir, orcid, hpo.clone()),
+            None => Err("Cannot export phenopackets because HPO not initialized".to_string()),
         }
     }
 
@@ -534,7 +531,7 @@ impl PhenoboardSingleton {
     /// ToDo, this is Mendelian only, we need to extend it.
     pub fn create_template_dto_from_seeds(
         &mut self,
-        dto: DiseaseGeneData,
+        dto: DiseaseData,
         cohort_type: CohortType,
         input: String
     ) -> Result<CohortData, String> {
@@ -623,20 +620,6 @@ impl PhenoboardSingleton {
             &hpo_id));
         };
         Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
-    }
-
-
-    pub fn validate_all_variants(
-        &mut self,
-        cohort_dto: CohortData) 
-    -> Result<CohortData, Vec<String>> {
-        match self.phetools.as_mut() {
-            Some(ptools) => {
-                //ptools.validate_all_variants(cohort_dto)
-                Err(vec![format!("validate_all_variants- refactor")])
-            },
-            None => Err(vec![format!("phetools not initialized")]),
-        }
     }
 
 

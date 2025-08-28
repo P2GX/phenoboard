@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseGeneData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto};
+use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -45,7 +45,6 @@ pub fn run() {
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            validate_all_variants,
             validate_hgvs_variant,
             validate_structural_variant,
             export_ppkt,
@@ -279,7 +278,7 @@ fn get_pt_template_path(
 #[tauri::command]
 fn create_template_dto_from_seeds(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: DiseaseGeneData,
+    dto: DiseaseData,
     cohort_type: CohortType,
     input: String
 ) -> Result<CohortData, String> {
@@ -380,7 +379,7 @@ fn save_template(
 #[tauri::command]
 fn export_ppkt(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortData) -> Result<(), String> {
+    cohort_dto: CohortData) -> Result<String, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.export_ppkt(cohort_dto)
@@ -389,7 +388,8 @@ fn export_ppkt(
 #[tauri::command]
 fn export_hpoa(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortData) -> Result<String, String> {
+    cohort_dto: CohortData) -> Result<String, String> 
+    {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.export_hpoa(cohort_dto)
@@ -431,7 +431,7 @@ fn add_new_row_to_cohort(
 }
 
 
-
+/* 
 #[tauri::command]
 fn validate_all_variants(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
@@ -440,7 +440,7 @@ fn validate_all_variants(
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.validate_all_variants(cohort_dto) 
-}
+}*/
 
 #[tauri::command]
 fn validate_hgvs_variant(
@@ -566,7 +566,7 @@ async fn load_external_template_json(
                     .map_err(|e| format!("Failed to read file: {}", e))?;
                 let dto: ColumnTableDto = serde_json::from_str(&contents)
                     .map_err(|e| format!("Failed to deserialize JSON: {}", e))?;
-                singleton.set_external_template_dto(&dto);
+                singleton.set_external_template_dto(&dto)?;
                 Ok(dto)
             }
             None => todo!(),

@@ -4,10 +4,9 @@ import { CommonModule } from '@angular/common';
 import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { DiseaseGeneData, newMendelianTemplate, CohortData, CohortType } from '../models/cohort_dto';
+import { DiseaseData, newMendelianTemplate, CohortData, CohortType } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
-import { PageService } from '../services/page.service';
 
 
 
@@ -89,7 +88,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       const transcript = this.mendelianDataForm.get('transcript')?.value;
       const multiText = this.mendelianDataForm.get('multiText')?.value;
 
-      const diseaseGeneDto: DiseaseGeneData = newMendelianTemplate(diseaseId, diseaseName, cohortAcronym, hgnc, symbol, transcript);
+      const diseaseData: DiseaseData = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
 
       console.log("Disease ID:", diseaseId);
       console.log("Disease Name:", diseaseName);
@@ -101,7 +100,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
 
       try {
         const ctype: CohortType = "mendelian";
-        const template = await this.configService.createNewTemplateFromSeeds(diseaseGeneDto, ctype, multiText);
+        const template = await this.configService.createNewTemplateFromSeeds(diseaseData, ctype, multiText);
         this.cohortService.setCohortDto(template);
         this.showSuccessMessage = true;
       } catch (error) {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { DiseaseGeneData, CohortData, GeneTranscriptDto } from '../models/cohort_dto';
+import { CohortData, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
@@ -32,9 +32,12 @@ export class CohortDtoService {
         this.cohortDtoSubject.next(null);
     }
 
-    getDiseaseGeneDto(): DiseaseGeneData | null {
+    getDiseaseList(): DiseaseData[] {
         const templateDto = this.cohortDtoSubject.getValue();
-        const dto = templateDto?.diseaseGeneData;
+        if (templateDto == null) {
+            return [];
+        }
+        const dto = templateDto.diseaseList;
         return dto || null;
     }
 
@@ -44,8 +47,11 @@ export class CohortDtoService {
             console.error("Attempt to get acronym but cohort template was null");
             return null;
         }
-        const dto = templateDto.diseaseGeneData;
-        return dto.cohortAcronym;
+        if (templateDto.cohortAcronym == null) {
+            console.error("Cohort acronym not initialized");
+            return null;
+        }
+        return templateDto.cohortAcronym;
     }
 
     /** Add an HGVS object that has been validated in the backend */
@@ -113,18 +119,14 @@ export class CohortDtoService {
 
     /* Get all of the gene symbol/HGNC/transcript entries for the current
     cohort. For Mendelian, this should be just one */
-    getAllGeneSymbolTranscriptPairs(): GeneTranscriptDto[] {
-        const dis_gene_dto = this.getDiseaseGeneDto();
-        if (dis_gene_dto == null) {
-            console.error("Attempt to retrieve genes but template was null");
+    getAllGeneSymbolTranscriptPairs(): GeneTranscriptData[] {
+        const disease_list = this.getDiseaseList();
+        if (disease_list == null || disease_list.length == 0) {
+            console.error("Attempt to retrieve genes but disease_list was empty");
             return [];
         }
-        return  dis_gene_dto.geneTranscriptDtoList
-            .map(dto => ({
-                hgncId: dto.hgncId,
-                geneSymbol: dto.geneSymbol,
-                transcript: dto.transcript
-            }));
+        const gt_list: GeneTranscriptData[] = disease_list.flatMap(d => d.geneTranscriptList);
+        return  gt_list;
     }
 
 

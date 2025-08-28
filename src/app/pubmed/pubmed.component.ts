@@ -1,4 +1,4 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, EventEmitter, NgZone, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
@@ -16,7 +16,8 @@ export class PubmedComponent {
   constructor(
       private configService: ConfigService
     ) {}
-    
+
+  @Output() pmidChange = new EventEmitter<PmidDto>();
 
   pmidDto: PmidDto = defaultPmidDto();
 
@@ -33,16 +34,19 @@ export class PubmedComponent {
       this.pmidDto.title = result.title;
       this.pmidDto.hasError = false;
       this.pmidDto.retrievedPmid = true;
+      this.pmidChange.emit(this.pmidDto);
     } catch (error) {
       this.pmidDto.title = '';
       this.pmidDto.hasError = true;
       this.pmidDto.errorMessage = 'Error retrieving title: ' + String(error);
       this.pmidDto.retrievedPmid  = false;
+      this.pmidChange.emit(this.pmidDto);
     }
   }
 
   reset_pmid() {
     this.pmidDto = defaultPmidDto();
+    this.pmidChange.emit(this.pmidDto);
   }
 
   getPmidDto(): PmidDto {

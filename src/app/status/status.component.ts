@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseGeneData, CohortData } from '../models/cohort_dto';
+import { DiseaseData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 
 
@@ -24,22 +24,23 @@ export class StatusComponent implements OnInit {
   cohortDto$ = this.cohortService.cohortDto$;
 
   
-  diseaseGeneDto: DiseaseGeneData | null = null;
+  diseaseList!: DiseaseData[];
   showJson = false;
 
 
   ngOnInit(): void {
-    this.diseaseGeneDto = this.cohortService.getDiseaseGeneDto();
+    this.diseaseList = this.cohortService.getDiseaseList();
   }
 
 
   get mendelianDiseaseOmimUrl(): string | null {
+    const cohort = this.cohortService.getCohortDto();
     if (
-      this.diseaseGeneDto?.templateType === 'mendelian' &&
-      this.diseaseGeneDto.diseaseDtoList?.length
+      cohort?.cohortType === 'mendelian' &&
+      cohort.diseaseList?.length == 1
     ) {
-      const label = this.diseaseGeneDto.diseaseDtoList[0].diseaseLabel;
-      const id = this.diseaseGeneDto.diseaseDtoList[0].diseaseId;
+      const disease = cohort.diseaseList[0];
+      const id = disease.diseaseId;
       if (id?.startsWith('OMIM:')) {
         const omimNumber = id.split(':')[1];
         return  `https://omim.org/entry/${omimNumber}`;
@@ -48,12 +49,14 @@ export class StatusComponent implements OnInit {
     return null;
   }
 
-  get hgncGeneUrl(): string | null {
+  get hgncGeneUrl(): string | null {
+    const cohort = this.cohortService.getCohortDto();
     if (
-      this.diseaseGeneDto?.templateType === 'mendelian' &&
-      this.diseaseGeneDto.geneTranscriptDtoList?.length
+      cohort?.cohortType === 'mendelian' &&
+      cohort.diseaseList?.length == 1
     ) {
-      const hgncId = this.diseaseGeneDto.geneTranscriptDtoList[0].hgncId;
+      const gene = cohort.diseaseList[0].geneTranscriptList[0];
+      const hgncId = gene.hgncId;
       return  `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${hgncId}`;
     }
     return null;

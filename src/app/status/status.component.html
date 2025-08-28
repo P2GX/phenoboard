@@ -2,47 +2,38 @@
 
 <div class="primary-divider">
   <h1 class="h1-primary">Status</h1>
-    @if (cohort && diseaseGeneDto) {
-    <h3>Template type: {{diseaseGeneDto.templateType}}</h3>
-      @if (diseaseGeneDto.templateType == "mendelian") {
+    @if (cohort && diseaseList) {
+    <h3>Template type: {{cohort.cohortType}}</h3>
+    @for (disease of cohort.diseaseList; track disease; let i= $index) {
         @if (mendelianDiseaseOmimUrl; as omimUrl) {
           <p>
-            {{ diseaseGeneDto.diseaseDtoList[0].diseaseLabel }}
+            {{ disease.diseaseLabel }}
             <a [href]="omimUrl" target="_blank" rel="noopener" 
               class="status-anchor">
-              {{ diseaseGeneDto.diseaseDtoList[0].diseaseId }}
+              {{ disease.diseaseId }}
             </a>
         } @else {
           <!-- i.e., for some reason we cannot create the URL-->
           <p> 
             Disease:
-            {{ diseaseGeneDto.diseaseDtoList[0].diseaseLabel }}
-            ({{ diseaseGeneDto.diseaseDtoList[0].diseaseId }})
+            {{ disease.diseaseLabel }}
+            ({{ disease.diseaseId }})
           </p>
         }
-  } @else {
-    <p>Need to implement for non-Mendelian template!</p>
-  }
-  <!-- gene data -->
-  @if (hgncGeneUrl; as hgncUrl) {
-    <a [href]="hgncUrl" target="_blank" rel="noopener" class="status-anchor">
-      {{ diseaseGeneDto.geneTranscriptDtoList[0].geneSymbol }}
-    </a>
-    ({{ diseaseGeneDto.geneTranscriptDtoList[0].transcript }})
-  } @else {
-    <p>
-      {{ diseaseGeneDto.geneTranscriptDtoList[0].geneSymbol }}
-      (HGNC: {{ diseaseGeneDto.geneTranscriptDtoList[0].hgncId }};
-      {{ diseaseGeneDto.geneTranscriptDtoList[0].transcript }})
-    </p>
-  } 
-}
-
- 
-
-
-
-@if (diseaseGeneDto == null) {
+          @for (gene of disease.geneTranscriptList; track gene; let gi=$index) {
+             @if (hgncGeneUrl; as hgncUrl) {
+              <a [href]="hgncUrl" target="_blank" rel="noopener" class="status-anchor">{{ gene.geneSymbol }} </a>
+                  ({{ gene.transcript }})
+              } @else {
+                <p>
+                  {{ gene.geneSymbol }}
+                  (HGNC: {{ gene.hgncId }};
+                  {{ gene.transcript }})
+                </p>
+              } 
+          }
+      }
+} @else {
   <div class="error-container">
     <p class="error-message">Disease/Gene DTO not initialized.</p>
   </div>

@@ -1,7 +1,7 @@
 @let cohort = cohortDto;
 
 <div class="p-6 bg-gray-50">
-  @if (cohortDescription) {
+  @if (cohortDescription && cohortDescription.valid) {
     <div class="text-sm text-gray-700 space-y-2">
       <h2 class="text-xl font-semibold text-gray-800">
         {{ cohortDescription.diseaseLabel }} (<i>{{ cohortDescription.geneSymbol }}</i>)
@@ -31,48 +31,76 @@
       </p>
     </div>
   } @else {
-    <p class="error-message">Cohort not initialized.</p>
+    <p>Cohort not initialized.</p>
   }
 
-  <!-- String input section -->
-  <div class="mt-4">
-    @if (!showCohortAcronym) {
-      <button 
-        (click)="showCohortAcronym = true"
-        class="btn-outline-primary"
-      >
-       Set cohort acronym
-      </button>
-    } @else {
-      <div class="flex gap-2 items-center">
-        <input 
-          #acronymInput
-          type="text" 
-          placeholder="Enter cohort acronym..."
-          class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-          (keyup.enter)="submitCohortAcronym(acronymInput.value)"
-        />
+<!-- String input section -->
+<div class="mt-4">
+
+  <!-- Action buttons side by side -->
+  <div class="flex gap-4">
+    <!-- Cohort acronym button or input -->
+    <div>
+      @if (!showCohortAcronym) {
         <button 
-          (click)="submitCohortAcronym(acronymInput.value)"
+          (click)="showCohortAcronym = true"
           class="btn-outline-primary"
         >
-          Submit
+          Set cohort acronym
         </button>
-        <button 
-          (click)="cancelCohortAcronym()"
-          class="btn-outline-cancel"
-        >
-          Cancel
-        </button>
-      </div>
-    }
-    @if (cohort) {
-       <p class="text-sm text-gray-500">{{ cohort.cohortAcronym != "na" ? cohort.cohortAcronym : "not initialized" }}</p>
-    }
-   
-  </div>
+      } @else {
+        <div class="flex gap-2 items-center">
+          <input 
+            #acronymInput
+            type="text" 
+            placeholder="Enter cohort acronym..."
+            class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+            (keyup.enter)="submitCohortAcronym(acronymInput.value)"
+          />
+          <button 
+            (click)="submitCohortAcronym(acronymInput.value)"
+            class="btn-outline-primary"
+          >
+            Submit
+          </button>
+          <button 
+            (click)="cancelCohortAcronym()"
+            class="btn-outline-cancel"
+          >
+            Cancel
+          </button>
+        </div>
+      }
+        <div class="text-xs text-gray-500 mt-1">
+            {{ cohort != null && cohort.cohortAcronym != "na" ? `Acronym: ${cohort?.cohortAcronym}` : "Acronym not set" }}
+        </div>
+      
+    </div>
 
-</div> 
+    <!-- Mode of inheritance button -->
+    <div>
+       <button 
+          (click)="showMoi = true"
+          class="btn-outline-primary"
+        >
+          Set Mode of inheritance
+        </button>
+      @if (showMoi) {
+        <app-moiselector (selectionChange)="onMoiChange($event)"></app-moiselector>
+      }
+      <!-- small grey text under moi button -->
+      <div class="text-xs text-gray-500 mt-1">
+        Selected MOIs:
+        <ul>
+          @for(moi of moiList; track moi) {
+             <li>{{ moi.label }} ({{ moi.id }}) — PMID: {{ moi.pmid || 'not set' }} </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <!-- Table with one row per phenopacket -->
   @if (cohort){
@@ -161,13 +189,13 @@
 
 <!-- Second column: disease/id -->
 <td class="relative narrow-column">
-  @for (disease of row.diseaseDataList; track disease.diseaseId; let di = $index) {
+  @for (diseaseId of row.diseaseIdList; track diseaseId; let di = $index) {
     <div
       class="relative inline-block"
       (mouseenter)="setHover('disease', rowIndex, di, true)"
       (mouseleave)="setHover('disease', rowIndex, di, false)"
     >
-      <span class="cursor-pointer">{{ disease.diseaseId }}</span>
+      <span class="cursor-pointer">{{ getDiseaseLabel(diseaseId) }}</span>
       @if(isHovered('disease', rowIndex, di)) {
         <div
           class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
@@ -175,18 +203,9 @@
           (mouseleave)="setHover('disease', rowIndex, di, false)"
         >
            <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-              <li><strong>{{ disease.diseaseId }}</strong></li>
-              <li>{{ disease.diseaseLabel }}</li>
+              <li><strong>{{ diseaseId }}</strong></li>
+              <li>{{ getDiseaseLabel(diseaseId) }}</li>
             </ul>
-            <!-- Edit button in popup -->
-            <button
-              mat-stroked-button
-              color="primary"
-              class="text-xs py-0 px-2"
-              (click)="openDiseaseEditor(disease); $event.stopPropagation();"
-            >
-              ✏️ Edit
-            </button>
           </div>
       }
     </div>
@@ -344,4 +363,3 @@
     }
   </div>
 }
-

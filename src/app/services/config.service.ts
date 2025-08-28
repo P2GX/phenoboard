@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantData, IndividualData, CohortData, DiseaseGeneData, CohortType } from '../models/cohort_dto';
+import { GeneVariantData, IndividualData, CohortData, DiseaseData, CohortType } from '../models/cohort_dto';
 import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto } from '../models/etl_dto';
@@ -43,7 +43,7 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplateFromSeeds(dto: DiseaseGeneData, cohortType: CohortType, input: string):  Promise<CohortData> {
+  async createNewTemplateFromSeeds(dto: DiseaseData, cohortType: CohortType, input: string):  Promise<CohortData> {
     console.log("getNewTemplateFromSeeds in service", dto, input);
     return await invoke<CohortData>("create_template_dto_from_seeds", {
       'dto': dto,
@@ -162,8 +162,8 @@ export class ConfigService {
     return invoke<void>('validate_template', {cohortDto: cohort_dto});
   }
 
-  async exportPpkt(cohort_dto: CohortData): Promise<void> {
-    return invoke<void>('export_ppkt', {cohortDto: cohort_dto});
+  async exportPpkt(cohort_dto: CohortData): Promise<string> {
+    return invoke<string>('export_ppkt', {cohortDto: cohort_dto});
   }
 
    async exportHpoa(cohort_dto: CohortData): Promise<string> {

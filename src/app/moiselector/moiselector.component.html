@@ -1,0 +1,73 @@
+@if (showMoi) {
+  <div class="mt-4 p-4 border rounded-lg bg-gray-50">
+    <h3 class="text-md font-semibold text-gray-800 mb-3">
+      Select Mode(s) of Inheritance
+    </h3>
+
+    <!-- MOI checkboxes and PubMed inputs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @for (moi of moiTerms; track moi) {
+        <div class="flex flex-col space-y-1 p-2 border rounded">
+          <!-- Checkbox -->
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="moi.selected"
+              id="{{ moi.id }}"
+              class="mr-2"
+            />
+            <label [for]="moi.id" class="text-gray-700">
+              {{ moi.label }}
+            </label>
+          </div>
+
+          @if (moi.selected) { 
+            <app-pubmed 
+              #pmidChild 
+              (pmidChange)="moi.pmid = $event.pmid">
+            </app-pubmed>
+
+            @if (moi.pmid != null) {
+              <p class="text-xs text-gray-500">{{ moi.pmid }}</p>
+            } @else {
+              <p class="text-xs text-gray-500">PMID (required)</p>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Confirm & Cancel buttons -->
+    <div class="mt-4 flex gap-2 justify-end">
+      <button 
+        class="btn-outline-primary"
+        [disabled]="confirmDisabled"
+        (click)="confirmSelection()">
+        Confirm
+      </button>
+
+      <button 
+        class="btn-outline-cancel"
+        (click)="cancelSelection()">
+        Cancel
+      </button>
+    </div>
+  </div>
+  <!-- Selected summary -->
+    <div class="mt-3 text-sm text-gray-500">
+    @if (selectedMoiWithPmids.length > 0) {
+        <p>
+        Selected:
+        @for (moi of selectedMoiWithPmids; track moi; let last = $last) {
+            {{ moi.label }} @if(moi.pmid) {. ({{ moi.pmid }}) }{{ !last ? ', ' : '' }}
+        }
+        </p>
+    }
+
+    @if (selectedMoiWithPmids.length === 0) {
+        <p class="text-gray-400 italic">No inheritance mode selected</p>
+    }
+    </div>
+}
+
+

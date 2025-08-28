@@ -1,6 +1,5 @@
 /*
- * The DTOs in this file correspond to DTOs in ga4ghphenotools, 
- * template_dto.rs. 
+ * The data transfer objects in this file correspond to analogous structs in ga4ghphenotools
 */
 
 import { CellValue, HpoTermDuplet } from "./hpo_term_dto";
@@ -18,12 +17,6 @@ export interface IndividualData {
 }
 
 
-export interface DiseaseData {
-    diseaseId: string;
-    diseaseLabel: string;
-}
-
-
 
 export interface GeneVariantData {
     hgncId: string;
@@ -34,11 +27,33 @@ export interface GeneVariantData {
     variantComment: string;
 }
 
+export interface ModeOfInheritance {
+  /** Human Phenotype Ontology identifier, e.g., HP:0000006 */
+  hpoId: string;
+  /** HPO term label, e.g., "Autosomal dominant inheritance" */
+  hpoLabel: string;
+  /** PMID or other CURIE citation supporting the assertion */
+  citation: string;
+}
+
+export interface GeneTranscriptData {
+    hgncId: string;
+    geneSymbol: string;
+    transcript: string;
+}
+
+export interface DiseaseData {
+    diseaseId: string;
+    diseaseLabel: string;
+    modeOfInheritanceList: ModeOfInheritance[];
+    geneTranscriptList: GeneTranscriptData[];
+}
+
 
 
 export interface RowData {
     individualData: IndividualData;
-    diseaseDataList: DiseaseData[];
+    diseaseIdList: string[];
     alleleCountMap: Record<string, number>;
     hpoData: CellValue[];
 }
@@ -51,23 +66,18 @@ export type CohortType = 'mendelian' | 'melded' | 'digenic';
 
 export interface CohortData {
     cohortType: CohortType,
-    diseaseGeneData: DiseaseGeneData,
+    diseaseList: DiseaseData[],
     hpoHeaders: HpoTermDuplet[],
     rows: RowData[],
     hgvsVariants: Record<string, HgvsVariant>;
     structuralVariants: Record<string, StructuralVariant>;
-    dtoVersion: string;
-    cohortAcronym: string;
+    phetoolsSchemaVersion: string;
+    cohortAcronym?: string | null;
 }
 
 
 
 
-export interface GeneTranscriptDto {
-    hgncId: string;
-    geneSymbol: string;
-    transcript: string;
-}
 
 
 
@@ -79,31 +89,21 @@ export interface GeneTranscriptDto {
 /// Mendelian: disease_dto_list and gene_variant_dto_list must both be of length 1
 /// Melded: both of length two
 /// Digenic: disease_dto of length 1, gene_variant_dto of length 2
+/*
 export interface DiseaseGeneData {
-    templateType: CohortType,
-    /// Abbreviation of disease that is used in file name
-    cohortAcronym: string,
-    /// Disease (or diseases, for Melded) diagnosed in individuals of the cohort
-    diseaseDtoList: DiseaseData[],
+    diseaseDataList: DiseaseData[],
     /// Gene (or genes, for digenic/Melded) diagnosed in individuals of the cohort
-    geneTranscriptDtoList: GeneTranscriptDto[],
+    geneTranscriptDataList: GeneTranscriptData[],
 
-}
+}*/
 
 export function newMendelianTemplate(
     diseaseId: string, 
     diseaseLabel: string, 
-    cohortAcronym: string,
     hgnc: string, 
     symbol: string, 
-    transcript: string): DiseaseGeneData {
-
-    const disease_dto: DiseaseData = {
-        diseaseId: diseaseId,
-        diseaseLabel: diseaseLabel
-    }
-    
-    const gvb_dto: GeneVariantData = {
+    transcript: string): DiseaseData {
+    const gvb_data: GeneVariantData = {
         hgncId: hgnc,
         geneSymbol: symbol,
         transcript: transcript,
@@ -113,10 +113,10 @@ export function newMendelianTemplate(
     }
     
     return {
-        templateType: 'mendelian',
-        cohortAcronym: cohortAcronym,
-        diseaseDtoList: [disease_dto],
-        geneTranscriptDtoList: [gvb_dto],
+        diseaseId: diseaseId,
+        diseaseLabel: diseaseLabel,
+        geneTranscriptList: [gvb_data],
+        modeOfInheritanceList:[],
     };
 }
 
