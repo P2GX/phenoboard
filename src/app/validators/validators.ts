@@ -25,3 +25,11 @@ export function noWhitespaceValidator(): ValidatorFn {
         return null;
     };
 }
+
+export function asciiValidator() {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value as string;
+    if (!value) return null;
+    return /^[\x00-\x7F]*$/.test(value) ? null : { asciiOnly: true };
+  };
+}

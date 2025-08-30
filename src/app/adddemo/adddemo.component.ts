@@ -1,25 +1,47 @@
 
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
-import {  FormsModule } from '@angular/forms';
+import {  FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { AgeInputService} from '../services/age_service';  // Adjust path if needed
 import { defaultDemographDto, DemographDto} from '../models/demograph_dto'
+import { asciiValidator } from '../validators/validators';
+import { debounceTime } from 'rxjs';
+import { MatSelectModule } from "@angular/material/select";
+import { DemoFormDialogComponent } from './demoformdialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 
 @Component({
   selector: 'app-adddemo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatSelectModule, MatInputModule, MatFormFieldModule],
   templateUrl: './adddemo.component.html',
-  styleUrl: './adddemo.component.css'
+  styleUrls: ['./adddemo.component.css']
 })
 export class AdddemoComponent {
- constructor(public ageService: AgeInputService) {}
+
+ constructor(
+    public ageService: AgeInputService,
+    private fb: FormBuilder,
+    private dialog: MatDialog) {
+      const dto: DemographDto = defaultDemographDto();
+      this.demoForm = this.fb.group({
+        individualId: [dto.individualId, [Validators.required, asciiValidator()]],
+        ageOfOnset: [dto.ageOfOnset, Validators.required],
+        ageAtLastEncounter: [dto.ageAtLastEncounter, Validators.required],
+        sex: [dto.sex, Validators.required],
+        deceased: [dto.deceased, Validators.required],
+        comment: [dto.comment, asciiValidator()]
+      });
+ }
 
   @Output() demoSubmitted = new EventEmitter<{dto: DemographDto, hideDemo: boolean}>();
-  
 
-  demograph: DemographDto = defaultDemographDto();
+
+  demoForm: FormGroup;
 
   showCommentBox: boolean = false;
   showCommentModal: boolean = false;
@@ -35,100 +57,66 @@ export class AdddemoComponent {
 
   @Output() dataEnteredChange = new EventEmitter<boolean>();
   ngOnInit() {
-      
+    this.demoForm.get('individualId')?.valueChanges
+      .pipe(debounceTime(100))
+      .subscribe(() => { /* can mark touched */ });
   }
 
-  handleOnsetSelection($event: string) {
-    throw new Error('Method not implemented.');
-  }
-  
-  onAgeInputBlur() {
-    throw new Error('Method not implemented.');
+   openCommentDialog(): void {
+    const currentValue = this.demoForm.get('comment')?.value || '';
+
+    const dialogRef = this.dialog.open(DemoFormDialogComponent, {
+      width: '400px',
+      data: { comment: currentValue }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        this.demoForm.get('comment')?.setValue(result);
+      }
+    });
   }
 
-
-  getDemograph(): DemographDto {
-    return this.demograph;
+  submitDemo(hideDemographic: boolean): void {
+    if (!this.demoForm.valid) {
+      return;
+    }
+    this.allDataEntered = hideDemographic; // this controls if we see the form or not.
+    this.demoSubmitted.emit({
+      dto: this.demoForm.value as DemographDto,
+      hideDemo: hideDemographic
+    });
   }
-  
 
-  onIndividualIdBlur() {
-    this.demograph.individualId = this.demograph.individualId.trim();
-    this.isAscii = /^[\x00-\x7F]*$/.test(this.demograph.individualId);
+  reset(): void {
+    this.demoForm.reset({
+      individualId: '',
+      ageOfOnset: 'na',
+      ageAtLastEncounter: 'na',
+      sex: null,
+      deceased: null,
+      comment: ''
+    });
+    this.allDataEntered = false;
   }
 
   get selectedTerms(): string[] {
     return this.ageService.selectedTerms;
   }
 
-  addComment() {
-    this.showCommentBox = true;
-  }
-
-  openCommentDialog(): void {
-    this.tempComment = this.demograph.comment;
-    this.showCommentModal = true;
-  }
-
-  confirmComment(): void {
-    this.demograph.comment = this.tempComment;
-    this.showCommentModal = false;
-  }
-
-  cancelComment(): void {
-    this.showCommentModal = false;
-  }
-
-  /** Emit the demographic to the parent component. */
-  submitDemo(hideDemographic: boolean) {
-    if (hideDemographic) {
-      this.allDataEntered = true;
-    } else {
-      this.allDataEntered = false;
-    }
-    this.demoSubmitted.emit({
-      dto: this.demograph,
-      hideDemo: hideDemographic
-    });
-  }
-
-  isReady(): boolean {
-    return (
-      this.demograph.individualId.length > 0
-    );
-  }
-
-
-  reset(): void {
-    this.demograph = defaultDemographDto();
-    this.ageService.clearSelectedTerms();
-    this.allDataEntered = false;
-  }
-
   get demographicSummary(): string {
-    const id = this.demograph.individualId;
-    const onst = this.demograph.ageOfOnset;
-    const encounter = this.demograph.ageAtLastEncounter;
-    const s = this.demograph.sex;
-    const deceased = this.demograph.deceased;
-    if (id == "") {
-      return "not initialized";
-    }
-    const smry = `Individual: ${id} (age: ${encounter}, onset: ${onst}; sex: ${s}; deceased?: ${deceased})`
-    return smry
+    const value = this.demoForm.value;
+    if (!value.individualId) return 'not initialized';
+
+    const age = value.ageAtLastEncounter !== 'na' ? `age: ${value.ageAtLastEncounter}` : '';
+    const onset = value.ageOfOnset !== 'na' ? `onset: ${value.ageOfOnset}` : '';
+    const extras = [age, onset].filter(Boolean).join(', ');
+
+    return `Individual: ${value.individualId} (${extras}; sex: ${value.sex}; deceased?: ${value.deceased})`;
   }
 
   get demographicComment(): string {
-     const comment = this.demograph.comment;
-     if (comment == '') {
-      return '';
-     } else {
-      return `comment: "${comment}"`
-     }
-  }
-
-  isInitialized(): boolean {
-    return this.demograph.individualId != '';
+    return this.demoForm.value.comment ? `comment: "${this.demoForm.value.comment}"` : '';
   }
 
 }

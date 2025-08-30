@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue } from '../models/cohort_dto';
+import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance } from '../models/cohort_dto';
 import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -87,8 +87,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   ];
 
   contextMenuOptions: Option[] = [];
-  /** Mode of inheritance list */
-  moiList: {id: string; label: string; pmid?: string}[] = [];
+  moiList: ModeOfInheritance[] = [];
 
   override ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit");
@@ -382,6 +381,16 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showError("Need to specify acronym before saving cohort");
       return;
     }
+    if (this.moiList == null || this.moiList.length == 0) {
+      this.notificationService.showError("Need to specify a mode of inheritance (or multiple)");
+      return;
+    }
+    console.log("saveCohort: ", cohort);
+    console.log("saveCohort: moi=", this.moiList);
+    if (cohort.diseaseList.length > 0) {
+      cohort.diseaseList[0].modeOfInheritanceList = this.moiList;
+    }
+     console.log("saveCohort: ", cohort);
     await this.configService.saveCohort(cohort);
     this.cohortDescription = this.generateCohortDescriptionDto(cohort);
     
@@ -516,7 +525,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       }
     }
 
-    onMoiChange(mois: {id: string; label: string; pmid?: string}[]) {
+    onMoiChange(mois: ModeOfInheritance[]) {
       this.moiList = mois;
       this.notificationService.showSuccess(`Set ${this.moiList.length} modes of inheritance`)
     }

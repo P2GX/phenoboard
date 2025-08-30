@@ -72,7 +72,7 @@
         </div>
       }
         <div class="text-xs text-gray-500 mt-1">
-            {{ cohort != null && cohort.cohortAcronym != "na" ? `Acronym: ${cohort?.cohortAcronym}` : "Acronym not set" }}
+            {{ cohort != null && cohort.cohortAcronym != "na" ? 'Acronym: ' + cohort.cohortAcronym : "Acronym not set" }}
         </div>
       
     </div>
@@ -93,7 +93,7 @@
         Selected MOIs:
         <ul>
           @for(moi of moiList; track moi) {
-             <li>{{ moi.label }} ({{ moi.id }}) — PMID: {{ moi.pmid || 'not set' }} </li>
+             <li>{{ moi.hpoLabel }} ({{ moi.hpoId }}) — PMID: {{ moi.citation }} </li>
           }
         </ul>
       </div>

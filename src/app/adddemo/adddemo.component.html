@@ -1,134 +1,123 @@
-<div class="space-y-4 p-4 border rounded-md" *ngIf="!allDataEntered">
-  <div class="flex flex-wrap gap-x-4 gap-y-2">
-    <!-- 1. Individual ID -->
-    <div>
-        <label for="individualId" class="block text-sm font-medium text-gray-700 mb-1">Individual ID</label>
-        <input
-            id="individualId"
-            type="text"
-            [(ngModel)]="demograph.individualId"
-            (blur)="onIndividualIdBlur()"
-            placeholder="individual ID"
-            class="border px-3 py-1.5 rounded w-full text-sm"
-        />
-      <p *ngIf="!isAscii" class="text-red-600 text-xs mt-1">ID must be ASCII only</p>
-    </div>
-    <!-- 2. Age of Onset -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Age of Onset</label>
-        <select
-            class="border border-gray-400 rounded px-3 py-1.5 w-36 text-sm"
-            [(ngModel)]="demograph.ageOfOnset"
-        >
-            <option value="na"></option>
-            <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
-        </select>
-    </div>
-    <!-- 3. Age at Last Exam -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Age of Last Exam</label>
-        <select
-            class="border border-gray-400 rounded px-3 py-1.5 w-36 text-sm"
-            [(ngModel)]="demograph.ageAtLastEncounter"
-        >
-            <option value="na"></option>
-            <option *ngFor="let term of selectedTerms" [value]="term">{{ term }}</option>
-        </select>
-    </div>
-    <!-- 4. Sex -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
-        <div class="flex flex-col gap-1">
-            <label *ngFor="let s of sexOptions" class="inline-flex items-center text-sm">
-            <input type="radio" name="sex" [value]="s" [(ngModel)]="demograph.sex" class="mr-2" />
-            {{ s }}
-            </label>
+@if(allDataEntered) {
+  <div class="space-y-4 p-1 border rounded-md text-sm text-gray-500">
+    {{ demographicSummary }} {{ demographicComment }}
+     <button 
+      type="button" 
+      (click)="reset()" 
+      class="btn-outline-cancel">
+      Reset
+    </button>
+  </div>
+} @else {
+    <form [formGroup]="demoForm" (ngSubmit)="submitDemo(true)">
+  <div class="space-y-4 p-4 border rounded-md">
+    <div class="flex flex-wrap gap-x-4 gap-y-2">
+      <!-- 1. Individual ID -->
+      <div>
+          <label for="individualId" class="block text-sm font-medium text-gray-700 mb-1">Individual ID</label>
+          <mat-form-field appearance="outline" style="width: 100%;">
+          <input matInput 
+                 formControlName="individualId"
+                 id="individualId"
+                 placeholder="individual ID"
+                 >
+          <mat-hint>individual identifer as used in published source</mat-hint>
+          @if (demoForm.get('individualId')?.hasError('required')) {
+            <mat-error>
+              individual id is required
+            </mat-error>
+          }
+          @if (demoForm.get('individualId')?.hasError('ascii')) {
+            <mat-error>Only ASCII characters are allowed</mat-error>
+          }
+        </mat-form-field>
         </div>
-    </div>
-    <!-- 5. Deceased -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Deceased</label>
-        <div class="flex flex-col gap-1">
-            <label *ngFor="let d of deceasedOptions" class="inline-flex items-center text-sm">
-            <input type="radio" name="deceased" [value]="d" [(ngModel)]="demograph.deceased" class="mr-2" />
-            {{ d }}
-            </label>
+        <!-- 2. Age of Onset -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Age of Onset</label>
+          <select
+          formControlName="ageOfOnset" 
+          id="ageOfOnset"
+          class="border border-gray-400 rounded px-3 py-1.5 w-36 text-sm"
+          >
+            <option value="na">na</option>
+            @for (term of selectedTerms; track term) {
+              <option [value]="term">{{ term }}</option>
+            }
+          </select>
         </div>
-    </div>
-    <!-- 6. Comment -->
-    <div class="mt-4">
-        <button
-        (click)="openCommentDialog()"
-        class="btn-outline-primary bg-gray-100"
-        >
-        Add comment
-        </button>
-    </div>
-    <div class="mt-4">
-        <button
-            (click)="submitDemo(true)"
-            [disabled]="!isReady()"
-            class="btn-outline-primary"
-        >
-        Submit
-        </button>
-        <button
-        (click)="submitDemo(false)"
-        class="btn-outline-cancel"
+        <!-- 3. Age at Last Exam -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Age of Last Encounter</label>
+            <select
+                class="border border-gray-400 rounded px-3 py-1.5 w-36 text-sm"
+                formControlName="ageAtLastEncounter"
             >
-        Reset
+                <option value="na">na</option>
+                @for (term of selectedTerms; track term) {
+                  <option [value]="term">{{ term }}</option>
+                }
+            </select>
+        </div>
+        <!-- 4. Sex -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
+          <div class="flex flex-col gap-1">
+            @for (s of sexOptions; track s) {
+              <label class="inline-flex items-center text-sm">
+                <input
+                  type="radio"
+                  [value]="s"
+                  formControlName="sex"
+                  class="mr-2"
+                />
+                {{ s }}
+              </label>
+            }
+          </div>
+        </div>
+        <!-- 5. Deceased -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Deceased</label>
+            <div class="flex flex-col gap-1">
+              @for (d of deceasedOptions; track d) {
+                <label class="inline-flex items-center text-sm">
+                  <input
+                    type="radio"
+                    [value]="d"
+                    formControlName="deceased"
+                    class="mr-2"
+                  />
+                  {{ d }}
+                </label>
+              }
+            </div>
+        </div>
+        <!-- 6. Comment -->
+        <!-- Existing button -->
+        <button (click)="openCommentDialog()" class="btn-outline-primary bg-gray-100">
+          Add comment
         </button>
+      </div>
     </div>
-    <div *ngIf="showCommentBox" class="mt-2">
-      <label for="commentInput" class="block text-sm font-medium text-gray-700 mb-1">
-          Comment
-      </label>
-      <textarea
-          id="commentInput"
-          [(ngModel)]="demograph.comment"
-          rows="3"
-          placeholder="Enter comment..."
-          class="w-full border px-3 py-2 rounded text-sm resize-y"
-      ></textarea>
-      <button class="btn-outline-primary" (click)="confirmComment()">Submit</button>
-      <button class="btn-outline-cancel" (click)="cancelComment()">Cancel</button>
-    </div>
-  </div>
-</div>
-<div class="space-y-4 p-1 border rounded-md text-sm text-gray-500" *ngIf="allDataEntered">
-  {{ demographicSummary }} {{ demographicComment }}
-   <button (click)="submitDemo(false)"class="btn-outline-cancel">Reset</button>
-</div>
-<!-- Modal overlay -->
-<div
-  *ngIf="showCommentModal"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
->
-  <!-- Modal box -->
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-    <h2 class="text-lg font-semibold mb-4">Add a Comment</h2>
+    <!-- Submit / Reset -->
+  <div class="mt-4 flex gap-2">
+    <button 
+      type="submit" 
+      [disabled]="!demoForm.valid" 
+      class="btn-outline-primary">
+      Submit
+    </button>
 
-    <textarea
-      [(ngModel)]="tempComment"
-      rows="4"
-      placeholder="Enter your comment here..."
-      class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-    ></textarea>
-
-    <div class="flex justify-end mt-4 gap-2">
-      <button
-        (click)="cancelComment()"
-        class="btn-outline-cancel"
-      >
-        Cancel
-      </button>
-      <button
-        (click)="confirmComment()"
-        class="btn-outline-primary"
-      >
-        Save
-      </button>
-    </div>
+    <button 
+      type="button" 
+      (click)="reset()" 
+      class="btn-outline-cancel">
+      Reset
+    </button>
   </div>
-</div>
+</form>
+  
+}
+
 

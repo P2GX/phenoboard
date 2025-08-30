@@ -1,6 +1,6 @@
 import { Component, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // ✅ Import FormsModule
+import { FormsModule } from '@angular/forms'; 
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
@@ -401,8 +401,8 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
        cellValue = { type: "Excluded"}
     }
     const duplet: HpoTermDuplet = {
-      hpoLabel: textAnn.termId,
-      hpoId:  textAnn.label,
+      hpoLabel: textAnn.label,
+      hpoId:  textAnn.termId,
     };
     
     return {

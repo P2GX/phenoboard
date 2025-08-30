@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Add Comment</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>Comment</mat-label>
+    <textarea
+      matInput
+      rows="2"
+      cols="80"
+      [formControl]="commentControl"
+      placeholder="Enter your comment"
+    ></textarea>
+    @if(commentControl.hasError('ascii')){
+        <mat-error>
+        Only ASCII characters are allowed
+        </mat-error>
+    }
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-button
+    color="primary"
+    [disabled]="commentControl.invalid"
+    (click)="save()"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
+import { ModeOfInheritance } from "../models/cohort_dto";
 
 
 interface MoiTerm {
@@ -17,7 +18,7 @@ interface MoiTerm {
   imports: [PubmedComponent, FormsModule],
 })
 export class MoiSelector {
-  @Output() moiChange = new EventEmitter<MoiTerm[]>();
+  @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
   showMoi = true;
 
@@ -37,7 +38,12 @@ export class MoiSelector {
   }
 
   confirmSelection() {
-    this.moiChange.emit(this.selectedMoiWithPmids);
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids.map(m => ({
+      hpoId: m.id,
+      hpoLabel: m.label,
+      citation: m.pmid!   // `!` safe because confirmDisabled prevents empty pmid
+    }));
+    this.moiChange.emit(moiList);
     this.showMoi = false;
   }
 
