@@ -104,6 +104,7 @@
 
   <!-- Table with one row per phenopacket -->
   @if (cohort){
+  <div class="pt-table-container">
   <table class="pt-table">
     <thead>
     <tr>
@@ -116,7 +117,7 @@
           @for (header of cohort.hpoHeaders; track header.hpoId) {
            @if(shouldDisplayHpoColumn($index)) {
               <th
-                class="rotate-header hpo-col"
+                class="rotate-header hpo-col hpo-col-th"
                 (mouseenter)="setHover('hpoHeader', 0, $index, true)"
                 (mouseleave)="setHover('hpoHeader', 0, $index, false)"
               >
@@ -291,6 +292,7 @@
   } <!-- end of for over the tr -->
     </tbody>
   </table>
+  </div>
 } <!-- close  @if (cohort){ -->
 
 

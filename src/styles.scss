@@ -123,11 +123,47 @@ button.btn-outline-cancel {
   @apply text-blue-600 hover:underline;
 }
 
+.scrollable-table-container {
+  overflow-x: scroll;     /* always show scrollbar */
+  overflow-y: auto;
+  scrollbar-gutter: stable; /* keeps space reserved for scrollbar */
+  width: 100%;
+}
+
+.scrollbar {
+  scrollbar-gutter: stable;
+}
+
+.pt-table-container {
+  overflow-x: scroll;        /* always show horizontal scrollbar */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;  /* keeps layout stable even with scrollbar */
+  width: 95%;
+}
+
+/* Force custom scrollbar */
+.pt-table-container::-webkit-scrollbar {
+  height: 12px; /* height of horizontal scrollbar */
+}
+
+.pt-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+
+.pt-table-container::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 6px;
+}
+
+.pt-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
 
 .pt-table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
+  min-width: max-content; /* prevents table from shrinking */
 }
 
 .pt-table th {

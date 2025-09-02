@@ -7,12 +7,17 @@
 }
 
 .hpo-col {
-  width: auto;                /* Let it shrink to fit content */
-  max-width: 3.5rem;          /* Constrain upper bound */
+  position: relative;        /* makes absolute child positioning work */
+  width: auto;
+  max-width: 3.5rem;
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: ellipsis;
   text-align: center;
+  vertical-align: bottom;    /* align content towards the bottom */
+  overflow: visible;   
+}
+
+.hpo-col-th {
+  height: 200px;
 }
 
 
@@ -31,7 +36,7 @@
 
 .hpo-popup {
   position: absolute;
-  top: -10px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #f9f9f9;
