@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance } from '../models/cohort_dto';
+import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData } from '../models/cohort_dto';
 import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -18,6 +18,7 @@ import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
+import { GeneEditDialogData } from '../models/variant_dto';
 
 
 type Option = { label: string; value: string };
@@ -164,17 +165,34 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
  * Opens a dialog that allows us to edit the current gene/transcript/alleles
  * @param gene 
  */
-  openGeneEditor(gene: GeneVariantData) {
+  openGeneEditor(allele: string, row: RowData) {
+    const cohort = this.cohortDto;
+    if (cohort == null) {
+      this.notificationService.showError("Could not retrieve cohort");
+      return;
+    }
+    const gtdata: GeneTranscriptData[] = this.cohortService.getGeneTranscriptDataList();
+    if (gtdata.length == 0) {
+      this.notificationService.showError("Could not retrieve gene/transcript data");
+      return;
+    }
+    
+
+    let geneEditData: GeneEditDialogData = {
+        allele: allele,
+        allelecount: 0,
+        gtData: gtdata,
+        cohort: cohort
+      };
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
-      data: { ...gene }, // pass a copy
+      data: { geneEditData }, 
     });
 
-    dialogRef.afterClosed().subscribe((result: GeneVariantData | null) => {
+    dialogRef.afterClosed().subscribe((result: CohortData | null) => {
       if (result) {
-        // Apply changes back to the original
-        Object.assign(gene, result);
-        // Optional: trigger change detection or save to backend
+         this.cohortService.setCohortDto(result);
+         this.notificationService.showSuccess("added variant to cohort");
       }
     });
   }

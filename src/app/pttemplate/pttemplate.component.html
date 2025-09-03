@@ -8,11 +8,9 @@
       </h2>
 
       <p>
-        This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort with 
-        <strong>{{ cohortDescription.numIndividuals }}</strong> individuals and 
-        <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms.
-        Most individuals are diagnosed with 
-
+        This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort of 
+        <strong>{{ cohortDescription.numIndividuals }}</strong> individuals 
+        diagnosed with 
       @if (cohortDescription.diseaseDatabase == "OMIM") {
         <a [href]="'https://omim.org/entry/' + getOmimId(cohortDescription.diseaseId)" 
            target="_blank" class="text-blue-600 underline">
@@ -21,13 +19,15 @@
       } @else {
         <span>
           {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-        </span>,
-      } associated with 
+        </span>
+      }. Variants were identified in 
         <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" 
            target="_blank" class="text-blue-600 underline">
-          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }}),
+          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
         </a>
-        transcript <code>{{ cohortDescription.transcript }}</code>.
+         (transcript of reference: <code>{{ cohortDescription.transcript }}</code>). 
+        <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms were observed.</p>
+        <p> 
       </p>
     </div>
   } @else {
@@ -109,8 +109,7 @@
     <thead>
     <tr>
       <th class="narrow-column bottom-align">Individual ID</th>
-      <th class="narrow-column bottom-align">Disease</th>
-      <th class="narrow-column bottom-align">Gene</th>
+      <th class="narrow-column bottom-align">Variant</th>
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
@@ -188,33 +187,7 @@
       </div>
     </td>
 
-<!-- Second column: disease/id -->
-<td class="relative narrow-column">
-  @for (diseaseId of row.diseaseIdList; track diseaseId; let di = $index) {
-    <div
-      class="relative inline-block"
-      (mouseenter)="setHover('disease', rowIndex, di, true)"
-      (mouseleave)="setHover('disease', rowIndex, di, false)"
-    >
-      <span class="cursor-pointer">{{ getDiseaseLabel(diseaseId) }}</span>
-      @if(isHovered('disease', rowIndex, di)) {
-        <div
-          class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64"
-          (mouseenter)="setHover('disease', rowIndex, di, true)"
-          (mouseleave)="setHover('disease', rowIndex, di, false)"
-        >
-           <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-              <li><strong>{{ diseaseId }}</strong></li>
-              <li>{{ getDiseaseLabel(diseaseId) }}</li>
-            </ul>
-          </div>
-      }
-    </div>
-  }
-</td>
-
- <!-- Third column for gene/var-->
-  <!-- Third column for gene/allele -->
+<!-- Second column for gene/allele -->
 <td class="relative narrow-column">
   @for (entry of Object.entries(row.alleleCountMap); track entry[0]; let gi = $index) {
     <div
@@ -236,12 +209,11 @@
               <li>{{ displayString }}</li>
             }
           </ul>
-
-          <!-- <button
+       <!--   <button
             mat-stroked-button
             color="primary"
             class="text-xs py-0 px-2"
-            (click)="openAlleleEditor(alleleKey); $event.stopPropagation();"
+            (click)="openGeneEditor(row, displayString); $event.stopPropagation();"
           >
             ✏️ Edit
           </button> -->
@@ -292,6 +264,7 @@
   } <!-- end of for over the tr -->
     </tbody>
   </table>
+  <div style="height: 40px;"></div>
   </div>
 } <!-- close  @if (cohort){ -->
 

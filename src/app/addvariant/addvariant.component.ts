@@ -40,7 +40,7 @@ export class AddVariantComponent {
   ){}
   
   async ngOnInit(): Promise<void> {
-    this.geneOptions = this.templateService.getAllGeneSymbolTranscriptPairs();
+    this.geneOptions = this.templateService.getGeneTranscriptDataList();
   }
 
   /** This will emit an event that can be captured by the parent component (see method addVariantToDto)  */

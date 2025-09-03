@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
-import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { GeneEditDialogData, HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
 
 /**
@@ -119,7 +119,7 @@ export class CohortDtoService {
 
     /* Get all of the gene symbol/HGNC/transcript entries for the current
     cohort. For Mendelian, this should be just one */
-    getAllGeneSymbolTranscriptPairs(): GeneTranscriptData[] {
+    getGeneTranscriptDataList(): GeneTranscriptData[] {
         const disease_list = this.getDiseaseList();
         if (disease_list == null || disease_list.length == 0) {
             console.error("Attempt to retrieve genes but disease_list was empty");
@@ -128,6 +128,8 @@ export class CohortDtoService {
         const gt_list: GeneTranscriptData[] = disease_list.flatMap(d => d.geneTranscriptList);
         return  gt_list;
     }
+
+
 
 
     /** Return a list of all variant strings for structural variants */
@@ -177,4 +179,6 @@ export class CohortDtoService {
         */
        return [];
     }
+
+
 }

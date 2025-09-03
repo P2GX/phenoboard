@@ -10,6 +10,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { noWhitespaceValidator} from '../validators/validators';
 import { debounceTime } from 'rxjs/operators';
+import { GeneEditDialogData } from '../models/variant_dto';
 
 
 
@@ -37,39 +38,25 @@ export class GeneEditComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<GeneEditComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: GeneVariantData
+    @Inject(MAT_DIALOG_DATA) public data: GeneEditDialogData
   ) {
+
     this.form = this.fb.group({
-      hgncId:  [
-        data.hgncId,
-        [Validators.required, noWhitespaceValidator()] 
-      ],
-      geneSymbol: [
-        data.geneSymbol,
-        [ Validators.required, noWhitespaceValidator()],
-      ],
-      transcript: [
-        data.transcript,
-        [ Validators.required, noWhitespaceValidator()],
-      ],
-      allele1: [
-        data.allele1,
+      allele: [
+        data.allele,
         [Validators.required, noWhitespaceValidator()],
       ],
-      allele2: [
-        data.allele2,
+      allelecount: [
+        data.allelecount,
         [Validators.required]
       ],
-      variantComment: [
-        data.variantComment
-      ]
     });
-    this.form.get('hgncId')?.valueChanges
+    this.form.get('allele')?.valueChanges
       .pipe(debounceTime(100))
       .subscribe(() => {
         this.hgncIdTouched = true;
       });
-      this.form.get('geneSymbol')?.valueChanges
+      this.form.get('allelecount')?.valueChanges
       .pipe(debounceTime(100))
       .subscribe(() => {
         this.geneSymbolTouched = true;

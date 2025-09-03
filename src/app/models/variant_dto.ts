@@ -1,3 +1,4 @@
+import { CohortData, GeneTranscriptData, RowData } from "./cohort_dto";
 
 
 
@@ -133,4 +134,13 @@ export function displaySv(sv: StructuralVariant, validated: boolean): VariantDto
     count: 0
   };
   return vdd;
+}
+
+
+/* This interface is needed to pass data to the GeneEditComponent. */
+export interface GeneEditDialogData {
+  allele: string;
+  allelecount: number;
+  gtData: GeneTranscriptData[];
+  cohort: CohortData;
 }
