@@ -7,7 +7,8 @@ import { Subject, takeUntil } from "rxjs";
   template: '' // Empty since this is an abstract base class
 })
 export abstract class TemplateBaseComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
+  
+  protected destroy$ = new Subject<void>();
 
   constructor(
     protected cohortService: CohortDtoService,

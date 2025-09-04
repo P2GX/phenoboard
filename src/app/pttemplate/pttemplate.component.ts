@@ -19,6 +19,7 @@ import { NotificationService } from '../services/notification.service';
 import { getCellValue } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
 import { GeneEditDialogData } from '../models/variant_dto';
+import { MatIconModule } from "@angular/material/icon";
 
 
 type Option = { label: string; value: string };
@@ -34,7 +35,8 @@ type Option = { label: string; value: string };
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
-    MoiSelector
+    MoiSelector,
+    MatIconModule
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -160,39 +162,50 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
 
-  
-/**
- * Opens a dialog that allows us to edit the current gene/transcript/alleles
- * @param gene 
- */
-  openGeneEditor(allele: string, row: RowData) {
+    
+  /**
+   * Opens a dialog that allows editing or adding alleles
+   */
+  openGeneEditor(alleleKey: string | undefined, row: RowData) {
     const cohort = this.cohortDto;
-    if (cohort == null) {
+    if (!cohort) {
       this.notificationService.showError("Could not retrieve cohort");
       return;
     }
+
     const gtdata: GeneTranscriptData[] = this.cohortService.getGeneTranscriptDataList();
-    if (gtdata.length == 0) {
+    if (gtdata.length === 0) {
       this.notificationService.showError("Could not retrieve gene/transcript data");
       return;
     }
-    
 
-    let geneEditData: GeneEditDialogData = {
-        allele: allele,
-        allelecount: 0,
-        gtData: gtdata,
-        cohort: cohort
-      };
+    // Build data for the dialog
+    const geneEditData: GeneEditDialogData = {
+      allele: alleleKey ?? null,
+      count: alleleKey ? row.alleleCountMap?.[alleleKey] ?? 0 : 0,
+      gtData: gtdata,
+      cohort: cohort
+    };
+
+    // Open dialog
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
-      data: { geneEditData }, 
+      data: geneEditData
     });
 
-    dialogRef.afterClosed().subscribe((result: CohortData | null) => {
-      if (result) {
-         this.cohortService.setCohortDto(result);
-         this.notificationService.showSuccess("added variant to cohort");
+    // Handle result
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (!result) return;
+
+      if (result.action === 'update') {
+        row.alleleCountMap[result.alleleKey] = result.count;
+        this.notificationService.showSuccess("Updated allele");
+      } else if (result.action === 'add') {
+        row.alleleCountMap[result.alleleKey] = result.count;
+        this.notificationService.showSuccess("Added allele");
+      } else if (result.action === 'delete') {
+        delete row.alleleCountMap[result.alleleKey];
+        this.notificationService.showSuccess("Deleted allele");
       }
     });
   }
@@ -546,6 +559,24 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     onMoiChange(mois: ModeOfInheritance[]) {
       this.moiList = mois;
       this.notificationService.showSuccess(`Set ${this.moiList.length} modes of inheritance`)
+    }
+
+    isAlleleValidated(alleleKey: string): boolean {
+      const cohort = this.cohortDto;
+      if (cohort == null) {
+        return false;
+      }
+      return !!cohort.hgvsVariants[alleleKey] || !!cohort.structuralVariants[alleleKey];
+    }
+
+    showAlleleColumn = true;
+
+    toggleVariantColumn() {
+      this.showAlleleColumn = !this.showAlleleColumn;
+    }
+
+    deleteAllele(alleleKey: string, row: RowData) {
+      delete row.alleleCountMap[alleleKey];
     }
 
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
-import { GeneEditDialogData, HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { AlleleEditDto, HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
 
 /**
@@ -179,6 +179,49 @@ export class CohortDtoService {
         */
        return [];
     }
+
+
+    getAlleleEditDto(allele: string, count: number): AlleleEditDto {
+        
+        const defaultDto: AlleleEditDto = {
+                geneSymbol: "na",
+                transcript: "na",
+                allele: allele,
+                count: count,
+                previously_validated: false,
+            };
+        const cohort = this.getCohortDto();
+        if (cohort == null) {
+            return defaultDto;
+        }
+        if (cohort.diseaseList.length == 0) {
+            return defaultDto;
+        }
+        // example key: c718_1GtoA_NUP210L_NM_207308v3
+        const hgvs = cohort.hgvsVariants[allele];
+        const sv = cohort.structuralVariants[allele];
+        if (hgvs) {
+            return {
+                geneSymbol: hgvs.symbol,
+                transcript: hgvs.transcript,
+                allele: hgvs.hgvs,
+                count: count,
+                previously_validated: true,
+            }
+        } else if (sv) {
+            return {
+                geneSymbol: sv.geneSymbol,
+                transcript: "na",
+                allele: sv.label,
+                count: count,
+                previously_validated: true,
+            }
+        } else {
+            // If we get here, the allele is not currently registered in our cohort.
+            return defaultDto
+        }
+    }
+
 
 
 }

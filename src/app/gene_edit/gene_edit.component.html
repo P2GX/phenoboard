@@ -1,85 +1,30 @@
-<h2 mat-dialog-title>Edit Gene/Variant</h2>
+<h2 mat-dialog-title>
+      {{ data.alleleKey ? 'Edit allele' : 'Add new allele' }}
+    </h2>
 
-<mat-dialog-content>
-    <form [formGroup]="form">
-        <mat-form-field appearance="fill" class="w-full">
-            <mat-label>HGNC Id</mat-label>
-            <input matInput formControlName="hgncId" />
-            @if (form.get('hgncId')?.hasError('required') && form.get('hgncId')?.touched) {
-                <mat-error>HGNC ID is required</mat-error>
-            }
-            @if (form.get('hgncId')?.hasError('whitespace') && form.get('hgncId')?.touched) {
-                <mat-error>Leading or trailing whitespace is not allowed</mat-error>
-            }
+    <mat-dialog-content class="flex flex-col gap-y-4">
+      @if(!data.alleleKey){
+        <mat-form-field>
+            <mat-label>Allele Key</mat-label>
+            <input matInput [(ngModel)]="alleleKey" />
         </mat-form-field>
-        <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Gene symbol</mat-label>
-            <input matInput formControlName="geneSymbol"/>
-            @if(form.get('geneSymbol')?.hasError('required') && form.get('geneSymbol')?.touched){
-                <mat-error>
-                    Gene symbol is required
-                </mat-error>
-            }
-            @if(form.get('geneSymbol')?.hasError('whitespace') && form.get('geneSymbol')?.touched){
-                <mat-error>
-                    Leading or trailing whitespace is not allowed
-                </mat-error>
-            }
-        </mat-form-field>
+    }
 
-        <mat-form-field appearance="fill" class="w-full">
-            <mat-label>Transcript</mat-label>
-            <input matInput formControlName="transcript"/>
-            @if(form.get('transcript')?.hasError('required') && form.get('transcript')?.touched){
-                <mat-error>
-                    Transcript is required
-                </mat-error>
-            }
-            @if (form.get('transcript')?.hasError('whitespace') && form.get('transcript')?.touched) {
-                <mat-error>
-                    Leading or trailing whitespace is not allowed
-                </mat-error>
-            }
-        </mat-form-field>
+      <mat-form-field>
+        <mat-label>Count</mat-label>
+        <input matInput type="number" [(ngModel)]="count" />
+      </mat-form-field>
+    </mat-dialog-content>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Allele 1</mat-label>
-        <input matInput formControlName="allele1"/>
-        @if (form.get('allele1')?.hasError('required') && form.get('allele1')?.touched) {
-            <mat-error>
-                Allele 1 is required
-            </mat-error>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="cancel()">Cancel</button>
+        @if(data.alleleKey){
+            <button  mat-button color="warn" (click)="delete()">
+                Delete
+            </button>
         }
-        @if(form.get('allele1')?.hasError('whitespace')) {
-            <mat-error>
-                Leading or trailing whitespace is not allowed
-            </mat-error>
-        }
-        </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Allele 2</mat-label>
-        <input matInput formControlName="allele1"/>
-        @if (form.get('allele2')?.hasError('required') && form.get('allele2')?.touched) {
-            <mat-error>
-                Allele 2 is required
-            </mat-error>
-        }
-        @if(form.get('allele2')?.hasError('whitespace')) {
-            <mat-error>
-                Leading or trailing whitespace is not allowed
-            </mat-error>
-        }
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Variant comment</mat-label>
-        <input matInput formControlName="variantComment"/>
-        </mat-form-field>
-    </form>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-    <button mat-button (click)="cancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">Save</button>
-</mat-dialog-actions>
-
+      <button mat-raised-button color="primary" (click)="save()">
+        {{ data.alleleKey ? 'Save' : 'Add' }}
+      </button>
+    </mat-dialog-actions>

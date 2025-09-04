@@ -98,6 +98,16 @@
         </ul>
       </div>
     </div>
+  <div>
+       <button (click)="toggleVariantColumn()" class="btn-outline-primary">
+        @if(showAlleleColumn){
+            Hide allele
+        } @else {
+            Show allele
+        }
+      </button>
+  
+    </div>
   </div>
 </div>
 
@@ -109,7 +119,11 @@
     <thead>
     <tr>
       <th class="narrow-column bottom-align">Individual ID</th>
-      <th class="narrow-column bottom-align">Variant</th>
+      @if(showAlleleColumn){
+          <th class="relative">
+            Variant
+          </th>
+        }
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
@@ -188,40 +202,47 @@
     </td>
 
 <!-- Second column for gene/allele -->
+  @if(showAlleleColumn){
 <td class="relative narrow-column">
   @for (entry of Object.entries(row.alleleCountMap); track entry[0]; let gi = $index) {
     <div
-      class="relative inline-block"
+      class="relative flex items-center justify-between"
       (mouseenter)="setHover('gene', rowIndex, gi, true)"
       (mouseleave)="setHover('gene', rowIndex, gi, false)"
     >
-      <!-- Display gene symbol / allele key -->
-      <span class="cursor-pointer">{{ getShortAlleleDisplay(entry[0], entry[1]) }}</span>
+      <div class="flex items-center gap-x-1">
+        <span 
+          class="inline-block w-3 h-3 rounded-full"
+          [ngClass]="isAlleleValidated(entry[0]) ? 'bg-green-500' : 'bg-red-500'"
+          title="{{ isAlleleValidated(entry[0]) ? 'Validated' : 'Not validated' }}"
+        ></span>
+        <span class="cursor-pointer">
+          {{ getShortAlleleDisplay(entry[0], entry[1]) }}
+        </span>
+      </div>
 
-      @if (isHovered('gene', rowIndex, gi)) {
-        <div
-          class="absolute top-0 left-full -ml-4 bg-white shadow-md border p-2 rounded z-50 w-64 break-words"
-          (mouseenter)="setHover('gene', rowIndex, gi, true)"
-          (mouseleave)="setHover('gene', rowIndex, gi, false)"
-        >
-         <ul class="list-disc list-inside text-sm text-gray-800 break-words">
-            @for (displayString of getAlleleDisplay(entry[0], entry[1]); track $index) {
-              <li>{{ displayString }}</li>
-            }
-          </ul>
-       <!--   <button
-            mat-stroked-button
-            color="primary"
-            class="text-xs py-0 px-2"
-            (click)="openGeneEditor(row, displayString); $event.stopPropagation();"
-          >
-            ✏️ Edit
-          </button> -->
-        </div>
-      }
+      <!-- Right side: actions -->
+      <div class="flex items-center gap-x-2">
+        <button mat-icon-button color="primary"
+                aria-label="Edit allele"
+                (click)="openGeneEditor(entry[0], row)">
+          <mat-icon>✏️</mat-icon>
+        </button>
+        <button mat-icon-button color="warn"
+                aria-label="Delete allele"
+                (click)="deleteAllele(entry[0], row)">
+          <mat-icon>🗑️</mat-icon>
+        </button>
+         <button mat-icon-button color="warn"
+                aria-label="Delete allele"
+                (click)="openGeneEditor(undefined, row)">
+          <mat-icon>➕</mat-icon>
+        </button>
+      </div>
     </div>
-  }
+    }
 </td>
+  }
 
 <!-- The values of the HPO columns-->
     @for (cell of row.hpoData; track i; let i = $index) {
