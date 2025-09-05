@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData, GeneVariantData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData } from '../models/cohort_dto';
+import { DiseaseData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData } from '../models/cohort_dto';
 import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -91,7 +91,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   ];
 
   contextMenuOptions: Option[] = [];
-  moiList: ModeOfInheritance[] = [];
+ 
 
   override ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit");
@@ -118,6 +118,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     console.warn("⚠️ Template is missing in PtTemplateComponent");
   }
 
+  get moiList(): ModeOfInheritance[] {
+    const cohort = this.cohortService.getCohortDto();
+    if (!cohort) return [];
+    return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
+  }
+
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
   async loadTemplate(): Promise<void> {
@@ -128,7 +134,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         const data = await this.configService.getPhetoolsTemplate();
         this.cohortService.setCohortDto(data); // 🟢 base class reacts here
       } catch (error) {
-        console.error("❌ Failed to load template:", error);
+        this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
     } else {
       console.log("✅ Template already loaded");
@@ -456,7 +462,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showError("Need to specify a mode of inheritance (or multiple)");
       return;
     }
-    console.log("saveCohort: ", cohort);
+
     console.log("saveCohort: moi=", this.moiList);
     if (cohort.diseaseList.length > 0) {
       cohort.diseaseList[0].modeOfInheritanceList = this.moiList;
