@@ -120,8 +120,11 @@
     <tr>
       <th class="narrow-column bottom-align">Individual ID</th>
       @if(showAlleleColumn){
-          <th class="relative">
-            Variant
+          <th class="narrow-column bottom-align">
+            Alleles
+          </th>
+          <th class="narrow-column bottom-align">
+            Add allele
           </th>
         }
       <!-- The following creates the series of headers for the HPO columns.
@@ -226,22 +229,26 @@
         <button mat-icon-button color="primary"
                 aria-label="Edit allele"
                 (click)="openGeneEditor(entry[0], row)">
-          <mat-icon>✏️</mat-icon>
+          <mat-icon style="font-size: 16px; line-height: 16px;">✏️</mat-icon>
         </button>
         <button mat-icon-button color="warn"
                 aria-label="Delete allele"
                 (click)="deleteAllele(entry[0], row)">
-          <mat-icon>🗑️</mat-icon>
+          <mat-icon style="font-size: 16px; line-height: 16px;">🗑️</mat-icon>
         </button>
-         <button mat-icon-button color="warn"
-                aria-label="Delete allele"
-                (click)="openGeneEditor(undefined, row)">
-          <mat-icon>➕</mat-icon>
-        </button>
+       
       </div>
+       
     </div>
-    }
+    } 
 </td>
+<td>
+  <button mat-icon-button color="warn"
+          aria-label="Delete allele"
+          (click)="addAllele(row)">
+    <mat-icon style="font-size: 16px; line-height: 16px;">➕</mat-icon>
+    </button>
+  </td>
   }
 
 <!-- The values of the HPO columns-->

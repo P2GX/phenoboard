@@ -139,17 +139,17 @@ export function displaySv(sv: StructuralVariant, validated: boolean): VariantDto
 
 /* This interface is needed to pass data to the GeneEditComponent. */
 export interface GeneEditDialogData {
-  allele?: string;
+  alleleKey?: string;
   allelecount: number;
   gtData: GeneTranscriptData[];
   cohort: CohortData;
 }
 
-
+/*
 export interface AlleleEditDto {
   geneSymbol: string;
   allele?: string;
   transcript: string;
   count: number;
   previously_validated: boolean;
-}
+}*/

@@ -1,12 +1,14 @@
 # Developers
 
-HPO Curator is a tauri application with a Rust backend and an Angular front end.
+GA4GH Phenoboard is a tauri application with a Rust backend and an Angular front end.
+It is designed to curate cohorts of individuals diagnosed with genetic disease using
+[Human Phenotype Ontology](https://hpo.jax.org/){:target="\_blank"} and [Global Alliance for Genomics and Health](https://www.ga4gh.org/){:target="\_blank"} [Phenopacket Schema](https://phenopacket-schema.readthedocs.io/en/latest/){:target="\_blank"}.
 
 The application makes major use of the following rust crates.
 
 - [ontololius](https://docs.rs/ontolius/latest/ontolius/){:target="\_blank"}
-- [rphetools](https://github.com/P2GX/rphetools){:target="\_blank"}
-- [rfenominal](https://github.com/P2GX/rfenominal){:target="\_blank"}
+- [ga4ghphetools](https://github.com/P2GX/ga4ghphetools){:target="\_blank"}
+- [fenominal](https://github.com/P2GX/fenominal){:target="\_blank"}
 
 
 This page summarizes some of the angular and Rust/tauri commands that have been useful to create the application.
@@ -43,33 +45,6 @@ npx nx generate @nx/angular:component <name> --standalone
 This will initialize the typical four files for an angular component.
 
 
-
-
-## Set up file system access
-At the top level of the project, enter
-```bash
-npm install @tauri-apps/api
-```
-
-in the src-tauri folder, enter
-```bash
-cargo add tauri-plugin-fs
-```
-
-for the shell component (which opens the system browser)
-```bash
-npm install @tauri-apps/api
-```
-
-
-In the angular component, add 
-```javascript
-import { open } from '@tauri-apps/api/dialog';
-import { readTextFile } from '@tauri-apps/api/fs';
-
-```
-
-
 ## Port issues
 If one gets the error message: ``Port 1420 is already in use``, then use the following command to obtain the process ID:
 ```bash
@@ -91,22 +66,5 @@ npm run start
 ```
 
 
-## Problems with tauri.conf.json
-
-Try to get the latest version
-```bash
-cargo install tauri-cli --locked
-npm install @tauri-apps/cli@latest
-``` 
-generate a new file
-```bash
-cargo tauri init
-``` 
 
 
-## file system (tauri v2)
-
-npm run tauri add fs
-npm run tauri add dialog
-
-.

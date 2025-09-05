@@ -18,8 +18,9 @@ import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
-import { GeneEditDialogData } from '../models/variant_dto';
+import { GeneEditDialogData, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
+import { AddVariantComponent } from '../addvariant/addvariant.component';
 
 
 type Option = { label: string; value: string };
@@ -181,12 +182,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
     // Build data for the dialog
     const geneEditData: GeneEditDialogData = {
-      allele: alleleKey ?? null,
-      count: alleleKey ? row.alleleCountMap?.[alleleKey] ?? 0 : 0,
+      alleleKey: alleleKey ?? undefined,
+      allelecount: alleleKey ? row.alleleCountMap?.[alleleKey] ?? 0 : 0,
       gtData: gtdata,
       cohort: cohort
     };
 
+    console.log("About to open dialog -- ", geneEditData);
     // Open dialog
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
@@ -208,6 +210,44 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         this.notificationService.showSuccess("Deleted allele");
       }
     });
+  }
+
+  addAllele(row: RowData) {
+     const dialogRef = this.dialog.open(AddVariantComponent, {
+          width: '600px'
+        });
+    
+        dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+          if (result) {
+            const variantKey = result.variantKey;
+            if (variantKey == null) {
+              this.notificationService.showError("Could not retrieve variantKey");
+              return;
+            }
+            if (! result.isValidated) {
+              this.notificationService.showError("Variant could not be validated");
+              return;
+            }
+            /* If we get here, the variant was validated and added to the cohort. */
+            /* We add it with a count of 1 -- they user may need to adjust */
+            console.log('allele1 added:', result);
+            const cohort = this.cohortService.getCohortDto();
+            if (cohort) {
+              // Find the matching row in cohort.rows
+              const rowIndex = cohort.rows.findIndex(r => r === row);
+              if (rowIndex >= 0) {
+                row.alleleCountMap[variantKey] = 1;
+                cohort.rows[rowIndex] = row; // update row reference
+                this.cohortService.setCohortDto(cohort); // push back to service
+                this.notificationService.showSuccess(`Allele ${variantKey} added`);
+              }
+            } else {
+              this.notificationService.showError("No cohort available");
+            }
+          } else {
+            console.error("Error in openAddAllele1Dialog")
+          }
+        });
   }
 
 

@@ -8,9 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select'; 
 import { MatOptionModule } from '@angular/material/core';  
 import { CommonModule } from '@angular/common';
-import { noWhitespaceValidator} from '../validators/validators';
-import { debounceTime } from 'rxjs/operators';
-import { GeneEditDialogData } from '../models/variant_dto';
+
 
 
 @Component({
@@ -39,7 +37,7 @@ export class GeneEditComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.alleleKey = data.alleleKey ?? '';
-    this.count = data.count ?? 0;
+    this.count = data.allelecount ?? 0;
   }
 
   save() {
