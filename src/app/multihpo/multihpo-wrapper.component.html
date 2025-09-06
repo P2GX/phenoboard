@@ -1,6 +1,25 @@
 <h1 mat-dialog-title>Map Column to HPO Terms</h1>
 
 <div mat-dialog-content>
+  <h3>HPO Terms for mapping</h3>
+  <mat-chip-set>
+    @for (term of allHpoTerms; track term) {
+        <mat-chip removable (removed)="removeHpoTerm(term)">
+             {{ term }} <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+    }
+  </mat-chip-set>
+
+  <div class="space-y-1">
+    <app-hpoautocomplete
+        [inputString]="hpoInputString"
+        (selected)="addHpoTerm($event)"
+        #hpoAutocomplete
+    >
+        <span card-title>Add new HPO term</span>
+    </app-hpoautocomplete>
+    <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p> 
+    </div>
 
   <!-- Table -->
   <table mat-table [dataSource]="data.rows" class="w-full" style="width: 100%; border-collapse: collapse;">
@@ -17,11 +36,11 @@
     <ng-container matColumnDef="hpo">
       <th mat-header-cell *matHeaderCellDef>HPO Terms</th>
       <td mat-cell *matCellDef="let row; let i = index">
-        <div *ngFor="let term of allHpoTerms">
-          <mat-checkbox 
-            [checked]="hpoMappings[i].includes(term)"
-            (change)="toggleTerm(i, term)">
-            {{ term }}
+        <div class="checkbox-container">
+          <mat-checkbox *ngFor="let term of allHpoTerms"
+                        [checked]="hpoMappings[i].includes(term)"
+                        (change)="toggleTerm(i, term)">
+            {{ labelFromTerm(term) }}
           </mat-checkbox>
         </div>
       </td>
