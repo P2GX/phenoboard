@@ -33,23 +33,19 @@
               } 
           }
       }
-} @else {
-  <div class="error-container">
-    <p class="error-message">Disease/Gene DTO not initialized.</p>
-  </div>
-}
-
-
 <p>Cohort statistics</p>
 <ul>
   <li>{{ cohort?.rows?.length }} phenopackets</li>
    <li>{{ cohort?.hpoHeaders?.length}} HPO terms used for annotation</li>
 </ul>
-
 <div style="margin-top: 16px; text-align: right;">
     <button (click)="showJson = true" class="btn-outline-primary">Show Cohort JSON</button>
     <button (click)="showJson = false" class="btn-outline-primary" style="margin-left: 8px;">Hide JSON</button>
 </div>
+
+} @else {
+    <p><span>❌</span>Cohort not loaded.</p>
+}
 
 
 @if (showJson) {
@@ -57,7 +53,5 @@
   <pre>{{ cohort | json }}</pre>
 } 
 
-@if (!cohort){
-  <p><span>❌</span>Cohort DTO not loaded.</p>
-}
+
 

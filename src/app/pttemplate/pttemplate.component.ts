@@ -458,7 +458,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showError("Need to specify acronym before saving cohort");
       return;
     }
-    if (this.moiList == null || this.moiList.length == 0) {
+    const moiList = this.moiList;
+    if ( moiList.length == 0) {
       this.notificationService.showError("Need to specify a mode of inheritance (or multiple)");
       return;
     }
@@ -603,8 +604,18 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
     onMoiChange(mois: ModeOfInheritance[]) {
-      this.moiList = mois;
-      this.notificationService.showSuccess(`Set ${this.moiList.length} modes of inheritance`)
+      const cohort = this.cohortService.getCohortDto();
+      if (!cohort) {
+        this.notificationService.showError("Could not set MOI because cohort is not initialized");
+        return;
+      }
+      cohort.diseaseList.forEach(disease => {
+        disease.modeOfInheritanceList = mois;
+      });
+
+      this.notificationService.showSuccess(
+        `Set ${mois.length} modes of inheritance`
+      );
     }
 
     isAlleleValidated(alleleKey: string): boolean {
