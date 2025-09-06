@@ -19,6 +19,10 @@ import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
+import { NotificationService } from '../services/notification.service';
+import { HpoTermDuplet } from '../models/hpo_term_dto';
+import { MultiHpoWrapperComponent } from '../multihpo/multihpo-wrapper.component';
+import { TextAnnotationDto } from '../models/text_annotation_dto';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 
@@ -40,6 +44,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     cdRef: ChangeDetectorRef,
     private dialog: MatDialog,
     private etl_service: EtlSessionService,
+    private notificationService: NotificationService
   ) {
     super(templateService, ngZone, cdRef);
   }
@@ -144,11 +149,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           this.buildTableRows();
         });
       } else {
-        this.errorMessage = "Could not retrieve external table";
+        this.notificationService.showError("Could not retrieve external table");
       }
     } catch (error) {
         this.errorMessage = String(error);
-        console.log("Error table", this.errorMessage);
+        this.notificationService.showError(this.errorMessage);
     }
   }
 
@@ -166,11 +171,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           this.buildTableRows();
           });
         } else {
-          this.errorMessage = "Could not retrieve external table";
+          this.notificationService.showError("Could not retrieve external table");
         }
       } catch (error) {
           this.errorMessage = String(error);
-          console.log("Error table", this.errorMessage);
+          this.notificationService.showError("Could not retrieve external table");
       }
   }
 
@@ -347,28 +352,43 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-// Example transform: trim + uppercase all strings in selected column
-applyTransform(colIndex: number | null): void {
-  if (colIndex !== null && this.externalTable?.columns?.[colIndex]) {
+  async hpoMultipleForColumnName(colIndex: number){
+    if (this.externalTable == null) {
+      return;
+    }
     const col = this.externalTable.columns[colIndex];
-    col.values = col.values.map(v => v.trim().toUpperCase());
-    this.buildTableRows(); // rebuild display after transformation
+    const colValues: string[] = col.values;
+    const hpoAnnotations: TextAnnotationDto[] = await this.configService.mapColumnToHpo(colValues);
+    /// Get the HPO hits and then create a string we can use for the module.
+    const hpoTerms = hpoAnnotations
+      .filter(t => t.termId && t.label)
+      .map(t => {return `${t.termId} - ${t.label}`});
+    console.log("hpoTerms", hpoTerms);
+    const dialogRef = this.dialog.open(MultiHpoWrapperComponent, {
+      width: '1000px',
+      data: { terms: hpoTerms, rows: colValues }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('User saved:', result);
+      } else {
+        console.log('User cancelled');
+      }
+    });
   }
-  this.columnContextMenuVisible = false;
-}
 
 /**
- * This function is called up right click in the editing window when the user indicates
+ * This function is called upon right click in the editing window when the user indicates
  * to replace values with the correctly formated values, e.g., "Female" => "F"
  */
 applyValueTransform() {
   if (this.externalTable == null) {
     // should never happen
-    console.error("Attempt to apply value transform with externalTable being null");
+    this.notificationService.showError("Attempt to apply value transform with externalTable being null");
     return;
   }
   if (this.visibleColIndex == null) {
-    console.error("Attempt to apply value transform with columnBeingTransformed being null");
+    this.notificationService.showError("Attempt to apply value transform with columnBeingTransformed being null");
     return;
   } 
   const colIndex = this.visibleColIndex;
@@ -400,7 +420,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    */
   async editCellValueManually() {
     if (this.contextMenuCellValue == null) {
-      await alert("Could not edit cell because we could not get context menu cell value.");
+      this.notificationService.showError("Could not edit cell because we could not get context menu cell value.");
       return;
     }
     this.editingValue = this.contextMenuCellValue;
@@ -422,7 +442,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   async saveExternalTemplateJson() {
     this.errorMessage = null;
     if (this.externalTable == null) {
-      await alert("Data table is not initialized");
+      this.notificationService.showError("Could not save JSON because data table is not initialized");
       return;
     }
     this.configService.saveJsonExternalTemplate(this.externalTable)
@@ -437,7 +457,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     try {
       const table = await this.configService.loadJsonExternalTemplate();
       if (table == null) {
-        await alert("Could not retrieve external template json");
+        this.notificationService.showError("Could not retrieve external template json");
         return;
       }
       this.ngZone.run(() => {
@@ -488,7 +508,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       !this.transformedColumnValues.length
     ) {
       // should never happen...
-      await alert("Could not confirm value transformation because table or column was null");
+      this.notificationService.showError("Could not confirm value transformation because table or column was null");
       return;
     }
     const colIndex = this.visibleColIndex;
@@ -546,11 +566,11 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    */
   async saveManualEdit(): Promise<void> {
     if (this.contextMenuCellCol == null) {
-      await alert("Could not save value because contextMenuCellCol was null");
+      this.notificationService.showError("Could not save value because contextMenuCellCol was null");
       return;
     }
     if (this.contextMenuCellRow == null) {
-      await alert("Could not save value because contextMenuCellRow was null");
+      this.notificationService.showError("Could not save value because contextMenuCellRow was null");
       return;
     }
     const col = this.externalTable?.columns?.[this.contextMenuCellCol];
@@ -585,7 +605,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   async applyTransformConfirmed(): Promise<void> {
     if (!this.externalTable || this.previewColumnIndex < 0) {
       // should never happen, but...
-      await alert("Could not apply transform because external table/preview column was null");
+      this.notificationService.showError("Could not apply transform because external table/preview column was null");
       return;
     } 
 
@@ -643,7 +663,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       const fam_col = columns[fam_idx];
       const individual_col = columns[individual_idx];
       if (fam_col.values.length !== individual_col.values.length) {
-        await alert("familyId and patientId columns have different lengths.");
+        this.notificationService.showError("familyId and patientId columns have different lengths.");
         return;
       }
       const mergedValues = individual_col.values.map((ind, i) => `${fam_col.values[i] ?? ''} ${ind ?? ''}`);
@@ -661,7 +681,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         columns.unshift(col);
       }
     } catch (e) {
-      await alert("Could not merge family/id columns: " + String(e));
+      this.notificationService.showError("Could not merge family/id columns: " + String(e));
     }
     this.buildTableRows(); 
   }
@@ -673,7 +693,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    */
  async getEtlColumnIndex(columnType: EtlColumnType): Promise<number> {
   if (!this.externalTable) {
-    await alert("Could not apply transform because external table was null");
+    this.notificationService.showError("Could not apply transform because external table was null");
     throw new Error("Missing table");
   }
 

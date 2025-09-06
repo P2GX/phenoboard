@@ -93,28 +93,30 @@
     Type: {{ contextMenuColType }}
   </div>
   <ul>
-    <li *ngIf="contextMenuColIndex !== null" (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>
-    <li *ngIf="contextMenuColIndex !== null" (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name (HPO)</li>
+    @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>}
+    @if(contextMenuColIndex !== null){<li (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name (HPO)</li> }
+      @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Column Name (Multiple HPO)</li> }
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
-        <li
-          *ngFor="let transform of transformOptions"
-          (click)="applyNamedTransform(contextMenuColIndex, transform)"
-        >
-          {{ transform }}
-        </li>
+        @for(transform of transformOptions; track transform){
+          <li (click)="applyNamedTransform(contextMenuColIndex, transform)" >
+            {{ transform }}
+          </li>
+        }
       </ul>
     </li>
-    <li *ngIf="contextMenuColIndex !== null" (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>
+    @if(contextMenuColIndex !== null){<li (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>}
     <li (click)="clearColumnFilter()">Show All Columns</li>
     <!-- Submenu -->
     <li class="has-submenu">
       Set Column Type ▸
       <ul class="submenu">
-        <li *ngFor="let type of etlTypes" (click)="assignColumnType(type)">
-          {{ type }}
-        </li>
+        @for( type of etlTypes; track type){
+          <li (click)="assignColumnType(type)">
+            {{ type }}
+          </li>
+        }
       </ul>
     </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>

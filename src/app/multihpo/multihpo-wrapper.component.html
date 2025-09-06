@@ -1,0 +1,39 @@
+<h1 mat-dialog-title>Map Column to HPO Terms</h1>
+
+<div mat-dialog-content>
+
+  <!-- Table -->
+  <table mat-table [dataSource]="data.rows" class="w-full" style="width: 100%; border-collapse: collapse;">
+
+    <!-- Original string column -->
+    <ng-container matColumnDef="original">
+      <th mat-header-cell *matHeaderCellDef>Original</th>
+      <td mat-cell *matCellDef="let row; let i = index">
+        {{ row }}
+      </td>
+    </ng-container>
+
+    <!-- HPO checkboxes column -->
+    <ng-container matColumnDef="hpo">
+      <th mat-header-cell *matHeaderCellDef>HPO Terms</th>
+      <td mat-cell *matCellDef="let row; let i = index">
+        <div *ngFor="let term of allHpoTerms">
+          <mat-checkbox 
+            [checked]="hpoMappings[i].includes(term)"
+            (change)="toggleTerm(i, term)">
+            {{ term }}
+          </mat-checkbox>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['original','hpo']"></tr>
+    <tr mat-row *matRowDef="let row; let i = index; columns: ['original','hpo']"></tr>
+  </table>
+
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()">Save</button>
+</div>
