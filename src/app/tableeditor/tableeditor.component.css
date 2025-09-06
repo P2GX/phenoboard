@@ -204,3 +204,20 @@ li.has-submenu:hover > .submenu {
   border: 1px solid #ccc;
   padding-right: 8px; /* space for scrollbar */
 }
+
+.preview-modal {
+   position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      z-index: 1002;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow: auto;
+}

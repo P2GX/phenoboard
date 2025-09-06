@@ -18,9 +18,9 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
 
 
 @Component({
-  selector: 'app-multi-hpo-wrapper',
+  selector: 'app-multihpo',
   standalone: true,
-  templateUrl: './multihpo-wrapper.component.html',
+  templateUrl: './multihpo.component.html',
   styleUrls: ['./multihpo.component.scss'],
   imports: [
     FormsModule,
@@ -40,7 +40,7 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
     HpoAutocompleteComponent
 ]
 })
-export class MultiHpoWrapperComponent {
+export class MultiHpoComponent {
   allHpoTerms: string[];
   selectedHpoTerms: string[] = [];
   hpoMappings: string[][] = [];
@@ -53,20 +53,24 @@ export class MultiHpoWrapperComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { terms: string[], rows: string[] },
-    private dialogRef: MatDialogRef<MultiHpoWrapperComponent>
+    private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
     this.allHpoTerms = data.terms;
-     this.hpoMappings = data.rows.map(row => this.matchTerms(row));
-      this.hpoLabels = this.allHpoTerms.map(term => term.split(" - ")[1]?.trim() || term);
+    this.hpoMappings = data.rows.map(row => this.matchTerms(row));
+    this.hpoLabels = this.allHpoTerms.map(term => term.split(" - ")[1]?.trim() || term);
   }
 
   cancel() {
     this.dialogRef.close();
   }
 
+  /* Save the choices of the user. If there is no choice, map to "na" */
   save() {
+    const normalizedMappings = this.hpoMappings.map(
+      row => (row.length > 0 ? row : ["na"])
+    );
     this.dialogRef.close({
-      hpoMappings: this.hpoMappings
+      hpoMappings: normalizedMappings
     });
   }
 
@@ -83,12 +87,13 @@ export class MultiHpoWrapperComponent {
 
   toggleTerm(rowIndex: number, term: string) {
     const mapping = this.hpoMappings[rowIndex];
-    const idx = mapping.indexOf(term);
-    if (idx >= 0) {
-      mapping.splice(idx, 1);
-    } else {
-      mapping.push(term);
-    }
+  const idx = mapping.indexOf(term);
+  if (idx >= 0) {
+    mapping.splice(idx, 1);
+  } else {
+    mapping.push(term);
+  }
+  this.hpoMappings[rowIndex] = mapping.filter(t => t !== "na");
   }
 
   private matchTerms(row: string): string[] {
@@ -104,8 +109,6 @@ export class MultiHpoWrapperComponent {
 
   removeHpoTerm(term: string) {
     this.allHpoTerms = this.allHpoTerms.filter(t => t !== term);
-
-    // optional: remove from any row mappings
     this.hpoMappings.forEach(mapping => {
       const idx = mapping.indexOf(term);
       if (idx >= 0) mapping.splice(idx, 1);

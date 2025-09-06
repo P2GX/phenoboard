@@ -9,19 +9,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.component';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-
 import { HpoMappingResult } from "../models/hpo_mapping_result";
-
 import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
-import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { MultiHpoWrapperComponent } from '../multihpo/multihpo-wrapper.component';
+import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
@@ -96,7 +93,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   editModalVisible = false;
   /** Show a preview of a transformed column */
   previewModalVisible = false;
+    /** ORIGINAL Values for each row of some column that we want to check and maybe transform */
   previewOriginal: string[] = [];
+  /** Values for each row of some column that we want to check and maybe transform */
   previewTransformed: string[] = [];
   previewTransformName: string = '';
   previewColumnIndex: number = -1;
@@ -189,9 +188,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     if (!this.externalTable?.columns?.length) {
-      await alert("Could not create table because externalTable had no columns");
+      alert("Could not create table because externalTable had no columns");
       return;
     }
+    console.log("buildTableRows")
     const headers = this.externalTable.columns.map(col => col.header);
     const types = this.externalTable.columns.map(col => col.columnType);
     const rowCount = Math.max(...this.externalTable.columns.map(col => col.values.length));
@@ -364,13 +364,25 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       .filter(t => t.termId && t.label)
       .map(t => {return `${t.termId} - ${t.label}`});
     console.log("hpoTerms", hpoTerms);
-    const dialogRef = this.dialog.open(MultiHpoWrapperComponent, {
+    const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
       data: { terms: hpoTerms, rows: colValues }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('User saved:', result);
+        this.previewColumnIndex = colIndex;
+        this.previewOriginal = colValues;
+        console.log("result.hpoMappings", result.hpoMappings);
+        this.previewTransformed = result.hpoMappings.map((row: string[]) =>   row.length > 0 ? row.join("; ") : "");
+        console.log("PT", this.previewTransformed);
+        const OK = this.showPreview( "multiple HPO transform");
+        if (OK){
+          // col has pointer to the column, now we transform its header title etc.
+          col.header = `${col.header} - transformed`;
+          col.transformed = true;
+          col.columnType = EtlColumnType.multipleHpoTerm;
+        }
+        this.buildTableRows();
       } else {
         console.log('User cancelled');
       }
@@ -527,7 +539,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
 
     // Refresh table
     this.buildTableRows();
-    console.log("✅ Transformation applied to original column");
+    this.notificationService.showSuccess(`✅ Transformation applied to ${col.header}`);
   }
 
 
@@ -593,8 +605,11 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     const col = this.externalTable.columns[colIndex];
     const originalValues = col.values.map(v => v ?? '');
     const transformedValues = originalValues.map(v => handler(v));
+    this.previewTransformed = transformedValues;
+    this.previewColumnIndex = colIndex;
+    this.previewOriginal = originalValues;
     // Set up preview modal data
-    this.showPreview(colIndex, transformedValues, transformName);
+    this.showPreview(transformName);
     // if user clicks confirm, applyTransformConfirmed is executed
   }
 
@@ -617,7 +632,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       header: sourceCol.header, 
       values: this.previewTransformed
     };
-
+    console.log("newColumn", newColumn);
     this.externalTable.columns[this.visibleColIndex] = newColumn;
     this.transformedColIndex = this.INVISIBLE;
     this.buildTableRows();
@@ -627,19 +642,28 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
 
   /**
    * Open a dialog with a preview of the transformed data that the user can accept or cancel
+   * Returns true if user accepts.
    * @param colIndex index of the column with the data being transformed
    * @param transformedValues The new (trasnformed) cell contents
    * @param transformName Name of the procedure used to trasnform
    */
-  showPreview(colIndex: number, transformedValues: string[], transformName: string): void {
-    const originalValues = this.externalTable?.columns[colIndex].values.map(v => v ?? '') || [];
-
-    this.previewOriginal = originalValues;
-    this.previewTransformed = transformedValues;
+  showPreview(transformName: string): boolean {
+    const colIndex = this.previewColumnIndex;
+    if (this.previewTransformed == null || this.previewTransformed.length == 0) {
+      this.notificationService.showError("Preview Transform column not initialized");
+      return false;
+    }
+    if (this.previewOriginal.length != this.previewTransformed.length) {
+      const errMsg = `Length mismatch: preview-original: ${this.previewOriginal.length} and preview-transformed ${this.previewTransformed.length}`;
+      this.notificationService.showError(errMsg);
+      this.previewModalVisible = false;
+      return false;
+    }
     this.previewTransformName = transformName;
     this.previewColumnIndex = colIndex;
     this.previewModalVisible = true;
     this.contextMenuCellVisible = false;
+    return true;
   }
 
   /* close the preview modal dialog */
@@ -744,16 +768,17 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       return mapped !== undefined ? mapped : val; // keep original if no mapping
     });
     // show dialog with transformed data that the user can accept or cancel.
-    this.showPreview(colIndex, transformedValues, "single HPO column");
-
-    col.header = `${mapping.hpoLabel} - ${mapping.hpoId}`;
-
-    // Mark as transformed
-    col.transformed = true;
-
-    // Optionally change columnType:
-    col.columnType = EtlColumnType.singleHpoTerm;
-
+    this.previewColumnIndex = colIndex;
+    this.previewTransformed = transformedValues;
+    const originalValues = col.values.map(v => v ?? '');
+    this.previewOriginal = originalValues;
+    const OK = this.showPreview("single HPO column");
+    if (OK){
+      // col has pointer to the column, now we transform its header title etc.
+      col.header = `${mapping.hpoLabel} - ${mapping.hpoId}`;
+      col.transformed = true;
+      col.columnType = EtlColumnType.singleHpoTerm;
+    }
     this.buildTableRows();
   }
 

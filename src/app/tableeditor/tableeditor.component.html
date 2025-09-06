@@ -28,16 +28,18 @@
   </button>
 </div>
 
-
-<div class="error-container" *ngIf="errorMessage">
-  <div class="error-message">
-    {{ errorMessage }}
+@if (errorMessage) {
+  <div class="error-container">
+    <div class="error-message">
+      {{ errorMessage }}
+    </div>
   </div>
-</div>
-<div *ngIf="!externalTable">
-  <p>No table loaded yet.</p>
-</div>
-
+}
+@if (!externalTable) {
+  <div>
+    <p>No table loaded yet.</p>
+  </div>
+}
 
 <table class="pt-table">
   <ng-container *ngFor="let row of displayRows; let rowIndex = index">
@@ -95,7 +97,7 @@
   <ul>
     @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>}
     @if(contextMenuColIndex !== null){<li (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name (HPO)</li> }
-      @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Column Name (Multiple HPO)</li> }
+      @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Multiple HPO Column</li> }
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
@@ -211,25 +213,8 @@
   </div>
 </div>
 
-<div
-  *ngIf="previewModalVisible"
-  style="
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    border: 1px solid #ccc;
-    padding: 20px;
-    z-index: 1002;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow: auto;
-  "
->
+@if (previewModalVisible) {
+<div class="preview-modal">
   <h3>Preview: {{ previewTransformName }} on Column</h3>
   <div class="scrollable-table-container">
     <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
@@ -240,15 +225,18 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let orig of previewOriginal; let i = index">
-          <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
-          <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
-        </tr>
+        @for (orig of previewOriginal; track i; let i=$index) {
+          <tr>
+            <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
+            <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
+          </tr>
+        }
       </tbody>
     </table>
-</div>
+  </div>
   <div style="text-align: right; margin-top: 16px;">
     <button (click)="applyTransformConfirmed()">✅ Apply</button>
     <button style="margin-left: 8px;" (click)="previewModalVisible = false">Cancel</button>
   </div>
 </div>
+}
