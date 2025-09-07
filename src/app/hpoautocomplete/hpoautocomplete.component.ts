@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
 import { EMPTY } from 'rxjs';
+import { HpoTermDuplet } from '../models/hpo_term_dto';
 
 
 
@@ -35,8 +36,8 @@ export class HpoAutocompleteComponent implements OnInit {
   textMiningSuccess: boolean = false;
 
   @Input() inputString: string = '';
-  @Output() selected = new EventEmitter<string>();
-  @Input() onSubmit: (term: string) => Promise<void> = async () => {};
+  @Output() selected = new EventEmitter<HpoTermDuplet>();
+  @Input() onSubmit: (term: HpoTermDuplet) => Promise<void> = async () => {};
 
 
   ngOnChanges(changes: SimpleChanges) {
@@ -69,12 +70,18 @@ export class HpoAutocompleteComponent implements OnInit {
 
   /* This function works with a callback from the parent component. 
     for instance, <app-hpoautocomplete (termSubmitted)="handleTermSubmit($event)"></app-hpoautocomplete>.
-    The callback function will be activate, and then we clear the input. */
+    The callback function will be activate, and then we clear the input. 
+    We get something like "HP:0000828 - Abnormality of the parathyroid gland" and create an HpoTermDuplet*/
   async submitTerm() {
-    const term = this.control.value;
-    if (term) {
-      this.selected.emit(term);
-      await this.onSubmit(term);
+    const termString = this.control.value;
+    if (termString) {
+      const [id, ...labelParts] = termString.split(' - ');
+      const duplet: HpoTermDuplet = {
+        hpoId: id.trim(),
+        hpoLabel: labelParts.join(' -').trim()
+      };
+      this.selected.emit(duplet);
+      await this.onSubmit(duplet);
     } else {
       console.error("could not retrieve HPO autocompletion value");
     }

@@ -58,3 +58,12 @@ export interface  HpoTermData {
     termDuplet: HpoTermDuplet;
     entry: CellValue, 
 }
+
+/** Possible values for HPO cells in the columns */
+export type HpoStatus = 'observed' | 'excluded' | 'na';
+/** Mapping entry: a term + its current status */
+export interface HpoMappingEntry {
+  term: HpoTermDuplet;
+  status: HpoStatus;
+}
+export type HpoMappingRow = HpoMappingEntry[];

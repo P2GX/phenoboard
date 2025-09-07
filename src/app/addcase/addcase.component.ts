@@ -88,7 +88,7 @@ export class AddcaseComponent {
 
   /* used for autocomplete widget */
   hpoInputString: string = '';
-  selectedHpoTerm: string = "";
+  selectedHpoTerm: HpoTermDuplet | null = null;
 
   private unlisten: UnlistenFn | null = null;
   private unlistenFns: UnlistenFn[] = [];
@@ -212,7 +212,7 @@ export class AddcaseComponent {
   async doHpoTextMining(): Promise<void> {
     this.clearError();
     try {
-      const result = await this.configService.map_text_to_annotations(this.pastedText);
+      const result: TextAnnotationDto[] | string = await this.configService.map_text_to_annotations(this.pastedText);
 
       if (typeof result === 'string') {
         this.setError(String(result));
@@ -369,14 +369,16 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.showDropdownMap[annotation.termId] = false;
   }
 
-    submitSelectedHpo = async () => {
+  submitSelectedHpo = async () => {
+    if (this.selectedHpoTerm == null) {
+      return;
+    }
     await this.submitHpoAutocompleteTerm(this.selectedHpoTerm);
   };
 
-  async submitHpoAutocompleteTerm(autocompletedTerm: string): Promise<void> {
+  async submitHpoAutocompleteTerm(autocompletedTerm: HpoTermDuplet): Promise<void> {
     if (autocompletedTerm) {
-      const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
-      await this.configService.submitAutocompleteHpoTerm(id, label);
+      await this.configService.submitAutocompleteHpoTerm(autocompletedTerm.hpoId, autocompletedTerm.hpoLabel);
       this.clearError();
       this.ngZone.run(() => {
         this.demographics_component.reset();

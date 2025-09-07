@@ -15,7 +15,9 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
-
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
 
 @Component({
   selector: 'app-multihpo',
@@ -37,81 +39,87 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
     CommonModule,
     MatTableModule,
     MatCheckboxModule,
+    MatButtonToggleModule,
     HpoAutocompleteComponent
 ]
 })
 export class MultiHpoComponent {
-  allHpoTerms: string[];
-  selectedHpoTerms: string[] = [];
-  hpoMappings: string[][] = [];
-  hpoLabels: string[] = [];     // just the labels for display
-  termInput: any;
-
-  selectedHpoTerm: string = '';
+  allHpoTerms: HpoTermDuplet[];
+  hpoMappings: HpoMappingRow[] = [];
   /* HPO autocomplete input (not necessarily a valid HPO term yet) */
   hpoInputString: string = ''; 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { terms: string[], rows: string[] },
+    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: string[] },
     private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
     this.allHpoTerms = data.terms;
-    this.hpoMappings = data.rows.map(row => this.matchTerms(row));
-    this.hpoLabels = this.allHpoTerms.map(term => term.split(" - ")[1]?.trim() || term);
+    this.hpoMappings = data.rows.map(() =>
+      this.allHpoTerms.map(term => ({
+        term,
+        status: 'na' as HpoStatus
+      }))
+    );
   }
 
   cancel() {
     this.dialogRef.close();
   }
 
-  /* Save the choices of the user. If there is no choice, map to "na" */
   save() {
-    const normalizedMappings = this.hpoMappings.map(
-      row => (row.length > 0 ? row : ["na"])
-    );
     this.dialogRef.close({
-      hpoMappings: normalizedMappings
+      hpoMappings: this.hpoMappings
     });
   }
 
-  /* Add an HPO term from the autocomplete widget to the list of terms that we can use for mapping. */
-  addHpoTerm(term: string) {
-    if (term && !this.allHpoTerms.includes(term)) {
+  // Fixed: Return the actual entry, ensuring it always exists
+  getEntry(rowIndex: number, termIndex: number) {
+    return this.hpoMappings[rowIndex][termIndex];
+  }
+
+  // Alternative: Get entry by term ID but ensure it exists
+  getEntryByTermId(rowIndex: number, termId: string): { term: HpoTermDuplet; status: HpoStatus } {
+    const entry = this.hpoMappings[rowIndex].find(e => e.term.hpoId === termId);
+    if (!entry) {
+      // This should never happen if data is properly initialized, but provides safety
+      throw new Error(`Entry not found for row ${rowIndex}, term ${termId}`);
+    }
+    return entry;
+  }
+
+  // Track by function for better performance
+  trackByTermId(index: number, term: HpoTermDuplet): string {
+    return term.hpoId;
+  }
+
+  addHpoTerm(term: HpoTermDuplet) {
+    if (
+      term &&
+      !this.allHpoTerms.some(t => t.hpoId === term.hpoId)
+    ) {
       this.allHpoTerms.push(term);
+
+      // add new entry with 'na' status to every row
+      this.hpoMappings.forEach(row =>
+        row.push({ term, status: 'na' as HpoStatus })
+      );
     }
   }
 
-  removeHpo(term: string) {
-    this.selectedHpoTerms = this.selectedHpoTerms.filter(t => t !== term);
-  }
-
-  toggleTerm(rowIndex: number, term: string) {
-    const mapping = this.hpoMappings[rowIndex];
-  const idx = mapping.indexOf(term);
-  if (idx >= 0) {
-    mapping.splice(idx, 1);
-  } else {
-    mapping.push(term);
-  }
-  this.hpoMappings[rowIndex] = mapping.filter(t => t !== "na");
-  }
-
-  private matchTerms(row: string): string[] {
-    return this.allHpoTerms.filter(term => {
-      const label = term.split(" - ")[1]?.trim();
-      return label && row.toLowerCase().includes(label.toLowerCase());
+  setAllNaToExcluded() {
+    this.hpoMappings.forEach(row => {
+      row.forEach(entry => {
+        if (entry.status == 'na') { 
+          entry.status = 'excluded';
+        }
+      });
     });
   }
 
-  labelFromTerm(term: string): string {
-    return term.split(" - ")[1]?.trim() || term;
-  }
-
-  removeHpoTerm(term: string) {
-    this.allHpoTerms = this.allHpoTerms.filter(t => t !== term);
-    this.hpoMappings.forEach(mapping => {
-      const idx = mapping.indexOf(term);
-      if (idx >= 0) mapping.splice(idx, 1);
-    });
+  removeHpoTerm(term: HpoTermDuplet) {
+    this.allHpoTerms = this.allHpoTerms.filter(t => t.hpoId !== term.hpoId);
+    this.hpoMappings = this.hpoMappings.map(row =>
+      row.filter(entry => entry.term.hpoId !== term.hpoId)
+    );
   }
 }

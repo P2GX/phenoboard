@@ -221,3 +221,17 @@ li.has-submenu:hover > .submenu {
       max-height: 80vh;
       overflow: auto;
 }
+
+.edit-modal {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -30%);
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    min-width: 300px;
+}

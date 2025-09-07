@@ -2,57 +2,80 @@
 
 <div mat-dialog-content>
   <h3>HPO Terms for mapping</h3>
+
+  <!-- Chip set with removable HPO terms -->
   <mat-chip-set>
-    @for (term of allHpoTerms; track term) {
-        <mat-chip removable (removed)="removeHpoTerm(term)">
-             {{ term }} <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
+    @for (term of allHpoTerms; track trackByTermId($index, term)) {
+      <mat-chip removable (removed)="removeHpoTerm(term)">
+        {{ term.hpoLabel }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
     }
   </mat-chip-set>
 
+  <!-- HPO autocomplete input -->
   <div class="space-y-1">
     <app-hpoautocomplete
-        [inputString]="hpoInputString"
-        (selected)="addHpoTerm($event)"
-        #hpoAutocomplete
+      [inputString]="hpoInputString"
+      (selected)="addHpoTerm($event)"
+      #hpoAutocomplete
     >
-        <span card-title>Add new HPO term</span>
+      <span card-title>Add new HPO term</span>
     </app-hpoautocomplete>
-    <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p> 
-    </div>
+  </div>
 
   <!-- Table -->
-  <table mat-table [dataSource]="data.rows" class="w-full" style="width: 100%; border-collapse: collapse;">
-
+  <table mat-table [dataSource]="data.rows" class="w-full" style="border-collapse: collapse;">
+    
     <!-- Original string column -->
     <ng-container matColumnDef="original">
       <th mat-header-cell *matHeaderCellDef>Original</th>
-      <td mat-cell *matCellDef="let row; let i = index">
+      <td mat-cell *matCellDef="let row">
         {{ row }}
       </td>
     </ng-container>
 
-    <!-- HPO checkboxes column -->
+    <!-- HPO toggle column -->
     <ng-container matColumnDef="hpo">
       <th mat-header-cell *matHeaderCellDef>HPO Terms</th>
       <td mat-cell *matCellDef="let row; let i = index">
-        <div class="checkbox-container">
-          <mat-checkbox *ngFor="let term of allHpoTerms"
-                        [checked]="hpoMappings[i].includes(term)"
-                        (change)="toggleTerm(i, term)">
-            {{ labelFromTerm(term) }}
-          </mat-checkbox>
+        <div class="flex flex-col gap-2">
+          @for (term of allHpoTerms; track trackByTermId($index, term); let termIndex = $index) {
+            <div class="flex items-center gap-2">
+              <span class="w-32">{{ term.hpoLabel }}</span>
+
+              <!-- Fixed: Use direct array access instead of method call with optional chaining -->
+              <mat-button-toggle-group
+                [(ngModel)]="getEntry(i, termIndex).status"
+                aria-label="Select status"
+                appearance="legacy"
+                class="ml-2"
+              >
+                <mat-button-toggle value="observed">Obs</mat-button-toggle>
+                <mat-button-toggle value="excluded">Excl</mat-button-toggle>
+                <mat-button-toggle value="na">NA</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+          }
         </div>
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="['original','hpo']"></tr>
+    <!-- Header + Row definitions -->
+    <tr mat-header-row *matHeaderRowDef="['original', 'hpo']"></tr>
     <tr mat-row *matRowDef="let row; let i = index; columns: ['original','hpo']"></tr>
   </table>
 
-</div>
+  <!-- Bulk actions -->
+  <div class="mt-4">
+    <button mat-stroked-button color="warn" (click)="setAllNaToExcluded()">
+      Set all NA → Excluded
+    </button>
+  </div>
 
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-raised-button color="primary" (click)="save()">Save</button>
+  <!-- Dialog actions -->
+  <div mat-dialog-actions align="end">
+    <button mat-button (click)="cancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="save()">Save</button>
+  </div>
 </div>

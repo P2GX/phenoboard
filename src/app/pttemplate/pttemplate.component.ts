@@ -16,7 +16,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
-import { getCellValue } from '../models/hpo_term_dto';
+import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
 import { GeneEditDialogData, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
@@ -65,7 +65,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   /* used for autocomplete widget */
   hpoInputString: string = '';
-  selectedHpoTerm: string = "";
+  selectedHpoTerm: HpoTermDuplet | null = null;
   /* used for right-click option menu */
   contextMenuVisible: boolean = false;
   contextMenuX:number = 0;
@@ -318,24 +318,27 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
   submitSelectedHpo = async () => {
+    if (this.selectedHpoTerm == null) {
+      this.notificationService.showError("No HPO term selected");
+      return;
+    }
     await this.addHpoTermToCohort(this.selectedHpoTerm);
     
   };
 
-  async addHpoTermToCohort(autocompletedTerm: string): Promise<void> {
+  async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {
     const template = this.cohortService.getCohortDto();
     if (template == null) {
       console.error("Attempt to add HPO Term to cohort but template is null");
       return;
     }
     if (autocompletedTerm) {
-      const [id, label] = autocompletedTerm.split('-').map(s => s.trim());
       try {
-        let updated_template = await this.configService.addHpoToCohort(id, label, template);
-        this.notificationService.showSuccess(`Successfully added ${label} (${id})`);
+        let updated_template = await this.configService.addHpoToCohort(autocompletedTerm.hpoId, autocompletedTerm.hpoLabel, template);
+        this.notificationService.showSuccess(`Successfully added ${autocompletedTerm.hpoLabel} (${autocompletedTerm.hpoId})`);
         this.cohortService.setCohortDto(updated_template);
       } catch (err) {
-        const errMsg =`Failed to add term ${label} (${id}): ${err}`
+        const errMsg =`Failed to add term ${autocompletedTerm.hpoLabel} (${autocompletedTerm.hpoId}): ${err}`
         this.notificationService.showError(errMsg);
       }
     }

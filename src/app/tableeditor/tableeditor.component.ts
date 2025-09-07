@@ -17,9 +17,11 @@ import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
-import { HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
+import { HpoStatus } from '../models/hpo_term_dto';
+
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 
@@ -91,14 +93,19 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
   editingValue: string = '';
   editModalVisible = false;
-  /** Show a preview of a transformed column */
-  previewModalVisible = false;
-    /** ORIGINAL Values for each row of some column that we want to check and maybe transform */
+
+  // Which column is being previewed
+  previewColumnIndex: number | null = null;
+  // Data shown in preview modal
   previewOriginal: string[] = [];
-  /** Values for each row of some column that we want to check and maybe transform */
   previewTransformed: string[] = [];
-  previewTransformName: string = '';
-  previewColumnIndex: number = -1;
+  // Name of the transform for modal header
+  previewTransformName: string = "";
+  // Pending metadata to apply if user confirms
+  pendingHeader: string | null = null;
+  pendingColumnType: EtlColumnType | null = null;
+  // Modal state
+  previewModalVisible: boolean = false;
 
   transformationMap: { [original: string]: string } = {};
   uniqueValuesToMap: string[] = [];
@@ -191,7 +198,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       alert("Could not create table because externalTable had no columns");
       return;
     }
-    console.log("buildTableRows")
     const headers = this.externalTable.columns.map(col => col.header);
     const types = this.externalTable.columns.map(col => col.columnType);
     const rowCount = Math.max(...this.externalTable.columns.map(col => col.values.length));
@@ -360,10 +366,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     const colValues: string[] = col.values;
     const hpoAnnotations: TextAnnotationDto[] = await this.configService.mapColumnToHpo(colValues);
     /// Get the HPO hits and then create a string we can use for the module.
-    const hpoTerms = hpoAnnotations
+    const hpoTerms: HpoTermDuplet[] = hpoAnnotations
       .filter(t => t.termId && t.label)
-      .map(t => {return `${t.termId} - ${t.label}`});
-    console.log("hpoTerms", hpoTerms);
+      .map(t => {return {
+        hpoId: t.termId,
+        hpoLabel: t.label
+      }});
     const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
       data: { terms: hpoTerms, rows: colValues }
@@ -371,20 +379,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.previewColumnIndex = colIndex;
-        this.previewOriginal = colValues;
+        this.previewOriginal = colValues.map(val => val ?? '');
         console.log("result.hpoMappings", result.hpoMappings);
-        this.previewTransformed = result.hpoMappings.map((row: string[]) =>   row.length > 0 ? row.join("; ") : "");
-        console.log("PT", this.previewTransformed);
-        const OK = this.showPreview( "multiple HPO transform");
-        if (OK){
-          // col has pointer to the column, now we transform its header title etc.
-          col.header = `${col.header} - transformed`;
-          col.transformed = true;
-          col.columnType = EtlColumnType.multipleHpoTerm;
-        }
-        this.buildTableRows();
+        this.previewTransformName = "Multiple HPO mappings";
+        this.pendingHeader = `${col.header} - transformed`;
+        this.pendingColumnType = EtlColumnType.multipleHpoTerm;
+        this.previewTransformed = result.hpoMappings.map(
+          (row: HpoMappingRow) =>
+            row
+              .filter(entry => entry.status !== 'na')         // only include observed/excluded
+              .map(entry => `${entry.term.hpoLabel} (${entry.status})`) // display label + status
+              .join("; ")
+        );
+        this.showPreview( "multiple HPO transform");
       } else {
-        console.log('User cancelled');
+        this.notificationService.showError('User cancelled');
       }
     });
   }
@@ -393,24 +402,51 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
  * This function is called upon right click in the editing window when the user indicates
  * to replace values with the correctly formated values, e.g., "Female" => "F"
  */
-applyValueTransform() {
-  if (this.externalTable == null) {
-    // should never happen
-    this.notificationService.showError("Attempt to apply value transform with externalTable being null");
+async confirmValueTransformation() {
+  if (
+    this.externalTable == null ||
+    this.previewColumnIndex == null ||
+    !this.previewTransformed.length
+  ) {
+    this.notificationService.showError("Could not confirm value transformation because table or column was null");
     return;
   }
-  if (this.visibleColIndex == null) {
-    this.notificationService.showError("Attempt to apply value transform with columnBeingTransformed being null");
-    return;
-  } 
-  const colIndex = this.visibleColIndex;
-  const column = this.externalTable.columns[colIndex];
-  const transformedValues = column.values.map(val => this.transformationMap[val.trim()] || val);
-  this.externalTable.columns[colIndex].values = [...transformedValues];
-  this.transformationPanelVisible = false;
-  this.editPreviewColumnVisible = false;
-  // rebuild the table
+  console.log("confirmValueTransformation")
+
+  const colIndex = this.previewColumnIndex;
+  const col = this.externalTable.columns[colIndex];
+
+  // Apply transformed values
+  col.values = [...this.previewTransformed];
+  col.transformed = true;
+
+  // Apply pending metadata
+  if (this.pendingHeader) {
+    col.header = this.pendingHeader;
+  }
+  if (this.pendingColumnType) {
+    col.columnType = this.pendingColumnType;
+  }
+
+  // Reset preview state
+  this.previewOriginal = [];
+  this.previewTransformed = [];
+  this.previewModalVisible = false;
+  this.pendingHeader = null;
+  this.pendingColumnType = null;
+
   this.buildTableRows();
+  this.notificationService.showSuccess(`✅ Transformation applied to ${col.header}`);
+}
+
+cancelValueTransformation() {
+  // Reset everything staged in preview
+  this.previewOriginal = [];
+  this.previewTransformed = [];
+  this.previewModalVisible = false;
+  this.pendingHeader = null;
+  this.pendingColumnType = null;
+  this.previewColumnIndex = null;
 }
 
 onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
@@ -513,36 +549,6 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     return indices;
   }
 
-  async confirmValueTransformation() {
-    if (
-      this.externalTable == null ||
-      this.visibleColIndex == null ||
-      !this.transformedColumnValues.length
-    ) {
-      // should never happen...
-      this.notificationService.showError("Could not confirm value transformation because table or column was null");
-      return;
-    }
-    const colIndex = this.visibleColIndex;
-    const col = this.externalTable.columns[colIndex];
-    col.values = [...this.transformedColumnValues];
-    col.transformed = true;
-    const orig_col = this.externalTable.columns[colIndex];
-    orig_col.values = col.values;
-    orig_col.transformed = true;
-    this.transformedColIndex = this.INVISIBLE; 
-
-    // Reset preview
-    this.transformedColumnValues = [];
-    this.editPreviewColumnVisible = false;
-  
-
-    // Refresh table
-    this.buildTableRows();
-    this.notificationService.showSuccess(`✅ Transformation applied to ${col.header}`);
-  }
-
-
   /** This is shown with the preview transformation window. If we cancel, nothing happens to the original data */
   cancelTransformation() {
     this.transformedColumnValues = [];
@@ -597,6 +603,30 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.editModalVisible = false;
   }
 
+  /**
+ * This function is called upon right click in the editing window when the user indicates
+ * to replace values with the correctly formated values, e.g., "Female" => "F"
+ */
+applyValueTransform() {
+  if (this.externalTable == null) {
+    // should never happen
+    this.notificationService.showError("Attempt to apply value transform with externalTable being null");
+    return;
+  }
+  if (this.visibleColIndex == null) {
+    this.notificationService.showError("Attempt to apply value transform with columnBeingTransformed being null");
+    return;
+  } 
+  const colIndex = this.visibleColIndex;
+  const column = this.externalTable.columns[colIndex];
+  const transformedValues = column.values.map(val => this.transformationMap[val.trim()] || val);
+  this.externalTable.columns[colIndex].values = [...transformedValues];
+  this.transformationPanelVisible = false;
+  this.editPreviewColumnVisible = false;
+  // rebuild the table
+  this.buildTableRows();
+}
+
   applyNamedTransform(colIndex: number | null, transformName: string): void {
     if (colIndex === null || !this.externalTable) return;
 
@@ -605,10 +635,13 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     const col = this.externalTable.columns[colIndex];
     const originalValues = col.values.map(v => v ?? '');
     const transformedValues = originalValues.map(v => handler(v));
+    this.previewColumnIndex = colIndex;
+    this.previewOriginal = col.values.map(v => v ?? '');
     this.previewTransformed = transformedValues;
     this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
-    // Set up preview modal data
+    this.pendingHeader = col.header;
+    this.pendingColumnType = col.columnType;
     this.showPreview(transformName);
     // if user clicks confirm, applyTransformConfirmed is executed
   }
@@ -618,22 +651,34 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    * run and change the contents of the original column.
    */
   async applyTransformConfirmed(): Promise<void> {
-    if (!this.externalTable || this.previewColumnIndex < 0) {
+    const previewIdx = this.previewColumnIndex;
+    console.log(`applyTransformConfirmed preview ID=${previewIdx}`);
+    console.log("original",this.previewOriginal);
+     console.log("transformed",this.previewTransformed);
+    if (previewIdx == null) {
+      this.notificationService.showError("Could not apply transform because index was not initialized");
+      return;
+    }
+    if (!this.externalTable || previewIdx < 0) {
       // should never happen, but...
       this.notificationService.showError("Could not apply transform because external table/preview column was null");
       return;
     } 
+    if (this.pendingColumnType == null) {
+       this.notificationService.showError("Could not apply transform because column type was not set");
+      return;
+    }
 
-    const sourceCol = this.externalTable.columns[this.previewColumnIndex];
+    const sourceCol = this.externalTable.columns[previewIdx];
 
     const newColumn: ColumnDto = {
-      columnType: sourceCol.columnType,
+      columnType: this.pendingColumnType,
       transformed: true,
       header: sourceCol.header, 
       values: this.previewTransformed
     };
     console.log("newColumn", newColumn);
-    this.externalTable.columns[this.visibleColIndex] = newColumn;
+    this.externalTable.columns[previewIdx] = newColumn;
     this.transformedColIndex = this.INVISIBLE;
     this.buildTableRows();
     this.resetPreviewModal();
@@ -647,23 +692,24 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    * @param transformedValues The new (trasnformed) cell contents
    * @param transformName Name of the procedure used to trasnform
    */
-  showPreview(transformName: string): boolean {
+  showPreview(transformName: string): void {
     const colIndex = this.previewColumnIndex;
     if (this.previewTransformed == null || this.previewTransformed.length == 0) {
       this.notificationService.showError("Preview Transform column not initialized");
-      return false;
+      return;
     }
     if (this.previewOriginal.length != this.previewTransformed.length) {
       const errMsg = `Length mismatch: preview-original: ${this.previewOriginal.length} and preview-transformed ${this.previewTransformed.length}`;
       this.notificationService.showError(errMsg);
       this.previewModalVisible = false;
-      return false;
+      return;
     }
+    console.log("showPreview",transformName);
     this.previewTransformName = transformName;
     this.previewColumnIndex = colIndex;
     this.previewModalVisible = true;
     this.contextMenuCellVisible = false;
-    return true;
+    return;
   }
 
   /* close the preview modal dialog */
@@ -747,6 +793,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         alert("Could not parse {header}");
         return {"hpoId":"n/a", "label": "n/a"};
       }
+      console.log("identifyHpoFromHeader header=", header);
       const [label, hpoId] = hit.split('-').map(part => part.trim());
       console.log("identifyHpoFromHeader returning ", label, hpoId);
       return { hpoId, label};
@@ -772,14 +819,10 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.previewTransformed = transformedValues;
     const originalValues = col.values.map(v => v ?? '');
     this.previewOriginal = originalValues;
-    const OK = this.showPreview("single HPO column");
-    if (OK){
-      // col has pointer to the column, now we transform its header title etc.
-      col.header = `${mapping.hpoLabel} - ${mapping.hpoId}`;
-      col.transformed = true;
-      col.columnType = EtlColumnType.singleHpoTerm;
-    }
-    this.buildTableRows();
+    this.previewTransformName = "single HPO column";
+    this.pendingHeader =  `${mapping.hpoLabel} - ${mapping.hpoId}`;
+    this.pendingColumnType = EtlColumnType.singleHpoTerm;
+    this.showPreview("single HPO column");
   }
 
 
@@ -809,6 +852,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         alert(`Could not retrieve HPO match for header : '"${bestMatch}"'`);
         return;
       }
+       console.log("processSingleHpoColumn input=", input);
       const [hpoId, label] = bestMatch.split('-').map(part => part.trim()); 
       // 2. Extract unique values from the column of the original table (e.g., +, -, ?)
       const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));

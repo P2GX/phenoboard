@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { HpoAutocompleteComponent } from './hpoautocomplete.component';
+import { HpoTermDuplet } from '../models/hpo_term_dto';
 
 /** A wrapper that allows the autocomplete to be used as a modal dialog */
 @Component({
@@ -20,7 +21,7 @@ import { HpoAutocompleteComponent } from './hpoautocomplete.component';
 export class HpoDialogWrapperComponent {
   constructor(public dialogRef: MatDialogRef<HpoDialogWrapperComponent>) {}
 
-  onSelected(term: string) {
+  onSelected(term: HpoTermDuplet) {
     this.dialogRef.close(term);
   }
 }

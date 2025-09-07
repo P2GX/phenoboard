@@ -173,27 +173,15 @@
   </div>
   <button (click)="applyValueTransform()">Apply Transformation</button>
 </div>
-<div *ngIf="editPreviewColumnVisible" class="confirm-transform-box">
-  <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
-  <button (click)="cancelTransformation()">❌ Cancel</button>
-</div>
+@if(editPreviewColumnVisible){
+  <div class="confirm-transform-box">
+    <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
+    <button (click)="cancelTransformation()">❌ Cancel</button>
+  </div>
+}
 
-<div
-  *ngIf="editModalVisible"
-  style="
-    position: fixed;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -30%);
-    background: white;
-    border: 1px solid #ccc;
-    padding: 20px;
-    z-index: 1001;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border-radius: 6px;
-    min-width: 300px;
-  "
->
+@if(editModalVisible) {
+<div class="edit-modal">
   <h4><strong>Edit Cell Value</strong>:</h4>
   <input
     [(ngModel)]="editingValue"
@@ -212,7 +200,7 @@
     <button (click)="editModalVisible = false" style="margin-left: 8px;">Cancel</button>
   </div>
 </div>
-
+}
 @if (previewModalVisible) {
 <div class="preview-modal">
   <h3>Preview: {{ previewTransformName }} on Column</h3>
@@ -236,7 +224,7 @@
   </div>
   <div style="text-align: right; margin-top: 16px;">
     <button (click)="applyTransformConfirmed()">✅ Apply</button>
-    <button style="margin-left: 8px;" (click)="previewModalVisible = false">Cancel</button>
+    <button (click)="cancelValueTransformation()">Cancel</button>
   </div>
 </div>
 }
