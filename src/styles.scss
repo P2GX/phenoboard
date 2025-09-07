@@ -230,3 +230,56 @@ button.btn-outline-cancel {
   font-weight: bold;
   text-transform: uppercase;
 }
+
+.status-toggles {
+  font-size: 10px;
+  height: 24px;
+}
+
+.status-toggles .mat-button-toggle {
+  height: 24px;
+  line-height: 24px;
+  min-width: 28px;
+}
+
+.status-text {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Color coding for different states */
+.status-observed.mat-button-toggle-checked {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.status-excluded.mat-button-toggle-checked {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.status-na.mat-button-toggle-checked {
+  background-color: #9e9e9e !important;
+  color: white !important;
+}
+
+/* Hover effects */
+.status-observed:hover {
+  background-color: #66bb6a !important;
+  color: white !important;
+}
+
+.status-excluded:hover {
+  background-color: #ef5350 !important;
+  color: white !important;
+}
+
+.status-na:hover {
+  background-color: #bdbdbd !important;
+  color: white !important;
+}
+
+/* Chip styling */
+.mat-chip-set mat-chip {
+  font-size: 12px;
+}

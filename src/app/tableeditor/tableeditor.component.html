@@ -41,50 +41,63 @@
   </div>
 }
 
+<div class="pt-table-container">
 <table class="pt-table">
-  <ng-container *ngFor="let row of displayRows; let rowIndex = index">
-    <tr [ngClass]="{
-          'header-row': rowIndex === 0,
-          'type-row': rowIndex === 1
-        }">
-      <ng-container *ngFor="let colIndex of getVisibleColumns(row)">
-        <td
-          [ngClass]="{
-            'edit-mode-narrow': editModeActive
-          }"
-          [ngStyle]="{
-            'background-color': colIndex === 0
-              ? '#f0f8ff'
-              : isTransformedColumn(colIndex)
-                ? '#e6ffe6'
-                : colIndex === visibleColIndex
-                  ? '#fffbe6'
-                  : 'transparent'
-          }"
-          (contextmenu)="rowIndex === 0
-              ? onRightClickHeader($event, colIndex)
-              : onRightClickCell($event, rowIndex, colIndex)"
-        >
+@for (row of displayRows; track row; let rowIndex = $index) {
+  <tr [ngClass]="{
+        'header-row': rowIndex === 0,
+        'type-row': rowIndex === 1
+      }">
+    
+    @for (colIndex of getVisibleColumns(row); track colIndex) {
+      <td
+        [ngClass]="{
+          'edit-mode-narrow': editModeActive
+        }"
+        [ngStyle]="{
+          'background-color': colIndex === 0
+            ? '#f0f8ff'
+            : isTransformedColumn(colIndex)
+              ? '#e6ffe6'
+              : colIndex === visibleColIndex
+                ? '#fffbe6'
+                : 'transparent'
+        }"
+        (contextmenu)="rowIndex === 0
+            ? onRightClickHeader($event, colIndex)
+            : onRightClickCell($event, rowIndex, colIndex)"
+      >
+
+        @if (rowIndex === 0) {
           <div
-            *ngIf="rowIndex === 0; else normalCell"
             class="multiline-ellipsis"
-            title="{{ row[colIndex] }}"
+            [title]="row[colIndex]"
           >
             {{ row[colIndex] }}
           </div>
-          <ng-template #normalCell>
+        } @else {
+          <div 
+            class="normal-cell" 
+            [matTooltip]="row[colIndex]"
+            matTooltipClass="custom-tooltip"
+            matTooltipPosition="above"
+            matTooltipShowDelay="300"
+          >
             {{ row[colIndex] }}
-          </ng-template>
+          </div>
+          }
         </td>
-      </ng-container>
+      }
     </tr>
-  </ng-container>
-</table>
+  }
 
+</table>
+<div style="height: 40px;"></div>
+</div>
 
 <!-- Context menu for column headers -->
+ @if (columnContextMenuVisible) {
 <div
-  *ngIf="columnContextMenuVisible"
   [style.top.px]="columnContextMenuY"
   [style.left.px]="columnContextMenuX"
   class="context-menu"
@@ -127,52 +140,41 @@
     <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
   </ul>
 </div>
-
-<div
-  *ngIf="contextMenuCellVisible"
-  [ngStyle]="{
-    position: 'fixed',
-    top: contextMenuCellY + 'px',
-    left: contextMenuCellX + 'px',
-    backgroundColor: '#fff',
-    border: '1px solid #ccc',
-    boxShadow: '2px 2px 8px rgba(0,0,0,0.3)',
-    zIndex: 1000,
-    padding: '10px',
-    borderRadius: '4px',
-    minWidth: '180px'
-  }"
-  (click)="contextMenuCellVisible = false"
->
-  <div style="padding: 5px 0; font-weight: bold;">
-    Value: "{{ contextMenuCellValue }}"<br />
-    Type: {{ contextMenuCellType }}
-  </div>
-  <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
-    <li
-      style="padding: 4px 8px; cursor: pointer;"
-      (click)="editCellValueManually()"
+}
+  @if (contextMenuCellVisible) {
+    <div class="context-menu-visible"
+        [style.top.px]="contextMenuCellY" 
+        [style.left.px]="contextMenuCellX"
+        (click)="contextMenuCellVisible = false"
     >
-      ✏️ Edit cell contents
-    </li>
-    <!-- Add more options as needed -->
-  </ul>
-</div>
-
-
-<div 
-  *ngIf="transformationPanelVisible"
-  class="transformation-panel"
->
-  <h3>Transform values in column: {{ contextMenuColHeader }}</h3>
-  <div *ngFor="let val of uniqueValuesToMap" class="transform-row">
-    <label>
-      {{ val }} →
-      <input [(ngModel)]="transformationMap[val]" class="transform-input" />
-    </label>
+      <div style="padding: 5px 0; font-weight: bold;">
+        Value: "{{ contextMenuCellValue }}"<br />
+        Type: {{ contextMenuCellType }}
+      </div>
+      <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
+        <li
+          style="padding: 4px 8px; cursor: pointer;"
+          (click)="editCellValueManually()"
+        >
+           <mat-icon>edit</mat-icon> Edit cell contents
+        </li>
+        <!-- Add more options as needed -->
+      </ul>
+    </div>
+  }
+@if (transformationPanelVisible) {
+  <div class="transformation-panel">
+    <h3>Transform values in column: {{ contextMenuColHeader }}</h3>
+    <div *ngFor="let val of uniqueValuesToMap" class="transform-row">
+      <label>
+        {{ val }} →
+        <input [(ngModel)]="transformationMap[val]" class="transform-input" />
+      </label>
+    </div>
+    <button (click)="applyValueTransform()">Apply Transformation</button>
   </div>
-  <button (click)="applyValueTransform()">Apply Transformation</button>
-</div>
+}
+
 @if(editPreviewColumnVisible){
   <div class="confirm-transform-box">
     <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
@@ -222,7 +224,7 @@
       </tbody>
     </table>
   </div>
-  <div style="text-align: right; margin-top: 16px;">
+  <div style="text-align: right; margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px;">
     <button (click)="applyTransformConfirmed()">✅ Apply</button>
     <button (click)="cancelValueTransformation()">Cancel</button>
   </div>

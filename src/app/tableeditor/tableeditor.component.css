@@ -235,3 +235,34 @@ li.has-submenu:hover > .submenu {
     border-radius: 6px;
     min-width: 300px;
 }
+
+.context-menu-visible {
+  position: fixed,
+  backgroundColor: #fff,
+  border: 1px solid #ccc,
+  boxShadow: 2px 2px 8px rgba(0,0,0,0.3),
+  zIndex: 1000,
+  padding: 10px,
+  borderRadius: 4px,
+  minWidth: 180px
+}
+
+
+.normal-cell {
+  max-width: 50px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer; 
+}
+
+::ng-deep .custom-tooltip {
+  background-color: #1f2937; 
+  color: #fff;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.25);
+  max-width: 400px; 
+  white-space: pre-line; 
+}

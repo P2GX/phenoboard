@@ -522,10 +522,14 @@ async fn save_external_template_json(
 ) -> Result<(), String> {
     let app_handle = app.clone();
     tokio::task::spawn_blocking(move || {
-        if let Some(file) = app_handle.dialog().file().blocking_save_file() {
+        if let Some(file) = app_handle.dialog().file()
+            .add_filter("JSON files", &["json"])
+            .set_file_name("external_template.json")
+            .blocking_save_file() {
             if let Some(path_ref) = file.as_path() {
                 let mut path = path_ref.to_path_buf();
-                if path.extension().is_none() {
+                // make sure there is a *.json extension
+                if path.extension().map_or(true, |ext| ext != "json") {
                     path.set_extension("json");
                 }
                 let json = serde_json::to_string_pretty(&template)

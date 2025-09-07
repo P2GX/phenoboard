@@ -1,24 +1,50 @@
-<h2 mat-dialog-title>{{header}}: Transform cell values</h2>
-<mat-dialog-content class="dialog-content-small">
-  <div *ngFor="let val of data.uniqueValues" class="mapping-row">
-    <strong>{{ val }}</strong>
-    <mat-form-field appearance="fill">
-      <mat-label>Label</mat-label>
-      <input
-        matInput
-        [(ngModel)]="valueToStateMap[val]"
-        [matAutocomplete]="auto"
-      />
-      <mat-autocomplete #auto="matAutocomplete">
-        <mat-option *ngFor="let opt of predefinedStates" [value]="opt">
-          {{ opt }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-  </div>
-</mat-dialog-content>
+<h1 mat-dialog-title>Map Values to HPO State</h1>
 
-<mat-dialog-actions align="end">
-  <button mat-button class="btn-outline-primary" (click)="onCancel()">Cancel</button>
-  <button mat-button class="btn-outline-primary" style="margin-left: 12px" (click)="onSave()">Save</button>
-</mat-dialog-actions>
+<div mat-dialog-content>
+  <h3 class="mb-4">{{ header }} → {{ hpoLabel }} ({{ hpoId }})</h3>
+
+  <table
+    mat-table
+    [dataSource]="uniqueValues"
+    class="w-full"
+    style="border-collapse: collapse; font-size: 12px;"
+  >
+    <!-- Original value column -->
+    <ng-container matColumnDef="original">
+      <th mat-header-cell *matHeaderCellDef>Original Value</th>
+      <td mat-cell *matCellDef="let val">
+        <span class="status-text">{{ val }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Mapping column -->
+    <ng-container matColumnDef="mapping">
+      <th mat-header-cell *matHeaderCellDef>Mapped State</th>
+      <td mat-cell *matCellDef="let val">
+        <mat-button-toggle-group
+          [(ngModel)]="valueToStateMap[val]"
+          class="status-toggles"
+          aria-label="Select state"
+          appearance="legacy"
+        >
+          <mat-button-toggle value="observed" class="status-observed">Obs</mat-button-toggle>
+          <mat-button-toggle value="excluded" class="status-excluded">Excl</mat-button-toggle>
+          <mat-button-toggle value="na" class="status-na">NA</mat-button-toggle>
+        </mat-button-toggle-group>
+      </td>
+    </ng-container>
+
+    <!-- Header + Row definitions -->
+    <tr mat-header-row *matHeaderRowDef="['original', 'mapping']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['original', 'mapping']"></tr>
+  </table>
+</div>
+
+<div
+  mat-dialog-actions
+  align="end"
+  style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px;"
+>
+  <button mat-raised-button color="primary" (click)="onSave()">Save</button>
+  <button mat-button (click)="onCancel()">Cancel</button>
+</div>

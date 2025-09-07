@@ -14,12 +14,13 @@ import { ColumnDto, ColumnTableDto, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
 import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 
@@ -31,7 +32,7 @@ type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule],
+  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule],
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.css'],
 })
@@ -347,10 +348,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       width: '500px'
     });
 
-    const selectedTerm = await firstValueFrom(dialogRef.afterClosed());
+    const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());
     if (selectedTerm) {
       console.log('User selected HPO term:', selectedTerm);
-      const newHeader = `${selectedTerm} [original: ${col.header}]`;
+      const newHeader = `${selectedTerm.hpoLabel}[${selectedTerm.hpoId};original: ${col.header}]`;
       col.header = newHeader;
       this.buildTableRows();
     } else {
@@ -370,12 +371,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     const colValues: string[] = col.values;
     const hpoAnnotations: TextAnnotationDto[] = await this.configService.mapColumnToHpo(colValues);
     /// Get the HPO hits and then create a string we can use for the module.
-    const hpoTerms: HpoTermDuplet[] = hpoAnnotations
-      .filter(t => t.termId && t.label)
-      .map(t => {return {
-        hpoId: t.termId,
-        hpoLabel: t.label
-      }});
+    // Use a Map to remove duplicates!
+    const hpoTerms: HpoTermDuplet[] = Array.from(
+      new Map(
+        hpoAnnotations
+          .filter(t => t.termId && t.label)
+          .map(t => [t.termId, { hpoId: t.termId, hpoLabel: t.label }])
+      ).values()
+    );
     const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
       data: { terms: hpoTerms, rows: colValues }
@@ -708,7 +711,6 @@ applyValueTransform() {
       this.previewModalVisible = false;
       return;
     }
-    console.log("showPreview",transformName);
     this.previewTransformName = transformName;
     this.previewColumnIndex = colIndex;
     this.previewModalVisible = true;
@@ -810,18 +812,22 @@ applyValueTransform() {
   /** apply a mapping for a column that has single-HPO term, e.g., +=> observed */
   applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
     if (this.externalTable == null) {
-      return; // should never happen
+      this.notificationService.showError("Attempting to apply mapping with null external table (should never happen).")
+      return;
     }
-    
+    console.log("applyHpoMapping--", mapping);
     const col = this.externalTable.columns[colIndex];
+    console.log("applyHpoMapping-- col", col);
     const transformedValues = col.values.map(val => {
-      const mapped = mapping.valueToStateMap[val];
-      return mapped !== undefined ? mapped : val; // keep original if no mapping
+      const mapped = mapping.valueToStateMap[val.trim()];
+      return mapped !== undefined ? mapped : val.trim(); // keep original if no mapping
     });
+        console.log("applyHpoMapping-- transformedValues", transformedValues);
+
     // show dialog with transformed data that the user can accept or cancel.
     this.previewColumnIndex = colIndex;
     this.previewTransformed = transformedValues;
-    const originalValues = col.values.map(v => v ?? '');
+    const originalValues = col.values.map(v => v.trim() ?? '');
     this.previewOriginal = originalValues;
     this.previewTransformName = "single HPO column";
     this.pendingHeader =  `${mapping.hpoLabel} - ${mapping.hpoId}`;
@@ -829,9 +835,19 @@ applyValueTransform() {
     this.showPreview("single HPO column");
   }
 
+  /** parse a string like Strabismus[HP:0000486;original: Strabismus] from the single HPO term header */
+  parseHpoString(input: string): HpoTermDuplet | null {
+    const match = input.match(/^([^\[]+)\[([^\];]+);.*\]$/);
+    if (!match) return null;
 
+    const label = match[1].trim();    // before the [
+    const hpoId = match[2].trim();    // before the ;
+    
+    return { hpoLabel: label, hpoId: hpoId };
+  }
 
-  /** Process a column that refers to a single HPO term  */ 
+  /** Process a column that refers to a single HPO term;
+   * Note that we expect the header to be something like Strabismus[HP:0000486;original: Strabismus]  */ 
   async processSingleHpoColumn(colIndex: number | null): Promise<void> {
     if (colIndex == null) {
       alert("Null column index");
@@ -845,33 +861,26 @@ applyValueTransform() {
     let input = column.header;
     // Some of our column names were transformed, and we retain the original label
     // we extract the label of the HPO term so that the text mining works
-    const match = input.match(/^HP:\d+\s*-\s*(.+?)\s*\[original:/);
-    input = match ? match[1] : input;
+    const hpoTermDuplet: HpoTermDuplet | null = this.parseHpoString(input);
+    if (hpoTermDuplet == null) {
+      this.notificationService.showError(`Could not parse HPO term from input string "${input}"`);
+      return;
+    }
   
-
     try {
-      // 1. Identify HPO term 
-      const bestMatch = await this.configService.getBestHpoMatch(input);
-      if (! bestMatch.includes("HP:")) {
-        alert(`Could not retrieve HPO match for header : '"${bestMatch}"'`);
-        return;
-      }
-       console.log("processSingleHpoColumn input=", input);
-      const [hpoId, label] = bestMatch.split('-').map(part => part.trim()); 
-      // 2. Extract unique values from the column of the original table (e.g., +, -, ?)
+      // Extract unique values from the column of the original table (e.g., +, -, ?)
       const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-      // 3. Open dialog to map values to observed/excluded/etc.
       const dialogRef = this.dialog.open(ValueMappingComponent, {
           data: {
-            header: column.header,
-            hpoId,
-            hpoLabel: label,
+            hpoTerm: hpoTermDuplet,
+            hpoLabel: hpoTermDuplet.hpoLabel,
             uniqueValues
           }
         });
 
         dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
           if (mapping) {
+            console.log("in parent, mapping=", mapping);
             this.columnMappingMemory[column.header] = mapping;
             this.applyHpoMapping(colIndex, mapping);
           }

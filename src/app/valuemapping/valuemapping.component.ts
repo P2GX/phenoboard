@@ -1,68 +1,95 @@
-import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms'; // for ngModel
+import { FormsModule } from '@angular/forms'; 
+import { HpoStatus, HpoTermDuplet } from '../models/hpo_term_dto';
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatTableModule } from '@angular/material/table';
 
 
+const VALUE_TO_STATE: Record<string, HpoStatus> = {
+  '+': 'observed',
+  'Yes': 'observed',
+  'yes': 'observed',
+  'Y': 'observed',
+  'y': 'observed',
+  'No': 'excluded',
+  'no': 'excluded',
+  'N': 'excluded',
+  'n': 'excluded',
+  '-': 'excluded',
+  'na': 'na'
+};
 
 @Component({
-  selector: 'app-variant_list',
+  selector: 'app-value-mapping',
   standalone: true,
-  imports: [MatDialogContent, MatDialogModule, MatInputModule, MatSelectModule, MatOptionModule, MatAutocompleteModule, CommonModule, FormsModule],
+  imports: [
+    MatDialogContent,
+    MatDialogModule,
+    MatInputModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatAutocompleteModule,
+    CommonModule,
+    FormsModule,
+    MatButtonToggleModule,
+    MatTableModule
+],
   templateUrl: './valuemapping.component.html',
   styleUrls: ['./valuemapping.component.css']
 })
-export class ValueMappingComponent  {
-  /* original header of the column */
+export class ValueMappingComponent {
   header!: string;
   hpoId!: string;
   hpoLabel!: string;
-  /* all values found in the column (that we will replace with the valid values for the template). */
   uniqueValues: string[] = [];
-  /* The user will assign the strings in the column to values needed for our template, including "observed", "excluded", "na", and potentially P32Y etc.*/
-  valueToStateMap: { [key: string]: string } = {};
+  valueToStateMap: { [key: string]: HpoStatus } = {};
 
   predefinedStates = ['observed', 'excluded', 'na'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { 
       header: string;
-      hpoId: string;
-      hpoLabel: string;
+      hpoTerm: HpoTermDuplet;
       uniqueValues: string[];
-     },
+    },
     public dialogRef: MatDialogRef<ValueMappingComponent>
   ) {
-    this.hpoId = data.hpoId;
-    this.hpoLabel = data.hpoLabel;
+    this.hpoId = data.hpoTerm.hpoId;
+    this.hpoLabel = data.hpoTerm.hpoLabel;
     this.uniqueValues = data.uniqueValues;
     this.header = data.header;
-    data.uniqueValues.forEach(val => this.valueToStateMap[val] = 'na');
+
+    // Initialize each value with default mapping
+    data.uniqueValues.forEach(val => {
+      this.valueToStateMap[val] = this.normalizeValue(val);
+    });
   }
 
   onSave(): void {
-    console.log("valuemapping: onSave() this.hpoId", this.hpoId);
     const hpoMapResult = {
-        valueToStateMap: this.valueToStateMap,
-        hpoId: this.hpoId,
-        hpoLabel: this.hpoLabel
-    }
+      valueToStateMap: this.valueToStateMap,
+      hpoId: this.hpoId,
+      hpoLabel: this.hpoLabel
+    };
     this.dialogRef.close(hpoMapResult);
   }
 
-  onInput(val: string, event: Event) {
+  onInput(val: string, event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.valueToStateMap[val] = input.value;
+    this.valueToStateMap[val] = input.value as HpoStatus;
   }
 
   onCancel(): void {
     this.dialogRef.close();
   }
 
-    
+  normalizeValue(val: string): HpoStatus {
+    return VALUE_TO_STATE[val.trim()] ?? 'na';
+  }
 }
-
