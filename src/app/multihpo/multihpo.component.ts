@@ -54,12 +54,36 @@ export class MultiHpoComponent {
     private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
     this.allHpoTerms = data.terms;
-    this.hpoMappings = data.rows.map(() =>
+    this.hpoMappings = data.rows.map(rowText =>
       this.allHpoTerms.map(term => ({
         term,
-        status: 'na' as HpoStatus
+        status: this.getInitialStatus(rowText, term) as HpoStatus
       }))
     );
+  }
+
+  /**
+   * Determines the initial status for a term based on whether the row text matches the HPO term label.
+   * Uses case-insensitive matching and handles partial matches.
+   */
+  private getInitialStatus(rowText: string, term: HpoTermDuplet): HpoStatus {
+    if (!rowText || !term.hpoLabel) {
+      return 'na';
+    }
+    const normalizedRowText = rowText.toLowerCase().trim();
+    const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
+    if (normalizedRowText === normalizedTermLabel) {
+      return 'observed';
+    }
+    // Check if the row text contains the HPO term label
+    if (normalizedRowText.includes(normalizedTermLabel)) {
+      return 'observed';
+    }
+    // Check if the HPO term label contains the row text (for shorter row text)
+    if (normalizedTermLabel.includes(normalizedRowText)) {
+      return 'observed';
+    }
+    return 'na';
   }
 
   cancel() {
@@ -99,17 +123,29 @@ export class MultiHpoComponent {
     ) {
       this.allHpoTerms.push(term);
 
-      // add new entry with 'na' status to every row
-      this.hpoMappings.forEach(row =>
-        row.push({ term, status: 'na' as HpoStatus })
-      );
+     this.hpoMappings.forEach((row, rowIndex) => {
+        const rowText = this.data.rows[rowIndex];
+        const initialStatus = this.getInitialStatus(rowText, term);
+        row.push({ term, status: initialStatus as HpoStatus });
+      });
     }
   }
 
+ 
+  /** Set the value for an HPO term in a cell to excluded if the current status is "na"
+   * However, do not do this if the original text is na, unknown, or ?
+   */
   setAllNaToExcluded() {
-    this.hpoMappings.forEach(row => {
+    this.hpoMappings.forEach((row, rowIndex) => {
+      const rowText = this.data.rows[rowIndex];
+      const normalizedRowText = rowText.toLowerCase().trim();
+      
+      // Check if the original text indicates "no data" or "unknown"
+      const hasNaIndicators = normalizedRowText.includes('na') || 
+                            normalizedRowText.includes('unknown') || 
+                             normalizedRowText.includes('?');
       row.forEach(entry => {
-        if (entry.status == 'na') { 
+        if (entry.status == 'na' && !hasNaIndicators) { 
           entry.status = 'excluded';
         }
       });

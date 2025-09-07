@@ -20,7 +20,7 @@ import { NotificationService } from '../services/notification.service';
 import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
-import { HpoStatus } from '../models/hpo_term_dto';
+
 
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
@@ -358,6 +358,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
+  /** This function gets called when the user wants to map a column to zero, one, or many HPO terms.
+   * For instance, a column entitled Hypo/Hypertelorism might get mapped to 
+   * Hypotelorism HP:0000601; Hypotelorism HP:0000601
+   */
   async hpoMultipleForColumnName(colIndex: number){
     if (this.externalTable == null) {
       return;
@@ -388,8 +392,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           (row: HpoMappingRow) =>
             row
               .filter(entry => entry.status !== 'na')         // only include observed/excluded
-              .map(entry => `${entry.term.hpoLabel} (${entry.status})`) // display label + status
-              .join("; ")
+              .map(entry => `${entry.term.hpoLabel}[${entry.term.hpoId};${entry.status}]`) // display label + status
+              .join(";")
         );
         this.showPreview( "multiple HPO transform");
       } else {

@@ -6,9 +6,9 @@
   <!-- Chip set with removable HPO terms -->
   <mat-chip-set>
     @for (term of allHpoTerms; track trackByTermId($index, term)) {
-      <mat-chip removable (removed)="removeHpoTerm(term)">
+      <mat-chip removable (removed)="removeHpoTerm(term)" color="primary">
         {{ term.hpoLabel }}
-        <mat-icon matChipRemove>cancel</mat-icon>
+         <span matChipRemove style="cursor: pointer; font-weight: bold; color: red;">×</span>
       </mat-chip>
     }
   </mat-chip-set>
@@ -24,36 +24,40 @@
     </app-hpoautocomplete>
   </div>
 
-  <!-- Table -->
-  <table mat-table [dataSource]="data.rows" class="w-full" style="border-collapse: collapse;">
+  <!-- Compact Color-coded Table -->
+  <table mat-table [dataSource]="data.rows" class="w-full compact-table" style="border-collapse: collapse;">
     
     <!-- Original string column -->
     <ng-container matColumnDef="original">
-      <th mat-header-cell *matHeaderCellDef>Original</th>
-      <td mat-cell *matCellDef="let row">
+      <th mat-header-cell *matHeaderCellDef class="compact-header">Original</th>
+      <td mat-cell *matCellDef="let row" class="compact-cell original-cell">
         {{ row }}
       </td>
     </ng-container>
 
     <!-- HPO toggle column -->
     <ng-container matColumnDef="hpo">
-      <th mat-header-cell *matHeaderCellDef>HPO Terms</th>
-      <td mat-cell *matCellDef="let row; let i = index">
-        <div class="flex flex-col gap-2">
+      <th mat-header-cell *matHeaderCellDef class="compact-header">HPO Terms</th>
+      <td mat-cell *matCellDef="let row; let i = index" class="compact-cell hpo-cell">
+        <div class="hpo-grid">
           @for (term of allHpoTerms; track trackByTermId($index, term); let termIndex = $index) {
-            <div class="flex items-center gap-2">
-              <span class="w-32">{{ term.hpoLabel }}</span>
-
-              <!-- Fixed: Use direct array access instead of method call with optional chaining -->
+            <div class="hpo-row">
+              <span class="hpo-label">{{ term.hpoLabel }}</span>
               <mat-button-toggle-group
                 [(ngModel)]="getEntry(i, termIndex).status"
                 aria-label="Select status"
                 appearance="legacy"
-                class="ml-2"
+                class="status-toggles"
               >
-                <mat-button-toggle value="observed">Obs</mat-button-toggle>
-                <mat-button-toggle value="excluded">Excl</mat-button-toggle>
-                <mat-button-toggle value="na">NA</mat-button-toggle>
+                <mat-button-toggle value="observed" class="status-observed">
+                  <span class="status-text">O</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="excluded" class="status-excluded">
+                  <span class="status-text">E</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="na" class="status-na">
+                  <span class="status-text">-</span>
+                </mat-button-toggle>
               </mat-button-toggle-group>
             </div>
           }
@@ -62,8 +66,8 @@
     </ng-container>
 
     <!-- Header + Row definitions -->
-    <tr mat-header-row *matHeaderRowDef="['original', 'hpo']"></tr>
-    <tr mat-row *matRowDef="let row; let i = index; columns: ['original','hpo']"></tr>
+    <tr mat-header-row *matHeaderRowDef="['original', 'hpo']" class="compact-header-row"></tr>
+    <tr mat-row *matRowDef="let row; let i = index; columns: ['original','hpo']" class="compact-row" [class.even-row]="i % 2 === 0"></tr>
   </table>
 
   <!-- Bulk actions -->
