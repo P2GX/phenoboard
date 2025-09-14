@@ -41,11 +41,13 @@
   </div>
 }
 
+@if(etlDto) {
 <div class="pt-table-container">
 <table class="pt-table">
    <!-- ===== HEADER ROW ===== -->
   <tr class="header-row">
-    @for (col of displayColumns; track col.id; let colIndex = $index) {
+    @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
+      @let col = etlDto.table.columns[colIndex];
       <th [ngClass]="getColumnClass(colIndex)"
       (contextmenu)="onRightClickHeader($event, colIndex)">
         <span [matTooltip]="col.header.current || ''">
@@ -57,7 +59,8 @@
 
   <!-- ===== TYPE ROW ===== -->
   <tr class="type-row">
-    @for (col of displayColumns; track col.id) {
+     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
+        @let col = etlDto.table.columns[colIndex];
       <th class="border border-gray-400 px-2 py-1 text-center text-sm text-gray-600">
         {{ col.header.columnType }}
       </th>
@@ -68,7 +71,7 @@
 @for (row of displayRows; track row; let rowIndex = $index) {
   <tr>
     
-    @for (colIndex of getVisibleColumns(row); track displayColumns[colIndex]?.id || colIndex) {
+    @for (colIndex of getVisibleColumns(); track displayColumns[colIndex]?.id || colIndex) {
       <td
         [ngClass]="{
           'edit-mode-narrow': editModeActive
@@ -93,6 +96,7 @@
 </table>
 <div style="height: 40px;"></div>
 </div>
+}
 
 <!-- Context menu for column headers -->
  @if (columnContextMenuVisible) {
@@ -107,32 +111,24 @@
     Type: {{ contextMenuColType }}
   </div>
   <ul>
-    @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Edit Column</li>}
+    @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
+     <li (click)="clearColumnFilter()">Show All Columns</li>
     @if(contextMenuColIndex !== null){<li (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name (HPO)</li> }
     @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Multiple HPO Column</li> }
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
-        @for(transform of transformOptions; track transform){
-          <li (click)="applyNamedTransform(contextMenuColIndex, transform)" >
+        <li>x</li>
+        <li>y</li>
+        @for (transform of transformOptions; track transform) {
+          <li (click)="applyNamedTransform(contextMenuColIndex, transform)">
             {{ transform }}
           </li>
         }
       </ul>
     </li>
     @if(contextMenuColIndex !== null){<li (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>}
-    <li (click)="clearColumnFilter()">Show All Columns</li>
-    <!-- Submenu -->
-    <li class="has-submenu">
-      Set Column Type ▸
-      <ul class="submenu">
-        @for( type of etlTypes; track type){
-          <li (click)="assignColumnType(type)">
-            {{ type }}
-          </li>
-        }
-      </ul>
-    </li>
+    <li (click)="openColumnTypeDialog()"> Set Column Type ... </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
     <li (click)="processSingleHpoColumn(contextMenuColIndex)">Process single HPO column</li>

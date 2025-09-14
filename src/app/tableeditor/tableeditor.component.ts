@@ -21,10 +21,20 @@ import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
+import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 
 
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
+enum TransformType {
+  TrimWhitespace = 'Trim Whitespace',
+  ToUppercase = 'To Uppercase',
+  ToLowercase = 'To Lowercase',
+  ExtractNumbers = 'Extract Numbers',
+  Iso8601Age = 'Iso8601 Age',
+  SexColumn = 'Sex column'
+}
 
 /**
  * Component for editing external tables (e.g., supplemental files)
@@ -120,6 +130,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   // Pending metadata to apply if user confirms
   pendingHeader: EtlColumnHeader | null = null;
   pendingColumnType: EtlColumnType | null = null;
+  pendingColumnTransformed = false;
   // Modal state
   previewModalVisible: boolean = false;
 
@@ -128,22 +139,18 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   //columnMappingMemory: { [columnHeader: string]: HpoMappingResult } = {};
 
+  
+ 
   /** These are transformations that we can apply to a column while editing. They appear on right click */
-  transformOptions = [
-    'Trim Whitespace',
-    'To Uppercase',
-    'To Lowercase',
-    'Extract Numbers',
-    'Iso8601 Age',
-  ];
-
-  transformHandlers: { [key: string]:(value: string | null | undefined) => string } = {
-    'Trim Whitespace': (val) => (val ?? '').trim(),
-    'To Uppercase': (val) => (val ?? '').toUpperCase(),
-    'To Lowercase': (val) => (val ?? '').toLowerCase(),
-    'Extract Numbers': (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
-    'Iso8601 Age': (val) => this.etl_service.parseAgeToIso8601(val ),
+  transformHandlers: { [key in TransformType]: (val: string | null | undefined) => string } = {
+    [TransformType.TrimWhitespace]: (val) => (val ?? '').trim(),
+    [TransformType.ToUppercase]: (val) => (val ?? '').toUpperCase(),
+    [TransformType.ToLowercase]: (val) => (val ?? '').toLowerCase(),
+    [TransformType.ExtractNumbers]: (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
+    [TransformType.Iso8601Age]: (val) => this.etl_service.parseAgeToIso8601(val),
+    [TransformType.SexColumn]: (val) => this.etl_service.parseSexColumn(val),
   };
+  transformOptions = Object.values(TransformType);
 
 
 
@@ -595,9 +602,14 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    * @param row 
    * @returns array of indices of columns that should be made visible
    */
-  getVisibleColumns(row: string[]): number[] {
+  getVisibleColumns(): number[] {
+    if (this.etlDto == null) {
+      this.notificationService.showError("Attempt to focus on columns with null ETL table");
+      return [];
+    }
     if (!this.editModeActive) {
-      return row.map((_, i) => i); // Show all columns normally
+      const n_columns = this.etlDto.table.columns.length;
+      return Array.from({length: n_columns}, (_, i) => i); // Show all columns normally
     }
 
     const indices = [0]; // Always show first column
@@ -622,9 +634,23 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    */
   deleteColumn(index: number | null) {
     if (index === null || this.etlDto == null) return;
-    // Remove the column from the array
-    this.etlDto.table.columns.splice(index, 1);
-    this.reRenderTableRows();
+    const uniqueValues: string[] = this.getUniqueValues(index);
+    const columnName = this.etlDto.table.columns[index].header.original || `Column ${index}`;
+    const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
+        width: '500px',
+        data: {
+          columnName: columnName,
+          uniqueValues: uniqueValues
+        }
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true && this.etlDto != null) {
+          // User confirmed deletion
+          this.etlDto.table.columns.splice(index, 1);
+          this.reRenderTableRows();
+        }
+        // If result is false or undefined, do nothing (cancelled)
+      });
   }
 
   /**
@@ -720,7 +746,10 @@ applyValueTransform() {
   this.reRenderTableRows();
 }
 
-  applyNamedTransform(colIndex: number | null, transformName: string): void {
+/** Applies one of the transforms to a column and sets the corresponding "pending values". 
+ * We will then see the pending modal dialog to check the results of transform.
+ */
+  applyNamedTransform(colIndex: number | null, transformName: TransformType): void {
     if (colIndex === null || !this.etlDto) return;
 
     const handler = this.transformHandlers[transformName];
@@ -734,7 +763,14 @@ applyValueTransform() {
     this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
     this.pendingHeader = col.header;
-    this.pendingColumnType = col.header.columnType;
+    if (transformName == TransformType.SexColumn) {
+      this.pendingColumnType = EtlColumnType.Sex;
+      this.pendingColumnTransformed = true;
+    } else {
+      this.pendingColumnType = col.header.columnType;
+      this.pendingColumnTransformed = false;
+    }
+    
     this.showPreview(transformName);
     // if user clicks confirm, applyTransformConfirmed is executed
   }
@@ -810,6 +846,7 @@ applyValueTransform() {
     this.previewModalVisible = false;
     this.previewColumnIndex = -1;
     this.editModalVisible = false;
+    this.pendingColumnTransformed = false;
   }
 
   /** If the original data has separate columns for family and individual id, we
@@ -1038,14 +1075,38 @@ applyValueTransform() {
   }
 
   getColumnClass(colIndex: number): string {
-  if (this.isTransformedColumn(colIndex)) {
-    return 'transformed-column';
-  } else if (colIndex === this.visibleColIndex) {
-    return 'visible-column';
-  } else {
-    return 'normal-column';
+    if (this.isTransformedColumn(colIndex)) {
+      return 'transformed-column';
+    } else if (colIndex === this.visibleColIndex) {
+      return 'visible-column';
+    } else {
+      return 'normal-column';
+    }
   }
-}
+
+  openColumnTypeDialog() {
+    if (this.contextMenuColIndex == null) {
+      this.notificationService.showError("Attempt to set column type with null contextMenuColIndex ");
+      return;
+    }
+    if (this.etlDto == null) {
+      return;
+    }
+    const currentType = this.etlDto.table.columns[this.contextMenuColIndex].header.columnType;
+    const dialogRef = this.dialog.open(ColumnTypeDialogComponent, {
+      width: '400px',
+      data: {
+        etlTypes: this.etlTypes,      // your 13 possible types
+        currentType                  // current column’s type
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((selectedType: EtlColumnType | undefined) => {
+      if (selectedType) {
+        this.assignColumnType(selectedType);
+      }
+    });
+  }
 
 }
 

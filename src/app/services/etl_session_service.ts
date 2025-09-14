@@ -6,6 +6,23 @@ import { Injectable } from "@angular/core";
   providedIn: 'root'
 })
 export class EtlSessionService {
+
+  /** Attempt to convert a sex/gender column into the required format */
+  parseSexColumn(val: string | null | undefined): string {
+    if (val == null || val.trim() === "") {
+      return "na";
+    }
+    const value = val.toLowerCase().trim();
+    const femaleSymbols = new Set(["female", "woman","f", "w", "girl", "fem"]);
+    const maleSymbols = new Set(["male","man","m","boy", "masc"]);
+    if (femaleSymbols.has(value)) {
+      return "F";
+    } else if (maleSymbols.has(value)) {
+      return "M";
+    } else {
+      return val;
+    }
+  }
   
   
   parseAgeToIso8601(ageStr: string | null | undefined): string {
