@@ -8,7 +8,7 @@
 
   <mat-form-field appearance="fill" class="w-full">
     <mat-label>Column Type</mat-label>
-    <mat-select [(ngModel)]="data.column.columnType">
+    <mat-select [(ngModel)]="data.column.header.columnType">
       <mat-option *ngFor="let type of columnTypes" [value]="type">
         {{ type }}
       </mat-option>

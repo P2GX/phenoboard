@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -659,7 +659,7 @@ impl PhenoboardSingleton {
         }
     }
 
-    pub fn set_external_template_dto(&mut self, dto: &ColumnTableDto) -> Result<(), String> {
+    pub fn set_external_template_dto(&mut self, dto: &EtlDto) -> Result<(), String> {
         match self.phetools.as_mut() {
             Some(phetools) => phetools.set_external_template_dto(dto),
             None => Err(format!("phetools not initialized")),

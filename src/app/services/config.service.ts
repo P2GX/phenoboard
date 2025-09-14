@@ -224,6 +224,12 @@ export class ConfigService {
   }
 
 
+  /**
+   * When we start to extract the excel file, we get only the raw table (list of EtlColumnDto objects).
+   * We additionally need the user to enter information (DiseaseData, pmid, title) that we need to be able to 
+   * store the JSON format (or to convert to our internal template representation) 
+   * @param template: list of columns from the external table
+   */
   async saveJsonExternalTemplate(template: ColumnTableDto) {
     await invoke('save_external_template_json', {  template });
   }

@@ -1,4 +1,6 @@
-use std::path::Path;
+//! Ontology loader
+//! 
+//! Convenience class to load the HPO Ontology
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::csr::FullCsrOntology};
 use tauri_plugin_fs::FilePath;

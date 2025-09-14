@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::ColumnTableDto, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto};
+use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -556,7 +556,7 @@ async fn save_external_template_json(
 async fn load_external_template_json(
     app: AppHandle,
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
-) -> Result<ColumnTableDto, String> {
+) -> Result<EtlDto, String> {
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let app_handle = app.clone();
 
@@ -568,7 +568,7 @@ async fn load_external_template_json(
                 let path_str = file_path.to_string();
                 let contents = fs::read_to_string(path_str)
                     .map_err(|e| format!("Failed to read file: {}", e))?;
-                let dto: ColumnTableDto = serde_json::from_str(&contents)
+                let dto: EtlDto = serde_json::from_str(&contents)
                     .map_err(|e| format!("Failed to deserialize JSON: {}", e))?;
                 singleton.set_external_template_dto(&dto)?;
                 Ok(dto)

@@ -1,6 +1,6 @@
 <div class="primary-box">
 <h1 class="h1-primary">External Table Editor</h1>
-  <p class="text-xs">Ingest external tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column. You can save and load the external templates to continue work later. In general, however, these json files should not be stored long-term (or checked into GitHub).</p>
+  <p class="text-xs">Ingest external tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column. You can save and load the external templates to continue work later. In general, however, these JSON files should not be stored long-term (or checked into GitHub).</p>
 </div>
 <div class="button-row">
   <button 
@@ -35,7 +35,7 @@
     </div>
   </div>
 }
-@if (!externalTable) {
+@if (!columnTableDto) {
   <div>
     <p>No table loaded yet.</p>
   </div>
@@ -43,13 +43,31 @@
 
 <div class="pt-table-container">
 <table class="pt-table">
+   <!-- ===== HEADER ROW ===== -->
+  <tr class="header-row">
+    @for (col of displayColumns; track col.id) {
+      <th class="border border-gray-400 px-2 py-1 text-center">
+        <span [matTooltip]="col.header.current || ''">
+          {{ col.header.original }}
+        </span>
+      </th>
+    }
+  </tr>
+
+  <!-- ===== TYPE ROW ===== -->
+  <tr class="type-row">
+    @for (col of displayColumns; track col.id) {
+      <th class="border border-gray-400 px-2 py-1 text-center text-sm text-gray-600">
+        {{ col.header.columnType }}
+      </th>
+    }
+  </tr>
+
+  <!-- ===== DATA ROWS ===== -->
 @for (row of displayRows; track row; let rowIndex = $index) {
-  <tr [ngClass]="{
-        'header-row': rowIndex === 0,
-        'type-row': rowIndex === 1
-      }">
+  <tr>
     
-    @for (colIndex of getVisibleColumns(row); track colIndex) {
+    @for (colIndex of getVisibleColumns(row); track displayColumns[colIndex]?.id || colIndex) {
       <td
         [ngClass]="{
           'edit-mode-narrow': editModeActive
@@ -158,7 +176,11 @@
         >
            <mat-icon>edit</mat-icon> Edit cell contents
         </li>
-        <!-- Add more options as needed -->
+       @if (hasValueAbove()) {
+          <li (click)="useValueFromAbove()">
+            <mat-icon>content_copy</mat-icon> Copy value from above
+          </li>
+        }
       </ul>
     </div>
   }
