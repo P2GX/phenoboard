@@ -6,7 +6,7 @@ import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto
 import { GeneVariantData, IndividualData, CohortData, DiseaseData, CohortType } from '../models/cohort_dto';
 import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
-import { ColumnTableDto } from '../models/etl_dto';
+import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 
 
 @Injectable({
@@ -230,11 +230,12 @@ export class ConfigService {
    * store the JSON format (or to convert to our internal template representation) 
    * @param template: list of columns from the external table
    */
-  async saveJsonExternalTemplate(template: ColumnTableDto) {
+  async saveJsonExternalTemplate(template: EtlDto) {
+      console.log('Template data being sent2:', JSON.stringify(template, null, 2));
     await invoke('save_external_template_json', {  template });
   }
 
-  async loadJsonExternalTemplate(): Promise<ColumnTableDto> {
+  async loadJsonExternalTemplate(): Promise<EtlDto> {
     return await invoke('load_external_template_json');
   }
 

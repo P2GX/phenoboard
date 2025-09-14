@@ -186,22 +186,8 @@
 }
 
 /* ===== CELL CONTENT STYLES ===== */
-.multiline-ellipsis {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 4.5em;
-  line-height: 1.5em;
-  font-size: 14px;
-  word-break: break-word;
-  max-width: 180px;
-  font-weight: 500;
-  color: #2d3748;
-}
 
-.normal-cell {
+.table-cell {
   line-height: 1.4;
   color: #4a5568;
   font-weight: 400;
@@ -477,6 +463,18 @@
   font-weight: 600;
   position: sticky;
   top: 0;
+}
+
+.transformed-column {
+  background-color: #e6ffe6 !important;
+}
+
+.visible-column {
+  background-color: #fffbe6 !important;
+}
+
+.normal-column {
+  background-color: transparent !important;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

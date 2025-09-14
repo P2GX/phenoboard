@@ -518,9 +518,10 @@ async fn load_external_excel(
 #[tauri::command]
 async fn save_external_template_json(
     app: AppHandle,
-    template: ColumnTableDto
+    template: EtlDto
 ) -> Result<(), String> {
     let app_handle = app.clone();
+    println!("save_external_template_json -- {:?}", template);
     tokio::task::spawn_blocking(move || {
         if let Some(file) = app_handle.dialog().file()
             .add_filter("JSON files", &["json"])

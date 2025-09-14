@@ -1,5 +1,6 @@
 import { DiseaseData } from "./cohort_dto";
 import { HpoTermDuplet } from "./hpo_term_dto";
+import { HgvsVariant, StructuralVariant } from "./variant_dto";
 
 // --- EtlColumnType ---
 export enum EtlColumnType {
@@ -86,7 +87,26 @@ export interface ColumnTableDto {
 // --- EtlDto ---
 export interface EtlDto {
   table: ColumnTableDto;
-  disease: DiseaseData;
-  pmid: string;
-  title: string;
+  disease: DiseaseData | null;
+  pmid: string | null;
+  title: string | null;
+  hgvsVariants: Record<string, HgvsVariant>;
+  structuralVariants: Record<string, StructuralVariant>;
+}
+
+/**
+ * 
+ * @param dto Our excel loading function returns a ColumnTableDto object. Everything else in our EtlDto object is optional
+ * @returns Default EtlDto with the data from the ColumnTableDto
+ */
+export function fromColumnDto(dto: ColumnTableDto): EtlDto {
+  const etl_dto: EtlDto = {
+    table: dto,
+    disease: null,
+    pmid: null,
+    title: null,
+    hgvsVariants: {} as Record<string, HgvsVariant>,
+    structuralVariants: {} as Record<string, StructuralVariant>,
+  };
+  return etl_dto;
 }

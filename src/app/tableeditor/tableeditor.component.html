@@ -35,7 +35,7 @@
     </div>
   </div>
 }
-@if (!columnTableDto) {
+@if (!etlDto?.table) {
   <div>
     <p>No table loaded yet.</p>
   </div>
@@ -45,8 +45,9 @@
 <table class="pt-table">
    <!-- ===== HEADER ROW ===== -->
   <tr class="header-row">
-    @for (col of displayColumns; track col.id) {
-      <th class="border border-gray-400 px-2 py-1 text-center">
+    @for (col of displayColumns; track col.id; let colIndex = $index) {
+      <th [ngClass]="getColumnClass(colIndex)"
+      (contextmenu)="onRightClickHeader($event, colIndex)">
         <span [matTooltip]="col.header.current || ''">
           {{ col.header.original }}
         </span>
@@ -72,30 +73,10 @@
         [ngClass]="{
           'edit-mode-narrow': editModeActive
         }"
-        [ngStyle]="{
-          'background-color': colIndex === 0
-            ? '#f0f8ff'
-            : isTransformedColumn(colIndex)
-              ? '#e6ffe6'
-              : colIndex === visibleColIndex
-                ? '#fffbe6'
-                : 'transparent'
-        }"
-        (contextmenu)="rowIndex === 0
-            ? onRightClickHeader($event, colIndex)
-            : onRightClickCell($event, rowIndex, colIndex)"
+        (contextmenu)="onRightClickCell($event, rowIndex, colIndex)"
       >
-
-        @if (rowIndex === 0) {
-          <div
-            class="multiline-ellipsis"
-            [title]="row[colIndex]"
-          >
-            {{ row[colIndex] }}
-          </div>
-        } @else {
           <div 
-            class="normal-cell" 
+            class="table-cell" 
             [matTooltip]="row[colIndex]"
             matTooltipClass="custom-tooltip"
             matTooltipPosition="above"
@@ -103,7 +84,7 @@
           >
             {{ row[colIndex] }}
           </div>
-          }
+          
         </td>
       }
     </tr>
