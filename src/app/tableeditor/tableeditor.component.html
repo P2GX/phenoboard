@@ -113,13 +113,10 @@
   <ul>
     @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
      <li (click)="clearColumnFilter()">Show All Columns</li>
-    @if(contextMenuColIndex !== null){<li (click)="hpoAutoForColumnName(contextMenuColIndex)">Edit Column Name (HPO)</li> }
     @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Multiple HPO Column</li> }
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
-        <li>x</li>
-        <li>y</li>
         @for (transform of transformOptions; track transform) {
           <li (click)="applyNamedTransform(contextMenuColIndex, transform)">
             {{ transform }}
@@ -131,7 +128,6 @@
     <li (click)="openColumnTypeDialog()"> Set Column Type ... </li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
-    <li (click)="processSingleHpoColumn(contextMenuColIndex)">Process single HPO column</li>
     <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
   </ul>
 </div>

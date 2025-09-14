@@ -28,12 +28,15 @@ import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 
 type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 enum TransformType {
+  SingleHpoTerm = "Single HPO Term",
+  MultipleHpoTerm = "Multiple Hpo Terms",
+  onsetAge = 'Onset Age',
+  lastEncounterAge = 'Age at last encounter',
+  SexColumn = 'Sex column',
   TrimWhitespace = 'Trim Whitespace',
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
   ExtractNumbers = 'Extract Numbers',
-  Iso8601Age = 'Iso8601 Age',
-  SexColumn = 'Sex column'
 }
 
 /**
@@ -142,17 +145,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   
  
   /** These are transformations that we can apply to a column while editing. They appear on right click */
-  transformHandlers: { [key in TransformType]: (val: string | null | undefined) => string } = {
-    [TransformType.TrimWhitespace]: (val) => (val ?? '').trim(),
-    [TransformType.ToUppercase]: (val) => (val ?? '').toUpperCase(),
-    [TransformType.ToLowercase]: (val) => (val ?? '').toLowerCase(),
-    [TransformType.ExtractNumbers]: (val) => ((val ?? '').match(/\d+/g)?.join(' ') || ''),
-    [TransformType.Iso8601Age]: (val) => this.etl_service.parseAgeToIso8601(val),
-    [TransformType.SexColumn]: (val) => this.etl_service.parseSexColumn(val),
-  };
   transformOptions = Object.values(TransformType);
 
-
+transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
+  [TransformType.TrimWhitespace]: (colIndex) => this.transformColumn(colIndex, TransformType.TrimWhitespace),
+  [TransformType.ToUppercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToUppercase),
+  [TransformType.ToLowercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToLowercase),
+  [TransformType.ExtractNumbers]: (colIndex) => this.transformColumn(colIndex, TransformType.ExtractNumbers),
+  [TransformType.onsetAge]: (colIndex) => this.transformColumn(colIndex, TransformType.onsetAge),
+  [TransformType.lastEncounterAge]: (colIndex) => this.transformColumn(colIndex, TransformType.lastEncounterAge),
+  [TransformType.SexColumn]: (colIndex) => this.transformColumn(colIndex, TransformType.SexColumn),
+  [TransformType.SingleHpoTerm]: (colIndex) =>  {
+    this.hpoAutoForColumnName(colIndex);
+  },
+  [TransformType.MultipleHpoTerm]: function (colIndex: number): void {
+    throw new Error('Function not implemented.');
+  }
+};
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -392,12 +401,59 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());
     if (selectedTerm) {
-      console.log('User selected HPO term:', selectedTerm);
-      const newHeader = `${selectedTerm.hpoLabel}[${selectedTerm.hpoId};original: ${col.header}]`;
-      col.header.current = newHeader;
-      this.reRenderTableRows();
+      this.processSingleHpoColumn(colIndex, selectedTerm);
     } else {
-      console.log('User cancelled HPO selection');
+      this.notificationService.showSuccess('User cancelled HPO selection');
+      return;
+    }
+  }
+
+    /** Process a column that refers to a single HPO term;
+   * Note that we expect the header to be something like Strabismus[HP:0000486;original: Strabismus]  */ 
+  async processSingleHpoColumn(colIndex: number, hpoTermDuplet: HpoTermDuplet): Promise<void> {
+    if (colIndex == null || colIndex < 0) {
+      this.notificationService.showError("Attempt to process single-HPO column with Null column index");
+      return;
+    }
+    if (!this.etlDto ) {
+      this.notificationService.showError("Attempt to process single-HPO column with Null ETL table");
+      return;
+    }
+    const column = this.etlDto.table.columns[colIndex];
+    let input = column.header.original;
+    let hpoHeader = column.header;
+    if (hpoHeader.columnType != EtlColumnType.SingleHpoTerm) {
+      this.notificationService.showError(`Attempt to process single-HPO column with wrong column: ${hpoHeader.columnType}`);
+      return;
+    }
+    const new_header: EtlColumnHeader = {
+      original: column.header.original,
+      columnType: EtlColumnType.SingleHpoTerm,
+      metadata: {
+        kind: 'hpoTerms',
+        data: [hpoTermDuplet]
+      }
+    };
+    this.pendingHeader = new_header;
+    console.log("Top, pending header", this.pendingHeader);
+    try {
+      // Extract unique values from the column of the original table (e.g., +, -, ?)
+      const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+      const dialogRef = this.dialog.open(ValueMappingComponent, {
+          data: {
+            hpoTerm: hpoTermDuplet,
+            hpoLabel: hpoTermDuplet.hpoLabel,
+            uniqueValues
+          }
+        });
+
+        dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
+          if (mapping) {
+            this.applyHpoMapping(colIndex, mapping);
+          }
+        });
+    } catch (error) {
+      alert("Could not identify HPO term: " + error);
     }
   }
 
@@ -723,6 +779,46 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.editModalVisible = false;
   }
 
+
+  /** Transform a single column and return the transformed values (for preview) */
+  transformColumn(colIndex: number, transform: TransformType): string[] {
+    if (!this.etlDto) {
+      this.notificationService.showError("Attempt to transform column with null ETL DTO");
+      return [];
+    }
+
+    const col = this.etlDto.table.columns[colIndex];
+    if (!col || !col.values) return [];
+
+    const originalValues = col.values.map(v => v ?? '');
+
+    if (transform === TransformType.SingleHpoTerm) {
+      this.processHpoColumn(colIndex);
+    }
+
+    const transformedValues: string[] = originalValues.map(val => {
+      switch (transform) {
+        case TransformType.TrimWhitespace:
+          return val.trim();
+        case TransformType.ToUppercase:
+          return val.toUpperCase();
+        case TransformType.ToLowercase:
+          return val.toLowerCase();
+        case TransformType.ExtractNumbers:
+          return (val.match(/\d+/g)?.join(' ') || '');
+        case TransformType.onsetAge:
+          return this.etl_service.parseAgeToIso8601(val);
+        case TransformType.SexColumn:
+          return this.etl_service.parseSexColumn(val);
+        default:
+          return val;
+      }
+    });
+
+    return transformedValues;
+  }
+
+
   /**
  * This function is called upon right click in the editing window when the user indicates
  * to replace values with the correctly formated values, e.g., "Female" => "F"
@@ -752,14 +848,18 @@ applyValueTransform() {
   applyNamedTransform(colIndex: number | null, transformName: TransformType): void {
     if (colIndex === null || !this.etlDto) return;
 
+    if (transformName == TransformType.SingleHpoTerm) {
+      this.hpoAutoForColumnName(colIndex);
+      return;
+    }
+
     const handler = this.transformHandlers[transformName];
     if (!handler) return;
     const col = this.etlDto.table.columns[colIndex];
     const originalValues = col.values.map(v => v ?? '');
-    const transformedValues = originalValues.map(v => handler(v));
     this.previewColumnIndex = colIndex;
     this.previewOriginal = col.values.map(v => v ?? '');
-    this.previewTransformed = transformedValues;
+    this.previewTransformed = this.transformColumn(colIndex, transformName);
     this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
     this.pendingHeader = col.header;
@@ -912,26 +1012,6 @@ applyValueTransform() {
   return indices[0].index;
 }
 
-  /** Get a string like Ptosis - HP:0000508 from backend. */
-  async identifyHpoFromHeader(header: string): Promise<{ hpoId: string, label: string }> {
-    if (this.etlDto == null) {
-      throw Error("External table null");
-    }
-    try {
-      let hit = await this.configService.getBestHpoMatch(header);
-      if (!hit.includes("HP:")) {
-        alert("Could not parse {header}");
-        return {"hpoId":"n/a", "label": "n/a"};
-      }
-      console.log("identifyHpoFromHeader header=", header);
-      const [label, hpoId] = hit.split('-').map(part => part.trim());
-      console.log("identifyHpoFromHeader returning ", label, hpoId);
-      return { hpoId, label};
-    } catch(error) {
-      console.error("Could not get HPO", error);
-    } 
-    return {hpoId: '', label: '' };
-  }
 
   /** apply a mapping for a column that has single-HPO term, e.g., +=> observed */
   applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
@@ -970,97 +1050,57 @@ applyValueTransform() {
     return { hpoLabel: label, hpoId: hpoId };
   }
 
-  /** Process a column that refers to a single HPO term;
-   * Note that we expect the header to be something like Strabismus[HP:0000486;original: Strabismus]  */ 
-  async processSingleHpoColumn(colIndex: number | null): Promise<void> {
-    if (colIndex == null) {
-      alert("Null column index");
-      return;
-    }
-    if (!this.etlDto || colIndex < 0) {
-      alert("table not initialized");
-      return;
-    }
-    const column = this.etlDto.table.columns[colIndex];
-    let input = column.header.original;
-    // Some of our column names were transformed, and we retain the original label
-    // we extract the label of the HPO term so that the text mining works
-    const hpoTermDuplet: HpoTermDuplet | null = this.parseHpoString(input);
-    if (hpoTermDuplet == null) {
-      this.notificationService.showError(`Could not parse HPO term from input string "${input}"`);
-      return;
-    }
-  
-    try {
-      // Extract unique values from the column of the original table (e.g., +, -, ?)
-      const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-      const dialogRef = this.dialog.open(ValueMappingComponent, {
-          data: {
-            hpoTerm: hpoTermDuplet,
-            hpoLabel: hpoTermDuplet.hpoLabel,
-            uniqueValues
-          }
-        });
 
-        dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
-          if (mapping) {
-            this.applyHpoMapping(colIndex, mapping);
-          }
-        });
-    } catch (error) {
-      alert("Could not identify HPO term: " + error);
+
+
+  get_single_hpo_term(header: EtlColumnHeader) : Promise<HpoTermDuplet> {
+    return new Promise((resolve, reject) => {
+    if (header.columnType !== EtlColumnType.SingleHpoTerm) {
+      reject(new Error("Header is not a single HPO term column"));
+      return;
     }
+
+    if (!header.metadata || header.metadata.kind !== "hpoTerms" || !header.metadata.data?.[0]) {
+      reject(new Error("No HPO term found in header metadata"));
+      return;
+    }
+
+    resolve(header.metadata.data[0]);
+  });
   }
-
-
-
 
   async processHpoColumn(colIndex: number | null): Promise<void> {
     if (colIndex == null) {
-       alert("Null column index");
+      this.notificationService.showError("Attempt to processHpoColumn with null column index");
       return;
     }
     if (!this.etlDto || colIndex < 0) {
       alert("Invalid column index");
       return;
     }
+    const column = this.etlDto.table.columns[colIndex];
+    try {
+      const hpo_term_duplet = await this.get_single_hpo_term(column.header);
+      const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+      const dialogRef = this.dialog.open(HpoHeaderComponent, {
+        data: {
+          header: column.header,
+          hpoId: hpo_term_duplet.hpoId,
+          hpoLabel: hpo_term_duplet.hpoLabel,
+          uniqueValues
+        }
+      });
+      dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
+        this.applyHpoMapping(colIndex, mapping);
+        dialogRef.close();
+      });
 
-  const column = this.etlDto.table.columns[colIndex];
+      dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
 
-  // Skip if already processed
-  if (column.header.columnType == EtlColumnType.SingleHpoTerm) {
-    alert("This column has already been processed.");
-    return;
+    } catch (error) {
+      alert("Could not identify HPO term: " + error);
+    }
   }
-
-  try {
-    // 1. Identify HPO term from original header, if possible
-    const { hpoId, label } = await this.identifyHpoFromHeader(column.header.original);
-
-    // 2. Extract unique values (e.g., +, -, ?)
-    const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-
-    // 3. Open dialog to map values to observed/excluded/etc.
-    const dialogRef = this.dialog.open(HpoHeaderComponent, {
-      data: {
-        header: column.header,
-        hpoId,
-        hpoLabel: label,
-        uniqueValues
-      }
-    });
-
-    dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
-      this.applyHpoMapping(colIndex, mapping);
-      dialogRef.close();
-    });
-
-    dialogRef.componentInstance.cancelled.subscribe(() => dialogRef.close());
-
-  } catch (error) {
-    alert("Could not identify HPO term: " + error);
-  }
-}
 
   markTransformed(colIndex: number | null) {
     if (colIndex == null) {
