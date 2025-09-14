@@ -109,19 +109,10 @@
 }
 
 .header-row th {
-  padding: 1rem 0.75rem;
   font-weight: 600;
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  min-width: 120px;
-  max-width: 200px;
-}
-
-.header-row th:last-child {
-  border-right: none;
 }
 
 .header-row th:hover {
@@ -135,49 +126,24 @@
 }
 
 .type-row th {
-  padding: 0.5rem 0.75rem;
   font-weight: 500;
   font-size: 0.75rem;
   color: #4a5568;
-  text-transform: capitalize;
-  border-right: 1px solid #e2e8f0;
   font-style: italic;
-}
-
-.type-row th:last-child {
-  border-right: none;
+  text-transform: capitalize;
 }
 
 /* ===== DATA ROWS ===== */
-.pt-table tr {
-  transition: all 0.2s ease;
-}
 
 .pt-table tr:nth-child(even) {
   background: #f8fafc;
 }
 
-.pt-table tr:hover {
+/* Hover only on individual cells */
+.pt-table td:hover {
   background: linear-gradient(135deg, #ebf8ff, #e6fffa);
-  transform: scale(1.001);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.pt-table td {
-  padding: 0.75rem;
-  border-right: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
-  vertical-align: top;
-  position: relative;
-  min-width: 120px;
-  max-width: 200px;
-  word-wrap: break-word;
-  cursor: pointer;
-}
-
-.pt-table td:last-child {
-  border-right: none;
-}
 
 /* ===== EDIT MODE ===== */
 .edit-mode-narrow {
@@ -536,22 +502,21 @@
   }
   
   .pt-table-container {
-    background: white;
+   background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    border: 2px solid #cbd5e0;
-    margin: 2rem 1.5rem 1.5rem 1.5rem;
+    overflow-x: auto;
+    margin-top: 2rem;
+    border: 1px solid #e2e8f0;
   }
   
   .pt-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0;
     font-size: 14px;
     background: white;
-    display: table;
-    table-layout: auto;
+    table-layout: auto;        /* let columns size naturally */
+    white-space: normal; 
   }
   
   .primary-box {

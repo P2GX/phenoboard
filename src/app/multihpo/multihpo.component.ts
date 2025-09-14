@@ -141,9 +141,17 @@ export class MultiHpoComponent {
       const normalizedRowText = rowText.toLowerCase().trim();
       
       // Check if the original text indicates "no data" or "unknown"
-      const hasNaIndicators = normalizedRowText.includes('na') || 
-                            normalizedRowText.includes('unknown') || 
-                             normalizedRowText.includes('?');
+      const notApplicable = new Set([
+        "na",
+        "n/a",
+        "unknown",
+        "n.a.",
+        "nd",
+        "n/d",
+        "n.d.",
+        "?"
+      ]);
+      const hasNaIndicators = notApplicable.has(normalizedRowText);
       row.forEach(entry => {
         if (entry.status == 'na' && !hasNaIndicators) { 
           entry.status = 'excluded';

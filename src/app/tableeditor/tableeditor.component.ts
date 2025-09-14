@@ -51,6 +51,7 @@ enum TransformType {
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
 
+
   constructor(private configService: ConfigService, 
     templateService: CohortDtoService,
     ngZone: NgZone,
@@ -158,8 +159,8 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
   [TransformType.SingleHpoTerm]: (colIndex) =>  {
     this.hpoAutoForColumnName(colIndex);
   },
-  [TransformType.MultipleHpoTerm]: function (colIndex: number): void {
-    throw new Error('Function not implemented.');
+  [TransformType.MultipleHpoTerm]:  (colIndex: number) => {
+    this.hpoMultipleForColumnName(colIndex); 
   }
 };
 
@@ -401,6 +402,7 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
 
     const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());
     if (selectedTerm) {
+      col.header.columnType = EtlColumnType.SingleHpoTerm;
       this.processSingleHpoColumn(colIndex, selectedTerm);
     } else {
       this.notificationService.showSuccess('User cancelled HPO selection');
@@ -408,8 +410,7 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     }
   }
 
-    /** Process a column that refers to a single HPO term;
-   * Note that we expect the header to be something like Strabismus[HP:0000486;original: Strabismus]  */ 
+    /** Process a column that refers to a single HPO term  */ 
   async processSingleHpoColumn(colIndex: number, hpoTermDuplet: HpoTermDuplet): Promise<void> {
     if (colIndex == null || colIndex < 0) {
       this.notificationService.showError("Attempt to process single-HPO column with Null column index");
@@ -420,7 +421,6 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
       return;
     }
     const column = this.etlDto.table.columns[colIndex];
-    let input = column.header.original;
     let hpoHeader = column.header;
     if (hpoHeader.columnType != EtlColumnType.SingleHpoTerm) {
       this.notificationService.showError(`Attempt to process single-HPO column with wrong column: ${hpoHeader.columnType}`);
@@ -435,12 +435,12 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
       }
     };
     this.pendingHeader = new_header;
-    console.log("Top, pending header", this.pendingHeader);
     try {
       // Extract unique values from the column of the original table (e.g., +, -, ?)
       const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
       const dialogRef = this.dialog.open(ValueMappingComponent, {
           data: {
+            header: column.header.original,
             hpoTerm: hpoTermDuplet,
             hpoLabel: hpoTermDuplet.hpoLabel,
             uniqueValues
@@ -473,7 +473,7 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     const hpoTerms: HpoTermDuplet[] = Array.from(
       new Map(
         hpoAnnotations
-          .filter(t => t.termId && t.label)
+          .filter(t => t.isFenominalHit && t.termId && t.label)
           .map(t => [t.termId, { hpoId: t.termId, hpoLabel: t.label }])
       ).values()
     );
@@ -488,7 +488,7 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
         console.log("result.hpoMappings", result.hpoMappings);
         this.previewTransformName = "Multiple HPO mappings";
         this.pendingHeader =  col.header;
-        this.pendingHeader.current = `Todo hpoMultipleForColumnName -set name`;
+        this.pendingHeader.current = `Multiple HPO terms - ${col.header.original}`;
         this.pendingColumnType = EtlColumnType.MultipleHpoTerm;
         this.previewTransformed = result.hpoMappings.map(
           (row: HpoMappingRow) =>
@@ -792,9 +792,7 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
 
     const originalValues = col.values.map(v => v ?? '');
 
-    if (transform === TransformType.SingleHpoTerm) {
-      this.processHpoColumn(colIndex);
-    }
+   
 
     const transformedValues: string[] = originalValues.map(val => {
       switch (transform) {
@@ -807,6 +805,8 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
         case TransformType.ExtractNumbers:
           return (val.match(/\d+/g)?.join(' ') || '');
         case TransformType.onsetAge:
+          return this.etl_service.parseAgeToIso8601(val);
+        case TransformType.lastEncounterAge:
           return this.etl_service.parseAgeToIso8601(val);
         case TransformType.SexColumn:
           return this.etl_service.parseSexColumn(val);
@@ -852,6 +852,10 @@ applyValueTransform() {
       this.hpoAutoForColumnName(colIndex);
       return;
     }
+    if (transformName === TransformType.MultipleHpoTerm) {
+      this.hpoMultipleForColumnName(colIndex);
+      return;
+    }
 
     const handler = this.transformHandlers[transformName];
     if (!handler) return;
@@ -859,6 +863,9 @@ applyValueTransform() {
     const originalValues = col.values.map(v => v ?? '');
     this.previewColumnIndex = colIndex;
     this.previewOriginal = col.values.map(v => v ?? '');
+    
+    
+  
     this.previewTransformed = this.transformColumn(colIndex, transformName);
     this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
@@ -1084,10 +1091,10 @@ applyValueTransform() {
       const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
       const dialogRef = this.dialog.open(HpoHeaderComponent, {
         data: {
-          header: column.header,
+          header: column.header.original,
           hpoId: hpo_term_duplet.hpoId,
           hpoLabel: hpo_term_duplet.hpoLabel,
-          uniqueValues
+          uniqueValues,
         }
       });
       dialogRef.componentInstance.mappingConfirmed.subscribe((mapping: HpoMappingResult) => {
@@ -1146,6 +1153,28 @@ applyValueTransform() {
         this.assignColumnType(selectedType);
       }
     });
+  }
+
+  importCohortDiseaseData() {
+    const cohort = this.cohortService.getCohortDto();
+    if (cohort == null) {
+      this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
+      return;
+    }
+    if (cohort.cohortType != 'mendelian' ) {
+      this.notificationService.showError(`External ETL only available for mendelian but you tried ${cohort.cohortType}`);
+      return;
+    }
+    if (cohort.diseaseList.length != 1) {
+       this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
+      return;
+    }
+    if (this.etlDto == null) {
+       this.notificationService.showError(`External ETL was null`);
+      return;
+    }
+    const diseaseData = cohort.diseaseList[0];
+    this.etlDto.disease = diseaseData;
   }
 
 }

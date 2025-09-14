@@ -6,25 +6,31 @@
   <button 
     class="btn-outline-primary"
     (click)="loadExcelColumnBased()">
-    Load External Excel File (Column-based)
+    Load Excel File (Columns)
   </button>
 
   <button 
     class="btn-outline-primary"
     (click)="loadExcelRowBased()">
-    Load External Excel File (Row-based)
+    Load Excel File (Rows)
   </button>
 
   <button 
     class="btn-outline-primary"
     (click)="saveExternalTemplateJson()">
-    Save External Template JSON
+    Save ETL JSON
   </button>
 
   <button 
     class="btn-outline-primary"
     (click)="loadExternalTemplateJson()">
-    Load External Template JSON
+    Load ETL JSON
+  </button>
+
+    <button 
+    class="btn-outline-primary"
+    (click)="importCohortDiseaseData()">
+    Import cohort disease data
   </button>
 </div>
 
@@ -113,7 +119,6 @@
   <ul>
     @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
      <li (click)="clearColumnFilter()">Show All Columns</li>
-    @if(contextMenuColIndex !== null){<li (click)="hpoMultipleForColumnName(contextMenuColIndex)">Edit Multiple HPO Column</li> }
     <li class="has-submenu">
       Transform Column ▸
       <ul class="submenu">
