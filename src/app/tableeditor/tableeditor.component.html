@@ -129,8 +129,8 @@
         }
       </ul>
     </li>
-    @if(contextMenuColIndex !== null){<li (click)="editUniqueValuesInColumn(contextMenuColIndex)">Replace Unique Values</li>}
-    <li (click)="openColumnTypeDialog()"> Set Column Type ... </li>
+    <li (click)="annotateVariants(contextMenuColIndex)">Annotate Variants</li>
+    <li (click)="openColumnTypeDialog()">Set Column Type ...</li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
     <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
@@ -171,7 +171,8 @@
         <input [(ngModel)]="transformationMap[val]" class="transform-input" />
       </label>
     </div>
-    <button (click)="applyValueTransform()">Apply Transformation</button>
+    <button (click)="applyValueTransform()" class="btn-outline-primary">✅ Apply Transformation</button>
+    <button (click)="cancelTransformation()" class="btn-outline-primary">❌ Cancel</button>
   </div>
 }
 

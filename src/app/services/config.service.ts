@@ -150,9 +150,26 @@ export class ConfigService {
   }
 
   async validateSv(dto: VariantDto, cohort_dto: CohortData): Promise<StructuralVariant> {
-    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto})
+    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto});
   }
   
+  async validateAllHgvsVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,HgvsVariant>> {
+    return invoke<Record<string,HgvsVariant>>('validate_all_hgvs_variants', {
+        symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        alleles: alleles});
+  }
+
+    async validateAllStructuralVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,StructuralVariant>> {
+    return invoke<Record<string,StructuralVariant>>('validate_all_structural_variants', {
+        symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        alleles: alleles});
+  }
+
+
 
    async saveCohort(cohort_dto: CohortData): Promise<void> {
     return invoke<void>('save_template', {cohortDto: cohort_dto});

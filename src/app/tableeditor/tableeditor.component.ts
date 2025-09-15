@@ -23,6 +23,7 @@ import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { ColumnTypeDialogComponent } from './column-type-dialog.component';
+import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
 
 
 
@@ -37,6 +38,7 @@ enum TransformType {
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
   ExtractNumbers = 'Extract Numbers',
+  ReplaceUniqeValues = 'Replace Unique Values',
 }
 
 /**
@@ -67,7 +69,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   displayHeaders: EtlColumnHeader[] = [];
   displayRows: string[][] = [];
   /* This is the core of the ETL DTO with the table columns */
-  //columnTableDto: ColumnTableDto | null = null;
   etlDto: EtlDto | null = null;
 
 
@@ -156,20 +157,34 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
   [TransformType.onsetAge]: (colIndex) => this.transformColumn(colIndex, TransformType.onsetAge),
   [TransformType.lastEncounterAge]: (colIndex) => this.transformColumn(colIndex, TransformType.lastEncounterAge),
   [TransformType.SexColumn]: (colIndex) => this.transformColumn(colIndex, TransformType.SexColumn),
-  [TransformType.SingleHpoTerm]: (colIndex) =>  {
+  [TransformType.SingleHpoTerm]: (colIndex) => {
     this.hpoAutoForColumnName(colIndex);
   },
-  [TransformType.MultipleHpoTerm]:  (colIndex: number) => {
-    this.hpoMultipleForColumnName(colIndex); 
+  [TransformType.MultipleHpoTerm]: (colIndex: number) => {
+    this.hpoMultipleForColumnName(colIndex);
+  },
+  [TransformType.ReplaceUniqeValues]: (colIndex: number) => {
+    this.editUniqueValuesInColumn(colIndex);
   }
 };
 
   override ngOnInit(): void {
     super.ngOnInit();
+    this.etl_service.etlDto$.subscribe(dto => { this.etlDto = dto});
+    document.addEventListener('click', this.onClickAnywhere.bind(this));
   }
+
+  /** Reset if user clicks outside of defined elements. */
+  onClickAnywhere(): void {
+    this.columnContextMenuVisible = false;
+    this.editModalVisible = false;
+    this.previewModalVisible = false;
+  }
+
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
+    document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
   }
 
   protected override onCohortDtoLoaded(template: CohortData): void {
@@ -327,7 +342,8 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
 
   /**
    * This method is used if we want to transform all occurences of sets of strings (e.g., male, female)
-   * into the strings required for our template (e.g., M, F)
+   * into the strings required for our template (e.g., M, F). This causes a dialog to 
+   * appear that calls applyValueTransform if confirmed.
    * @param index 
    * @returns 
    */
@@ -361,8 +377,6 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     this.uniqueValuesToMap = unique;
     this.transformationPanelVisible = true;
     this.columnBeingTransformed = index;
-
-    console.debug("Preparing transformation for:", this.contextMenuColHeader);
   }
 
 
@@ -408,6 +422,62 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
       this.notificationService.showSuccess('User cancelled HPO selection');
       return;
     }
+  }
+
+  async annotateVariants(colIndex: number | null): Promise<void> {
+    if (this.etlDto == null) {
+      return; // should never occur
+    }
+    if (colIndex == null) {
+      this.notificationService.showError("Could not annotate variants because column index was null");
+      return;
+    }
+    if (this.etlDto.disease == null) {
+       this.notificationService.showError("Could not annotate variants because disease data was not initialized (load cohort or go to new template)");
+      return;
+    }
+    const col = this.etlDto.table.columns[colIndex];
+    const unique_cell_entries: Set<string> = new Set(col.values);
+    const alleles = Array.from(unique_cell_entries);
+    const diseaseData = this.etlDto.disease;
+    const gt_dto = diseaseData.geneTranscriptList[0];
+    const transcript = gt_dto.transcript;
+    const hgnc = gt_dto.hgncId;
+    const symbol = gt_dto.geneSymbol;
+    const hgvs_variant_map: Record<string, HgvsVariant> = await this.configService.validateAllHgvsVariants(symbol, hgnc, transcript, alleles);
+    const sv_map: Record<string, StructuralVariant> = await this.configService.validateAllStructuralVariants(symbol, hgnc, transcript, alleles);
+    // Merge new variants into existing records
+    Object.assign(this.etlDto.hgvsVariants, hgvs_variant_map);  
+    Object.assign(this.etlDto.structuralVariants, sv_map);
+    const hgvsToKey: Record<string, string> = Object.values(hgvs_variant_map)
+      .reduce((acc, variant) => {
+        acc[variant.hgvs] = variant.variantKey;
+        return acc;
+      }, {} as Record<string, string>);
+    const svToKey: Record<string, string> = Object.values(sv_map)
+      .reduce((acc, variant) => {
+        acc[variant.label] = variant.variantKey;
+        return acc;
+      }, {} as Record<string, string>);
+    /// Transform the column
+    let allValid = true;
+    console.log("Old col values", col.values);
+    col.values = col.values.map(val => {
+      if (!val) return val;
+
+      if (hgvsToKey[val]) {
+        return hgvsToKey[val];
+      }
+      if (svToKey[val]) {
+        return svToKey[val];
+      }
+
+      // If no mapping found, mark as invalid
+      allValid = false;
+      return val;
+    });
+     console.log("new col values", col.values);
+    this.reRenderTableRows();
   }
 
     /** Process a column that refers to a single HPO term  */ 

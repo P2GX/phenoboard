@@ -9,7 +9,7 @@ use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indiv
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
-use std::{fs, sync::{Arc, Mutex}};
+use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -47,6 +47,8 @@ pub fn run() {
             add_new_row_to_cohort,
             validate_hgvs_variant,
             validate_structural_variant,
+            validate_all_hgvs_variants,
+            validate_all_structural_variants,
             export_ppkt,
             load_external_excel,
             load_external_template_json,
@@ -431,16 +433,26 @@ fn add_new_row_to_cohort(
 }
 
 
-/* 
 #[tauri::command]
-fn validate_all_variants(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortData) 
--> Result<CohortData, Vec<String>> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
-    singleton.validate_all_variants(cohort_dto) 
-}*/
+fn validate_all_hgvs_variants(
+    symbol: &str,
+    hgnc: &str,
+    transcript: &str,
+    alleles: HashSet<String>) 
+-> Result<HashMap<String, HgvsVariant>, String> {
+    ga4ghphetools::variant::validate_all_hgvs(symbol, hgnc, transcript, &alleles)
+}
+
+#[tauri::command]
+fn validate_all_structural_variants(
+    symbol: &str,
+    hgnc: &str,
+    transcript: &str,
+    alleles: HashSet<String>) 
+-> Result<HashMap<String, StructuralVariant>, String> {
+    ga4ghphetools::variant::validate_all_sv(symbol, hgnc, transcript, &alleles)
+}
+
 
 #[tauri::command]
 fn validate_hgvs_variant(

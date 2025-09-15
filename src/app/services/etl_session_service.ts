@@ -1,4 +1,7 @@
 import { Injectable } from "@angular/core";
+import { BehaviorSubject } from "rxjs";
+import { EtlDto } from "../models/etl_dto";
+import { ConfigService } from "./config.service";
 
 
 // 4. ETL Session Service
@@ -6,6 +9,27 @@ import { Injectable } from "@angular/core";
   providedIn: 'root'
 })
 export class EtlSessionService {
+
+  constructor(private configService: ConfigService){
+      console.log('🟡 EtlSessionService instance created');
+  }
+
+  private etlDtoSubject = new BehaviorSubject<EtlDto | null>(null);
+  etlDto$ = this.etlDtoSubject.asObservable();
+
+  setEtlDto(dto: EtlDto) {
+    this.etlDtoSubject.next(dto);
+  }
+  
+  getEtlDto(): EtlDto | null {
+    const current = this.etlDtoSubject.getValue();
+    return current;
+  }
+
+  clearEtlDto() {
+    this.etlDtoSubject.next(null);
+  }
+  
 
   /** Attempt to convert a sex/gender column into the required format */
   parseSexColumn(val: string | null | undefined): string {
