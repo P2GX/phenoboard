@@ -14,7 +14,7 @@ import { ColumnDto, ColumnTableDto, EtlColumnHeader, EtlColumnType, EtlDto, from
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
 import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
@@ -23,7 +23,8 @@ import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { ColumnTypeDialogComponent } from './column-type-dialog.component';
-import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
+import { sanitizeString } from '../validators/validators';
+
 
 
 
@@ -34,7 +35,7 @@ enum TransformType {
   onsetAge = 'Onset Age',
   lastEncounterAge = 'Age at last encounter',
   SexColumn = 'Sex column',
-  TrimWhitespace = 'Trim Whitespace',
+  StringSanitize = 'Sanitize (trim/ASCII)',
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
   ExtractNumbers = 'Extract Numbers',
@@ -52,7 +53,6 @@ enum TransformType {
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-
 
   constructor(private configService: ConfigService, 
     templateService: CohortDtoService,
@@ -149,32 +149,35 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
 
-transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
-  [TransformType.TrimWhitespace]: (colIndex) => this.transformColumn(colIndex, TransformType.TrimWhitespace),
-  [TransformType.ToUppercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToUppercase),
-  [TransformType.ToLowercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToLowercase),
-  [TransformType.ExtractNumbers]: (colIndex) => this.transformColumn(colIndex, TransformType.ExtractNumbers),
-  [TransformType.onsetAge]: (colIndex) => this.transformColumn(colIndex, TransformType.onsetAge),
-  [TransformType.lastEncounterAge]: (colIndex) => this.transformColumn(colIndex, TransformType.lastEncounterAge),
-  [TransformType.SexColumn]: (colIndex) => this.transformColumn(colIndex, TransformType.SexColumn),
-  [TransformType.SingleHpoTerm]: (colIndex) => {
-    this.hpoAutoForColumnName(colIndex);
-  },
-  [TransformType.MultipleHpoTerm]: (colIndex: number) => {
-    this.hpoMultipleForColumnName(colIndex);
-  },
-  [TransformType.ReplaceUniqeValues]: (colIndex: number) => {
-    this.editUniqueValuesInColumn(colIndex);
-  }
-};
+  transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
+    [TransformType.StringSanitize]: (colIndex) => this.transformColumn(colIndex, TransformType.StringSanitize),
+    [TransformType.ToUppercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToUppercase),
+    [TransformType.ToLowercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToLowercase),
+    [TransformType.ExtractNumbers]: (colIndex) => this.transformColumn(colIndex, TransformType.ExtractNumbers),
+    [TransformType.onsetAge]: (colIndex) => this.transformColumn(colIndex, TransformType.onsetAge),
+    [TransformType.lastEncounterAge]: (colIndex) => this.transformColumn(colIndex, TransformType.lastEncounterAge),
+    [TransformType.SexColumn]: (colIndex) => this.transformColumn(colIndex, TransformType.SexColumn),
+    [TransformType.SingleHpoTerm]: (colIndex) => {
+      this.hpoAutoForColumnName(colIndex);
+    },
+    [TransformType.MultipleHpoTerm]: (colIndex: number) => {
+      this.hpoMultipleForColumnName(colIndex);
+    },
+    [TransformType.ReplaceUniqeValues]: (colIndex: number) => {
+      this.editUniqueValuesInColumn(colIndex);
+    }
+  };
 
   override ngOnInit(): void {
     super.ngOnInit();
     this.etl_service.etlDto$.subscribe(dto => { this.etlDto = dto});
-    document.addEventListener('click', this.onClickAnywhere.bind(this));
   }
 
+ 
+
+
   /** Reset if user clicks outside of defined elements. */
+  @HostListener('document:click')
   onClickAnywhere(): void {
     this.columnContextMenuVisible = false;
     this.editModalVisible = false;
@@ -184,7 +187,6 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
-    document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
   }
 
   protected override onCohortDtoLoaded(template: CohortData): void {
@@ -379,7 +381,7 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     this.columnBeingTransformed = index;
   }
 
-
+  /** Return a list of the unique values found in the indicated column */
   getUniqueValues(colIndex: number): string[] {
     if (!this.etlDto) return [];
     const column = this.etlDto.table.columns[colIndex];
@@ -406,10 +408,11 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
 
   /* Open an autocomplete dialog to change the header of the column to an HPO term label */
   async hpoAutoForColumnName(colIndex: number) {
-    if (this.etlDto == null) {
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
       return;
     }
-    const col = this.etlDto.table.columns[colIndex];
+    const col = etlDto.table.columns[colIndex];
     const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
       width: '500px'
     });
@@ -424,59 +427,91 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     }
   }
 
+  /** Use Variant Validator in the backend to annotate each variant string in the column. Upon successful validation, add the variant key
+   * to the ETL DTO. If all entries are validated, mark the column green (transformed). 
+   */
   async annotateVariants(colIndex: number | null): Promise<void> {
-    if (this.etlDto == null) {
-      return; // should never occur
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
+      return;
     }
     if (colIndex == null) {
       this.notificationService.showError("Could not annotate variants because column index was null");
       return;
     }
-    if (this.etlDto.disease == null) {
+    if (etlDto.disease == null) {
        this.notificationService.showError("Could not annotate variants because disease data was not initialized (load cohort or go to new template)");
       return;
     }
-    const col = this.etlDto.table.columns[colIndex];
-    const unique_cell_entries: Set<string> = new Set(col.values);
-    const alleles = Array.from(unique_cell_entries);
-    const diseaseData = this.etlDto.disease;
+    const col = etlDto.table.columns[colIndex];
+    const diseaseData = etlDto.disease;
     const gt_dto = diseaseData.geneTranscriptList[0];
     const transcript = gt_dto.transcript;
     const hgnc = gt_dto.hgncId;
     const symbol = gt_dto.geneSymbol;
-    const hgvs_variant_map: Record<string, HgvsVariant> = await this.configService.validateAllHgvsVariants(symbol, hgnc, transcript, alleles);
-    const sv_map: Record<string, StructuralVariant> = await this.configService.validateAllStructuralVariants(symbol, hgnc, transcript, alleles);
-    // Merge new variants into existing records
-    Object.assign(this.etlDto.hgvsVariants, hgvs_variant_map);  
-    Object.assign(this.etlDto.structuralVariants, sv_map);
-    const hgvsToKey: Record<string, string> = Object.values(hgvs_variant_map)
+    let allValid = true; // will be set to false if one or more variants cannot be validated.
+    // retrieve previous mapped variants and their variant keys
+    const hgvsToKey: Record<string, string> = Object.values(etlDto.hgvsVariants)
       .reduce((acc, variant) => {
         acc[variant.hgvs] = variant.variantKey;
         return acc;
-      }, {} as Record<string, string>);
-    const svToKey: Record<string, string> = Object.values(sv_map)
+      }, {} as Record<string, string>);;
+    const svToKey: Record<string, string> = Object.values(etlDto.structuralVariants)
       .reduce((acc, variant) => {
         acc[variant.label] = variant.variantKey;
         return acc;
       }, {} as Record<string, string>);
-    /// Transform the column
-    let allValid = true;
-    console.log("Old col values", col.values);
-    col.values = col.values.map(val => {
-      if (!val) return val;
+    const allVariantKeys: Set<string> = new Set([
+      ...Object.values(hgvsToKey),
+      ...Object.values(svToKey),
+    ]);
+   for (let i = 0; i < col.values.length; i++) {
+      let val = col.values[i];
+      if (!val) continue;
+      val = val.trim();
 
-      if (hgvsToKey[val]) {
-        return hgvsToKey[val];
-      }
-      if (svToKey[val]) {
-        return svToKey[val];
+      if (allVariantKeys.has(val)) {
+        col.values[i] = val; // keep as is
+        continue;
       }
 
-      // If no mapping found, mark as invalid
-      allValid = false;
-      return val;
-    });
-     console.log("new col values", col.values);
+      if (val.startsWith("c.") || val.startsWith("n.")) {
+        this.configService.validateOneHgvs(symbol, hgnc, transcript, val)
+          .then((hgvs) => {
+            const varKey = hgvs.variantKey;
+            hgvsToKey[val] = varKey;
+            allVariantKeys.add(varKey);
+            col.values[i] = varKey; // update in place
+            this.reRenderTableRows(); // optional: trigger change detection
+          })
+          .catch((error) => {
+            this.notificationService.showError(String(error));
+            allValid = false;
+          });
+      } else {
+        this.configService.validateOneSv(symbol, hgnc, transcript, val)
+          .then((sv) => {
+            const varKey = sv.variantKey;
+            svToKey[val] = varKey;
+            allVariantKeys.add(varKey);
+            col.values[i] = varKey; // update in place
+            this.reRenderTableRows();
+          })
+          .catch((error) => {
+            this.notificationService.showError(String(error));
+            allValid = false;
+          });
+      }
+    }
+    if (allValid) {
+      col.transformed = true;
+      col.header.current = `${col.header.original}-validated`;
+      col.header.columnType = EtlColumnType.Variant;
+    } else {
+      col.transformed = false;
+      this.notificationService.showError("Could not annotate all variants in column");
+    }
+
     this.reRenderTableRows();
   }
 
@@ -496,13 +531,14 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
       this.notificationService.showError(`Attempt to process single-HPO column with wrong column: ${hpoHeader.columnType}`);
       return;
     }
+    if (hpoTermDuplet == null || hpoTermDuplet.hpoId.length < 10) {
+      this.notificationService.showError(`Invalid HPO Term Duplet ${hpoTermDuplet}`)
+      return;
+    }
     const new_header: EtlColumnHeader = {
       original: column.header.original,
       columnType: EtlColumnType.SingleHpoTerm,
-      metadata: {
-        kind: 'hpoTerms',
-        data: [hpoTermDuplet]
-      }
+      hpoTerms: [hpoTermDuplet],
     };
     this.pendingHeader = new_header;
     try {
@@ -553,13 +589,16 @@ transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        console.log("Result=", result);
+        console.log(Object.prototype.toString.call(result));
         this.previewColumnIndex = colIndex;
         this.previewOriginal = colValues.map(val => val ?? '');
-        console.log("result.hpoMappings", result.hpoMappings);
         this.previewTransformName = "Multiple HPO mappings";
         this.pendingHeader =  col.header;
         this.pendingHeader.current = `Multiple HPO terms - ${col.header.original}`;
         this.pendingColumnType = EtlColumnType.MultipleHpoTerm;
+        this.pendingHeader.hpoTerms = result.allHpoTerms;
+        console.log("multiple pending h", this.pendingHeader);
         this.previewTransformed = result.hpoMappings.map(
           (row: HpoMappingRow) =>
             row
@@ -862,12 +901,12 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
 
     const originalValues = col.values.map(v => v ?? '');
 
-   
+  
 
     const transformedValues: string[] = originalValues.map(val => {
       switch (transform) {
-        case TransformType.TrimWhitespace:
-          return val.trim();
+        case TransformType.StringSanitize:
+          return sanitizeString(val);
         case TransformType.ToUppercase:
           return val.toUpperCase();
         case TransformType.ToLowercase:
@@ -974,13 +1013,17 @@ applyValueTransform() {
        this.notificationService.showError("Could not apply transform because column type was not set");
       return;
     }
+    if (this.pendingHeader == null) {
+      this.notificationService.showError("Could not apply transformation because pending header was not set");
+      return;
+    }
 
     const sourceCol = this.etlDto.table.columns[previewIdx];
 
     const newColumn: ColumnDto = {
       id: crypto.randomUUID(),
       transformed: true,
-      header: sourceCol.header, 
+      header: this.pendingHeader, 
       values: this.previewTransformed
     };
     newColumn.header.columnType = this.pendingColumnType;
@@ -994,7 +1037,7 @@ applyValueTransform() {
 
   /**
    * Open a dialog with a preview of the transformed data that the user can accept or cancel
-   * Returns true if user accepts.
+   * If accepted, then applyTransformConfirmed is callede
    * @param colIndex index of the column with the data being transformed
    * @param transformedValues The new (trasnformed) cell contents
    * @param transformName Name of the procedure used to trasnform
@@ -1129,21 +1172,21 @@ applyValueTransform() {
 
 
 
-
+  /** TODO - document */
   get_single_hpo_term(header: EtlColumnHeader) : Promise<HpoTermDuplet> {
     return new Promise((resolve, reject) => {
-    if (header.columnType !== EtlColumnType.SingleHpoTerm) {
-      reject(new Error("Header is not a single HPO term column"));
-      return;
-    }
+      if (header.columnType !== EtlColumnType.SingleHpoTerm) {
+        reject(new Error("Header is not a single HPO term column"));
+        return;
+      }
 
-    if (!header.metadata || header.metadata.kind !== "hpoTerms" || !header.metadata.data?.[0]) {
-      reject(new Error("No HPO term found in header metadata"));
-      return;
-    }
+      if (!header.hpoTerms || header.hpoTerms.length == 0) {
+        reject(new Error("No HPO term found in header metadata"));
+        return;
+      }
 
-    resolve(header.metadata.data[0]);
-  });
+      resolve(header.hpoTerms[0]);
+    });
   }
 
   async processHpoColumn(colIndex: number | null): Promise<void> {
@@ -1213,8 +1256,8 @@ applyValueTransform() {
     const dialogRef = this.dialog.open(ColumnTypeDialogComponent, {
       width: '400px',
       data: {
-        etlTypes: this.etlTypes,      // your 13 possible types
-        currentType                  // current column’s type
+        etlTypes: this.etlTypes,      
+        currentType
       }
     });
 
@@ -1245,6 +1288,10 @@ applyValueTransform() {
     }
     const diseaseData = cohort.diseaseList[0];
     this.etlDto.disease = diseaseData;
+  }
+
+  trackRow(index: number, row: any): number {
+    return index; // row identity is its index
   }
 
 }

@@ -152,6 +152,22 @@ export class ConfigService {
   async validateSv(dto: VariantDto, cohort_dto: CohortData): Promise<StructuralVariant> {
     return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto});
   }
+
+  async validateOneHgvs(symbol: string, hgnc: string, transcript: string, allele: string): Promise<HgvsVariant> {
+    return invoke<HgvsVariant>('validate_one_hgvs_variant',
+      {symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        allele: allele});
+  }
+
+    async validateOneSv(symbol: string, hgnc: string, transcript: string, allele: string): Promise<StructuralVariant> {
+    return invoke<StructuralVariant>('validate_one_structural_variant',
+      {symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        allele: allele});
+  }
   
   async validateAllHgvsVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,HgvsVariant>> {
     return invoke<Record<string,HgvsVariant>>('validate_all_hgvs_variants', {
@@ -248,7 +264,6 @@ export class ConfigService {
    * @param template: list of columns from the external table
    */
   async saveJsonExternalTemplate(template: EtlDto) {
-      console.log('Template data being sent2:', JSON.stringify(template, null, 2));
     await invoke('save_external_template_json', {  template });
   }
 

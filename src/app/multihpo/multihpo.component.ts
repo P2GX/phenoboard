@@ -71,12 +71,16 @@ export class MultiHpoComponent {
       return 'na';
     }
     const normalizedRowText = rowText.toLowerCase().trim();
+    const not_app_set = new Set(["na", "n/a", "nd", "?"]);
+    if (not_app_set.has(normalizedRowText)) {
+      return "na";
+    }
     const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
     if (normalizedRowText === normalizedTermLabel) {
       return 'observed';
     }
-    // Check if the row text contains the HPO term label
-    if (normalizedRowText.includes(normalizedTermLabel)) {
+    // Check if the row text contains the HPO term label (skip short entries such as na)
+    if (normalizedRowText.includes(normalizedTermLabel) && normalizedRowText.length > 4) {
       return 'observed';
     }
     // Check if the HPO term label contains the row text (for shorter row text)
@@ -92,7 +96,8 @@ export class MultiHpoComponent {
 
   save() {
     this.dialogRef.close({
-      hpoMappings: this.hpoMappings
+      hpoMappings: this.hpoMappings,
+      allHpoTerms: this.allHpoTerms,
     });
   }
 

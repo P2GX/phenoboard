@@ -625,6 +625,7 @@ impl PhenoboardSingleton {
 
     /// Validate an HGVS variant using VariantValidator; first check if the identical variant
     /// is present in the CohortDto object
+    /* 
     pub fn validate_hgvs_variant(
         &self,
         vv_dto: VariantDto,
@@ -647,7 +648,7 @@ impl PhenoboardSingleton {
             Some(ptools) => ptools.validate_structural_variant(vv_dto, cohort_dto),
             None =>  Err(format!("phetools not initialized")),
         }
-    }
+    }*/
 
     pub fn load_external_excel(
         &mut self, external_excel_file: &str, 

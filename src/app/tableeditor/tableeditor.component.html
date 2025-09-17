@@ -74,10 +74,10 @@
   </tr>
 
   <!-- ===== DATA ROWS ===== -->
-@for (row of displayRows; track row; let rowIndex = $index) {
+@for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
   <tr>
     
-    @for (colIndex of getVisibleColumns(); track displayColumns[colIndex]?.id || colIndex) {
+    @for (colIndex of getVisibleColumns(); track displayColumns[colIndex].id) {
       <td
         [ngClass]="{
           'edit-mode-narrow': editModeActive

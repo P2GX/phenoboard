@@ -34,14 +34,7 @@ export enum DeceasedCode {
   Na = "na",
 }
 
-// --- ColumnMetadata (serde tagged union: kind + data) ---
-export type ColumnMetadata =
-  | { kind: "raw" }
-  | { kind: "hpoTerms"; data: HpoTermDuplet[] }
-  | { kind: "geneTranscript"; data: { geneSymbol: string; transcriptId: string } }
-  | { kind: "sex"; data: { code: SexCode } }
-  | { kind: "deceased"; data: { code: DeceasedCode } }
-  | { kind: "freeText"; data: string };
+
 
 
 // --- EtlColumnHeader ---
@@ -49,7 +42,7 @@ export interface EtlColumnHeader {
   original: string;
   current?: string;
   columnType: EtlColumnType;
-  metadata: ColumnMetadata;
+  hpoTerms?: HpoTermDuplet[];
 }
 
 
@@ -58,7 +51,6 @@ export function newRawEtlColumnHeader(originalColumnHeader: string): EtlColumnHe
     original: originalColumnHeader,
     current: undefined,
     columnType: EtlColumnType.Raw,
-    metadata: { kind: "raw" },
   };
 }
 

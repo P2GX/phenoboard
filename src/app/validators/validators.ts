@@ -33,3 +33,10 @@ export function asciiValidator() {
     return /^[\x00-\x7F]*$/.test(value) ? null : { asciiOnly: true };
   };
 }
+
+/** Trim whitespace from beginning and end and remove non-ASCII characters */
+export function sanitizeString(input: string): string {
+    return input
+    .trim()
+    .replace(/[^\x00-\x7F]/g, ""); 
+}

@@ -45,10 +45,10 @@ pub fn run() {
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            validate_hgvs_variant,
-            validate_structural_variant,
             validate_all_hgvs_variants,
             validate_all_structural_variants,
+            validate_one_hgvs_variant,
+            validate_one_structural_variant,
             export_ppkt,
             load_external_excel,
             load_external_template_json,
@@ -443,6 +443,27 @@ fn validate_all_hgvs_variants(
     ga4ghphetools::variant::validate_all_hgvs(symbol, hgnc, transcript, &alleles)
 }
 
+
+#[tauri::command]
+fn validate_one_hgvs_variant(
+    symbol: &str,
+    hgnc: &str,
+    transcript: &str,
+    allele: &str) 
+-> Result<HgvsVariant, String> {
+    ga4ghphetools::variant::validate_one_hgvs_variant(symbol, hgnc, transcript, allele)
+}
+
+#[tauri::command]
+fn validate_one_structural_variant(
+    symbol: &str,
+    hgnc: &str,
+    transcript: &str,
+    allele: &str) 
+-> Result<StructuralVariant, String> {
+    ga4ghphetools::variant::validate_one_structural_variant(symbol, hgnc, transcript, allele)
+}
+
 #[tauri::command]
 fn validate_all_structural_variants(
     symbol: &str,
@@ -454,6 +475,7 @@ fn validate_all_structural_variants(
 }
 
 
+/* 
 #[tauri::command]
 fn validate_hgvs_variant(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
@@ -476,7 +498,7 @@ fn validate_structural_variant(
     let singleton = singleton_arc.lock().unwrap();
     singleton.validate_structural_variant(dto, cohort_dto) 
 }
-
+*/
 
 
 /// Allow the user to choose an external Excel file (e.g., supplemental table) from which we will create phenopackets
