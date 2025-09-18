@@ -1,7 +1,6 @@
 import { Component, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; 
-import { ConfigService } from '../services/config.service';
+import { FormBuilder, FormGroup, FormsModule,  } from '@angular/forms';import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
@@ -20,6 +19,8 @@ import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
+import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
+
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -27,11 +28,13 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, AdddemoComponent, HpoAutocompleteComponent, MatIconModule],
+  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, 
+    AdddemoComponent, HpoAutocompleteComponent, MatIconModule, ],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+
 
   constructor(
     private ngZone: NgZone,
@@ -39,8 +42,13 @@ export class AddcaseComponent {
     public ageService: AgeInputService,
     private cohortService: CohortDtoService,
     private dialog: MatDialog,
-    private router: Router
-  ) {}
+    private router: Router,
+    private fb: FormBuilder
+  ) {
+     this.pmidForm = this.fb.group({
+          pmid: [defaultPmidDto()],  // or null if you allow null
+        });
+  }
   @Input() annotations: TextAnnotationDto[] = [];
   @ViewChild(PubmedComponent) pubmedComponent!: PubmedComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
@@ -48,6 +56,9 @@ export class AddcaseComponent {
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
   /* subscribe to state in the service layer */
   cohortDto$ = this.cohortService.cohortDto$;
+  pmidForm: FormGroup;
+
+  pmidDto: PmidDto = defaultPmidDto();
 
  
   pastedText: string = '';
@@ -113,6 +124,10 @@ export class AddcaseComponent {
         this.tableData = null;
       }
       
+    });
+    this.pmidForm.valueChanges.subscribe(value => {
+      console.log('Form value:', value);
+      // value = { pmid: PmidDto }
     });
   }
 
@@ -486,4 +501,21 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.hasError = false;
     this.backend_status = defaultStatusDto();
   }
+
+
+    openPubmedDialog() {
+      const dialogRef = this.dialog.open(PubmedComponent, {
+        width: '600px',
+        data: { pmidDto: null } // optional initial data
+      });
+  
+      dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
+        if (result) {
+          console.log('User chose', result);
+          this.pmidDto = result;
+        } else {
+          console.log('User cancelled');
+        }
+      });
+    }
 }

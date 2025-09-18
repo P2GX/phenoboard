@@ -1,5 +1,6 @@
 <div class="w-full px-[5%]">
-  <app-pubmed #pmidChild></app-pubmed>
+<app-pubmed [(pmidDto)]="pmidDto"></app-pubmed>
+
   @if (showAgeEntryArea) {
     <app-addages #addagesComponent></app-addages>
   }

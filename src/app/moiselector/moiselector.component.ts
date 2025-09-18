@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
+import { defaultPmidDto, PmidDto } from "../models/pmid_dto";
 
 
 interface MoiTerm {
@@ -22,6 +23,8 @@ export class MoiSelector {
 
   showMoi = true;
 
+  pmidDto: PmidDto = defaultPmidDto();
+
   moiTerms: MoiTerm[] = [
     { id: 'HP:0000006', label: 'Autosomal dominant inheritance', selected: false },
     { id: 'HP:0000007', label: 'Autosomal recessive inheritance', selected: false },
@@ -32,6 +35,7 @@ export class MoiSelector {
     { id: 'HP:0010984', label: 'Digenic inheritance', selected: false },
     { id: 'HP:0001450', label: 'Y-linked inheritance', selected: false },
   ];
+
 
   get selectedMoiWithPmids(): MoiTerm[] {
     return this.moiTerms.filter(m => m.selected);

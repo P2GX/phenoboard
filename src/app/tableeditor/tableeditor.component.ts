@@ -7,7 +7,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.component';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
 import { HpoMappingResult } from "../models/hpo_mapping_result";
 import { ColumnDto, ColumnTableDto, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
@@ -24,7 +24,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 import { sanitizeString } from '../validators/validators';
-
+import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
+import { PubmedComponent } from '../pubmed/pubmed.component';
 
 
 
@@ -48,22 +49,27 @@ enum TransformType {
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule],
+  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule],
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-
   constructor(private configService: ConfigService, 
     templateService: CohortDtoService,
     ngZone: NgZone,
     cdRef: ChangeDetectorRef,
     private dialog: MatDialog,
     private etl_service: EtlSessionService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private fb: FormBuilder
   ) {
     super(templateService, ngZone, cdRef);
+    this.pmidForm = this.fb.group({
+      pmid: [defaultPmidDto()],  // or null if you allow null
+    });
   }
+
+  pmidForm: FormGroup;
 
   displayColumns: ColumnDto[] = [];
   displayHeaders: EtlColumnHeader[] = [];
@@ -142,9 +148,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   transformationMap: { [original: string]: string } = {};
   uniqueValuesToMap: string[] = [];
 
-  //columnMappingMemory: { [columnHeader: string]: HpoMappingResult } = {};
+  pmidDto: PmidDto = defaultPmidDto();
 
-  
+
  
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
@@ -171,6 +177,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   override ngOnInit(): void {
     super.ngOnInit();
     this.etl_service.etlDto$.subscribe(dto => { this.etlDto = dto});
+    this.pmidForm.valueChanges.subscribe(value => {
+      console.log('Form value:', value);
+      // value = { pmid: PmidDto }
+    });
   }
 
  
@@ -722,6 +732,11 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.errorMessage = null;
     if (this.etlDto == null) {
       this.notificationService.showError("Could not save JSON because data table is not initialized");
+      return;
+    }
+    const validationError = this.etl_service.validateEtlDto(this.etlDto);
+    if (validationError) {
+      this.notificationService.showError(`Validation failed: ${validationError}`);
       return;
     }
     this.configService.saveJsonExternalTemplate(this.etlDto)
@@ -1292,6 +1307,24 @@ applyValueTransform() {
 
   trackRow(index: number, row: any): number {
     return index; // row identity is its index
+  }
+
+ 
+
+  openPubmedDialog() {
+    const dialogRef = this.dialog.open(PubmedComponent, {
+      width: '600px',
+      data: { pmidDto: null } // optional initial data
+    });
+
+    dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
+      if (result) {
+        console.log('User chose', result);
+        this.pmidDto = result;
+      } else {
+        console.log('User cancelled');
+      }
+    });
   }
 
 }

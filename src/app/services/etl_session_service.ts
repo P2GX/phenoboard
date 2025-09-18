@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { EtlDto } from "../models/etl_dto";
+import { EtlColumnType, EtlDto } from "../models/etl_dto";
 import { ConfigService } from "./config.service";
 
 
@@ -9,6 +9,7 @@ import { ConfigService } from "./config.service";
   providedIn: 'root'
 })
 export class EtlSessionService {
+  
 
   constructor(private configService: ConfigService){
       console.log('🟡 EtlSessionService instance created');
@@ -90,5 +91,59 @@ export class EtlSessionService {
   
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  validateEtlDto(etlDto: EtlDto): string | null {
+    // Check if table exists
+    if (!etlDto.table) {
+      return "ETL DTO table not initialized";
+    }
+    
+    // Check if columns exist
+    if (!etlDto.table.columns || etlDto.table.columns.length === 0) {
+      return "No columns found in ETL DTO table";
+    }
+    
+    // Check each column
+    for (let i = 0; i < etlDto.table.columns.length; i++) {
+      const column = etlDto.table.columns[i];
+      
+      // Check header
+      if (!column.header) {
+        return `Column ${i + 1} is missing header information`;
+      }
+      
+      if (!column.header.original) {
+        return `Column ${i + 1} is missing original header name`;
+      }
+      
+      // Validate HPO columns
+      if (column.header.columnType === EtlColumnType.SingleHpoTerm) {
+        if (!column.header.hpoTerms || column.header.hpoTerms.length !== 1) {
+          return `SingleHpoTerm column '${column.header.original}' must have exactly one HPO term, found ${column.header.hpoTerms?.length || 0}`;
+        }
+      }
+      
+      if (column.header.columnType === EtlColumnType.MultipleHpoTerm) {
+        if (!column.header.hpoTerms || column.header.hpoTerms.length === 0) {
+          return `MultipleHpoTerms column '${column.header.original}' must have at least one HPO term`;
+        }
+      }
+      
+      // Check values exist
+      if (!column.values) {
+        return `Column '${column.header.original}' has no values`;
+      }
+    }
+    
+    // Check row consistency
+    const expectedRowCount = etlDto.table.columns[0].values.length;
+    for (const column of etlDto.table.columns) {
+      if (column.values.length !== expectedRowCount) {
+        return `Column '${column.header.original}' has ${column.values.length} rows, expected ${expectedRowCount}`;
+      }
+    }
+    
+    return null; // No errors found
   }
 }

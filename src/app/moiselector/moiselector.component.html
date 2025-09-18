@@ -22,10 +22,7 @@
           </div>
 
           @if (moi.selected) { 
-            <app-pubmed 
-              #pmidChild 
-              (pmidChange)="moi.pmid = $event.pmid">
-            </app-pubmed>
+            <app-pubmed [(pmidDto)]="pmidDto"></app-pubmed>
 
             @if (moi.pmid != null) {
               <p class="text-xs text-gray-500">{{ moi.pmid }}</p>
