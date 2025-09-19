@@ -36,7 +36,8 @@ export class PubmedComponent implements ControlValueAccessor {
   @Output() pmidDtoChange = new EventEmitter<PmidDto>(); 
 
 
-  private onChange: (value: PmidDto) => void = () => {};
+  private onChange: (value: PmidDto) => void = (value) => {
+  };
   private onTouched: () => void = () => {};
 
   // 🔹 Shared updater

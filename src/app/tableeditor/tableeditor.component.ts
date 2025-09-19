@@ -488,10 +488,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       if (val.startsWith("c.") || val.startsWith("n.")) {
         this.configService.validateOneHgvs(symbol, hgnc, transcript, val)
           .then((hgvs) => {
+            if (this.etlDto == null) {
+              return;
+            }
             const varKey = hgvs.variantKey;
             hgvsToKey[val] = varKey;
             allVariantKeys.add(varKey);
             col.values[i] = varKey; // update in place
+            this.etlDto.hgvsVariants[varKey] = hgvs;
             this.reRenderTableRows(); // optional: trigger change detection
           })
           .catch((error) => {
@@ -501,10 +505,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       } else {
         this.configService.validateOneSv(symbol, hgnc, transcript, val)
           .then((sv) => {
+            if (this.etlDto == null) {
+              return;
+            }
             const varKey = sv.variantKey;
             svToKey[val] = varKey;
             allVariantKeys.add(varKey);
             col.values[i] = varKey; // update in place
+            this.etlDto.structuralVariants[varKey] = sv;
             this.reRenderTableRows();
           })
           .catch((error) => {
@@ -1310,7 +1318,7 @@ applyValueTransform() {
   }
 
  
-
+  /** Add the PMID to the ETL DTO; open a modal dialog with our PMID widget */
   openPubmedDialog() {
     const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
@@ -1318,9 +1326,13 @@ applyValueTransform() {
     });
 
     dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-      if (result) {
+      if (result && this.etlDto) {
+
         console.log('User chose', result);
         this.pmidDto = result;
+        this.etlDto.pmid = this.pmidDto.pmid;
+        this.etlDto.title = this.pmidDto.title;
+
       } else {
         console.log('User cancelled');
       }
