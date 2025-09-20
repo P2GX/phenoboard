@@ -56,6 +56,7 @@ pub fn run() {
             get_biocurator_orcid,
             save_biocurator_orcid,
             get_variant_analysis,
+            get_cohort_data_from_etl_dto
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -643,5 +644,23 @@ async fn get_variant_analysis(
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = phenoboard_arc.lock().unwrap();
     singleton.get_variant_analysis(cohort_dto)
+}
+
+/// This command creates a CohortData object from the current EtlDto and should
+/// be called after the user has finished transformation
+#[tauri::command]
+async  fn get_cohort_data_from_etl_dto(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    dto: EtlDto,
+) -> Result<CohortData, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = phenoboard_arc.lock().unwrap();
+    let hpo = match singleton.get_hpo() {
+        Some(hpo) => hpo,
+        None => {
+            return Err("Could not create CohortData because HPO was not initialized".to_string());
+        },
+    };
+    ga4ghphetools::etl::get_cohort_data_from_etl_dto(hpo, dto)
 }
  

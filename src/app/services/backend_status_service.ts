@@ -14,4 +14,8 @@ export class BackendStatusService {
     getStatus(): StatusDto {
         return this.statusSubject.value;
     }
+
+    clearStatus(){
+        this.statusSubject.next(defaultStatusDto());
+    }
 }

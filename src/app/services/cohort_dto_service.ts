@@ -13,6 +13,7 @@ import { HpoTermDuplet } from '../models/hpo_term_dto';
  */
 @Injectable({ providedIn: 'root' })
 export class CohortDtoService {
+  
     
     constructor(private configService: ConfigService){
         console.log('🟡 CohortDtoService instance created');
@@ -180,6 +181,18 @@ export class CohortDtoService {
         return dto_list;
         */
        return [];
+    }
+
+    /** This method is used to see if the current CohortData is initialized and has data rows -- if this is
+     * the case, we need to merge data coming from an EtlDto, otherwise we can just set the cohortData to the
+     * new cohort
+     */
+    currentCohortContainsData() {
+      const current = this.cohortDtoSubject.getValue();
+      if (current == null) {
+        return false;
+      }
+      return (current.rows.length > 0);
     }
 
 }

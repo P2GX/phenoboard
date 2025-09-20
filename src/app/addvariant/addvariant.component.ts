@@ -141,8 +141,7 @@ export class AddVariantComponent {
 
   /** This is called when the user has finished entering an HGVS variant 
    * and clicks on the "Submit HGVS" button. If we are successful, the methods
-   * sets the currentHgvsVariant variable. See also submitSvDto for information
-   * on how the variants are processed.
+   * sets the currentHgvsVariant variable and adds it to the HGVS map
    */
   async submitHgvsDto(): Promise<void> {
     console.log("submitHgvsDto line 113, variant=", this.variant_string)
@@ -152,26 +151,18 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const vv_dto: VariantDto = {
-      variantString: this.variant_string,
-      transcript: this.selectedGene.transcript,
-      hgncId: this.selectedGene.hgncId,
-      geneSymbol: this.selectedGene.geneSymbol,
-      variantType: "HGVS",
-      isValidated: false,
-      count: 0
-    };
     const cohortDto = this.templateService.getCohortDto();
     if (cohortDto == null) {
       // should never happen
       console.error("Attempt to validate HGVS with null cohortDto");
       return;
     }
-    this.configService.validateHgvs(vv_dto, cohortDto)
+    this.configService.validateOneHgvs(this.selectedGene.geneSymbol, this.selectedGene.hgncId, this.selectedGene.transcript, this.variant_string)
         .then((hgvs) => {
           console.log("adding hgvs", hgvs);
           this.currentHgvsVariant = hgvs;
-           this.variantValidated = true;
+          this.variantValidated = true;
+          cohortDto.hgvsVariants[hgvs.variantKey] = hgvs;
         })
         .catch((error) => {
           alert(String(error));

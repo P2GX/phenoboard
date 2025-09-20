@@ -26,6 +26,8 @@ import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 import { sanitizeString } from '../validators/validators';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
+import { MultipleHpoDialogComponent } from './multihpo-dialog-vis-component';
+import { Router } from '@angular/router';
 
 
 
@@ -54,6 +56,7 @@ enum TransformType {
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+
   constructor(private configService: ConfigService, 
     templateService: CohortDtoService,
     ngZone: NgZone,
@@ -61,7 +64,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     private dialog: MatDialog,
     private etl_service: EtlSessionService,
     private notificationService: NotificationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router,
   ) {
     super(templateService, ngZone, cdRef);
     this.pmidForm = this.fb.group({
@@ -616,12 +620,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         this.pendingHeader.current = `Multiple HPO terms - ${col.header.original}`;
         this.pendingColumnType = EtlColumnType.MultipleHpoTerm;
         this.pendingHeader.hpoTerms = result.allHpoTerms;
-        console.log("multiple pending h", this.pendingHeader);
         this.previewTransformed = result.hpoMappings.map(
           (row: HpoMappingRow) =>
             row
-              .filter(entry => entry.status !== 'na')         // only include observed/excluded
-              .map(entry => `${entry.term.hpoLabel}[${entry.term.hpoId};${entry.status}]`) // display label + status
+              .filter(entry => entry.status !== 'na')// only include observed/excluded
+              .map(entry => `${entry.term.hpoId}-${entry.status}`) // display label + status
               .join(";")
         );
         this.showPreview( "multiple HPO transform");
@@ -720,6 +723,39 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       this.notificationService.showError("Could not edit cell because we could not get context menu cell value.");
       return;
     }
+    const colIndex = this.contextMenuCellCol;
+    if (colIndex == null) {
+      this.notificationService.showError("Could not edit cell because we could not get context menu cell column index.");
+      return;
+    }
+    let col = this.etlDto?.table.columns[colIndex];
+    if (col == null) {
+      this.notificationService.showError("Could not edit cell because we could not get context menu cell column.");
+      return;
+    }
+
+    // check column type (pseudo-code, adapt to your DTO)
+  if (col.header.columnType === EtlColumnType.MultipleHpoTerm) {
+    // open your HPO dialog
+    const dialogRef = this.dialog.open(MultipleHpoDialogComponent, {
+      width: '600px',
+      data: {
+        entries: this.contextMenuCellValue // pass the current duplets here
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // result is updated entries
+        this.editingValue = this.contextMenuCellValue || this.editingValue;
+      }
+    });
+    this.editModalVisible = true;
+    this.contextMenuCellVisible = false;
+    return;
+  }
+
+
     this.editingValue = this.contextMenuCellValue;
     this.editModalVisible = true;
     this.contextMenuCellVisible = false;
@@ -1337,6 +1373,25 @@ applyValueTransform() {
         console.log('User cancelled');
       }
     });
+  }
+
+  /** Add the data from the external data to the current CohortData object. If there is no
+   * current CohortData object, then initialize it. If there is an error in the ETL data, do nothing
+   * except for showing the error.
+   */
+  async addToCohortData() {
+    const etl_dto = this.etlDto;
+    if (etl_dto == null) {
+      this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
+      return;
+    }
+    const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
+    if (this.cohortService.currentCohortContainsData()) {
+      this.notificationService.showError("TO DO IMPLEMENT MERGE");
+    } else {
+      this.cohortService.setCohortDto(cohort_dto_new);
+      this.router.navigate(['/pttemplate']);
+    }
   }
 
 }

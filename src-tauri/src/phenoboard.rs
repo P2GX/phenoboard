@@ -63,6 +63,13 @@ impl PhenoboardSingleton {
         self.phetools = Some(phetools);
     }
 
+    pub fn get_hpo(&self) -> Option<Arc<FullCsrOntology>> {
+        match &self.ontology {
+            Some(hpo) => Some(hpo.clone()),
+            None => None,
+        }
+    }
+
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
     pub fn get_hpo_autocomplete(&self) -> &Vec<String> {

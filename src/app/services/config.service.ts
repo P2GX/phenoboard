@@ -3,8 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantData, IndividualData, CohortData, DiseaseData, CohortType } from '../models/cohort_dto';
-import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { IndividualData, CohortData, DiseaseData, CohortType } from '../models/cohort_dto';
+import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 
@@ -13,6 +13,7 @@ import { ColumnTableDto, EtlDto } from '../models/etl_dto';
   providedIn: 'root'
 })
 export class ConfigService {
+
   
   constructor() {}
 
@@ -296,5 +297,8 @@ export class ConfigService {
     return await invoke<TextAnnotationDto[]>('map_text_to_annotations', {inputText: result});
   }
 
+  async  transformToCohortData(etlDto: EtlDto) {
+    return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});
+  }
 
 }

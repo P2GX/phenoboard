@@ -25,6 +25,7 @@ import { NotificationService } from '../services/notification.service';
 })
 export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
 
+
   constructor(
     ngZone: NgZone, 
     private configService: ConfigService,
@@ -48,10 +49,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   newFilePath: any;
   loadError: any;
-  newTemplateMessage: string = "not initialized";
-  templateFileMessage: string = "not initialized";
-  jsonTemplateFileMessage: string = "not initialized";
-  biocuratorOrcid: string | null = "not initialized";
+  NOT_INIT: string = "not initialized";
+  newTemplateMessage: string = this.NOT_INIT;
+  templateFileMessage: string = this.NOT_INIT;
+  jsonTemplateFileMessage: string = this.NOT_INIT;
+  biocuratorOrcid: string | null = this.NOT_INIT;
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
 
@@ -215,6 +217,20 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         const errorMessage = String(error);
          this.notificationService.showError(errorMessage);
       }
+  }
+
+  openExternalTemplate() {
+    this.clearData();
+    this.router.navigate(['/tableeditor']);
+  }
+
+  /** Clear existing datasets, e.g., when we move to a new template */
+  clearData() {
+    this.backendStatusService.clearStatus();
+    this.newTemplateMessage = this.NOT_INIT;
+    console.log("clear daa, ntm =", this.newTemplateMessage);
+    this.jsonTemplateFileMessage = this.NOT_INIT;
+    this.cohortService.clearCohortDto();
   }
 
 }

@@ -194,7 +194,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       cohort: cohort
     };
 
-    console.log("About to open dialog -- ", geneEditData);
     // Open dialog
     const dialogRef = this.dialog.open(GeneEditComponent, {
       width: '500px',
@@ -236,7 +235,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
             }
             /* If we get here, the variant was validated and added to the cohort. */
             /* We add it with a count of 1 -- they user may need to adjust */
-            console.log('allele1 added:', result);
+            console.log('allele added:', result);
             const cohort = this.cohortService.getCohortDto();
             if (cohort) {
               // Find the matching row in cohort.rows
