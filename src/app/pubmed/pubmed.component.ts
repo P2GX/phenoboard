@@ -34,6 +34,7 @@ export class PubmedComponent implements ControlValueAccessor {
 
   @Input() pmidDto: PmidDto = defaultPmidDto();
   @Output() pmidDtoChange = new EventEmitter<PmidDto>(); 
+  @Output() widgetClosed = new EventEmitter<any>(); // Add this
 
 
   private onChange: (value: PmidDto) => void = (value) => {
@@ -102,6 +103,7 @@ export class PubmedComponent implements ControlValueAccessor {
   }
 
   close(): void {
+    this.widgetClosed.emit(this.pmidDto); 
     this.dialogRef?.close(this.pmidDto); // return the dto to the caller
   }
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from "@angular/core";
+import { Component, EventEmitter, Output, SimpleChanges } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
@@ -19,6 +19,7 @@ interface MoiTerm {
   imports: [PubmedComponent, FormsModule],
 })
 export class MoiSelector {
+
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
   showMoi = true;
@@ -35,6 +36,14 @@ export class MoiSelector {
     { id: 'HP:0010984', label: 'Digenic inheritance', selected: false },
     { id: 'HP:0001450', label: 'Y-linked inheritance', selected: false },
   ];
+
+  // Watch for changes to pmidDto
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['pmidDto'] && changes['pmidDto'].currentValue) {
+      console.log("NGONCHANGES - pmid", this.pmidDto);
+      this.confirmSelection();
+    }
+  }
 
 
   get selectedMoiWithPmids(): MoiTerm[] {
@@ -59,5 +68,26 @@ export class MoiSelector {
 
   get confirmDisabled(): boolean {
     return this.selectedMoiWithPmids.length === 0 || this.selectedMoiWithPmids.some(m => !m.pmid);
+  }
+
+  
+  onPubmedClosed(event: any, moiIndex: number) {
+    console.log('Full event object:', event);
+    console.log('Event keys:', Object.keys(event || {}));
+    console.log('Event.pmid:', event?.pmid);
+    const pmid = event.pmid;
+    const moi = this.moiTerms[moiIndex];
+      moi.selected = true; 
+      if (event && event.pmid) {
+        moi.pmid = pmid; // Set the PMID for this specific MOI
+      }
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids.map(m => ({
+      hpoId: m.id,
+      hpoLabel: m.label,
+      citation: m.pmid!   // `!` safe because confirmDisabled prevents empty pmid
+    }));
+    console.log(moiList);
+    this.moiChange.emit(moiList);
+    this.showMoi = false;
   }
 }

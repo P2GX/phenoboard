@@ -427,8 +427,16 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     const col = etlDto.table.columns[colIndex];
+    const original = col.header.original;
+    let best_hpo_match = "";
+    try {
+      best_hpo_match = (await this.configService.getBestHpoMatch(original)) ?? "";
+    } catch {
+      best_hpo_match = "";
+    }
     const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
-      width: '500px'
+      width: '500px',
+      data: { bestMatch: best_hpo_match },
     });
 
     const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());
@@ -1385,12 +1393,19 @@ applyValueTransform() {
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
-    const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
-    if (this.cohortService.currentCohortContainsData()) {
-      this.notificationService.showError("TO DO IMPLEMENT MERGE");
-    } else {
-      this.cohortService.setCohortDto(cohort_dto_new);
-      this.router.navigate(['/pttemplate']);
+    try {
+      const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
+      if (this.cohortService.currentCohortContainsData()) {
+        this.notificationService.showError("TO DO IMPLEMENT MERGE");
+      } else {
+        this.cohortService.setCohortDto(cohort_dto_new);
+        this.router.navigate(['/pttemplate']);
+      }
+    } catch (err: any) {
+      console.error("Error creating CohortData:", err);
+      this.notificationService.showError(
+        `Could not create CohortData: ${err?.message ?? err}`
+      );
     }
   }
 

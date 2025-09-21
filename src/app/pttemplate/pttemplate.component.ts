@@ -606,6 +606,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
     onMoiChange(mois: ModeOfInheritance[]) {
+      console.log("onMoiChange mois=", mois);
       const cohort = this.cohortService.getCohortDto();
       if (!cohort) {
         this.notificationService.showError("Could not set MOI because cohort is not initialized");

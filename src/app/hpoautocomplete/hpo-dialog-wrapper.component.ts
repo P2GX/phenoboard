@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
+import { Component, Inject } from '@angular/core';
+import { MatDialogRef, MatDialogContent, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HpoAutocompleteComponent } from './hpoautocomplete.component';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 
@@ -11,7 +11,10 @@ import { HpoTermDuplet } from '../models/hpo_term_dto';
   template: `
     <h2 mat-dialog-title>Select HPO Term</h2>
     <mat-dialog-content>
-      <app-hpoautocomplete (selected)="onSelected($event)"></app-hpoautocomplete>
+      <app-hpoautocomplete
+        [initialValue]="data.bestMatch"
+        (selected)="onSelected($event)">
+      </app-hpoautocomplete>
     </mat-dialog-content>
     <mat-dialog-actions>
       <button mat-button (click)="dialogRef.close()">Cancel</button>
@@ -19,7 +22,10 @@ import { HpoTermDuplet } from '../models/hpo_term_dto';
   `
 })
 export class HpoDialogWrapperComponent {
-  constructor(public dialogRef: MatDialogRef<HpoDialogWrapperComponent>) {}
+  constructor(
+    public dialogRef: MatDialogRef<HpoDialogWrapperComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { bestMatch: string }
+  ) {}
 
   onSelected(term: HpoTermDuplet) {
     this.dialogRef.close(term);

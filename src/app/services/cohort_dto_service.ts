@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
-import { HpoTermDuplet } from '../models/hpo_term_dto';
+
 
 
 /**

@@ -297,7 +297,7 @@ export class ConfigService {
     return await invoke<TextAnnotationDto[]>('map_text_to_annotations', {inputText: result});
   }
 
-  async  transformToCohortData(etlDto: EtlDto) {
+  async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {
     return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});
   }
 

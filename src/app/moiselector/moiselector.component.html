@@ -6,7 +6,7 @@
 
     <!-- MOI checkboxes and PubMed inputs -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      @for (moi of moiTerms; track moi) {
+      @for (moi of moiTerms; track moi; let moiIdx = $index) {
         <div class="flex flex-col space-y-1 p-2 border rounded">
           <!-- Checkbox -->
           <div class="flex items-center">
@@ -22,7 +22,7 @@
           </div>
 
           @if (moi.selected) { 
-            <app-pubmed [(pmidDto)]="pmidDto"></app-pubmed>
+            <app-pubmed [(pmidDto)]="pmidDto" (widgetClosed)="onPubmedClosed($event, moiIdx)"></app-pubmed>
 
             @if (moi.pmid != null) {
               <p class="text-xs text-gray-500">{{ moi.pmid }}</p>

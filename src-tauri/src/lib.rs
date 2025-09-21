@@ -366,7 +366,13 @@ fn validate_template(
     cohort_dto: CohortData) -> Result<(), String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_template(cohort_dto)
+    let hpo = match singleton.get_hpo() {
+        Some(hpo) => hpo.clone(),
+        None => {
+            return Err("Could not create CohortData because HPO was not initialized".to_string());
+        },
+    };
+    ga4ghphetools::factory::qc_assessment(hpo.clone(), &cohort_dto)
 }
 
 #[tauri::command]

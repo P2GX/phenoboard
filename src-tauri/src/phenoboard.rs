@@ -331,22 +331,6 @@ impl PhenoboardSingleton {
         }
     }
 
-
-    pub fn validate_template(
-        &self, 
-        cohort_dto: CohortData) 
-    -> Result<(), String> {
-        match &self.phetools {
-            Some(ptools) => {
-                let _template = ptools.validate_template(cohort_dto)?;
-                return Ok(());
-            },
-            None => {
-                Err("Phetools template not initialized".to_string())
-            },
-        }
-    }
-
     /// Get the directory in which the legacy (Excel) template is stored,
     /// which is {cohort_name}/input
     fn get_default_template_dir(&self) -> Option<PathBuf> {
@@ -384,14 +368,16 @@ impl PhenoboardSingleton {
     }
 
     pub fn save_template_json(&self, cohort_dto: CohortData) -> Result<(), String> {
-        let dir_opt = self.get_default_template_dir();
-        if dir_opt.is_none() {
-            return Err("Could not get default path".to_string());
-        }
-        let default_dir = dir_opt.unwrap();
+        let save_dir = match self.get_default_template_dir() {
+            Some(dir) => dir,
+            None => {
+                // Use home directory as fallback
+                dirs::home_dir().ok_or("Could not get home directory")?
+            }
+        };
         let template_name = self.extract_template_name(&cohort_dto)?;
         let save_path: Option<PathBuf> = FileDialog::new()
-            .set_directory(default_dir)
+            .set_directory(save_dir)
             .set_title("Save PheTools JSON template")
             .set_file_name(template_name)
             .save_file();
@@ -628,34 +614,6 @@ impl PhenoboardSingleton {
         };
         Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
     }
-
-
-    /// Validate an HGVS variant using VariantValidator; first check if the identical variant
-    /// is present in the CohortDto object
-    /* 
-    pub fn validate_hgvs_variant(
-        &self,
-        vv_dto: VariantDto,
-        cohort_dto: CohortData
-    ) -> Result<HgvsVariant, String> {
-        match self.phetools.as_ref() {
-            Some(ptools) => ptools.validate_hgvs_variant(vv_dto, cohort_dto),
-            None =>  Err(format!("phetools not initialized")),
-        }
-    }
-
-     /// Validate a structural variant using VariantValidator; first check if the identical variant
-    /// is present in the CohortDto object
-     pub fn validate_structural_variant(
-        &self,
-        vv_dto: VariantDto,
-        cohort_dto: CohortData
-    ) -> Result<StructuralVariant, String> {
-        match self.phetools.as_ref() {
-            Some(ptools) => ptools.validate_structural_variant(vv_dto, cohort_dto),
-            None =>  Err(format!("phetools not initialized")),
-        }
-    }*/
 
     pub fn load_external_excel(
         &mut self, external_excel_file: &str, 

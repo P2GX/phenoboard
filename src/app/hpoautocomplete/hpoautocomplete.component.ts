@@ -32,6 +32,7 @@ export class HpoAutocompleteComponent implements OnInit {
 
   constructor(public configService: ConfigService) {}
   control = new FormControl('');
+  @Input() initialValue = "";
   options: string[] = [];
   textMiningSuccess: boolean = false;
 
@@ -55,12 +56,15 @@ export class HpoAutocompleteComponent implements OnInit {
           this.textMiningSuccess = true;
           return this.configService.getAutocompleteHpo(value);
         }
-        return EMPTY; /*of([]);*/
+        return EMPTY; 
       })
     ).subscribe((suggestions) => {  
       console.log('Suggestions:', suggestions);
       this.options = suggestions;
     });
+    if (this.initialValue && this.initialValue.length > 5) {
+      this.control.setValue(this.initialValue);
+    }
   }
 
   clearInput() {
