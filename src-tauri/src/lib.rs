@@ -376,6 +376,23 @@ fn validate_template(
 }
 
 #[tauri::command]
+fn sanitize_cohort_data(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort_dto: CohortData) -> Result<CohortData, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    let hpo = match singleton.get_hpo() {
+        Some(hpo) => hpo.clone(),
+        None => {
+            return Err("HPO not initialized".to_string());
+        },
+    };
+    ga4ghphetools::factory::sanitize_cohort_data(hpo.clone(), &cohort_dto)
+}
+
+
+
+#[tauri::command]
 fn save_template(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     cohort_dto: CohortData) 

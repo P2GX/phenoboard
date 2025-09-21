@@ -196,6 +196,10 @@ export class ConfigService {
     return invoke<void>('validate_template', {cohortDto: cohort_dto});
   }
 
+  async sanitizeCohort(cohort_data: CohortData): Promise<CohortData> {
+    return invoke<CohortData>('sanitize_cohort_data',  {cohortDto: cohort_data});
+  }
+
   async exportPpkt(cohort_dto: CohortData): Promise<string> {
     return invoke<string>('export_ppkt', {cohortDto: cohort_dto});
   }
