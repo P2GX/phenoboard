@@ -39,7 +39,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   override async ngOnInit() {
     super.ngOnInit();
     try {
-      const cohort = this.cohortService.getCohortDto();
+      const cohort = this.cohortService.getCohortData();
       if (cohort != null) {
         this.variantDtoList = await this.configService.getVariantAnalysis(cohort);
       }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { CohortData, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
+import { CohortData, GeneTranscriptData, DiseaseData, RowData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 
@@ -19,19 +19,19 @@ export class CohortDtoService {
         console.log('🟡 CohortDtoService instance created');
     }
     private cohortDtoSubject = new BehaviorSubject<CohortData | null>(null);
-    cohortDto$ = this.cohortDtoSubject.asObservable();
+    cohortData$ = this.cohortDtoSubject.asObservable();
 
     
-    setCohortDto(template: CohortData) {
+    setCohortData(template: CohortData) {
         this.cohortDtoSubject.next(template);
     }
 
-    getCohortDto(): CohortData | null {
+    getCohortData(): CohortData | null {
         const current = this.cohortDtoSubject.getValue();
         return current;
     }
 
-    clearCohortDto() {
+    clearCohortData() {
         this.cohortDtoSubject.next(null);
     }
 
@@ -45,16 +45,16 @@ export class CohortDtoService {
     }
 
     getCohortAcronym(): string | null {
-        const templateDto = this.cohortDtoSubject.getValue();
-        if (templateDto == null) {
+        const cohortData = this.cohortDtoSubject.getValue();
+        if (cohortData == null) {
             console.error("Attempt to get acronym but cohort template was null");
             return null;
         }
-        if (templateDto.cohortAcronym == null) {
+        if (cohortData.cohortAcronym == null) {
             console.error("Cohort acronym not initialized");
             return null;
         }
-        return templateDto.cohortAcronym;
+        return cohortData.cohortAcronym;
     }
 
     /** Add an HGVS object that has been validated in the backend */
@@ -112,7 +112,7 @@ export class CohortDtoService {
     }
 
     async saveCohortDto(): Promise<void> {
-        const cohort = this.getCohortDto();
+        const cohort = this.getCohortData();
         if (cohort != null) {
             return await this.configService.validateCohort(cohort);
         } else {
@@ -194,5 +194,15 @@ export class CohortDtoService {
       }
       return (current.rows.length > 0);
     }
+
+    findPhenopacketById(id: string): RowData | undefined {
+        const cohort = this.getCohortData();
+        if (!cohort) {
+            return undefined;
+        }
+        return cohort.rows.find(
+            row => row.individualData.individualId === id
+        );
+  }
 
 }

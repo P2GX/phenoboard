@@ -51,7 +51,17 @@
 @if (showJson) {
   <p><span>✅</span>CohortDTO loaded with {{ cohort?.rows?.length }} rows.</p>
   <pre>{{ cohort | json }}</pre>
-} 
+} @else {
+  @if (cohort) {
+    @for (row of cohort.rows; track row) {
+      <li>
+        <a [routerLink]="['/phenopacket', row.individualData.individualId]">
+          {{ row.individualData.individualId || 'Unnamed subject' }}
+        </a>
+    </li>
+    }
+  }
+}
 
 
 

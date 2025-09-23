@@ -21,6 +21,48 @@
         <textarea matInput formControlName="comment"></textarea>
         </mat-form-field>
 
+        <mat-form-field appearance="fill">
+          <mat-label>Age of onset</mat-label>
+          <input
+            matInput
+            placeholder="Enter ISO8601 (e.g. P12Y6M)"
+            formControlName="ageOfOnset"
+            [matAutocomplete]="auto"
+          >
+          <!-- dropdown list -->
+          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+            @for (term of ageInputService.onsetTerms; track term) {
+              <mat-option [value]="term">
+                {{ term }}
+              </mat-option>
+            }
+          </mat-autocomplete>
+          @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
+            <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
+          }
+        </mat-form-field>
+
+           <mat-form-field appearance="fill">
+          <mat-label>Age at last encounter</mat-label>
+          <input
+            matInput
+            placeholder="Enter ISO8601 (e.g. P12Y6M)"
+            formControlName="ageAtLastEncounter"
+            [matAutocomplete]="auto"
+          >
+          <!-- dropdown list -->
+          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+            @for (term of ageInputService.onsetTerms; track term) {
+              <mat-option [value]="term">
+                {{ term }}
+              </mat-option>
+            }
+          </mat-autocomplete>
+          @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
+            <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
+          }
+        </mat-form-field>
+
         <mat-form-field appearance="fill" class="w-full">
         <mat-label>Sex</mat-label>
         <mat-select formControlName="sex" required>
@@ -29,7 +71,9 @@
             <mat-option value="O">Other (O)</mat-option>
             <mat-option value="U">Unknown (U)</mat-option>
         </mat-select>
-        <mat-error *ngIf="form.get('sex')?.invalid">Sex is required</mat-error>
+        @if (form.get('sex')?.invalid) {
+          <mat-error>Sex is required</mat-error>
+        }
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">
@@ -39,7 +83,9 @@
             <mat-option value="no">no</mat-option>
             <mat-option value="na">na</mat-option>
         </mat-select>
-        <mat-error *ngIf="form.get('deceased')?.invalid">Deceased is required</mat-error>
+        @if (form.get('deceased')?.invalid) {
+          <mat-error>Deceased is required</mat-error>
+        }
         </mat-form-field>
   </form>
 </mat-dialog-content>

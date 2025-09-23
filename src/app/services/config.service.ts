@@ -196,6 +196,7 @@ export class ConfigService {
     return invoke<void>('validate_template', {cohortDto: cohort_dto});
   }
 
+  /** Remove redundancies and conflicts (e.g., term is observed and ancestor of the term is excluded) */
   async sanitizeCohort(cohort_data: CohortData): Promise<CohortData> {
     return invoke<CohortData>('sanitize_cohort_data',  {cohortDto: cohort_data});
   }

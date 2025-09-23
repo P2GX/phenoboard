@@ -5,7 +5,6 @@ import { importProvidersFrom } from '@angular/core';
 import './src/styles.scss';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
-console.log("IN MAIN")
 
 bootstrapApplication(AppComponent, {
   providers: [

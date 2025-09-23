@@ -155,7 +155,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.notificationService.showError(errorMessage);
         return;
       }
-      this.cohortService.setCohortDto(data);
+      this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
         const errorMessage = String(error);
@@ -211,7 +211,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.notificationService.showError(errorMessage);
         return;
       }
-      this.cohortService.setCohortDto(data);
+      this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
         const errorMessage = String(error);
@@ -230,7 +230,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.newTemplateMessage = this.NOT_INIT;
     console.log("clear daa, ntm =", this.newTemplateMessage);
     this.jsonTemplateFileMessage = this.NOT_INIT;
-    this.cohortService.clearCohortDto();
+    this.cohortService.clearCohortData();
   }
 
 }

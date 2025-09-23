@@ -28,7 +28,7 @@ export abstract class TemplateBaseComponent implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     console.log(`🔄 ${this.constructor.name}: Setting up template subscription`);
-    this.cohortService.cohortDto$
+    this.cohortService.cohortData$
       .pipe(takeUntil(this.destroy$))
       .subscribe(cohortDto => {
         if (cohortDto) {

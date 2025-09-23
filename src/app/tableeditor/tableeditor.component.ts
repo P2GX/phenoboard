@@ -1336,7 +1336,7 @@ applyValueTransform() {
   }
 
   importCohortDiseaseData() {
-    const cohort = this.cohortService.getCohortDto();
+    const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
       return;
@@ -1398,7 +1398,7 @@ applyValueTransform() {
       if (this.cohortService.currentCohortContainsData()) {
         this.notificationService.showError("TO DO IMPLEMENT MERGE");
       } else {
-        this.cohortService.setCohortDto(cohort_dto_new);
+        this.cohortService.setCohortData(cohort_dto_new);
         this.router.navigate(['/pttemplate']);
       }
     } catch (err: any) {

@@ -1,0 +1,78 @@
+@if (row) {
+  <div class="phenopacket-container">
+    <!-- Individual info -->
+    <section class="card">
+      <h2>Individual</h2>
+      <div class="grid">
+        <div><strong>ID:</strong> {{ row.individualData.individualId }}</div>
+        <div><strong>Sex:</strong> {{ row.individualData.sex }}</div>
+        <div><strong>Age of onset:</strong> {{ row.individualData.ageOfOnset }}</div>
+        <div><strong>Age at last encounter:</strong> {{ row.individualData.ageAtLastEncounter }}</div>
+        <div><strong>Deceased:</strong> {{ row.individualData.deceased }}</div>
+        <div class="full"><strong>Comment:</strong> {{ row.individualData.comment }}</div>
+        <div class="full"><strong>Publication:</strong>
+          <a [href]="'https://pubmed.ncbi.nlm.nih.gov/' + row.individualData.pmid" target="_blank">
+            PMID {{ row.individualData.pmid }}
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Diseases -->
+     @if (row.diseaseIdList.length) {
+        <section class="card">
+          <h2>Diseases</h2>
+          <ul>
+            @for (d of row.diseaseIdList; track d) {
+              <li>
+                {{ d }}
+              </li>
+            }
+          </ul>
+        </section>
+    }
+    <!-- Variants -->
+     @if (row.alleleCountMap | keyvalue; as alleleCounts) {
+      <section class="card">
+        <h2>Variants</h2>
+        <table>
+          <thead>
+            <tr><th>Variant</th><th>Count</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let allele of alleleCounts">
+              <td>{{ allele.key }}</td>
+              <td>{{ allele.value }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (observedTerms.length || excludedTerms.length) {
+      <section class="card">
+      <h2>Phenotypic Features (HPO)</h2>
+
+      @if (observedTerms.length) {
+          <h3>Observed</h3>
+          <ul class="observed-list">
+            <li *ngFor="let h of observedTerms">
+              {{ h.hpoLabel }} ({{ h.hpoId }})
+            </li>
+          </ul>
+      }
+
+      @if (excludedTerms.length) {
+          <h3>Excluded</h3>
+          <ul class="excluded-list">
+            <li *ngFor="let h of excludedTerms">
+              {{ h.hpoLabel }} ({{ h.hpoId }})
+            </li>
+          </ul>
+        }
+    </section>
+  }
+  </div>
+} @else {
+  <p>Phenopacket not found.</p>
+}

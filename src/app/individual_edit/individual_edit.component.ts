@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';  
 import { CommonModule } from '@angular/common';
+import { AgeInputService } from '../services/age_service' 
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 
 @Component({
@@ -15,13 +17,14 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatDialogModule,
-    MatButtonModule,
+    MatOptionModule,
     MatSelectModule,
-    MatOptionModule
+    ReactiveFormsModule,
   ],
   templateUrl: './individual_edit.component.html',
 })
@@ -31,6 +34,7 @@ export class IndividualEditComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<IndividualEditComponent>,
+    public ageInputService: AgeInputService,
     @Inject(MAT_DIALOG_DATA) public data: IndividualData
   ) {
     this.form = this.fb.group({
@@ -38,8 +42,8 @@ export class IndividualEditComponent {
       title: [data.title, Validators.required],
       individualId: [data.individualId, Validators.required],
       comment: [data.comment],
-      ageOfOnset: [data.ageOfOnset, Validators.required],
-      ageAtLastEncounter: [data.ageAtLastEncounter, Validators.required],
+      ageOfOnset: [data.ageOfOnset, [Validators.required, this.ageInputService.validator()]],
+      ageAtLastEncounter: [data.ageAtLastEncounter, [Validators.required, this.ageInputService.validator()]],
       deceased: [data.deceased, Validators.required],
       sex: [data.sex, Validators.required]
     });

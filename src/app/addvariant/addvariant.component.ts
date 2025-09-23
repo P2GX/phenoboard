@@ -121,7 +121,7 @@ export class AddVariantComponent {
       isValidated: false,
       count: 0
     };
-    const cohortDto = this.templateService.getCohortDto();
+    const cohortDto = this.templateService.getCohortData();
     if (cohortDto == null) {
       // should never happen
       console.error("Attempt to validate HGVS with null cohortDto");
@@ -151,7 +151,7 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const cohortDto = this.templateService.getCohortDto();
+    const cohortDto = this.templateService.getCohortData();
     if (cohortDto == null) {
       // should never happen
       console.error("Attempt to validate HGVS with null cohortDto");

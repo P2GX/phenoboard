@@ -44,6 +44,7 @@ type Option = { label: string; value: string };
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
 
+
   constructor(
     private configService: ConfigService, 
     private dialog: MatDialog,
@@ -96,7 +97,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   override ngOnInit(): void {
     console.log("PtTemplateComponent - ngInit");
     super.ngOnInit();
-    this.cohortService.cohortDto$.subscribe(dto => {
+    this.cohortService.cohortData$.subscribe(dto => {
       this.cohortDto = dto;
     });
     document.addEventListener('click', this.onClickAnywhere.bind(this));
@@ -119,7 +120,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   get moiList(): ModeOfInheritance[] {
-    const cohort = this.cohortService.getCohortDto();
+    const cohort = this.cohortService.getCohortData();
     if (!cohort) return [];
     return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
   }
@@ -127,12 +128,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
   async loadTemplate(): Promise<void> {
-    const existing = this.cohortService.getCohortDto();
+    const existing = this.cohortService.getCohortData();
     if (!existing) {
       console.log("🏗️ Loading template from backend...");
       try {
         const data = await this.configService.getPhetoolsTemplate();
-        this.cohortService.setCohortDto(data); // 🟢 base class reacts here
+        this.cohortService.setCohortData(data); // 🟢 base class reacts here
       } catch (error) {
         this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
@@ -148,7 +149,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: CohortData) => {
-        this.cohortService.setCohortDto(data);
+        this.cohortService.setCohortData(data);
   });
   }
 
@@ -236,14 +237,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
             /* If we get here, the variant was validated and added to the cohort. */
             /* We add it with a count of 1 -- they user may need to adjust */
             console.log('allele added:', result);
-            const cohort = this.cohortService.getCohortDto();
+            const cohort = this.cohortService.getCohortData();
             if (cohort) {
               // Find the matching row in cohort.rows
               const rowIndex = cohort.rows.findIndex(r => r === row);
               if (rowIndex >= 0) {
                 row.alleleCountMap[variantKey] = 1;
                 cohort.rows[rowIndex] = row; // update row reference
-                this.cohortService.setCohortDto(cohort); // push back to service
+                this.cohortService.setCohortData(cohort); // push back to service
                 this.notificationService.showSuccess(`Allele ${variantKey} added`);
               }
             } else {
@@ -314,6 +315,25 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
   }
 
+  /** Remove ontological conflicts and redundancies */
+  async sanitizeCohort() {
+    console.log("validate")
+    const cohortDto = this.cohortDto;
+    if (! cohortDto) {
+      alert("Cohort DTO not initialized");
+      return;
+    }
+    try {
+      let sanitized_cohort = await this.configService.sanitizeCohort(cohortDto);
+      this.cohortService.setCohortData(sanitized_cohort);
+      console.log(this.deepDiff(sanitized_cohort, cohortDto));
+      alert("✅ Cohort successfully sanitized");
+    } catch (err: any) {
+      // If the Rust command returns a ValidationErrors struct
+      alert('❌ Sanitization failed:\n' + JSON.stringify(err));
+    }
+  }
+
 
 
   submitSelectedHpo = async () => {
@@ -326,7 +346,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   };
 
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {
-    const template = this.cohortService.getCohortDto();
+    const template = this.cohortService.getCohortData();
     if (template == null) {
       console.error("Attempt to add HPO Term to cohort but template is null");
       return;
@@ -335,7 +355,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       try {
         let updated_template = await this.configService.addHpoToCohort(autocompletedTerm.hpoId, autocompletedTerm.hpoLabel, template);
         this.notificationService.showSuccess(`Successfully added ${autocompletedTerm.hpoLabel} (${autocompletedTerm.hpoId})`);
-        this.cohortService.setCohortDto(updated_template);
+        this.cohortService.setCohortData(updated_template);
       } catch (err) {
         const errMsg =`Failed to add term ${autocompletedTerm.hpoLabel} (${autocompletedTerm.hpoId}): ${err}`
         this.notificationService.showError(errMsg);
@@ -526,13 +546,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   showMoi = false;
 
  async submitCohortAcronym(acronym: string) {
-    const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
     console.log("submitCohortAcronym before", cohort_dto);
     if (acronym.trim()) {
       this.cohortService.setCohortAcronym(acronym.trim());
       this.showCohortAcronym = false;
     }
-    const cohort_dto2: CohortData | null = await firstValueFrom(this.cohortService.cohortDto$); // make sure we get the very latest version
+    const cohort_dto2: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
     console.log("submitCohortAcronym afteter", cohort_dto2);
   }
 
@@ -554,7 +574,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     /* Function to return list of strings for display for an individuals pathogenic alleles.
       Returns a 5-element array. We could transform to a DTO (todo)  */
     getAlleleDisplay(key: string, count: number): string[] {
-      const cohort = this.cohortService.getCohortDto();
+      const cohort = this.cohortService.getCohortData();
       let symbol = "na";
       let transcript = "na";
       let allele = "na";
@@ -577,7 +597,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
     getShortAlleleDisplay(key: string, count: number): string {
-      const cohort = this.cohortService.getCohortDto();
+      const cohort = this.cohortService.getCohortData();
       let label = key;
       const allelecount = count.toString();
       if (cohort != null) {
@@ -607,7 +627,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
     onMoiChange(mois: ModeOfInheritance[]) {
       console.log("onMoiChange mois=", mois);
-      const cohort = this.cohortService.getCohortDto();
+      const cohort = this.cohortService.getCohortData();
       if (!cohort) {
         this.notificationService.showError("Could not set MOI because cohort is not initialized");
         return;
@@ -638,5 +658,26 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     deleteAllele(alleleKey: string, row: RowData) {
       delete row.alleleCountMap[alleleKey];
     }
+
+  /** for debugging. Puts the differences between to structures, can be output to console. */
+  deepDiff(a: any, b: any, path: string[] = []): string[] {
+    const diffs: string[] = [];
+
+    const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+
+    for (const key of keys) {
+      const newPath = [...path, key];
+      const aVal = a?.[key];
+      const bVal = b?.[key];
+
+      if (aVal && bVal && typeof aVal === "object" && typeof bVal === "object") {
+        diffs.push(...this.deepDiff(aVal, bVal, newPath));
+      } else if (aVal !== bVal) {
+        diffs.push(`${newPath.join(".")}: ${aVal} → ${bVal}`);
+      }
+    }
+  return diffs;
+}
+
 
 }

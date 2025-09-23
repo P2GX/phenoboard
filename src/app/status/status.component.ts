@@ -5,14 +5,14 @@ import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
-
+import { RouterModule } from '@angular/router'; 
 
 @Component({
   selector: 'app-status',
   templateUrl: './status.component.html',
   styleUrls: ['./status.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, RouterModule],
 })
 export class StatusComponent implements OnInit {
 
@@ -21,7 +21,7 @@ export class StatusComponent implements OnInit {
     private etl_service: EtlSessionService,
   ) {
   }
-  cohortDto$ = this.cohortService.cohortDto$;
+  cohortDto$ = this.cohortService.cohortData$;
 
   
   diseaseList!: DiseaseData[];
@@ -34,7 +34,7 @@ export class StatusComponent implements OnInit {
 
 
   get mendelianDiseaseOmimUrl(): string | null {
-    const cohort = this.cohortService.getCohortDto();
+    const cohort = this.cohortService.getCohortData();
     if (
       cohort?.cohortType === 'mendelian' &&
       cohort.diseaseList?.length == 1
@@ -50,7 +50,7 @@ export class StatusComponent implements OnInit {
   }
 
   get hgncGeneUrl(): string | null {
-    const cohort = this.cohortService.getCohortDto();
+    const cohort = this.cohortService.getCohortData();
     if (
       cohort?.cohortType === 'mendelian' &&
       cohort.diseaseList?.length == 1

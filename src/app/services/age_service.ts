@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 
 @Injectable({
@@ -19,10 +20,19 @@ export class AgeInputService {
     public selectedTerms: string[] = ["na"];
 
     /**
-     * Returns true if the input is a valid ISO8601 age string or a known HPO term
+     * Returns true if the input is a valid ISO8601 age string or a known HPO term ("na" is also an allowed entry)
      */
     validateAgeInput(input: string): boolean {
-        return this.onsetTerms.includes(input) || this.isoPattern.test(input);
+        return input == "na" || this.onsetTerms.includes(input) || this.isoPattern.test(input);
+    }
+
+    /** Expose an Angular validator that uses the same logic */
+    validator(): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            const value = control.value;
+            if (!value) return null; // don't mark empty as invalid, let required handle that
+            return this.validateAgeInput(value) ? null : { invalid: true };
+        };
     }
 
     /** always present "na" as the first value. These are the age terms that are selectable for the phenotypic features */

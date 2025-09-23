@@ -101,7 +101,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       try {
         const ctype: CohortType = "mendelian";
         const template = await this.configService.createNewTemplateFromSeeds(diseaseData, ctype, multiText);
-        this.cohortService.setCohortDto(template);
+        this.cohortService.setCohortData(template);
         this.showSuccessMessage = true;
       } catch (error) {
           this.errorMessage = String(error);

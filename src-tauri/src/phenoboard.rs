@@ -1,7 +1,6 @@
 //! This module creates a singleton object that we use to coordinate analysis across the application
 //!
-//! Each table cell is modelled as having the ability to return a datatype and the contents as a String
-//! We garantee that if these objects are created, then we are ready to create phenopackets.
+
 
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, io_util::select_or_create_folder, pubmed_retrieval::PubmedRetriever}};
 use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
@@ -347,24 +346,7 @@ impl PhenoboardSingleton {
 
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
     fn extract_template_name(&self, cohort_dto: &CohortData) -> Result<String, String> {
-        
-        if ! cohort_dto.is_mendelian() {
-            return Err(format!("Todo-code logic for non-Mendelian templates.")); 
-        }
-        let disease_data = match cohort_dto.disease_list.first() {
-            Some(data) => data.clone(),
-            None => { return Err("Could not extract disease data".to_string()); },
-        };
-        
-        if disease_data.gene_transcript_list.len() != 1 {
-            return Err(format!("Todo-code logic for non-Mendelian templates.")); 
-        }
-        let symbol = &disease_data.gene_transcript_list[0].gene_symbol;
-        match &cohort_dto.cohort_acronym {
-            Some(acronym) => Ok(format!("{}_{}_individuals.json", symbol, acronym)),
-            None => Err(format!("Cannot get template name if acronym is missing.")),
-        }
-  
+        ga4ghphetools::factory::extract_template_name(cohort_dto)
     }
 
     pub fn save_template_json(&self, cohort_dto: CohortData) -> Result<(), String> {

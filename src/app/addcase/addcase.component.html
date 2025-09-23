@@ -73,8 +73,8 @@
       (click)="toggleObserved(this.selectedAnnotation)"
     >Mark as {{ selectedAnnotation?.isObserved ? 'Excluded' : 'Observed' }}</button>
     <div class="mt-2">
-      <div  *ngIf="selectedAnnotation">
-      <label class="text-xs block mb-1">Select Onset:</label>
+      @if (selectedAnnotation) {
+        <label class="text-xs block mb-1">Select Onset:</label>
         @for(onset of rightClickOptions; track onset) {
           <div class="text-xs mb-1">
             <label class="inline-flex items-center">
@@ -87,10 +87,10 @@
               />
               {{ onset }}
             </label>
-        </div>
+          </div>
+        }
       }
-  </div>
-</div>
+    </div>
   </div>
 <!-- end.-->
 </div>
@@ -128,47 +128,49 @@
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
             {{ annotation.termId }}
           </a></td>
-<td class="border px-1 py-[1px] relative">
+        <td class="border px-1 py-[1px] relative">
   <span (click)="toggleDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
     {{ annotation.label }} ▼
   </span>
 
-  <div
-    *ngIf="showDropdownMap[annotation.termId]"
-    class="absolute left-0 top-full z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg"
-  >
-    @if(!parentChildHpoTermMap[annotation.termId]) {
-      <div class="p-2 text-gray-500 text-sm italic">
-        Loading...
-      </div>
-    }
+  @if (showDropdownMap[annotation.termId]) {
+    <div class="absolute left-0 top-full z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg">
+      
+      @if (!parentChildHpoTermMap[annotation.termId]) {
+        <div class="p-2 text-gray-500 text-sm italic">
+          Loading...
+        </div>
+      }
 
-    <div *ngIf="parentChildHpoTermMap[annotation.termId]">
-      <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
-      <ul>
-        <li
-          *ngFor="let parent of parentChildHpoTermMap[annotation.termId].parents"
-          (click)="replaceTerm(annotation, parent)"
-          class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-        >
-          {{ parent.label }} ({{ parent.termId }})
-        </li>
-      </ul>
+      @if (parentChildHpoTermMap[annotation.termId]) {
+        <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
+        <ul>
+          @for (parent of parentChildHpoTermMap[annotation.termId].parents; track parent.termId) {
+            <li
+              (click)="replaceTerm(annotation, parent)"
+              class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+            >
+              {{ parent.label }} ({{ parent.termId }})
+            </li>
+          }
+        </ul>
 
-      <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
-      <ul>
-        @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
-          <li
-            (click)="replaceTerm(annotation, child)"
-            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-          >
-            {{ child.label }} ({{ child.termId }})
-          </li>
-        }
-      </ul>
+        <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
+        <ul>
+          @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
+            <li
+              (click)="replaceTerm(annotation, child)"
+              class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+            >
+              {{ child.label }} ({{ child.termId }})
+            </li>
+          }
+        </ul>
+      }
     </div>
-  </div>
+  }
 </td>
+
 
         <td class="border px-1 py-[1px]">
         <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
@@ -183,14 +185,15 @@
             (change)="updateOnset(annotation, onsetSelect.value)"
             class="px-1 py-0.5 border rounded text--[10px] h-5"
           >
+          @for (option of rightClickOptions; track option) {  
             <option
-              *ngFor="let option of rightClickOptions"
               [value]="option"
               [selected]="option === annotation.onsetString"
             >
               {{ option }}
             </option>
-          </select>
+          }
+        </select>
       </td>
     </tr>
   </tbody>

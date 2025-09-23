@@ -55,7 +55,7 @@ export class AddcaseComponent {
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
   /* subscribe to state in the service layer */
-  cohortDto$ = this.cohortService.cohortDto$;
+  cohortDto$ = this.cohortService.cohortData$;
   pmidForm: FormGroup;
 
   pmidDto: PmidDto = defaultPmidDto();
@@ -117,7 +117,7 @@ export class AddcaseComponent {
       })
     );
     // 
-    this.cohortService.cohortDto$.subscribe(template => {
+    this.cohortService.cohortData$.subscribe(template => {
       if (template) {
         this.tableData = template;
       } else {
@@ -175,7 +175,7 @@ export class AddcaseComponent {
        if (this.allele2 != null && this.allele2.variantKey != null) {
         allele_keys.push(this.allele2.variantKey);
       }
-      const cohort_dto = this.cohortService.getCohortDto();
+      const cohort_dto = this.cohortService.getCohortData();
       if (cohort_dto != null) {
         try {
           const updated_dto: CohortData = await this.configService.addNewRowToCohort(
@@ -184,7 +184,7 @@ export class AddcaseComponent {
               allele_keys,
               cohort_dto);
           console.log("Updated dto, " , updated_dto);
-          this.cohortService.setCohortDto(updated_dto);
+          this.cohortService.setCohortData(updated_dto);
         } catch (error) {
           this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
           alert(this.errorString);

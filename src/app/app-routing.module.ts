@@ -8,6 +8,7 @@ import { PtTemplateComponent } from './pttemplate/pttemplate.component';
 import { VariantListComponent } from './variant_list/variant_list.component';
 import { HelpComponent } from './help/help.component';
 import { StatusComponent } from './status/status.component';
+import { PhenopacketDetailComponent } from './phenopacketdetail/phenopacketdetail.component';
 
 
 
@@ -22,6 +23,7 @@ export const appRoutes: Routes = [
   { path: 'variant_list', component: VariantListComponent },
   { path: 'status', component: StatusComponent },
   { path: 'help', component: HelpComponent },
+  { path: 'phenopacket/:id', component: PhenopacketDetailComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' } // Fallback route
 ];

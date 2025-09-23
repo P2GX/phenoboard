@@ -41,6 +41,7 @@ pub fn run() {
             get_best_hpo_match,
             submit_autocompleted_hpo_term,
             validate_template,
+            sanitize_cohort_data,
             save_template,
             export_hpoa,
             add_hpo_term_to_cohort,
