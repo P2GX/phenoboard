@@ -1,41 +1,32 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData, RowData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
+import { MatCard, MatCardModule } from "@angular/material/card";
+import { MatListModule } from '@angular/material/list';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
 
 
 
-/*
-
-@Component({
-  selector: 'app-pttemplate',
-  standalone: true,
-  imports: [
-    AddagesComponent,
-    HpoAutocompleteComponent,
-    CommonModule,
-    MatButtonModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatDialogModule,
-    MoiSelector,
-    MatIconModule
-],
-  templateUrl: './pttemplate.component.html',
-  styleUrls: ['./pttemplate.component.css'],
-})*/
 
 @Component({
   selector: 'app-phenopacketdetail',
   templateUrl: './phenopacketdetail.component.html',
+  styleUrls: ['./phenopacketdetail.component.scss'],
   standalone: true,
   imports: [
-    CommonModule
-  ]
+    CommonModule,
+    MatCard,
+    MatCardModule,
+    MatListModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule
+]
 })
 export class PhenopacketDetailComponent implements OnInit {
   row?: RowData;

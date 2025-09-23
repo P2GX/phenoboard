@@ -53,6 +53,7 @@
   <pre>{{ cohort | json }}</pre>
 } @else {
   @if (cohort) {
+    <h2>Individuals in cohort</h2>
     @for (row of cohort.rows; track row) {
       <li>
         <a [routerLink]="['/phenopacket', row.individualData.individualId]">

@@ -1,84 +1,191 @@
-/* Page background so cards stand out */
+/* Page background using Material Design principles */
 .phenopacket-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 2rem;
-  background-color: #f5f6fa; /* light gray */
+  gap: 24px; /* Material uses 8px grid system: 24px = 3 units */
+  padding: 24px;
+  background-color: var(--mdc-theme-background, #fafafa); /* Material background */
   min-height: 100vh;
 }
 
-/* Card styling */
+/* Use mat-elevation and mat-card styling */
 .card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  padding: 1.5rem;
-  border: 1px solid #e0e0e0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--mdc-theme-surface, #ffffff);
+  border-radius: 8px; /* Material Design radius */
+  /* Use Material elevation instead of custom shadow */
+  box-shadow: 
+    0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 3px 0px rgba(0, 0, 0, 0.12); /* mat-elevation-2 */
+  padding: 24px;
+  border: none; /* Material cards don't use borders */
+  transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1); /* Material easing */
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  /* Material elevation-4 on hover */
+  box-shadow: 
+    0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+    0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 10px 0px rgba(0, 0, 0, 0.12);
 }
 
-/* Headings inside cards */
+/* Material Typography for headings */
 .card h2 {
   margin-top: 0;
-  font-size: 1.3rem;
-  color: #2c3e50;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.4rem;
+  font-size: 1.25rem; /* Material headline-6 */
+  font-weight: 500; /* Material medium weight */
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
+  border-bottom: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  line-height: 1.6; /* Material line height */
 }
 
-/* Responsive grid for individual data */
+/* Keep your responsive grid but with Material spacing */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem 1rem;
+  gap: 16px 24px; /* Material spacing */
 }
 
 .grid .full {
   grid-column: 1 / -1;
 }
 
-/* Tables */
+/* Material table styling */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 0.5rem;
-  font-size: 0.95rem;
+  margin-top: 8px;
+  font-size: 0.875rem; /* Material body-2 */
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
 }
 
 table th,
 table td {
-  border: 1px solid #ddd;
-  padding: 0.6rem;
+  border-bottom: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
+  padding: 12px 16px; /* Material padding */
   text-align: left;
 }
 
 table th {
-  background: #f8f8f8;
-  font-weight: 600;
+  background: var(--mdc-theme-surface-variant, rgba(0, 0, 0, 0.04));
+  font-weight: 500; /* Material medium */
+  color: var(--mdc-theme-on-surface-variant, rgba(0, 0, 0, 0.6));
+  border-bottom: 2px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
 }
 
-/* Lists */
+table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Material list styling */
 ul {
-  padding-left: 1.2rem;
-  margin: 0.5rem 0;
+  padding-left: 24px;
+  margin: 8px 0;
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
 }
 
 ul li {
-  margin-bottom: 0.4rem;
+  margin-bottom: 8px;
+  line-height: 1.5; /* Material line height */
 }
 
-/* Links */
+/* Material link styling */
 a {
-  color: #0077cc;
+  color: var(--mdc-theme-primary, #1976d2);
   text-decoration: none;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 a:hover {
+  color: var(--mdc-theme-primary-variant, #1565c0);
   text-decoration: underline;
+}
+
+a:focus {
+  outline: 2px solid var(--mdc-theme-primary, #1976d2);
+  outline-offset: 2px;
+}
+
+/* Additional Material Design enhancements */
+.grid > div {
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
+  line-height: 1.5;
+}
+
+.grid > div strong {
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
+  font-weight: 500;
+}
+
+/* Material Design h3 styling for sub-sections */
+h3 {
+  font-size: 1rem; /* Material subtitle-1 */
+  font-weight: 500;
+  color: var(--mdc-theme-on-surface, rgba(0, 0, 0, 0.87));
+  margin: 16px 0 8px 0;
+}
+
+/* HPO-specific styling */
+.hpo-observed {
+  background-color: rgba(76, 175, 80, 0.05); /* Very subtle green */
+  border-radius: 4px;
+  padding: 8px 0;
+}
+
+.hpo-observed .hpo-item {
+  border-left: 3px solid rgba(76, 175, 80, 0.3); /* Subtle green accent */
+}
+
+.hpo-excluded {
+  background-color: rgba(244, 67, 54, 0.05); /* Very subtle red */
+  border-radius: 4px;
+  padding: 8px 0;
+}
+
+.hpo-excluded .hpo-item {
+  border-left: 3px solid rgba(244, 67, 54, 0.3); /* Subtle red accent */
+}
+
+.hpo-item {
+  margin-bottom: 0;
+  padding: 4px 12px;
+  min-height: auto;
+  height: auto;
+}
+
+/* Reduce spacing in HPO lists */
+.hpo-observed .mat-mdc-list-item,
+.hpo-excluded .mat-mdc-list-item {
+  --mdc-list-list-item-one-line-height: 32px;
+  --mdc-list-list-item-two-line-height: 40px;
+}
+
+.hpo-observed,
+.hpo-excluded {
+  --mdc-list-list-item-leading-space: 8px;
+  --mdc-list-list-item-trailing-space: 8px;
+}
+
+.hpo-link {
+  color: var(--mdc-theme-primary, #1976d2);
+  font-family: 'Roboto Mono', monospace; /* Monospace for HPO IDs */
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hpo-link:hover {
+  color: var(--mdc-theme-primary-variant, #1565c0);
+  text-decoration: underline;
+}
+
+/* Override Angular Material's background if needed */
+body.mat-typography {
+  background-color: var(--mdc-theme-background, #fafafa) !important;
+}
+
+.mat-app-background {
+  background-color: var(--mdc-theme-background, #fafafa) !important;
 }

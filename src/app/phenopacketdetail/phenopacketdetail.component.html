@@ -1,78 +1,122 @@
 @if (row) {
   <div class="phenopacket-container">
-    <!-- Individual info -->
-    <section class="card">
-      <h2>Individual</h2>
-      <div class="grid">
-        <div><strong>ID:</strong> {{ row.individualData.individualId }}</div>
-        <div><strong>Sex:</strong> {{ row.individualData.sex }}</div>
-        <div><strong>Age of onset:</strong> {{ row.individualData.ageOfOnset }}</div>
-        <div><strong>Age at last encounter:</strong> {{ row.individualData.ageAtLastEncounter }}</div>
-        <div><strong>Deceased:</strong> {{ row.individualData.deceased }}</div>
-        <div class="full"><strong>Comment:</strong> {{ row.individualData.comment }}</div>
-        <div class="full"><strong>Publication:</strong>
-          <a [href]="'https://pubmed.ncbi.nlm.nih.gov/' + row.individualData.pmid" target="_blank">
-            PMID {{ row.individualData.pmid }}
-          </a>
+    <!-- Individual info using mat-card -->
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Individual</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="grid">
+          <div><strong>ID:</strong> {{ row.individualData.individualId }}</div>
+          <div><strong>Sex:</strong> {{ row.individualData.sex }}</div>
+          <div><strong>Age of onset:</strong> {{ row.individualData.ageOfOnset }}</div>
+          <div><strong>Age at last encounter:</strong> {{ row.individualData.ageAtLastEncounter }}</div>
+          <div><strong>Deceased:</strong> {{ row.individualData.deceased }}</div>
+          <div class="full"><strong>Comment:</strong> {{ row.individualData.comment }}</div>
+          <div class="full"><strong>Publication:</strong>
+            <a mat-button 
+               [href]="'https://pubmed.ncbi.nlm.nih.gov/' + row.individualData.pmid" 
+               target="_blank"
+               color="primary">
+              PMID {{ row.individualData.pmid }}
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
+      </mat-card-content>
+    </mat-card>
 
     <!-- Diseases -->
-     @if (row.diseaseIdList.length) {
-        <section class="card">
-          <h2>Diseases</h2>
-          <ul>
+    @if (row.diseaseIdList.length) {
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Diseases</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
             @for (d of row.diseaseIdList; track d) {
-              <li>
-                {{ d }}
-              </li>
+              <mat-list-item>
+                <mat-icon mat-list-icon>medical_services</mat-icon>
+                <div mat-line>{{ d }}</div>
+              </mat-list-item>
             }
-          </ul>
-        </section>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
     }
+
     <!-- Variants -->
-     @if (row.alleleCountMap | keyvalue; as alleleCounts) {
-      <section class="card">
-        <h2>Variants</h2>
-        <table>
-          <thead>
-            <tr><th>Variant</th><th>Count</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let allele of alleleCounts">
-              <td>{{ allele.key }}</td>
-              <td>{{ allele.value }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+    @if (row.alleleCountMap | keyvalue; as alleleCounts) {
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Variants</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table>
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let allele of alleleCounts">
+                <td>{{ allele.key }}</td>
+                <td>{{ allele.value }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </mat-card-content>
+      </mat-card>
     }
 
+    <!-- Phenotypic Features -->
     @if (observedTerms.length || excludedTerms.length) {
-      <section class="card">
-      <h2>Phenotypic Features (HPO)</h2>
+      <mat-card class="card">
+        <mat-card-header>
+          <mat-card-title>Phenotypic Features (HPO)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (observedTerms.length) {
+            <h3>Observed</h3>
+            <mat-list class="hpo-observed">
+              @for (h of observedTerms; track h.hpoId) {
+                <mat-list-item class="hpo-item">
+                  <div mat-line>
+                    <a [href]="'https://hpo.jax.org/browse/term/' + h.hpoId" 
+                       target="_blank" 
+                       class="hpo-link">
+                     {{ h.hpoLabel }} ({{ h.hpoId }})
+                    </a>
+                  </div>
+                </mat-list-item>
+              }
+            </mat-list>
+          }
 
-      @if (observedTerms.length) {
-          <h3>Observed</h3>
-          <ul class="observed-list">
-            <li *ngFor="let h of observedTerms">
-              {{ h.hpoLabel }} ({{ h.hpoId }})
-            </li>
-          </ul>
-      }
-
-      @if (excludedTerms.length) {
-          <h3>Excluded</h3>
-          <ul class="excluded-list">
-            <li *ngFor="let h of excludedTerms">
-              {{ h.hpoLabel }} ({{ h.hpoId }})
-            </li>
-          </ul>
-        }
-    </section>
-  }
+          @if (excludedTerms.length) {
+            <h3>Excluded</h3>
+            <mat-list class="hpo-excluded">
+              @for (h of excludedTerms; track h.hpoId) {
+                <mat-list-item class="hpo-item">
+                  <div mat-line>
+                    <a [href]="'https://hpo.jax.org/browse/term/' + h.hpoId" 
+                       target="_blank" 
+                       class="hpo-link">
+                     {{ h.hpoLabel }} ({{ h.hpoId }})
+                    </a>
+                  </div>
+                </mat-list-item>
+              }
+            </mat-list>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
   </div>
 } @else {
-  <p>Phenopacket not found.</p>
+  <mat-card>
+    <mat-card-content>
+      <p>Phenopacket not found.</p>
+    </mat-card-content>
+  </mat-card>
 }
