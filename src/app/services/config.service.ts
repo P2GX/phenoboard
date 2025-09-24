@@ -222,15 +222,16 @@ export class ConfigService {
 
 
   async addNewRowToCohort(
-      individualDto: IndividualData, 
+      individualData: IndividualData, 
       hpoAnnotations: HpoTermData[],
       variantKeyList: string[],
-      cohortDto: CohortData): Promise<CohortData> {
+      cohortData: CohortData): Promise<CohortData> {
     return invoke<CohortData>('add_new_row_to_cohort', 
-      { individualDto, 
+      {      
+         individualData, 
          hpoAnnotations,
          variantKeyList,
-         cohortDto
+         cohortData
       });
   }
 

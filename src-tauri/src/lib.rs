@@ -441,20 +441,18 @@ fn add_hpo_term_to_cohort(
 #[tauri::command]
 fn add_new_row_to_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    individual_dto: IndividualData, 
+    individual_data: IndividualData, 
     hpo_annotations: Vec<HpoTermData>,
     variant_key_list: Vec<String>,
-    cohort_dto: CohortData) 
+    cohort_data: CohortData) 
 -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    let updated_template = singleton.add_new_row_to_cohort(
-        individual_dto, 
-        hpo_annotations, 
-        variant_key_list,
-        cohort_dto)?;
-    println!("rust, add_new_row: {:?}", updated_template);
-    Ok(updated_template)
+    let hpo = match singleton.get_hpo(){
+        Some(ontology) => ontology.clone(),
+        None => { return Err("HPO not initialized".to_string()); },
+    };
+    ga4ghphetools::factory::add_new_row_to_cohort(hpo, individual_data, hpo_annotations, variant_key_list, cohort_data)
 }
 
 

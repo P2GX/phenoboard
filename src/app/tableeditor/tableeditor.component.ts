@@ -885,6 +885,28 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       });
   }
 
+  duplicateColumn(index: number | null) {
+    const etlDto = this.etlDto;
+    if (! etlDto ) {
+      return;
+    }
+    if (index === null) return;
+    const columns = etlDto.table.columns;
+    const originalColumn = columns[index];
+    if (!originalColumn) {
+      return;
+    }
+    console.log("duplicated column", index, " with contents", originalColumn.values);
+    const clonedColumn: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    clonedColumn.id = crypto.randomUUID();
+    clonedColumn.header.original = `B. ${originalColumn.header.original}`
+    columns.splice(index + 1, 0, clonedColumn);
+
+    // Trigger Angular change detection if needed
+    this.etlDto = { ...etlDto, table: { ...etlDto.table, columns: [...columns] } };
+    this.reRenderTableRows();
+  }
+
   /**
    * 
    * @param index Used by the angular code to determine if a column is transformed and

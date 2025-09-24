@@ -80,7 +80,7 @@
 @for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
   <tr>
     
-    @for (colIndex of getVisibleColumns(); track displayColumns[colIndex].id) {
+    @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
       <td
         [ngClass]="{
           'edit-mode-narrow': editModeActive
@@ -135,6 +135,7 @@
     <li (click)="annotateVariants(contextMenuColIndex)">Annotate Variants</li>
     <li (click)="openColumnTypeDialog()">Set Column Type ...</li>
     <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
+    <li (click)="duplicateColumn(contextMenuColIndex)">Duplicate Column</li>
     <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
     <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
   </ul>

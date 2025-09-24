@@ -1,6 +1,7 @@
 import { Component, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule,  } from '@angular/forms';import { ConfigService } from '../services/config.service';
+import { FormBuilder, FormGroup, FormsModule,  } from '@angular/forms';
+import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
@@ -20,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
+import { NotificationService } from '../services/notification.service';
 
 
 /**
@@ -34,8 +36,6 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-
-
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
@@ -43,10 +43,11 @@ export class AddcaseComponent {
     private cohortService: CohortDtoService,
     private dialog: MatDialog,
     private router: Router,
+    private notificationService: NotificationService,
     private fb: FormBuilder
   ) {
      this.pmidForm = this.fb.group({
-          pmid: [defaultPmidDto()],  // or null if you allow null
+          pmid: [defaultPmidDto()], 
         });
   }
   @Input() annotations: TextAnnotationDto[] = [];
@@ -54,13 +55,12 @@ export class AddcaseComponent {
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
-  /* subscribe to state in the service layer */
+  
   cohortDto$ = this.cohortService.cohortData$;
   pmidForm: FormGroup;
-
   pmidDto: PmidDto = defaultPmidDto();
 
- 
+
   pastedText: string = '';
   showTextArea: boolean = true;
   showDataEntryArea: boolean = false;
@@ -148,11 +148,11 @@ export class AddcaseComponent {
     console.log("submitNewRow - top");
       let pmid_dto = this.pubmedComponent.getPmidDto();
       if (pmid_dto == null) {
-        alert("Cannot submit row unless PMID information is initialized");
+        this.notificationService.showError("Cannot submit row unless PMID information is initialized");
         return;
       }
       if (this.demographData == null) {
-        alert("Cannot submit row unless demographic information is initialized");
+        this.notificationService.showError("Cannot submit row unless demographic information is initialized");
         return;
       }
 
@@ -167,12 +167,13 @@ export class AddcaseComponent {
         deceased: this.demographData.deceased,
         sex: this.demographData.sex
       };
-      const hpoAnnotations: HpoTermData[] = this.getFenominalAnnotations().map(this.convertTextAnnotationToHpoAnnotation);
+      const hpoAnnotations: HpoTermData[] = this.getFenominalAnnotations()
+        .map(this.convertTextAnnotationToHpoAnnotation);
       let allele_keys: string[] = [];
       if (this.allele1 != null && this.allele1.variantKey != null) {
         allele_keys.push(this.allele1.variantKey);
       }
-       if (this.allele2 != null && this.allele2.variantKey != null) {
+      if (this.allele2 != null && this.allele2.variantKey != null) {
         allele_keys.push(this.allele2.variantKey);
       }
       const cohort_dto = this.cohortService.getCohortData();
@@ -183,19 +184,17 @@ export class AddcaseComponent {
               hpoAnnotations, 
               allele_keys,
               cohort_dto);
-          console.log("Updated dto, " , updated_dto);
           this.cohortService.setCohortData(updated_dto);
         } catch (error) {
           this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
-          alert(this.errorString);
-          console.error(this.errorString);
+          this.notificationService.showError(this.errorString);
         }
       } else {
-        alert("Attempt to add new row with null template_dto")
+        this.notificationService.showError("Attempt to add new row with null template_dto")
       }
       this.resetAllInputVars();
       /* After creating a new row, we jump to the template editor component. */
-     await this.router.navigate(['/newtemplate']);
+     await this.router.navigate(['/pttemplate']);
   }
 
   private handleBackendStatus(payload: unknown): void {
@@ -210,7 +209,7 @@ export class AddcaseComponent {
         const dto = payload as TextAnnotationDto;
         this.annotations.push(dto);
       } catch (error) {
-        console.error('Error in autocompletion payload:', error);
+        this.notificationService.showError(`Error in autocompletion payload: ${error}`);
       }
     });
   }
@@ -231,6 +230,7 @@ export class AddcaseComponent {
 
       if (typeof result === 'string') {
         this.setError(String(result));
+        this.notificationService.showError(result);
       } else {
         const annots: TextAnnotationDto[] = result;
         this.annotations = annots;
@@ -440,7 +440,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         this.allele1 = result;
         console.log('allele1 added:', result);
       } else {
-        console.error("Error in openAddAllele1Dialog")
+        this.notificationService.showError("Error in openAddAllele1Dialog")
       }
     });
   }
@@ -455,7 +455,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         this.allele2 = result;
         console.log('Variant added:', result);
       } else {
-        console.error("Error in openAddAllele2Dialog")
+        this.notificationService.showError("Error in openAddAllele2Dialog")
       }
     });
   }
@@ -463,7 +463,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
   createGeneVariantBundleDto(): GeneVariantData | null {
     if (this.allele1 == null ) {
-      console.error("allele 1 was null, cannot create GeneVariant bundle");
+      this.notificationService.showError("allele 1 was null, cannot create GeneVariant bundle");
       return null; // need at least allele1 to move forward
     }
     let allele2_string = "na";

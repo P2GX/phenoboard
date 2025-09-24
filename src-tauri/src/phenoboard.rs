@@ -478,29 +478,6 @@ impl PhenoboardSingleton {
         }
     }
 
-    /// Add a new phenopacket (row) to the cohort
-    pub fn add_new_row_to_cohort(
-        &mut self,
-        individual_dto: IndividualData, 
-        hpo_annotations: Vec<HpoTermData>,
-        variant_key_list: Vec<String>,
-        cohort_dto: CohortData) 
-    -> std::result::Result<CohortData, String> {
-        match self.phetools.as_mut() {
-            Some(ptools) => {
-                let updated_dto = ptools.add_new_row_to_cohort(
-                    individual_dto, 
-                    hpo_annotations, 
-                    variant_key_list,
-                    cohort_dto)?;
-                Ok(updated_dto)
-            },
-            None => {
-                Err(format!("Phenotype template not initialized"))
-            },
-        }
-    }
-
     /// Generate a Template from seed HPO terms.
     /// This method will create a new Phetools object and discard the previous one, if any.
     /// ToDo, this is Mendelian only, we need to extend it.
