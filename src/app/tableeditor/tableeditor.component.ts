@@ -28,6 +28,10 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
 import { MultipleHpoDialogComponent } from './multihpo-dialog-vis-component';
 import { Router } from '@angular/router';
+import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
+import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
+import { HgvsVariant } from '../models/variant_dto';
+
 
 
 
@@ -43,7 +47,19 @@ enum TransformType {
   ToLowercase = 'To Lowercase',
   ExtractNumbers = 'Extract Numbers',
   ReplaceUniqeValues = 'Replace Unique Values',
+  OnsetAgeAssumeYears = "onsetAgeAssumeYears",
+  LastEncounterAgeAssumeYears = "lastEncounterAgeAssumeYears",
+  AnnotateVariants="Annotate variants",
+  UpdateVariants="Assign keys to annotated variants",
+  SetColumnType="Set Column Type ...",
+  DeleteColumn="Delete Column",
+  DuplicateColumn="Duplicate Column",
+  ConstantColumn="Add constant column to right",
+  MergeIndividualFamily="Merge family/individual columns",
+  ToggleTransformed="Toggle transformed status",
 }
+
+
 
 /**
  * Component for editing external tables (e.g., supplemental files)
@@ -56,6 +72,7 @@ enum TransformType {
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+  
 
   constructor(private configService: ConfigService, 
     templateService: CohortDtoService,
@@ -65,6 +82,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     private etl_service: EtlSessionService,
     private notificationService: NotificationService,
     private fb: FormBuilder,
+    private variantDialog: VariantDialogService,
     private router: Router,
   ) {
     super(templateService, ngZone, cdRef);
@@ -72,7 +90,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       pmid: [defaultPmidDto()],  // or null if you allow null
     });
   }
-
+  Object = Object;
   pmidForm: FormGroup;
 
   displayColumns: ColumnDto[] = [];
@@ -113,6 +131,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   contextMenuCellType: EtlColumnType | null = null;
   transformedColumnValues: string[] = [];
 
+ 
+
   columnTypeColors: ColumnTypeColorMap = {
     raw: '#ffffff',
     familyId: '#f0f8ff',
@@ -144,6 +164,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   previewTransformName: string = "";
   // Pending metadata to apply if user confirms
   pendingHeader: EtlColumnHeader | null = null;
+  pendingHeaderName: string | null = null;
   pendingColumnType: EtlColumnType | null = null;
   pendingColumnTransformed = false;
   // Modal state
@@ -159,24 +180,52 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
 
-  transformHandlers: { [key in TransformType]: (colIndex: number) => void } = {
-    [TransformType.StringSanitize]: (colIndex) => this.transformColumn(colIndex, TransformType.StringSanitize),
-    [TransformType.ToUppercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToUppercase),
-    [TransformType.ToLowercase]: (colIndex) => this.transformColumn(colIndex, TransformType.ToLowercase),
-    [TransformType.ExtractNumbers]: (colIndex) => this.transformColumn(colIndex, TransformType.ExtractNumbers),
-    [TransformType.onsetAge]: (colIndex) => this.transformColumn(colIndex, TransformType.onsetAge),
-    [TransformType.lastEncounterAge]: (colIndex) => this.transformColumn(colIndex, TransformType.lastEncounterAge),
-    [TransformType.SexColumn]: (colIndex) => this.transformColumn(colIndex, TransformType.SexColumn),
+  transformHandlers: { [key in TransformType]: (colIndex: number) => string[] | void } = {
+    [TransformType.StringSanitize]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.StringSanitize),
+    [TransformType.ToUppercase]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ToUppercase),
+    [TransformType.ToLowercase]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ToLowercase),
+    [TransformType.ExtractNumbers]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ExtractNumbers),
+    [TransformType.onsetAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.onsetAge),
+    [TransformType.lastEncounterAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.lastEncounterAge),
+    [TransformType.SexColumn]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.SexColumn),
     [TransformType.SingleHpoTerm]: (colIndex) => {
       this.hpoAutoForColumnName(colIndex);
     },
     [TransformType.MultipleHpoTerm]: (colIndex: number) => {
-      this.hpoMultipleForColumnName(colIndex);
+      this.processMultipleHpoColumn(colIndex);
     },
     [TransformType.ReplaceUniqeValues]: (colIndex: number) => {
       this.editUniqueValuesInColumn(colIndex);
+    },
+    [TransformType.OnsetAgeAssumeYears]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.OnsetAgeAssumeYears),
+    [TransformType.LastEncounterAgeAssumeYears]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LastEncounterAgeAssumeYears),
+    [TransformType.AnnotateVariants]: (colIndex) => {
+      this.annotateVariants(colIndex);
+    },
+    [TransformType.UpdateVariants]: (colIndex) => {
+      this.updateVariants(colIndex);
+    },
+    [TransformType.SetColumnType]: (colIndex) => {
+      this.setColumnTypeDialog(colIndex);
+    },
+    [TransformType.DeleteColumn]: (colIndex) => {
+      this.deleteColumn(colIndex)
+    },
+    [TransformType.DuplicateColumn]: (colIndex) => {
+      this.duplicateColumn(colIndex);
+    },
+    [TransformType.ConstantColumn]: (colIndex) => {
+      this.addConstantColumn(colIndex);
+    },
+    [TransformType.MergeIndividualFamily]: (colIndex) => {
+      this.mergeIndividualAndFamilyColumns();
+    },
+    [TransformType.ToggleTransformed]: (colIndex) => {
+      this.toggleTransformed(colIndex);
     }
   };
+
+ 
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -187,7 +236,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
   }
 
- 
+  protected override onCohortDtoLoaded(template: CohortData): void {
+    // no-op
+  }
 
 
   /** Reset if user clicks outside of defined elements. */
@@ -203,9 +254,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     super.ngOnDestroy();
   }
 
-  protected override onCohortDtoLoaded(template: CohortData): void {
-    console.log("TableEditorComponent:onTemplateLoaded");
-  }
+  /*protected override onCohortDtoLoaded(template: CohortData): void {
+    console.log("TableEditorComponent:onTemplateLoaded: ", template);
+  }*/
 
   /** Load an external Excel file, e.g., a Supplementary Table from a publication
    * that describes a cohort of individuals (one per column).
@@ -363,37 +414,36 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @param index 
    * @returns 
    */
-  editUniqueValuesInColumn(index: number) {
-    if (!this.etlDto) return;
-    const header = this.displayHeaders[index];
-    if (header == null) {
-      this.notificationService.showError(`header null at index ${index}`);
-      return;
-    }
-    const column = this.etlDto.table.columns[index];
-    if (column == null) {
-      this.notificationService.showError(`column null at index ${index}`);
-      return;
-    }
-    const values = column.values || [];
-
-    // Step 1: Get unique, non-empty values
-    const unique = Array.from(new Set(values.map(v => v.trim()))).filter(v => v !== '');
-
-    // Step 2: Populate the transformation map with identity mappings
-    this.transformationMap = {};
-    unique.forEach(val => {
-      this.transformationMap[val] = val;
-    });
-
-    // Step 3: Set UI control variables
-    this.contextMenuColIndex = index;
-    this.contextMenuColHeader = header;
-    this.contextMenuColType = header.columnType;
-    this.uniqueValuesToMap = unique;
-    this.transformationPanelVisible = true;
-    this.columnBeingTransformed = index;
+  /**
+ * Start mapping unique values in a column (e.g. male→M, female→F).
+ */
+editUniqueValuesInColumn(index: number): void {
+  if (!this.etlDto) {
+    this.notificationService.showError("No table loaded");
+    return;
   }
+
+  const column = this.etlDto.table.columns[index];
+  const header = this.displayHeaders[index];
+
+  if (!column || !header) {
+    this.notificationService.showError(`Invalid column/header at index ${index}`);
+    return;
+  }
+
+  // Extract unique, trimmed, non-empty values
+  const unique = Array.from(new Set(column.values.map(v => v?.trim()).filter(Boolean)));
+
+  // Identity map: each value initially maps to itself
+  this.transformationMap = Object.fromEntries(unique.map(val => [val, val]));
+
+  // Store UI state for the mapping panel
+  this.contextMenuColIndex = index;
+  this.contextMenuColHeader = header;
+  this.contextMenuColType = header.columnType;
+  this.uniqueValuesToMap = unique;
+  this.transformationPanelVisible = true;
+}
 
   /** Return a list of the unique values found in the indicated column */
   getUniqueValues(colIndex: number): string[] {
@@ -427,10 +477,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     const col = etlDto.table.columns[colIndex];
-    const original = col.header.original;
-    let best_hpo_match = "";
+   let best_hpo_match = "";
     try {
-      best_hpo_match = (await this.configService.getBestHpoMatch(original)) ?? "";
+      best_hpo_match = (await this.configService.getBestHpoMatch(col.header.original)) ?? "";
     } catch {
       best_hpo_match = "";
     }
@@ -440,12 +489,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
 
     const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());
-    if (selectedTerm) {
-      col.header.columnType = EtlColumnType.SingleHpoTerm;
-      this.processSingleHpoColumn(colIndex, selectedTerm);
-    } else {
-      this.notificationService.showSuccess('User cancelled HPO selection');
+    if (! selectedTerm) {
+      this.notificationService.showError('User cancelled HPO selection');
       return;
+    }
+    col.header.columnType = EtlColumnType.SingleHpoTerm;
+
+    const transformed = await this.processSingleHpoColumn(colIndex, selectedTerm);
+
+    if (transformed) {
+      this.previewColumnIndex = colIndex;
+      this.previewOriginal = col.values.map(v => v ?? "");
+      this.previewTransformed = transformed;
+      this.pendingColumnType = EtlColumnType.SingleHpoTerm;
+      this.pendingColumnTransformed = true;
+      this.showPreview("Single HPO transform");
     }
   }
 
@@ -489,6 +547,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     ]);
    for (let i = 0; i < col.values.length; i++) {
       let val = col.values[i];
+      console.log("annotate var-val=", val);
       if (!val) continue;
       val = val.trim();
 
@@ -496,8 +555,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         col.values[i] = val; // keep as is
         continue;
       }
+      console.log(allVariantKeys);
 
-      if (val.startsWith("c.") || val.startsWith("n.")) {
+      if (this.configService.isValidHgvsStart(val)) {
         this.configService.validateOneHgvs(symbol, hgnc, transcript, val)
           .then((hgvs) => {
             if (this.etlDto == null) {
@@ -508,7 +568,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
             allVariantKeys.add(varKey);
             col.values[i] = varKey; // update in place
             this.etlDto.hgvsVariants[varKey] = hgvs;
-            this.reRenderTableRows(); // optional: trigger change detection
+            this.reRenderTableRows(); // trigger change detection
           })
           .catch((error) => {
             this.notificationService.showError(String(error));
@@ -545,61 +605,95 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.reRenderTableRows();
   }
 
-    /** Process a column that refers to a single HPO term  */ 
-  async processSingleHpoColumn(colIndex: number, hpoTermDuplet: HpoTermDuplet): Promise<void> {
+
+   updateVariants(colIndex: number | null): string[] {
+    const etlDto = this.etlDto;
+    if (!etlDto) return [];
+    if (colIndex === null) return [];
+    const col = etlDto.table.columns[colIndex];
+    if (!col) { 
+      this.notificationService.showError("Could not annotate variants because column index was null");
+      return [];
+    }
+    try {
+      const hgvsMap: Record<string, string> = Object.values(etlDto.hgvsVariants)
+        .reduce((acc, variant) => {
+          acc[variant.hgvs] = variant.variantKey;
+          return acc;
+        }, {} as Record<string, string>);
+
+      const svMap: Record<string, string> = Object.values(etlDto.structuralVariants)
+        .reduce((acc, variant) => {
+          acc[variant.label] = variant.variantKey;
+          return acc;
+        }, {} as Record<string, string>);
+
+      return col.values.map((val) => {
+        if (hgvsMap[val] !== undefined) return hgvsMap[val];
+        if (svMap[val] !== undefined) return svMap[val];
+        return val;
+      });
+    } catch (err) {
+      this.notificationService.showError("Error while updating variants: " + (err as Error).message);
+      return col.values; // fallback to original
+    }
+  }
+
+
+  /** Process a column that refers to a single HPO term  */ 
+  async processSingleHpoColumn(
+    colIndex: number, 
+    hpoTermDuplet: HpoTermDuplet
+  ): Promise<string[] | null> {
     if (colIndex == null || colIndex < 0) {
       this.notificationService.showError("Attempt to process single-HPO column with Null column index");
-      return;
+      return null;
     }
     if (!this.etlDto ) {
       this.notificationService.showError("Attempt to process single-HPO column with Null ETL table");
-      return;
+      return null;
     }
     const column = this.etlDto.table.columns[colIndex];
     let hpoHeader = column.header;
     if (hpoHeader.columnType != EtlColumnType.SingleHpoTerm) {
-      this.notificationService.showError(`Attempt to process single-HPO column with wrong column: ${hpoHeader.columnType}`);
-      return;
+      this.notificationService.showError(`wrong column type: ${hpoHeader.columnType}`);
+      return null;
     }
     if (hpoTermDuplet == null || hpoTermDuplet.hpoId.length < 10) {
       this.notificationService.showError(`Invalid HPO Term Duplet ${hpoTermDuplet}`)
-      return;
+      return null;
     }
-    const new_header: EtlColumnHeader = {
+    this.pendingHeader = {
       original: column.header.original,
       columnType: EtlColumnType.SingleHpoTerm,
       hpoTerms: [hpoTermDuplet],
     };
-    this.pendingHeader = new_header;
-    try {
-      // Extract unique values from the column of the original table (e.g., +, -, ?)
-      const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
-      const dialogRef = this.dialog.open(ValueMappingComponent, {
-          data: {
-            header: column.header.original,
-            hpoTerm: hpoTermDuplet,
-            hpoLabel: hpoTermDuplet.hpoLabel,
-            uniqueValues
-          }
-        });
-
-        dialogRef.afterClosed().subscribe((mapping: HpoMappingResult | undefined) => {
-          if (mapping) {
-            this.applyHpoMapping(colIndex, mapping);
-          }
-        });
-    } catch (error) {
-      alert("Could not identify HPO term: " + error);
+    // Extract unique values from the column of the original table (e.g., +, -, ?)
+    const uniqueValues = Array.from(new Set(column.values.map(v => v.trim())));
+    const dialogRef = this.dialog.open(ValueMappingComponent, {
+        data: {
+          header: column.header.original,
+          hpoTerm: hpoTermDuplet,
+          hpoLabel: hpoTermDuplet.hpoLabel,
+          uniqueValues
+        }
+      });
+    const mapping: HpoMappingResult | undefined =
+    await firstValueFrom(dialogRef.afterClosed());
+    if (!mapping) {
+      this.notificationService.showError("User cancelled");
+      return null;
     }
+    return this.applyHpoMapping(colIndex, mapping);
   }
 
   /** This function gets called when the user wants to map a column to zero, one, or many HPO terms.
    * For instance, a column entitled Hypo/Hypertelorism might get mapped to 
    * Hypotelorism HP:0000601; Hypotelorism HP:0000601
    */
-  async hpoMultipleForColumnName(colIndex: number){
+  async processMultipleHpoColumn(colIndex: number): Promise<string[]>{
     if (this.etlDto == null) {
-      return;
+      return [];
     }
     const col = this.etlDto.table.columns[colIndex];
     const colValues: string[] = col.values;
@@ -617,29 +711,28 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       width: '1000px',
       data: { terms: hpoTerms, rows: colValues }
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log("Result=", result);
-        console.log(Object.prototype.toString.call(result));
-        this.previewColumnIndex = colIndex;
-        this.previewOriginal = colValues.map(val => val ?? '');
-        this.previewTransformName = "Multiple HPO mappings";
-        this.pendingHeader =  col.header;
-        this.pendingHeader.current = `Multiple HPO terms - ${col.header.original}`;
-        this.pendingColumnType = EtlColumnType.MultipleHpoTerm;
-        this.pendingHeader.hpoTerms = result.allHpoTerms;
-        this.previewTransformed = result.hpoMappings.map(
-          (row: HpoMappingRow) =>
-            row
-              .filter(entry => entry.status !== 'na')// only include observed/excluded
-              .map(entry => `${entry.term.hpoId}-${entry.status}`) // display label + status
-              .join(";")
-        );
-        this.showPreview( "multiple HPO transform");
-      } else {
-        this.notificationService.showError('User cancelled');
-      }
-    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) {
+      this.notificationService.showError('User cancelled');
+      return [];
+    }
+    
+    this.previewColumnIndex = colIndex;
+    this.previewOriginal = colValues.map(val => val ?? '');
+    this.previewTransformName = "Multiple HPO mappings";
+    this.pendingHeader =  col.header;
+    this.pendingHeader.current = `Multiple HPO terms - ${col.header.original}`;
+    this.pendingColumnType = EtlColumnType.MultipleHpoTerm;
+    this.pendingHeader.hpoTerms = result.allHpoTerms;
+    this.previewTransformed  = result.hpoMappings.map(
+      (row: HpoMappingRow) =>
+        row
+          .filter(entry => entry.status !== 'na')// only include observed/excluded
+          .map(entry => `${entry.term.hpoId}-${entry.status}`) // display label + status
+          .join(";")
+    );
+    this.showPreview( "multiple HPO transform");
+    return this.previewTransformed;  
   }
 
 /**
@@ -698,6 +791,9 @@ cancelValueTransformation() {
   this.previewColumnIndex = null;
 }
 
+/** This methods sets up some context variables as sets contextMenuCellVisible to true, which opens up a list of options
+ * (1) editCellValueManually (2) useValueFromAbove, and (3) openVariantEditor
+ */
 onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   event.preventDefault();
   if (this.etlDto == null) {
@@ -813,18 +909,6 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
       
     } catch(error) {
       this.errorMessage = String(error);
-    }
-  }
-
-  /**
-   * Assign one of the column types (which will be key to transforming to phenopacket rows)
-   * @param type 
-   */
-  assignColumnType(type: EtlColumnType) {
-    if (this.contextMenuColIndex !== null && this.etlDto) {
-      this.etlDto.table.columns[this.contextMenuColIndex].header.columnType = type;
-      this.contextMenuCellVisible = false;
-      this.reRenderTableRows(); 
     }
   }
 
@@ -977,9 +1061,85 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     this.editModalVisible = false;
   }
 
+  // Organized transform structure
+transformCategories = {
+  basic: {
+    label: 'Basic Transforms',
+    transforms: [
+      TransformType.StringSanitize,
+      TransformType.ToUppercase,
+      TransformType.ToLowercase,
+      TransformType.ExtractNumbers,
+      TransformType.ReplaceUniqeValues,
+      TransformType.SexColumn
+    ]
+  },
+  age: {
+    label: 'Age Transforms',
+    transforms: [
+      TransformType.onsetAge,
+      TransformType.OnsetAgeAssumeYears,
+      TransformType.lastEncounterAge,
+      TransformType.LastEncounterAgeAssumeYears
+    ]
+  },
+  hpo: {
+    label: 'HPO Transforms',
+    transforms: [
+      TransformType.SingleHpoTerm,
+      TransformType.MultipleHpoTerm
+    ]
+  },
+  alleles: {
+    label: "Alleles/variants",
+    transforms: [
+      TransformType.AnnotateVariants,
+      TransformType.UpdateVariants
+    ]
+  },
+  columnOps: {
+    label: "Column operations",
+    transforms: [
+        TransformType.SetColumnType,
+        TransformType.DeleteColumn,
+        TransformType.DuplicateColumn,
+        TransformType.ConstantColumn,
+        TransformType.MergeIndividualFamily,
+        TransformType.ToggleTransformed
+    ]
+  }
+};
+
+// Helper method to get transform display name
+getTransformDisplayName(transform: TransformType): string {
+  const displayNames: { [key in TransformType]: string } = {
+    [TransformType.StringSanitize]: 'Sanitize (trim/ASCII)',
+    [TransformType.ToUppercase]: 'To Uppercase',
+    [TransformType.ToLowercase]: 'To Lowercase',
+    [TransformType.ExtractNumbers]: 'Extract Numbers',
+    [TransformType.ReplaceUniqeValues]: 'Replace Unique Values',
+    [TransformType.onsetAge]: 'Onset Age',
+    [TransformType.OnsetAgeAssumeYears]: 'Onset Age (assume years)',
+    [TransformType.lastEncounterAge]: 'Last Encounter Age',
+    [TransformType.LastEncounterAgeAssumeYears]: 'Last Encounter Age (assume years)',
+    [TransformType.SexColumn]: 'Sex Column',
+    [TransformType.SingleHpoTerm]: 'Single HPO Term',
+    [TransformType.MultipleHpoTerm]: 'Multiple HPO Terms',
+    [TransformType.AnnotateVariants]: 'Annotate variants',
+    [TransformType.UpdateVariants]: 'Update alleles to variant keys if possible',
+    [TransformType.SetColumnType]: 'Set column type',
+    [TransformType.DeleteColumn]: 'Delete column',
+    [TransformType.DuplicateColumn]: 'Duplicate column',
+    [TransformType.ConstantColumn]: 'Add constant column',
+    [TransformType.MergeIndividualFamily]: 'Merge individual and family columns',
+    [TransformType.ToggleTransformed]: 'Toggle transformed status'
+  };
+  return displayNames[transform] || transform;
+}
+
 
   /** Transform a single column and return the transformed values (for preview) */
-  transformColumn(colIndex: number, transform: TransformType): string[] {
+  transformColumnElementwise(colIndex: number, transform: TransformType): string[] {
     if (!this.etlDto) {
       this.notificationService.showError("Attempt to transform column with null ETL DTO");
       return [];
@@ -1004,8 +1164,12 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
           return (val.match(/\d+/g)?.join(' ') || '');
         case TransformType.onsetAge:
           return this.etl_service.parseAgeToIso8601(val);
+        case TransformType.OnsetAgeAssumeYears:
+          return this.etl_service.parseDecimalYearsToIso8601(val);
         case TransformType.lastEncounterAge:
           return this.etl_service.parseAgeToIso8601(val);
+        case TransformType.LastEncounterAgeAssumeYears:
+          return this.etl_service.parseDecimalYearsToIso8601(val);
         case TransformType.SexColumn:
           return this.etl_service.parseSexColumn(val);
         default:
@@ -1021,29 +1185,125 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
  * This function is called upon right click in the editing window when the user indicates
  * to replace values with the correctly formated values, e.g., "Female" => "F"
  */
-applyValueTransform() {
-  if (this.etlDto == null) {
-    // should never happen
-    this.notificationService.showError("Attempt to apply value transform with externalTable being null");
+applyValueTransform(): void {
+  if (!this.etlDto || this.contextMenuColIndex == null) return;
+
+  const colIndex = this.contextMenuColIndex;
+  const column = this.etlDto.table.columns[colIndex];
+
+  const transformedValues = column.values.map(val => {
+    const trimmed = val?.trim() ?? '';
+    return this.transformationMap[trimmed] ?? trimmed;
+  });
+  if (this.contextMenuColHeader === null) {
+    this.notificationService.showError("Attempt to apply value transform with null header");
     return;
   }
-  if (this.visibleColIndex == null) {
-    this.notificationService.showError("Attempt to apply value transform with columnBeingTransformed being null");
+
+  if (this.pendingColumnType === null) {
+    this.notificationService.showError("Attempt to apply value transform with null column type");
     return;
-  } 
-  const colIndex = this.visibleColIndex;
-  const column = this.etlDto.table.columns[colIndex];
-  const transformedValues = column.values.map(val => this.transformationMap[val.trim()] || val);
-  this.etlDto.table.columns[colIndex].values = [...transformedValues];
+  }
+
+  this.startPreviewTransform(
+    colIndex,
+    transformedValues,
+    "Value mapping",
+    this.contextMenuColHeader,
+    this.pendingColumnType
+  );
+
   this.transformationPanelVisible = false;
-  this.editPreviewColumnVisible = false;
-  this.reRenderTableRows();
+}
+
+async applyNamedTransform(colIndex: number | null, transformName: TransformType): Promise<void> {
+  console.log("applyNamedTransform for type", transformName);
+  if (colIndex === null || !this.etlDto) return;
+
+  const col = this.etlDto.table.columns[colIndex];
+  const originalValues = col.values.map(v => v ?? '');
+  this.previewColumnIndex = colIndex;
+  this.previewOriginal = originalValues;
+
+  switch (transformName) {
+    // Interactive transforms (dialog opens, they handle preview themselves)
+    case TransformType.SingleHpoTerm:
+      await this.hpoAutoForColumnName(colIndex);
+      return;
+
+    case TransformType.MultipleHpoTerm:
+      await this.processMultipleHpoColumn(colIndex);
+      return;
+
+    case TransformType.SetColumnType:
+      console.log("set column type");
+      this.setColumnTypeDialog(colIndex);
+      return;
+
+    case TransformType.ReplaceUniqeValues:
+      this.editUniqueValuesInColumn(colIndex); 
+      return;
+
+    case TransformType.ConstantColumn:
+      this.addConstantColumn(colIndex); 
+      return;
+    
+    case TransformType.ToggleTransformed:
+      this.toggleTransformed(colIndex);
+      return;
+
+    case TransformType.MergeIndividualFamily:
+      this.mergeIndividualAndFamilyColumns();
+      return;
+
+    case TransformType.DeleteColumn:
+      this.deleteColumn(colIndex);
+      return;
+
+    case TransformType.DuplicateColumn:
+      this.duplicateColumn(colIndex);
+      return;
+
+    case TransformType.AnnotateVariants:
+      this.annotateVariants(colIndex);
+      return;
+
+    case TransformType.UpdateVariants:
+      this.updateVariants(colIndex);
+      return;
+
+    // Elementwise transforms
+    default: {
+      const transformed = this.transformColumnElementwise(colIndex, transformName);
+      this.previewTransformed = transformed;
+      this.pendingHeader = col.header;
+
+      if (transformName === TransformType.SexColumn) {
+        this.pendingColumnType = EtlColumnType.Sex;
+        this.pendingColumnTransformed = true;
+      } else if (transformName === TransformType.onsetAge ||
+                 transformName === TransformType.OnsetAgeAssumeYears) {
+        this.pendingColumnType = EtlColumnType.AgeOfOnset;
+        this.pendingColumnTransformed = true;
+      } else if (transformName === TransformType.lastEncounterAge ||
+                 transformName === TransformType.LastEncounterAgeAssumeYears) {
+        this.pendingColumnType = EtlColumnType.AgeAtLastEncounter;
+        this.pendingColumnTransformed = true;
+      } else {
+        this.pendingColumnType = col.header.columnType;
+        this.pendingColumnTransformed = false;
+      }
+
+      this.showPreview(transformName);
+    }
+  }
 }
 
 /** Applies one of the transforms to a column and sets the corresponding "pending values". 
  * We will then see the pending modal dialog to check the results of transform.
  */
-  applyNamedTransform(colIndex: number | null, transformName: TransformType): void {
+  applyNamedTransformOLD(colIndex: number | null, transformName: TransformType): void {
+    console.log("applyNamedTransformed for type ", transformName);
     if (colIndex === null || !this.etlDto) return;
 
     if (transformName == TransformType.SingleHpoTerm) {
@@ -1051,7 +1311,7 @@ applyValueTransform() {
       return;
     }
     if (transformName === TransformType.MultipleHpoTerm) {
-      this.hpoMultipleForColumnName(colIndex);
+      this.processMultipleHpoColumn(colIndex);
       return;
     }
 
@@ -1061,15 +1321,20 @@ applyValueTransform() {
     const originalValues = col.values.map(v => v ?? '');
     this.previewColumnIndex = colIndex;
     this.previewOriginal = col.values.map(v => v ?? '');
-    
-    
-  
-    this.previewTransformed = this.transformColumn(colIndex, transformName);
+    this.previewTransformed = this.transformColumnElementwise(colIndex, transformName);
     this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
     this.pendingHeader = col.header;
     if (transformName == TransformType.SexColumn) {
       this.pendingColumnType = EtlColumnType.Sex;
+      this.pendingColumnTransformed = true;
+    } else if (transformName == TransformType.onsetAge || 
+      transformName == TransformType.OnsetAgeAssumeYears) {
+      this.pendingColumnType = EtlColumnType.AgeOfOnset;
+      this.pendingColumnTransformed = true;
+    } else if (transformName == TransformType.lastEncounterAge || 
+              transformName == TransformType.LastEncounterAgeAssumeYears) {
+      this.pendingColumnType = EtlColumnType.AgeAtLastEncounter;
       this.pendingColumnTransformed = true;
     } else {
       this.pendingColumnType = col.header.columnType;
@@ -1107,8 +1372,6 @@ applyValueTransform() {
       return;
     }
 
-    const sourceCol = this.etlDto.table.columns[previewIdx];
-
     const newColumn: ColumnDto = {
       id: crypto.randomUUID(),
       transformed: true,
@@ -1116,7 +1379,6 @@ applyValueTransform() {
       values: this.previewTransformed
     };
     newColumn.header.columnType = this.pendingColumnType;
-    console.log("newColumn", newColumn);
     this.etlDto.table.columns[previewIdx] = newColumn;
     this.transformedColIndex = this.INVISIBLE;
     this.reRenderTableRows();
@@ -1223,29 +1485,30 @@ applyValueTransform() {
 
 
   /** apply a mapping for a column that has single-HPO term, e.g., +=> observed */
-  applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
+  applyHpoMapping(colIndex: number, mapping: HpoMappingResult): string [] {
     if (this.etlDto == null) {
       this.notificationService.showError("Attempting to apply mapping with null external table (should never happen).")
-      return;
+      return [];
     }
-    const col = this.etlDto.table.columns[colIndex];
+   const col = this.etlDto.table.columns[colIndex];
     const transformedValues = col.values.map(val => {
       const mapped = mapping.valueToStateMap[val.trim()];
-      return mapped !== undefined ? mapped : val.trim(); // keep original if no mapping
+      return mapped !== undefined ? mapped : val.trim();
     });
-    if (this.pendingHeader == null) {
+
+    if (!this.pendingHeader) {
       this.notificationService.showError("pending header was null");
-      return;
+      return transformedValues;
     }
-    // show dialog with transformed data that the user can accept or cancel.
+
+    // set preview state
     this.previewColumnIndex = colIndex;
-    this.previewTransformed = transformedValues;
-    const originalValues = col.values.map(v => v.trim() ?? '');
-    this.previewOriginal = originalValues;
+    this.previewOriginal = col.values.map(v => v.trim() ?? '');
+    this.pendingHeader.current = `${mapping.hpoLabel} - ${mapping.hpoId}`;
     this.previewTransformName = "single HPO column";
-    this.pendingHeader.current =  `${mapping.hpoLabel} - ${mapping.hpoId}`;
     this.pendingColumnType = EtlColumnType.SingleHpoTerm;
-    this.showPreview("single HPO column");
+
+    return transformedValues;
   }
 
   /** parse a string like Strabismus[HP:0000486;original: Strabismus] from the single HPO term header */
@@ -1311,7 +1574,8 @@ applyValueTransform() {
     }
   }
 
-  markTransformed(colIndex: number | null) {
+  /** Toggle between true and false status for current column */
+  toggleTransformed(colIndex: number | null): void{
     if (colIndex == null) {
       return; // should never happen
     }
@@ -1319,7 +1583,7 @@ applyValueTransform() {
       return;
     }
     let col = this.etlDto.table.columns[colIndex];
-    col.transformed = true;
+    col.transformed = col.transformed ? false : true;
     this.reRenderTableRows();
   }
 
@@ -1333,15 +1597,12 @@ applyValueTransform() {
     }
   }
 
-  openColumnTypeDialog() {
-    if (this.contextMenuColIndex == null) {
-      this.notificationService.showError("Attempt to set column type with null contextMenuColIndex ");
+  async setColumnTypeDialog(colIndex: number) {
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
       return;
     }
-    if (this.etlDto == null) {
-      return;
-    }
-    const currentType = this.etlDto.table.columns[this.contextMenuColIndex].header.columnType;
+    const currentType = etlDto.table.columns[colIndex].header.columnType;
     const dialogRef = this.dialog.open(ColumnTypeDialogComponent, {
       width: '400px',
       data: {
@@ -1349,12 +1610,14 @@ applyValueTransform() {
         currentType
       }
     });
-
-    dialogRef.afterClosed().subscribe((selectedType: EtlColumnType | undefined) => {
-      if (selectedType) {
-        this.assignColumnType(selectedType);
-      }
-    });
+    const selectedType = await firstValueFrom(
+      dialogRef.afterClosed()
+    );
+    if (selectedType) {
+      etlDto.table.columns[colIndex].header.columnType = selectedType;
+      this.contextMenuCellVisible = false;
+      this.reRenderTableRows();
+    }
   }
 
   importCohortDiseaseData() {
@@ -1431,5 +1694,153 @@ applyValueTransform() {
     }
   }
 
-}
+  /** Add a new column with a constant value in each cell */
+  async addConstantColumn(index: number | null): Promise<string[]> {
+    if (!this.etlDto) {
+      this.notificationService.showError("Cannot add column - no table loaded");
+      return [];
+    }
+    if (index === null) {
+      this.notificationService.showError("Cannot add column - no index");
+      return [];
+    }
 
+    const dialogRef = this.dialog.open(AddConstantColumnDialogComponent, {
+      width: '400px',
+      data: { columnName: '', constantValue: '' }
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+
+    if (!result || !result.columnName?.trim()) {
+      this.notificationService.showError("Constant column creation cancelled or invalid");
+      return [];
+    }
+
+    const { columnName, constantValue } = result;
+    const rowCount = Math.max(...this.etlDto.table.columns.map(col => col.values.length));
+
+    // Preview values
+    const newValues = Array(rowCount).fill(constantValue);
+    this.previewOriginal = Array(rowCount).fill(''); // same length, but empty originals
+    // Set up preview state
+    this.previewColumnIndex = index + 1; // insert right AFTER the clicked column
+    this.previewTransformed = newValues;
+    this.previewTransformName = TransformType.ConstantColumn;
+    this.pendingHeader = {
+      original: columnName.trim(),
+      current: columnName.trim(),
+      columnType: EtlColumnType.Raw,
+    };
+    this.pendingColumnType = EtlColumnType.Raw;
+    this.pendingColumnTransformed = false;
+
+    this.showPreview("constant column");
+
+    return this.previewTransformed;
+  }
+
+
+
+  async openVariantEditor(): Promise<void> {
+    const etlDto = this.etlDto;
+    if (! etlDto) return; 
+    const colIndex = this.contextMenuCellCol;
+    if (colIndex === null) {
+      this.notificationService.showError("context menu column is null");
+      return;
+    }
+    const rowIndex = this.contextMenuCellRow;
+    if (rowIndex == null) {
+      return;
+    }
+    console.log("open var edit")
+    try{
+      const hgvs: HgvsVariant | null = await this.variantDialog.openVariantDialog();
+      
+      if (hgvs) {
+        const vkey = hgvs.variantKey;
+        if (! vkey) {
+          this.notificationService.showError(`Could not get key from HGVS object ${hgvs}`);
+          return;
+        }
+        etlDto.hgvsVariants[vkey] = hgvs;
+        let col = etlDto.table.columns[colIndex];
+        col.values[rowIndex] = vkey;
+        this.reRenderTableRows();
+      }
+    } catch (error) {
+      const errMsg = String(error);
+      this.notificationService.showError(errMsg);
+    }
+  }
+
+  
+  // generic entrypoint for transforms
+  private startPreviewTransform(
+    colIndex: number,
+    transformedValues: string[],
+    previewName: string,
+    pendingHeader: EtlColumnHeader,  
+    pendingColumnType: EtlColumnType
+  ): void {
+    const col = this.etlDto?.table.columns[colIndex];
+    if (!col) return;
+
+    this.previewColumnIndex = colIndex;
+    this.previewOriginal = col.values.map(v => v.trim() ?? '');
+    this.previewTransformed = transformedValues;
+    this.previewTransformName = previewName;
+    this.pendingHeader =  pendingHeader;
+    this.pendingColumnType = pendingColumnType;
+
+    this.showPreview(previewName);
+  }
+
+  confirmPreview(): void {
+    if (!this.etlDto || this.previewColumnIndex == null) return;
+    const colIndex = this.previewColumnIndex;
+
+    if (this.previewTransformName == TransformType.ConstantColumn) {
+        const newColumn: ColumnDto = {
+          id: crypto.randomUUID(),
+          transformed: false,
+          header: {
+            original: this.pendingHeaderName ?? 'constant',
+            columnType: EtlColumnType.Raw,
+          },
+          values: this.previewTransformed,
+        };
+      this.etlDto.table.columns.splice(colIndex, 1);
+      this.etlDto.table.columns[colIndex] = newColumn;
+      this.reRenderTableRows();
+      this.resetPreviewState();
+      return;
+    }
+    const col = this.etlDto.table.columns[colIndex];
+    const updatedCol: ColumnDto = {
+      id: col.id,
+      transformed: true,
+      header: this.pendingHeader ?? col.header,
+      values: this.previewTransformed,
+    };
+    this.etlDto.table.columns[colIndex] = updatedCol;
+    this.reRenderTableRows();
+    this.resetPreviewState();
+  }
+
+  cancelPreview(): void {
+    this.resetPreviewState();
+  }
+
+  private resetPreviewState(): void {
+    this.previewColumnIndex = null;
+    this.previewOriginal = [];
+    this.previewTransformed = [];
+    this.previewTransformName = '';
+    this.pendingHeader = null;
+    this.pendingHeaderName = null;
+    this.pendingColumnType = null;
+  }
+
+}

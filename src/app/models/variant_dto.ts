@@ -79,9 +79,9 @@ export interface HgvsVariant {
   hgvs: string;
   transcript: string;
   gHgvs: string;
-  variantId: string;
   variantKey: string;
 }
+
 
 /** 
  * The kind of structural variant being sent for validation.

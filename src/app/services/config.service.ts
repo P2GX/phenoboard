@@ -307,4 +307,14 @@ export class ConfigService {
     return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});
   }
 
+  /**
+   * We regard strings such as c.123A>G, n.123A>G or m.123A>G as candidate HGVS string (mRNA, non-coding RNA, mitochrondrial)
+   * @param val A candidate HGVS string
+   * @returns 
+   */
+  isValidHgvsStart(val: string | null | undefined): boolean {
+    if (! val) { return false;}
+    return val.startsWith("c.") || val.startsWith("n.") || val.startsWith("m.");
+  }  
+
 }

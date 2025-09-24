@@ -34,6 +34,7 @@ export function asciiValidator() {
   };
 }
 
+
 /** Trim whitespace from beginning and end and remove non-ASCII characters */
 export function sanitizeString(input: string): string {
     return input

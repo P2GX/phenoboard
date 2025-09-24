@@ -123,21 +123,22 @@
     @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
      <li (click)="clearColumnFilter()">Show All Columns</li>
     <li class="has-submenu">
-      Transform Column ▸
-      <ul class="submenu">
-        @for (transform of transformOptions; track transform) {
-          <li (click)="applyNamedTransform(contextMenuColIndex, transform)">
-            {{ transform }}
-          </li>
-        }
-      </ul>
-    </li>
-    <li (click)="annotateVariants(contextMenuColIndex)">Annotate Variants</li>
-    <li (click)="openColumnTypeDialog()">Set Column Type ...</li>
-    <li (click)="deleteColumn(contextMenuColIndex)">Delete Column</li>
-    <li (click)="duplicateColumn(contextMenuColIndex)">Duplicate Column</li>
-    <li (click)="mergeIndividualAndFamilyColumns()">Merge family/individual columns</li>
-    <li (click)="markTransformed(contextMenuColIndex)">Mark column as transformed</li>
+  Transform Column ▸
+  <ul class="submenu">
+    @for (category of Object.values(transformCategories); track category.label) {
+      <li class="has-submenu">
+        {{ category.label }} ▸
+        <ul class="submenu">
+          @for (transform of category.transforms; track transform) {
+            <li (click)="applyNamedTransform(contextMenuColIndex, transform)">
+              {{ getTransformDisplayName(transform) }}
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+</li>
   </ul>
 </div>
 }
@@ -163,6 +164,12 @@
             <mat-icon>content_copy</mat-icon> Copy value from above
           </li>
         }
+         <li
+          style="padding: 4px 8px; cursor: pointer;"
+          (click)="openVariantEditor()"
+        >
+           <mat-icon>edit</mat-icon>Manually add HGVS
+        </li>
       </ul>
     </div>
   }

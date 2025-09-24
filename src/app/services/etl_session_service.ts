@@ -88,6 +88,44 @@ export class EtlSessionService {
     return result !== 'P' ? result : '';
   }
 
+  /**
+   * Converts a decimal number representing years into ISO 8601 duration format.
+   * Examples: 
+   * - "4" -> "P4Y"
+   * - "4.5" -> "P4Y6M" 
+   * - "2.25" -> "P2Y3M"
+   * - "0.75" -> "P9M"
+   * @param input - String containing a decimal number
+   * @returns ISO 8601 duration string or empty string if invalid
+   */
+  parseDecimalYearsToIso8601(input: string | null | undefined): string {
+    if (input == null || input == undefined) {
+      return '';
+    }
+    const trimmed = input.trim();
+    // May be integer or decimal
+    const numberMatch = /^\d+(?:\.\d+)?$/.exec(trimmed);
+    if (!numberMatch) {
+      return '';
+    }
+    const totalYears = parseFloat(trimmed);
+    if (isNaN(totalYears) || totalYears < 0) {
+      return '';
+    }
+    const wholeYears = Math.floor(totalYears);
+    const fractionalYears = totalYears - wholeYears;
+    const months = Math.round(fractionalYears * 12);
+    let result = 'P';
+    if (wholeYears > 0) {
+      result += `${wholeYears}Y`;
+    }
+    if (months > 0) {
+      result += `${months}M`;
+    }
+    // Handle edge case where input is 0
+    return result === 'P' ? '' : result;
+  }
+
   
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);

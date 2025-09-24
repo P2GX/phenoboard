@@ -498,32 +498,6 @@ fn validate_all_structural_variants(
 }
 
 
-/* 
-#[tauri::command]
-fn validate_hgvs_variant(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantDto,
-    cohort_dto: CohortData)
--> Result<HgvsVariant, String> {
-  let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_hgvs_variant(dto, cohort_dto) 
-}
-
-
-#[tauri::command]
-fn validate_structural_variant(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    dto: VariantDto,
-    cohort_dto: CohortData)
--> Result<StructuralVariant, String> {
-  let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
-    singleton.validate_structural_variant(dto, cohort_dto) 
-}
-*/
-
-
 /// Allow the user to choose an external Excel file (e.g., supplemental table) from which we will create phenopackets
 #[tauri::command]
 async fn load_external_excel(
