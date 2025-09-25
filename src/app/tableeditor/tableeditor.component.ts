@@ -621,7 +621,10 @@ editUniqueValuesInColumn(index: number): void {
           acc[variant.hgvs] = variant.variantKey;
           return acc;
         }, {} as Record<string, string>);
-
+        console.log("updateVariants - hgvsMap", hgvsMap);
+        col.values.forEach(v => {
+          console.log("typeof", typeof v, "val", v);
+        });
       const svMap: Record<string, string> = Object.values(etlDto.structuralVariants)
         .reduce((acc, variant) => {
           acc[variant.label] = variant.variantKey;
@@ -629,9 +632,10 @@ editUniqueValuesInColumn(index: number): void {
         }, {} as Record<string, string>);
 
       return col.values.map((val) => {
-        if (hgvsMap[val] !== undefined) return hgvsMap[val];
-        if (svMap[val] !== undefined) return svMap[val];
-        return val;
+        const key = val.trim(); 
+        if (hgvsMap[key] !== undefined) return hgvsMap[key];
+        if (svMap[key] !== undefined) return svMap[key];
+        return key;
       });
     } catch (err) {
       this.notificationService.showError("Error while updating variants: " + (err as Error).message);
@@ -1268,9 +1272,18 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.annotateVariants(colIndex);
       return;
 
-    case TransformType.UpdateVariants:
-      this.updateVariants(colIndex);
+    case TransformType.UpdateVariants:{
+      const transformed = this.updateVariants(colIndex);
+      const col = this.etlDto!.table.columns[colIndex];
+      this.startPreviewTransform(
+        colIndex,
+        transformed,
+        "Update Variants",
+        col.header,
+        EtlColumnType.Variant
+      );
       return;
+    }
 
     // Elementwise transforms
     default: {
@@ -1299,6 +1312,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
   }
 }
 
+
 /** Applies one of the transforms to a column and sets the corresponding "pending values". 
  * We will then see the pending modal dialog to check the results of transform.
  */
@@ -1322,7 +1336,6 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     this.previewColumnIndex = colIndex;
     this.previewOriginal = col.values.map(v => v ?? '');
     this.previewTransformed = this.transformColumnElementwise(colIndex, transformName);
-    this.previewColumnIndex = colIndex;
     this.previewOriginal = originalValues;
     this.pendingHeader = col.header;
     if (transformName == TransformType.SexColumn) {

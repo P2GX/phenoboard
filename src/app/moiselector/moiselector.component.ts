@@ -35,6 +35,8 @@ export class MoiSelector {
     { id: 'HP:0001427', label: 'Mitochondrial inheritance', selected: false },
     { id: 'HP:0010984', label: 'Digenic inheritance', selected: false },
     { id: 'HP:0001450', label: 'Y-linked inheritance', selected: false },
+    { id: 'HP:0034340', label: 'Pseudoautosomal dominant inheritance', selected: false },
+    { id: 'HP:0034341', label: 'Pseudoautosomal recessive inheritance', selected: false },
   ];
 
   // Watch for changes to pmidDto

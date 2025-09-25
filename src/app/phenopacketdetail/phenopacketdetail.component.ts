@@ -33,7 +33,7 @@ export class PhenopacketDetailComponent implements OnInit {
 
   observedTerms: HpoTermDuplet[] = [];
   excludedTerms: HpoTermDuplet[] = [];
-
+  diseaseIdToLabel: Map<string, string> = new Map();
   constructor(
     private route: ActivatedRoute,
     private cohortService: CohortDtoService
@@ -46,26 +46,46 @@ export class PhenopacketDetailComponent implements OnInit {
       const id = params.get('id');
       if (id) {
         this.row = this.cohortService.findPhenopacketById(id);
+        const cohort = this.cohortService.getCohortData();
+      if (! cohort ) {
+        return;
+      }
+      const row = this.row;
+      if (! row) {
+        return;
+      }
+      cohort.hpoHeaders.forEach((hpo, idx) => {
+          const cellVal = row.hpoData[idx];
+          if (cellVal.type === 'Observed') {
+            this.observedTerms.push(hpo);
+          } else if (cellVal.type === "OnsetAge") {
+            this.observedTerms.push(hpo); // TODO - special treatment for onset/modifier terms
+          } else if (cellVal.type === 'Excluded') {
+            this.excludedTerms.push(hpo);
+          }
+        });
+      cohort.diseaseList.forEach((dx, idx) => {
+        this.diseaseIdToLabel.set(dx.diseaseId, dx.diseaseLabel);
+      });
       }
     });
-    const cohort = this.cohortService.getCohortData();
-    if (! cohort ) {
-      return;
+  }
+
+  getDiseaseLabel(id: string): string {
+    return this.diseaseIdToLabel.get(id) ?? id;
+  }
+
+  getOmimUrl(diseaseId: string): string | null {
+    if (!diseaseId.startsWith("OMIM:")) {
+      return null;
     }
-    const row = this.row;
-    if (! row) {
-      return;
-    }
-    cohort.hpoHeaders.forEach((hpo, idx) => {
-        const cellVal = row.hpoData[idx];
-        if (cellVal.type === 'Observed') {
-          this.observedTerms.push(hpo);
-        } else if (cellVal.type === "OnsetAge") {
-          this.observedTerms.push(hpo); // TODO - special treatment for onset/modifier terms
-        } else if (cellVal.type === 'Excluded') {
-          this.excludedTerms.push(hpo);
-        }
-      });
+    const omimNumber = diseaseId.replace("OMIM:", "");
+    return `https://omim.org/entry/${omimNumber}`;
+  }
+
+  getPmidNumber(pmid: string): string  {
+    if (!pmid.startsWith("PMID:")) return pmid;
+    return pmid.replace("PMID:", "");
   }
 
 }
