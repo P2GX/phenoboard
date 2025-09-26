@@ -134,16 +134,23 @@ digenic() {
   this.mendelianTemplate = true;
   this.meldedTemplate = false;
   this.digenicTemplate = false;
+  this.resetCohort();
 }
 melded() {
   this.mendelianTemplate = false;
   this.meldedTemplate = true;
   this.digenicTemplate = false;
+  this.resetCohort();
 }
 mendelian() {
   this.mendelianTemplate = true;
   this.meldedTemplate = false;
   this.digenicTemplate = false;
+  this.resetCohort();
+}
+
+resetCohort() {
+  this.cohortService.clearCohortData();
 }
 
 }
