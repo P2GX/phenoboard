@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -275,7 +275,7 @@ fn get_pt_template_path(
 }
 
 
-/// When we initialize a new Table (Excel file) for curation, we start with
+/// When we initialize a new CohortData for curation, we start with
 /// a text that contains candidate HPO terms for curation.
 /// This function performs text mining on that text and creates
 /// the initial Template DTO we use to add patient data to
@@ -514,7 +514,7 @@ async fn load_external_excel(
             Some(file) => {
                 let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
-                match singleton.load_external_excel(&path_str, row_based) {
+                match excel::read_external_excel_to_dto(&path_str, row_based) {
                     Ok(dto) => {
                         let status = singleton.get_status();
                         let _ = app_handle.emit("backend_status", &status);

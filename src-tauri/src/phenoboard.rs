@@ -574,16 +574,6 @@ impl PhenoboardSingleton {
         Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
     }
 
-    pub fn load_external_excel(
-        &mut self, external_excel_file: &str, 
-        row_based: bool) 
-    -> Result<ColumnTableDto, String> {
-        match self.phetools.as_mut() {
-            Some(phetools) => phetools.load_external_excel(external_excel_file, row_based),
-            None => Err(format!("phetools not initialized")),
-        }
-    }
-
     pub fn set_external_template_dto(&mut self, dto: &EtlDto) -> Result<(), String> {
         match self.phetools.as_mut() {
             Some(phetools) => phetools.set_external_template_dto(dto),
