@@ -39,8 +39,8 @@ type ColumnTypeColorMap = { [key in EtlColumnType]: string };
 enum TransformType {
   SingleHpoTerm = "Single HPO Term",
   MultipleHpoTerm = "Multiple Hpo Terms",
-  onsetAge = 'Onset Age',
-  lastEncounterAge = 'Age at last encounter',
+  OnsetAge = 'Onset Age',
+  LastEncounterAge = 'Age at last encounter',
   SexColumn = 'Sex column',
   StringSanitize = 'Sanitize (trim/ASCII)',
   ToUppercase = 'To Uppercase',
@@ -185,8 +185,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.ToUppercase]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ToUppercase),
     [TransformType.ToLowercase]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ToLowercase),
     [TransformType.ExtractNumbers]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ExtractNumbers),
-    [TransformType.onsetAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.onsetAge),
-    [TransformType.lastEncounterAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.lastEncounterAge),
+    [TransformType.OnsetAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.OnsetAge),
+    [TransformType.LastEncounterAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LastEncounterAge),
     [TransformType.SexColumn]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.SexColumn),
     [TransformType.SingleHpoTerm]: (colIndex) => {
       this.hpoAutoForColumnName(colIndex);
@@ -331,6 +331,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       ...valueRows
     ];
     this.displayColumns = columnTableDto.columns;
+    this.cdRef.detectChanges();
   }
 
   /**
@@ -390,10 +391,31 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   onRightClickHeader(event: MouseEvent, colIndex: number): void {
     event.preventDefault();
     this.contextMenuColIndex = colIndex;
-    this.contextMenuColHeader = this.displayHeaders[colIndex]?? null; 
+    this.contextMenuColHeader = this.displayHeaders[colIndex] ?? null; 
     this.contextMenuColType = this.displayHeaders[colIndex]?.columnType ?? null;
-    this.columnContextMenuX = event.clientX;
-    this.columnContextMenuY = event.clientY;
+    
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    const menuWidth = 350; // estimate
+    const menuHeight = 400; 
+    
+    let x = event.clientX;
+    let y = event.clientY;
+    
+    if (x + menuWidth > viewportWidth) {
+      x = viewportWidth - menuWidth - 10; 
+    }
+    if (y + menuHeight > viewportHeight) {
+      y = viewportHeight - menuHeight - 10; 
+    }
+    
+    // Ensure minimum distances from edges
+    x = Math.max(10, x); // At least 10px from left edge
+    y = Math.max(10, y); // At least 10px from top edge
+    
+    this.columnContextMenuX = x;
+    this.columnContextMenuY = y;
     this.columnContextMenuVisible = true;
   }
 
@@ -1081,9 +1103,9 @@ transformCategories = {
   age: {
     label: 'Age Transforms',
     transforms: [
-      TransformType.onsetAge,
+      TransformType.OnsetAge,
       TransformType.OnsetAgeAssumeYears,
-      TransformType.lastEncounterAge,
+      TransformType.LastEncounterAge,
       TransformType.LastEncounterAgeAssumeYears
     ]
   },
@@ -1122,9 +1144,9 @@ getTransformDisplayName(transform: TransformType): string {
     [TransformType.ToLowercase]: 'To Lowercase',
     [TransformType.ExtractNumbers]: 'Extract Numbers',
     [TransformType.ReplaceUniqeValues]: 'Replace Unique Values',
-    [TransformType.onsetAge]: 'Onset Age',
+    [TransformType.OnsetAge]: 'Onset Age',
     [TransformType.OnsetAgeAssumeYears]: 'Onset Age (assume years)',
-    [TransformType.lastEncounterAge]: 'Last Encounter Age',
+    [TransformType.LastEncounterAge]: 'Last Encounter Age',
     [TransformType.LastEncounterAgeAssumeYears]: 'Last Encounter Age (assume years)',
     [TransformType.SexColumn]: 'Sex Column',
     [TransformType.SingleHpoTerm]: 'Single HPO Term',
@@ -1166,11 +1188,11 @@ getTransformDisplayName(transform: TransformType): string {
           return val.toLowerCase();
         case TransformType.ExtractNumbers:
           return (val.match(/\d+/g)?.join(' ') || '');
-        case TransformType.onsetAge:
+        case TransformType.OnsetAge:
           return this.etl_service.parseAgeToIso8601(val);
         case TransformType.OnsetAgeAssumeYears:
           return this.etl_service.parseDecimalYearsToIso8601(val);
-        case TransformType.lastEncounterAge:
+        case TransformType.LastEncounterAge:
           return this.etl_service.parseAgeToIso8601(val);
         case TransformType.LastEncounterAgeAssumeYears:
           return this.etl_service.parseDecimalYearsToIso8601(val);
@@ -1294,11 +1316,11 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       if (transformName === TransformType.SexColumn) {
         this.pendingColumnType = EtlColumnType.Sex;
         this.pendingColumnTransformed = true;
-      } else if (transformName === TransformType.onsetAge ||
+      } else if (transformName === TransformType.OnsetAge ||
                  transformName === TransformType.OnsetAgeAssumeYears) {
         this.pendingColumnType = EtlColumnType.AgeOfOnset;
         this.pendingColumnTransformed = true;
-      } else if (transformName === TransformType.lastEncounterAge ||
+      } else if (transformName === TransformType.LastEncounterAge ||
                  transformName === TransformType.LastEncounterAgeAssumeYears) {
         this.pendingColumnType = EtlColumnType.AgeAtLastEncounter;
         this.pendingColumnTransformed = true;
@@ -1341,11 +1363,11 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     if (transformName == TransformType.SexColumn) {
       this.pendingColumnType = EtlColumnType.Sex;
       this.pendingColumnTransformed = true;
-    } else if (transformName == TransformType.onsetAge || 
+    } else if (transformName == TransformType.OnsetAge || 
       transformName == TransformType.OnsetAgeAssumeYears) {
       this.pendingColumnType = EtlColumnType.AgeOfOnset;
       this.pendingColumnTransformed = true;
-    } else if (transformName == TransformType.lastEncounterAge || 
+    } else if (transformName == TransformType.LastEncounterAge || 
               transformName == TransformType.LastEncounterAgeAssumeYears) {
       this.pendingColumnType = EtlColumnType.AgeAtLastEncounter;
       this.pendingColumnTransformed = true;
@@ -1653,6 +1675,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     }
     const diseaseData = cohort.diseaseList[0];
     this.etlDto.disease = diseaseData;
+    this.notificationService.showSuccess("Imported cohort data");
   }
 
   trackRow(index: number, row: any): number {
