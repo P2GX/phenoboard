@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData, RowData } from '../models/cohort_dto';
+import { CohortData, RowData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
@@ -30,6 +30,7 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class PhenopacketDetailComponent implements OnInit {
   row?: RowData;
+  cohort: CohortData|null = null;
 
   observedTerms: HpoTermDuplet[] = [];
   excludedTerms: HpoTermDuplet[] = [];
@@ -38,7 +39,6 @@ export class PhenopacketDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private cohortService: CohortDtoService
   ) {
-    console.log("PhenopacketDetailComponent ctor")
   }
 
   ngOnInit() {
@@ -69,6 +69,7 @@ export class PhenopacketDetailComponent implements OnInit {
       });
       }
     });
+    this.cohort = this.cohortService.getCohortData();
   }
 
   getDiseaseLabel(id: string): string {
@@ -86,6 +87,21 @@ export class PhenopacketDetailComponent implements OnInit {
   getPmidNumber(pmid: string): string  {
     if (!pmid.startsWith("PMID:")) return pmid;
     return pmid.replace("PMID:", "");
+  }
+
+  getVariantString(v: string): string {
+    if (this.cohort == null) {
+      return v;
+    } else if (this.cohort.hgvsVariants[v] != null) {
+      const hgvs = this.cohort.hgvsVariants[v].hgvs;
+      const transcript = this.cohort.hgvsVariants[v].transcript;
+      const symbol = this.cohort.hgvsVariants[v].symbol;
+      return `${transcript}(${symbol}):${hgvs}`;
+    } else if (this.cohort.structuralVariants[v] != null) {
+      return this.cohort.structuralVariants[v].label;
+    } else {
+      return v;
+    }
   }
 
 }

@@ -63,14 +63,16 @@
             <thead>
               <tr>
                 <th>Variant</th>
-                <th>Count</th>
+                <th>Allele Count</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let allele of alleleCounts">
-                <td>{{ allele.key }}</td>
-                <td>{{ allele.value }}</td>
-              </tr>
+              @for (allele of alleleCounts; track $index) {
+                <tr>
+                  <td>{{ getVariantString(allele.key) }}</td>
+                  <td>{{ allele.value }}</td>
+                </tr>
+            }
             </tbody>
           </table>
         </mat-card-content>
