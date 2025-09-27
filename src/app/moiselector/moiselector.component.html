@@ -22,8 +22,8 @@
           </div>
 
           @if (moi.selected) { 
-            <app-pubmed [(pmidDto)]="pmidDto" (widgetClosed)="onPubmedClosed($event, moiIdx)"></app-pubmed>
-
+            <button (click)="openPubmedDialog(moi)" class="btn-outline-primary">🔍 Lookup PubMed</button>
+            <
             @if (moi.pmid != null) {
               <p class="text-xs text-gray-500">{{ moi.pmid }}</p>
             } @else {

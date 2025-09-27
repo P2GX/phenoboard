@@ -1,52 +1,53 @@
-<!-- Input section (before lookup) -->
-@if (!pmidDto.retrievedPmid) {
-  <div class="flex items-center gap-4 mt-6 mx-4">
-    <input
-        type="text"
-        [(ngModel)]="pmidDto.pmid"
+<div class="pubmed-dialog">
+  <div class="form-group">
+    <label for="pmid-input">PMID:</label>
+    <div class="input-group">
+      <input 
+        id="pmid-input"
+        [(ngModel)]="pmidDto.pmid" 
         placeholder="Enter PMID"
-        class="border border-gray-400 rounded px-3 py-2 w-40"
-    />
-
-    <button
-        (click)="retrieve_pmid_title()"
-        class="btn-outline-primary"
-    >
-      Lookup
-    </button>
-
-    <input
-        type="text"
-        [value]="pmidDto.title"
-        readonly
-        class="border border-gray-300 bg-gray-100 rounded px-3 py-2 flex-1"
-    />
-  </div>
-}
-<!-- Result section (after lookup) -->
-<div class="m-4 mt-6" *ngIf="pmidDto.retrievedPmid">
-  <div class="flex items-center justify-between">
-    <div class="flex flex-col space-y-1">
-      <p class="text-green-700 font-semibold text-sm">{{ pmidDto.pmid }}</p>
-      <p class="text-gray-500 text-sm">{{ pmidDto.title }}</p>
+        class="form-control">
+      <button 
+        (click)="retrieve_pmid_title()" 
+        [disabled]="!pmidDto.pmid.trim()"
+        class="btn btn-primary">
+        Retrieve Title
+      </button>
     </div>
   </div>
-</div>
-
-<!-- Footer with Accept / Cancel -->
-<div class="mt-6 flex justify-end space-x-3 mr-2">
-  <button
-    (click)="cancel()"
-    class="btn-outline-primary"
-  >
-    Cancel
-  </button>
-
-  <button
-    (click)="close()"
-    [disabled]="!pmidDto.retrievedPmid"
-    class="btn-outline-primary"
-  >
-    Accept
-  </button>
+  @if (pmidDto.title) {
+      <div class="form-group">
+        <label>Retrieved:</label>
+        <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+          <div style="flex: 1;">
+            <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
+              {{ pmidDto.title }}
+            </div>
+            <div class="text-xs" style="color: #666;">
+              {{ pmidDto.pmid }}
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    
+    @if (pmidDto.hasError) {
+      <div class="error-message">
+        {{ pmidDto.errorMessage }}
+      </div>
+    }
+    
+  <div class="dialog-actions">
+    <button 
+      (click)="cancel()" 
+      class="btn btn-outline">
+      Cancel
+    </button>
+    <button 
+      (click)="accept()" 
+      [disabled]="!isReady()"
+      class="btn btn-primary">
+      Accept
+    </button>
+  </div>
 </div>

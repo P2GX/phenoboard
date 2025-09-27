@@ -166,6 +166,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   /* After loading HPO, we may create a new template (new cohort) */
   async createNewPhetoolsTemplate() {
+    this.cohortService.clearCohortData();
      await this.router.navigate(['/newtemplate']);
   }
 

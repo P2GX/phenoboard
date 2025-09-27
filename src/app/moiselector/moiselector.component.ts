@@ -3,6 +3,7 @@ import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
 import { defaultPmidDto, PmidDto } from "../models/pmid_dto";
+import { MatDialog } from "@angular/material/dialog";
 
 
 interface MoiTerm {
@@ -19,6 +20,9 @@ interface MoiTerm {
   imports: [PubmedComponent, FormsModule],
 })
 export class MoiSelector {
+  constructor(
+    private dialog: MatDialog,
+  ){}
 
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
@@ -42,7 +46,6 @@ export class MoiSelector {
   // Watch for changes to pmidDto
   ngOnChanges(changes: SimpleChanges) {
     if (changes['pmidDto'] && changes['pmidDto'].currentValue) {
-      console.log("NGONCHANGES - pmid", this.pmidDto);
       this.confirmSelection();
     }
   }
@@ -74,9 +77,6 @@ export class MoiSelector {
 
   
   onPubmedClosed(event: any, moiIndex: number) {
-    console.log('Full event object:', event);
-    console.log('Event keys:', Object.keys(event || {}));
-    console.log('Event.pmid:', event?.pmid);
     const pmid = event.pmid;
     const moi = this.moiTerms[moiIndex];
       moi.selected = true; 
@@ -92,4 +92,24 @@ export class MoiSelector {
     this.moiChange.emit(moiList);
     this.showMoi = false;
   }
+
+openPubmedDialog(moi: MoiTerm) {
+  const dialogRef = this.dialog.open(PubmedComponent, {
+      width: '600px',
+      data: { pmidDto: null } // optional initial data
+    });
+
+    dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
+      if (result) {
+        console.log('User chose', result);
+        this.pmidDto = result;
+        moi.pmid = result.pmid;
+        moi.selected = true;
+      } else {
+        console.log('User cancelled');
+      }
+    });
+  }
+
+
 }

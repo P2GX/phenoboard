@@ -1,154 +1,166 @@
-<div *ngIf="!showSuccessMessage">
+@if (showSuccessMessage) {
+  <div class="p-6 text-center">
+    <p class="text-green-700 text-lg font-semibold mb-4">✔ Submission successful!</p>
 
-<div class="w-full px-[5%]">
-<h1 class="h1-primary">Create new phenopacket cohort template</h1>
-<p>Choose type of cohort and then enter relevant information to create a new cohort. After the information has been added, you will be ask to choose a file location to store the template.</p>
-<div *ngIf="errorMessage != null" class="error-container">
-  <p class="error-message">{{ errorMessage }}</p>
-</div>
+    <p class="text-sm text-gray-700 mb-2">
+      You can now continue with:
+    </p>
 
-<button
-  (click)="mendelian()"
-  [disabled]="meldedTemplate || digenicTemplate"
-  class="btn-outline-primary w-[300px]"
->Mendelian
-</button>
-<button
-  (click)="melded()"
-  [disabled]="mendelianTemplate || digenicTemplate"
-  class="btn-outline-primary w-[300px]"
->Melded (Dual)
-</button>
-<button
-  (click)="digenic()"
-  [disabled]="mendelianTemplate || meldedTemplate"
-  class="btn-outline-primary w-[300px]"
->Digenic
-</button>
+    <div class="flex justify-center gap-4">
+      <a routerLink="/tableeditor" 
+          routerLinkActive="bg-gray-700 font-semibold"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="text-blue-600 hover:underline">External Table Editor</a>
 
-<div *ngIf="mendelianTemplate"><p>Mendelian template</p>
-
-
-
-
-<!-- Either show the form or the table -->
-  <form [formGroup]="mendelianDataForm" (ngSubmit)="onSubmitMendelian()" class="form-container">
-    <div class="form-column">
-        <div class="form-group">
-            <label for="diseaseId" class="form-label">Disease identifier</label>
-            <input 
-                id="diseaseId" 
-                type="text" 
-                formControlName="diseaseId" 
-                [ngClass]="{ 'error-border': hasError('diseaseId') }"
-                placeholder="Enter disease ID"
-                class="form-input"
-                >
-            <div *ngIf="mendelianDataForm.get('diseaseId')?.touched && mendelianDataForm.get('diseaseId')?.invalid" class="error-message">
-                <span *ngIf="mendelianDataForm.get('diseaseId')?.hasError('required')" class="error-message">Disease ID is required.</span>
-                <span *ngIf="mendelianDataForm.get('diseaseId')?.hasError('pattern')" class="error-message">Disease ID must follow the pattern "OMIM:123456".</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="diseaseName" class="form-label">Disease name</label>
-            <input 
-                id="diseaseName" 
-                type="text" 
-                formControlName="diseaseName"
-                class="form-input"
-                >
-            <div *ngIf="mendelianDataForm.get('diseaseName')?.touched && mendelianDataForm.get('diseaseName')?.invalid" class="error-message">
-                    <span *ngIf="mendelianDataForm.get('diseaseName')?.hasError('required')" class="error-message">Disease Name is required.</span>
-                    <span *ngIf="mendelianDataForm.get('diseaseName')?.hasError('pattern')" class="error-message">Disease name must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="cohortAcronym" class="form-label">Cohort acronym</label>
-            <input 
-                id="cohortAcronym" 
-                type="text" 
-                formControlName="cohortAcronym"
-                class="form-input"
-                >
-            <div *ngIf="mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid" class="error-message">
-                    <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('required')" class="error-message">Cohort acronym is required.</span>
-                    <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('pattern')" class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="hgnc" class="form-label">HGNC identifier</label>
-            <input id="hgnc" type="text" formControlName="hgnc" class="form-input">
-            <div *ngIf="mendelianDataForm.get('hgnc')?.touched && mendelianDataForm.get('hgnc')?.invalid" class="error-message">
-                <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('required')" class="error-message">HGNC ID is required.</span>
-                <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('pattern')" class="error-message">HGNC ID must follow the pattern "HGNC:123456".</span>
-            </div>
-        </div>
-        <div class="form-group">
-        <label for="hgnc" class="form-label">Gene symbol</label>
-        <input 
-            id="symbol" 
-            type="text" 
-            formControlName="symbol"
-            placeholder="Enter HGNC-approved gene symbol"
-            class="form-input">
-            <div *ngIf="mendelianDataForm.get('symbol')?.touched && mendelianDataForm.get('symbol')?.invalid" class="error-message">
-                <span *ngIf="mendelianDataForm.get('symbol')?.hasError('required')" class="error-message">Gene symbol is required.</span>
-                <span *ngIf="mendelianDataForm.get('symbol')?.hasError('pattern')" class="error-message">Gene symbol must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-            </div>
-        </div>
-        <div class="form-group">
-        <label for="transcript" class="form-label">Transcript</label>
-        <input 
-            id="transcript" 
-            type="text" 
-            formControlName="transcript"
-            placeholder="Enter MANE transcript including version number"
-            class="form-input">
-            <div *ngIf="mendelianDataForm.get('transcript')?.touched && mendelianDataForm.get('transcript')?.invalid" class="error-message">
-                <span *ngIf="mendelianDataForm.get('transcript')?.hasError('required')" class="error-message">Transcript is required.</span>
-                <span *ngIf="mendelianDataForm.get('transcript')?.hasError('pattern')" class="error-message">Transcript must include version number and may not contain leading or trailing whitespace.</span>
-            </div>
-        </div>
-        <button type="submit" class="primary" [disabled]="mendelianDataForm.invalid">Create template</button>
-    </div>
-    <!-- Right Column: Text Area for the 'seed text' that should contain HPO terms we might want to curate -->
-  <div class="text-area-column">
-    <label for="multiText">Seed text</label>
-    <textarea id="multiText" formControlName="multiText" rows="10" class="text-area"></textarea>
-    <div *ngIf="mendelianDataForm.get('multiText')?.touched && mendelianDataForm.get('multiText')?.invalid" class="error-message">
-        <span *ngIf="mendelianDataForm.get('multiText')?.hasError('required')" class="error-message">Seed text is required.</span>
+      <a
+          routerLink="/addcase"
+          routerLinkActive="bg-gray-700 font-semibold"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="text-blue-600 hover:underline"
+        >
+        Add new phenopacket</a>
     </div>
   </div>
-  </form>
-  
- </div>
+} @else {
+  <div class="w-full px-[5%]">
+  <h1 class="h1-primary">Create new phenopacket cohort template</h1>
+  <p>Choose type of cohort and then enter relevant information to create a new cohort. After the information has been added, you will be ask to choose a file location to store the template.</p>
+  @if (errorMessage) {
+    <div class="error-container">
+      <p class="error-message">{{ errorMessage }}</p>
+    </div>
+  }
+  <button
+    (click)="mendelian()"
+    [disabled]="meldedTemplate || digenicTemplate"
+    class="btn-outline-primary w-[300px]"
+  >Mendelian
+  </button>
+  <button
+    (click)="melded()"
+    [disabled]="mendelianTemplate || digenicTemplate"
+    class="btn-outline-primary w-[300px]"
+  >Melded (Dual)
+  </button>
+  <button
+    (click)="digenic()"
+    [disabled]="mendelianTemplate || meldedTemplate"
+    class="btn-outline-primary w-[300px]"
+  >Digenic
+  </button>
 
-</div>
-<div *ngIf="meldedTemplate"><p>Melded template not implemented</p></div>
-<div *ngIf="digenicTemplate"><p>Digenic template not implemented</p></div>
 
-</div>
-
-
-<div *ngIf="showSuccessMessage" class="p-6 text-center">
-  <p class="text-green-700 text-lg font-semibold mb-4">✔ Submission successful!</p>
-
-  <p class="text-sm text-gray-700 mb-2">
-    You can now continue with:
-  </p>
-
-  <div class="flex justify-center gap-4">
-    <a routerLink="/tableeditor" 
-        routerLinkActive="bg-gray-700 font-semibold"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="text-blue-600 hover:underline">External Table Editor</a>
-
-    <a
-        routerLink="/addcase"
-        routerLinkActive="bg-gray-700 font-semibold"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="text-blue-600 hover:underline"
-      >
-      Add new phenopacket</a>
+  @if (mendelianTemplate) {
+  <p>Mendelian template</p>
+  <!-- Either show the form or the table -->
+    <form [formGroup]="mendelianDataForm" (ngSubmit)="onSubmitMendelian()" class="form-container">
+      <div class="form-column">
+          <div class="form-group">
+              <label for="diseaseId" class="form-label">Disease identifier</label>
+              <input 
+                  id="diseaseId" 
+                  type="text" 
+                  formControlName="diseaseId" 
+                  [ngClass]="{ 'error-border': hasError('diseaseId') }"
+                  placeholder="Enter disease ID"
+                  class="form-input"
+                  >
+                  @if (mendelianDataForm.get('diseaseId')?.touched && mendelianDataForm.get('diseaseId')?.invalid) {
+                    <div class="error-message">
+                      @if (mendelianDataForm.get('diseaseId')?.hasError('required')) {
+                        <span class="error-message">Disease ID is required.</span>
+                      }
+                      @if (mendelianDataForm.get('diseaseId')?.hasError('pattern')) {
+                        <span class="error-message">Disease ID must follow the pattern "OMIM:123456".</span>
+                      }
+                    </div>
+                  }
+          </div>
+          <div class="form-group">
+              <label for="diseaseName" class="form-label">Disease name</label>
+              <input 
+                  id="diseaseName" 
+                  type="text" 
+                  formControlName="diseaseName"
+                  class="form-input"
+                  >
+              @if (mendelianDataForm.get('diseaseName')?.touched && mendelianDataForm.get('diseaseName')?.invalid) {
+                <div class="error-message">
+                  @if (mendelianDataForm.get('diseaseName')?.hasError('required')) {
+                    <span class="error-message">Disease Name is required.</span>
+                  }
+                  @if (mendelianDataForm.get('diseaseName')?.hasError('pattern')) {
+                    <span class="error-message">Disease name must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+                  }
+                </div>
+              }
+          </div>
+          <div class="form-group">
+              <label for="cohortAcronym" class="form-label">Cohort acronym</label>
+              <input 
+                  id="cohortAcronym" 
+                  type="text" 
+                  formControlName="cohortAcronym"
+                  class="form-input"
+                  >
+              <div *ngIf="mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid" class="error-message">
+                      <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('required')" class="error-message">Cohort acronym is required.</span>
+                      <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('pattern')" class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+              </div>
+          </div>
+          <div class="form-group">
+              <label for="hgnc" class="form-label">HGNC identifier</label>
+              <input id="hgnc" type="text" formControlName="hgnc" class="form-input">
+              <div *ngIf="mendelianDataForm.get('hgnc')?.touched && mendelianDataForm.get('hgnc')?.invalid" class="error-message">
+                  <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('required')" class="error-message">HGNC ID is required.</span>
+                  <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('pattern')" class="error-message">HGNC ID must follow the pattern "HGNC:123456".</span>
+              </div>
+          </div>
+          <div class="form-group">
+          <label for="hgnc" class="form-label">Gene symbol</label>
+          <input 
+              id="symbol" 
+              type="text" 
+              formControlName="symbol"
+              placeholder="Enter HGNC-approved gene symbol"
+              class="form-input">
+              <div *ngIf="mendelianDataForm.get('symbol')?.touched && mendelianDataForm.get('symbol')?.invalid" class="error-message">
+                  <span *ngIf="mendelianDataForm.get('symbol')?.hasError('required')" class="error-message">Gene symbol is required.</span>
+                  <span *ngIf="mendelianDataForm.get('symbol')?.hasError('pattern')" class="error-message">Gene symbol must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+              </div>
+          </div>
+          <div class="form-group">
+          <label for="transcript" class="form-label">Transcript</label>
+          <input 
+              id="transcript" 
+              type="text" 
+              formControlName="transcript"
+              placeholder="Enter MANE transcript including version number"
+              class="form-input">
+              <div *ngIf="mendelianDataForm.get('transcript')?.touched && mendelianDataForm.get('transcript')?.invalid" class="error-message">
+                  <span *ngIf="mendelianDataForm.get('transcript')?.hasError('required')" class="error-message">Transcript is required.</span>
+                  <span *ngIf="mendelianDataForm.get('transcript')?.hasError('pattern')" class="error-message">Transcript must include version number and may not contain leading or trailing whitespace.</span>
+              </div>
+          </div>
+          <button type="submit" class="primary" [disabled]="mendelianDataForm.invalid">Create template</button>
+      </div>
+      <!-- Right Column: Text Area for the 'seed text' that should contain HPO terms we might want to curate -->
+    <div class="text-area-column">
+      <label for="multiText">Seed text</label>
+      <textarea id="multiText" formControlName="multiText" rows="10" class="text-area"></textarea>
+      <div *ngIf="mendelianDataForm.get('multiText')?.touched && mendelianDataForm.get('multiText')?.invalid" class="error-message">
+          <span *ngIf="mendelianDataForm.get('multiText')?.hasError('required')" class="error-message">Seed text is required.</span>
+      </div>
+    </div>
+    </form>
+  } @else if (meldedTemplate) {
+    <p>Melded template not implemented</p>
+  } @else if (digenicTemplate) {
+    <p>Digenic template not implemented</p>
+  }
   </div>
-</div>
+
+} 
+
+
+

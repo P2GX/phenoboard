@@ -1,5 +1,31 @@
 <div class="w-full px-[5%]">
-<app-pubmed [(pmidDto)]="pmidDto"></app-pubmed>
+<div style="margin: 16px 0;">
+  @if (!pmidDto || !pmidDto.title) {
+    <!-- Show lookup button when no successful result -->
+    <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
+  } @else {
+    <!-- Show result box with reset button when successful -->
+    <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
+            {{ pmidDto.title }}
+          </div>
+          <div class="text-xs" style="color: #666;">
+            {{ pmidDto.pmid }}
+          </div>
+        </div>
+        <button 
+          (click)="resetPmidDto()" 
+          class="btn-outline-primary" 
+          style="margin-left: 12px; padding: 4px 8px; font-size: 12px;">
+          Reset
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
 
   @if (showAgeEntryArea) {
     <app-addages #addagesComponent></app-addages>

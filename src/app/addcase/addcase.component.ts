@@ -51,7 +51,7 @@ export class AddcaseComponent {
         });
   }
   @Input() annotations: TextAnnotationDto[] = [];
-  @ViewChild(PubmedComponent) pubmedComponent!: PubmedComponent;
+  //@ViewChild(PubmedComponent) pubmedComponent!: PubmedComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AdddemoComponent) demographics_component!: AdddemoComponent;
@@ -146,11 +146,11 @@ export class AddcaseComponent {
    */
   async submitNewRow(): Promise<void> {
     console.log("submitNewRow - top");
-      let pmid_dto = this.pubmedComponent.getPmidDto();
-      if (pmid_dto == null) {
-        this.notificationService.showError("Cannot submit row unless PMID information is initialized");
-        return;
-      }
+    if (this.pmidDto == null) {
+      this.notificationService.showError("Cannot submit new row without PMID");
+      return;
+    }
+      let pmid_dto = this.pmidDto;
       if (this.demographData == null) {
         this.notificationService.showError("Cannot submit row unless demographic information is initialized");
         return;
@@ -486,7 +486,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.allele2 = null;
     
     this.demographics_component.reset();
-    this.pubmedComponent.reset_pmid();
     if (this.addagesComponent) {
         this.addagesComponent.reset();
     }
@@ -504,6 +503,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
 
     openPubmedDialog() {
+      console.log("OopenPubmedDialog - top")
       const dialogRef = this.dialog.open(PubmedComponent, {
         width: '600px',
         data: { pmidDto: null } // optional initial data
@@ -511,11 +511,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   
       dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
         if (result) {
-          console.log('User chose', result);
           this.pmidDto = result;
         } else {
-          console.log('User cancelled');
+          this.notificationService.showError('Could not retrieve PMID');
         }
       });
+    }
+
+    resetPmidDto() {
+      this.pmidDto = defaultPmidDto(); // or however you want to reset it
     }
 }
