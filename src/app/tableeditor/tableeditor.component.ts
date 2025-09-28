@@ -30,7 +30,10 @@ import { MultipleHpoDialogComponent } from './multihpo-dialog-vis-component';
 import { Router } from '@angular/router';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
-import { HgvsVariant } from '../models/variant_dto';
+import { SvDialogService } from '../services/svManualEntryDialogService';
+
+import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
+
 
 
 
@@ -83,6 +86,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     private notificationService: NotificationService,
     private fb: FormBuilder,
     private variantDialog: VariantDialogService,
+    private svDialog: SvDialogService,
     private router: Router,
   ) {
     super(templateService, ngZone, cdRef);
@@ -904,16 +908,34 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
    */
   async saveExternalTemplateJson() {
     this.errorMessage = null;
-    if (this.etlDto == null) {
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
       this.notificationService.showError("Could not save JSON because data table is not initialized");
       return;
     }
-    const validationError = this.etl_service.validateEtlDto(this.etlDto);
+    if (etlDto.disease == null) {
+      this.notificationService.showError("Could not save JSON because disease data is not initialized");
+      return;
+    }
+    if (etlDto.disease.geneTranscriptList.length == 0) {
+      this.notificationService.showError("Empty geneTranscriptList");
+      return;
+    }
+    if (etlDto.disease.geneTranscriptList.length > 1) {
+      this.notificationService.showError("Unexpected length of geneTranscriptList > 1");
+      return;
+    }
+    const gt = etlDto.disease.geneTranscriptList[0];
+    if (gt == null) {
+      this.notificationService.showError("geneTranscript. was null");
+      return;
+    }
+    const validationError = this.etl_service.validateEtlDto(etlDto);
     if (validationError) {
       this.notificationService.showError(`Validation failed: ${validationError}`);
       return;
     }
-    this.configService.saveJsonExternalTemplate(this.etlDto)
+    this.configService.saveJsonExternalTemplate(etlDto)
   }
 
   /**
@@ -1714,8 +1736,12 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
+    console.log('Sending DTO to backend:', JSON.stringify(etl_dto, null, 2));
+    console.log('Type of DTO being sent:', etl_dto.constructor.name);
+    console.log('DTO keys:', Object.keys(etl_dto));
     try {
       const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
+      console.log("Got new dto - ", cohort_dto_new);
       if (this.cohortService.currentCohortContainsData()) {
         this.notificationService.showError("TO DO IMPLEMENT MERGE");
       } else {
@@ -1778,7 +1804,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 
 
 
-  async openVariantEditor(): Promise<void> {
+  async openHgvsEditor(): Promise<void> {
     const etlDto = this.etlDto;
     if (! etlDto) return; 
     const colIndex = this.contextMenuCellCol;
@@ -1801,6 +1827,51 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
           return;
         }
         etlDto.hgvsVariants[vkey] = hgvs;
+        let col = etlDto.table.columns[colIndex];
+        col.values[rowIndex] = vkey;
+        this.reRenderTableRows();
+      }
+    } catch (error) {
+      const errMsg = String(error);
+      this.notificationService.showError(errMsg);
+    }
+  }
+
+
+  async openSvEditor(): Promise<void> {
+    const etlDto = this.etlDto;
+    if (! etlDto) return; 
+    const colIndex = this.contextMenuCellCol;
+    if (colIndex === null) {
+      this.notificationService.showError("context menu column is null");
+      return;
+    }
+    const rowIndex = this.contextMenuCellRow;
+    if (rowIndex == null) {
+      return;
+    }
+    const cell_contents = etlDto.table.columns[colIndex].values[rowIndex];
+    const diseaseData = etlDto.disease;
+    if (diseaseData == null) {
+      this.notificationService.showError("Disease data not initialized");
+      return;
+    }
+    if (diseaseData.geneTranscriptList.length != 1) {
+      this.notificationService.showError("Currently this module requires a single gene/transcript object");
+      return;
+    }
+    const gt = diseaseData.geneTranscriptList[0];
+    const chr: string = this.cohortService.getChromosome();
+    try{
+      const sv: StructuralVariant | null = await this.svDialog.openSvDialog(gt, cell_contents, chr);
+      
+      if (sv) {
+        const vkey = sv.variantKey;
+        if (! vkey) {
+          this.notificationService.showError(`Could not get key from Structural Variant object ${sv}`);
+          return;
+        }
+        etlDto.structuralVariants[vkey] = sv;
         let col = etlDto.table.columns[colIndex];
         col.values[rowIndex] = vkey;
         this.reRenderTableRows();

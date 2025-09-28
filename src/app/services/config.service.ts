@@ -271,7 +271,10 @@ export class ConfigService {
    * @param template: list of columns from the external table
    */
   async saveJsonExternalTemplate(template: EtlDto) {
-    await invoke('save_external_template_json', {  template });
+    console.log("saveJsonExternalTemplate", template);
+    //await invoke('save_external_template_json', {  template });
+     const raw = await invoke('ping', { data: template });
+    console.log('raw as seen by rust:', raw);
   }
 
   async loadJsonExternalTemplate(): Promise<EtlDto> {
@@ -304,6 +307,7 @@ export class ConfigService {
   }
 
   async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {
+    console.log("in service transformToCohortData dto=", etlDto);
     return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});
   }
 

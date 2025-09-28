@@ -1,0 +1,65 @@
+/* sv-editor-dialog.component.css */
+
+/* Dialog title */
+h1[mat-dialog-title] {
+  margin: 0 0 12px 0; /* less bottom spacing */
+  font-size: 1.25rem; /* slightly smaller */
+  font-weight: 500;
+  color: #1a202c;
+}
+
+/* Dialog content */
+div[mat-dialog-content] {
+  min-width: 360px;
+  max-width: 460px;
+  padding: 0 16px; /* less horizontal padding */
+}
+
+/* Form layout */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* reduce gap between fields */
+}
+
+/* Material form fields */
+mat-form-field {
+  width: 100%;
+  margin-bottom: 4px; /* reduce spacing */
+}
+
+mat-form-field .mat-form-field-infix {
+  padding: 0.25em 0 0.25em 0; /* reduce vertical padding */
+}
+
+mat-form-field .mat-form-field-label {
+  font-size: 0.85rem; /* smaller labels */
+}
+
+/* Dialog actions */
+div[mat-dialog-actions] {
+  padding: 8px 16px; /* less padding */
+  margin: 0;
+}
+
+/* Buttons */
+button[mat-button], button[mat-flat-button] {
+  margin-left: 6px;
+  padding: 4px 12px; /* slightly smaller buttons */
+  font-size: 0.85rem;
+}
+
+button[mat-flat-button][color="primary"] {
+  background-color: #1976d2;
+  color: white;
+}
+
+button[mat-flat-button][color="primary"]:disabled {
+  background-color: #ccc;
+  color: #999;
+}
+
+/* Optional: reduce select dropdown height */
+::ng-deep .mat-select-panel {
+  max-height: 200px;
+}

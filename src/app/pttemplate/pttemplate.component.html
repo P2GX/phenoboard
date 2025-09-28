@@ -243,10 +243,17 @@
     } 
 </td>
 <td>
-  <button mat-icon-button color="warn"
-          aria-label="Delete allele"
+  <button mat-icon-button
+          aria-label="Add HGVS"
           (click)="addAllele(row)">
-    <mat-icon style="font-size: 16px; line-height: 16px;">➕</mat-icon>
+    <mat-icon class="small-icon">add</mat-icon>
+    <span class="button-label">HGVS</span>
+    </button>
+  <button mat-icon-button
+          aria-label="Add SV"
+          (click)="openSvEditor(row)">
+     <mat-icon class="small-icon">➕</mat-icon>
+     <span class="button-label">SV</span>
     </button>
   </td>
   }

@@ -18,9 +18,10 @@ import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
-import { GeneEditDialogData, VariantDto } from '../models/variant_dto';
+import { GeneEditDialogData, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent } from '../addvariant/addvariant.component';
+import { SvDialogService } from '../services/svManualEntryDialogService';
 
 
 type Option = { label: string; value: string };
@@ -51,6 +52,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     public ageService: AgeInputService,
     ngZone: NgZone,
     cohortService: CohortDtoService,
+    private svDialog: SvDialogService,
     override cdRef: ChangeDetectorRef,
     private notificationService: NotificationService) {
       super(cohortService, ngZone, cdRef)
@@ -236,7 +238,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
             }
             /* If we get here, the variant was validated and added to the cohort. */
             /* We add it with a count of 1 -- they user may need to adjust */
-            console.log('allele added:', result);
+  
             const cohort = this.cohortService.getCohortData();
             if (cohort) {
               // Find the matching row in cohort.rows
@@ -255,6 +257,43 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
           }
         });
   }
+
+  async openSvEditor(row: RowData): Promise<void> {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) return; 
+    // get first disease
+    if (cohort.diseaseList == null || cohort.diseaseList.length < 1) {
+      this.notificationService.showError("Cannot add SV because disease list not initialized");
+      return;
+    }
+    if (cohort.diseaseList[0].geneTranscriptList === null || cohort.diseaseList[0].geneTranscriptList.length < 1) {
+      this.notificationService.showError("Cannot add SV because geneTranscriptList not initialized");
+      return;
+    }
+    const gt = cohort.diseaseList[0].geneTranscriptList[0];
+    const chr: string = this.cohortService.getChromosome();
+    const cell_contents = ''; // initialize SV label in dialog 
+    try{
+      const sv: StructuralVariant | null = await this.svDialog.openSvDialog(gt, cell_contents, chr);
+      
+      if (sv) {
+        const vkey = sv.variantKey;
+        if (! vkey) {
+          this.notificationService.showError(`Could not get key from Structural Variant object ${sv}`);
+          return;
+        }
+        // Initialize to 1 if missing, otherwise increment
+        row.alleleCountMap[vkey] = (row.alleleCountMap[vkey] ?? 0) + 1;
+        if (!(vkey in cohort.structuralVariants)) {
+          cohort.structuralVariants[vkey] = sv;
+        }
+      }
+    } catch (error) {
+      const errMsg = String(error);
+      this.notificationService.showError(errMsg);
+    }
+  }
+
 
 
   generateCohortDescriptionDto(cohortDto: CohortData | null): CohortDescriptionDto  {
@@ -679,5 +718,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   return diffs;
 }
 
+
+  
 
 }

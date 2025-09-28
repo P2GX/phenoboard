@@ -86,17 +86,18 @@ export interface HgvsVariant {
 /** 
  * The kind of structural variant being sent for validation.
  */
-export type SvType =
-  | 'DEL'       // chromosomal_deletion
-  | 'INV'       // chromosomal_inversion
-  | 'TRANSL'    // chromosomal_translocation
-  | 'DUP'       // chromosomal_duplication
-  | 'SV';       // structural_variation, not specific subtype
-
+export enum SvType {
+  DEL = 'DEL',
+  INV = 'INV', 
+  TRANSL = 'TRANSL',
+  DUP = 'DUP',
+  SV = 'SV'
+}
 
 export interface StructuralVariant {
   label: string;
   geneSymbol: string;
+  transcript: string;
   hgncId: string;
   svType: SvType;
   chromosome: string;

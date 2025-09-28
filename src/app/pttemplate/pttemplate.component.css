@@ -109,3 +109,24 @@
     font-weight: bold !important;
   }
 }
+
+/* Make icon small */
+.small-icon {
+  font-size: 16px;
+  line-height: 16px;
+  margin-right: 4px;
+}
+
+/* Label text styling */
+.button-label {
+  font-size: 0.75rem;      /* smaller text */
+  color: #666;             /* medium grey */
+  vertical-align: middle;  /* align nicely with icon */
+}
+
+/* Ensure icon-button lays out inline content */
+button[mat-icon-button] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

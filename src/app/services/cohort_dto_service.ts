@@ -205,4 +205,26 @@ export class CohortDtoService {
         );
   }
 
+  /**
+   * 
+   * @returns Try to a get a chromosome to use to initialize a dialog.
+   */
+    getChromosome(): string {
+        const cohort = this.getCohortData();
+        if (cohort == null) {
+            return '';
+        }
+        if (cohort.cohortType != 'mendelian') {
+            console.error("getChromosome -- Only applicable to Mendelian")
+            return ''; // We probably will only use this for mendelian, but let's avoid surprises.
+        }
+       Object.entries(cohort.hgvsVariants).forEach(([key, hgvs]) => {
+            return hgvs.chr;
+        });
+        Object.entries(cohort.structuralVariants).forEach(([key, sv]) => {
+            return sv.chromosome;
+        });
+        return '';
+    }
+
 }

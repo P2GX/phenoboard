@@ -17,7 +17,7 @@ interface MoiTerm {
   selector: 'app-moiselector',
   templateUrl: './moiselector.component.html',
   standalone: true,
-  imports: [PubmedComponent, FormsModule],
+  imports: [FormsModule],
 })
 export class MoiSelector {
   constructor(

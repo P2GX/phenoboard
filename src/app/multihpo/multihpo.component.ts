@@ -71,11 +71,14 @@ export class MultiHpoComponent {
       return 'na';
     }
     const normalizedRowText = rowText.toLowerCase().trim();
-    const not_app_set = new Set(["na", "n/a", "nd", "?"]);
+    const not_app_set = new Set(["na", "n/a", "nd", "?", "no"]);
     if (not_app_set.has(normalizedRowText)) {
       return "na";
     }
     const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
+    if (normalizedTermLabel == "normal") {
+      return "excluded";
+    }
     if (normalizedRowText === normalizedTermLabel) {
       return 'observed';
     }

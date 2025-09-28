@@ -164,11 +164,17 @@
             <mat-icon>content_copy</mat-icon> Copy value from above
           </li>
         }
+        <li
+          style="padding: 4px 8px; cursor: pointer;"
+          (click)="openHgvsEditor()"
+        >
+           <mat-icon>science</mat-icon>Manually add HGVS
+        </li>
          <li
           style="padding: 4px 8px; cursor: pointer;"
-          (click)="openVariantEditor()"
+          (click)="openSvEditor()"
         >
-           <mat-icon>edit</mat-icon>Manually add HGVS
+           <mat-icon>account_tree</mat-icon>Manually add Structural Variant
         </li>
       </ul>
     </div>

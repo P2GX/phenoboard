@@ -30,7 +30,7 @@ import { NotificationService } from '../services/notification.service';
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [CommonModule, FormsModule, PubmedComponent, AddagesComponent, 
+  imports: [CommonModule, FormsModule, AddagesComponent, 
     AdddemoComponent, HpoAutocompleteComponent, MatIconModule, ],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
