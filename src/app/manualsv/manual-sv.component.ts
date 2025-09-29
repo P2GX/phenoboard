@@ -78,7 +78,7 @@ export class ManualStructuralVariantDialog  {
  * Provide a key for the variant that we will use for the HashMap
  */
   private generateVariantKey(symbol: string, svType: SvType, label: string) {
-    const normalize = (val: string): string =>. val?.trim().replace(/\s+/g, "-") || "-";
+    const normalize = (val: string): string => val?.trim().replace(/\s+/g, "-") || "-";
     return `${symbol.trim()}_${svType}_${normalize(label)}`;
   }
   

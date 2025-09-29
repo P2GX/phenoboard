@@ -9,7 +9,6 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
-use tracing::{debug, trace};
 use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
@@ -18,10 +17,7 @@ use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dt
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG) // INFO/DEBUG/TRACE as needed
-        .with_target(false) // hides module path
-        .init();
+  
 
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
@@ -60,11 +56,11 @@ pub fn run() {
             load_external_excel,
             load_external_template_json,
             save_external_template_json,
-            ping,
             get_biocurator_orcid,
             save_biocurator_orcid,
             get_variant_analysis,
-            get_cohort_data_from_etl_dto
+            get_cohort_data_from_etl_dto,
+            merge_cohort_data_from_etl_dto
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -104,7 +100,6 @@ fn load_hpo(
         let mut singleton = phenoboard_arc.lock().unwrap(); 
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
-               
                 let _ = app.emit("loadedHPO", "loading");
                 match ontology_loader::load_ontology(file) {
                     Ok(ontology) => {
@@ -293,8 +288,6 @@ fn create_template_dto_from_seeds(
     cohort_type: CohortType,
     input: String
 ) -> Result<CohortData, String> {
-   
-    trace!("DTO received: {:#?}", dto);
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.create_template_dto_from_seeds(dto, cohort_type, input)
@@ -455,7 +448,7 @@ fn add_new_row_to_cohort(
     cohort_data: CohortData) 
 -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    let singleton = singleton_arc.lock().unwrap();
     let hpo = match singleton.get_hpo(){
         Some(ontology) => ontology.clone(),
         None => { return Err("HPO not initialized".to_string()); },
@@ -520,7 +513,7 @@ async fn load_external_excel(
     tokio::task::spawn_blocking(move || {
         match app_handle.dialog().file().blocking_pick_file() {
             Some(file) => {
-                let mut singleton = phenoboard_arc.lock().unwrap();
+                let singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file.to_string();
                 match excel::read_external_excel_to_dto(&path_str, row_based) {
                     Ok(dto) => {
@@ -547,29 +540,6 @@ async fn load_external_excel(
     .map_err(|e| format!("Task join error: {}", e))?
 }
 
-
-
-#[tauri::command]
-fn ping(data: serde_json::Value) -> Result<String, String>  {
-    println!("ping called with: {:?}", data);
-    debug!("ping called with {:?}", data);
-    let result: Result<EtlDto, serde_json::Error> = serde_json::from_value(data.clone());
-
-    match result {
-        Ok(val) => println!("Parsed successfully: {:?}", val),
-        Err(e) => println!("JSON error: {}", e), // <-- full error message
-    }
-
-    Ok(data.to_string())
-}
-
-/*
-#[tauri::command]
-fn ping_raw(template: Value) -> Result<String, String> {
-    // return the raw JSON string back to the frontend
-    Ok(template.to_string())
-} */
-
 /// The external template JSON is an intermediate file representing our work on 
 /// an external table (e.g., supplemental material) that we save as a JSON to complete
 /// later on. This command opens a file chooser.
@@ -580,7 +550,6 @@ async fn save_external_template_json(
 ) -> Result<(), String> {
     let app_handle = app.clone();
     //println!("save_external_template_json -- {:?}", template);
-    debug!("save_external_template_json: {:#?}", template);
     tokio::task::spawn_blocking(move || {
         if let Some(file) = app_handle.dialog().file()
             .add_filter("JSON files", &["json"])
@@ -615,22 +584,17 @@ async fn save_external_template_json(
 #[tauri::command]
 async fn load_external_template_json(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
 ) -> Result<EtlDto, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let app_handle = app.clone();
-
     tokio::task::spawn_blocking(move || {
         let fpath =  app_handle.dialog().file().blocking_pick_file();
         match fpath {
             Some(file_path) => {
-                let mut singleton = phenoboard_arc.lock().unwrap();
                 let path_str = file_path.to_string();
                 let contents = fs::read_to_string(path_str)
                     .map_err(|e| format!("Failed to read file: {}", e))?;
                 let dto: EtlDto = serde_json::from_str(&contents)
                     .map_err(|e| format!("Failed to deserialize JSON: {}", e))?;
-                singleton.set_external_template_dto(&dto)?;
                 Ok(dto)
             }
             None => todo!(),
@@ -698,4 +662,23 @@ async  fn get_cohort_data_from_etl_dto(
     println!("{}{} - get_cohort_data_from_etl_dto", file!(), line!() );
     ga4ghphetools::etl::get_cohort_data_from_etl_dto(hpo, dto)
 }
- 
+
+
+/// This command merges a CohortData object that was created f rom the current EtlDto (transformed)
+/// and merges it with the previous CohortData (previous)
+#[tauri::command]
+async fn merge_cohort_data_from_etl_dto(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    previous: CohortData,
+    transformed: CohortData
+) -> Result<CohortData, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = phenoboard_arc.lock().unwrap();
+    let hpo = match singleton.get_hpo() {
+        Some(hpo) => hpo.clone(),
+        None => {
+            return Err("Could not create CohortData because HPO was not initialized".to_string());
+        },
+    };
+    ga4ghphetools::factory::merge_cohort_data_from_etl_dto(previous, transformed, hpo)
+}

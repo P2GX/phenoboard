@@ -2,7 +2,7 @@
 //!
 
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, io_util::select_or_create_folder, pubmed_retrieval::PubmedRetriever}};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
 use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
@@ -10,7 +10,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, hpoa, PheTools};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, variant_dto::VariantDto}, hpoa};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -24,8 +24,6 @@ pub struct PhenoboardSingleton {
     pt_template_path: Option<String>,
     /// Path to the directory where we store the template and the phenopackets
     pt_template_dir_path: Option<PathBuf>,
-    /// PheTools is the heart of the application.
-    phetools: Option<PheTools>,
     /// Strings for autocompletion
     hpo_auto_complete: Vec<String>,
 }
@@ -56,10 +54,7 @@ impl PhenoboardSingleton {
 
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
-        let hpo_clone = Arc::clone(&ontology);
         self.ontology = Some(ontology);
-        let phetools = PheTools::new(hpo_clone);
-        self.phetools = Some(phetools);
     }
 
     pub fn get_hpo(&self) -> Option<Arc<FullCsrOntology>> {
@@ -160,26 +155,32 @@ impl PhenoboardSingleton {
          progress_cb: F) 
     -> Result<CohortData, String> 
     where F: FnMut(u32, u32) {
-        match self.phetools.as_mut() {
-            Some(ptools) => match ptools.load_excel_template(
-                excel_file, 
-                update_labels,
-                progress_cb) {
-                Ok(dto) => {
-                    self.pt_template_path = Some(excel_file.to_string());
-                    let project_dir = Self::get_grandparent_dir(excel_file);
-                    if project_dir.is_none() {
-                        return Err(format!("Could not load project directory for {excel_file}"));
-                    }
-                    let project_dir = project_dir.unwrap();
-                    ptools.initialize_project_dir(project_dir)?;
-                    Ok(dto)
+        let hpo = match &self.ontology {
+            Some(onto) => onto.clone(),
+            None => { return Err("Could not load Excel because HPO was not initialized".to_string());}
+        };
+        let result =  ga4ghphetools::factory::load_pyphetools_excel_template(
+            excel_file, 
+                update_labels, 
+                hpo, 
+                progress_cb);
+        match result {
+            Ok(dto) => {
+                self.pt_template_path = Some(excel_file.to_string());
+                let project_dir = Self::get_grandparent_dir(excel_file);
+                if project_dir.is_none() {
+                    return Err(format!("Could not load project directory for {excel_file}"));
                 }
-                Err(msg) => {
-                    return Err(msg);
-                }
-            },
-            None => return Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
+                let project_dir = project_dir.unwrap();
+                let _ = Self::get_or_create_dir(project_dir)
+                    .map_err(|e| e.to_string())?; // creates the directory if needed, but
+                    // for import of existing projects there will also be a directory there, so this
+                    // is a sanity check
+                Ok(dto)
+            }
+            Err(msg) => {
+                return Err(msg);
+            }
         }
     }
 
@@ -187,20 +188,14 @@ impl PhenoboardSingleton {
         &mut self,
         json_file: &str,
     ) -> Result<CohortData, String> {
-        match self.phetools.as_mut() {
-            Some(ptools) => { 
-                match Self::get_parent_dir(json_file) {
-                    Some(project_dir) => {
-                          ptools.initialize_project_dir(project_dir)?;
-                          ptools.load_json_cohort(json_file)
-                    },
-                    None => Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
-                }
+        match Self::get_parent_dir(json_file) {
+            Some(project_dir) => {
+                ga4ghphetools::persistence::initialize_project_dir(project_dir)?;
+                ga4ghphetools::factory::load_json_cohort(json_file)
             },
-            None => return Err("Could not load excel file since Phetools was not initialized. Did you load HPO?".to_string()),
+            None => Err("Could not load JSON template because we could not initialize the parent directory".to_string()),
         }
     }
-
  
     /// Get a DTO that summarizes the status of the data in the backend
     /// The DTO is synchronized with the corresponding tscript in app/models
@@ -330,28 +325,14 @@ impl PhenoboardSingleton {
         }
     }
 
-    /// Get the directory in which the legacy (Excel) template is stored,
-    /// which is {cohort_name}/input
-    fn get_default_template_dir(&self) -> Option<PathBuf> {
-        match &self.phetools {
-            Some(phetools) => {
-                phetools.get_cohort_dir().map(|mut dir| {
-                    dir.push("input");
-                    dir
-                })
-            },
-            None => None,
-        }
-    }
-
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
     fn extract_template_name(&self, cohort_dto: &CohortData) -> Result<String, String> {
         ga4ghphetools::factory::extract_template_name(cohort_dto)
     }
 
     pub fn save_template_json(&self, cohort_dto: CohortData) -> Result<(), String> {
-        let save_dir = match self.get_default_template_dir() {
-            Some(dir) => dir,
+        let save_dir = match &self.pt_template_dir_path {
+            Some(dir) => dir.clone(),
             None => {
                 // Use home directory as fallback
                 dirs::home_dir().ok_or("Could not get home directory")?
@@ -381,10 +362,8 @@ impl PhenoboardSingleton {
     /// Get the default directory for the current cohort. Used to figure out where to save files.
     fn get_default_dir(&self) -> Result<PathBuf, String> {
         // First try to get the cohort directory
-        if let Some(phetools) = &self.phetools {
-            if let Some(cohort_dir) = phetools.get_cohort_dir() {
-                return Ok(cohort_dir);
-            }
+        if let Some(cohort_dir) = &self.pt_template_dir_path {
+            return Ok(cohort_dir.clone());
         }
         // Fall back to user's home directory
         let home_dir = env::var("HOME")
@@ -468,19 +447,15 @@ impl PhenoboardSingleton {
         hpo_label: &str,
         cohort_dto: CohortData) 
     -> std::result::Result<CohortData, String> {
-        match self.phetools.as_mut() {
-            Some(ptools) => {
-                ptools.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
-            },
-            None => {
-                Err("Phenotype template not initialized".to_string())
-            },
-        }
+        let hpo = match &self.ontology {
+            Some(onto) => onto.clone(),
+            None => {return Err("HPO ontology object not initialized".to_string()); }
+        };
+        ga4ghphetools::factory::add_hpo_term_to_cohort(hpo_id, hpo_label, hpo, cohort_dto)
     }
 
-    /// Generate a Template from seed HPO terms.
-    /// This method will create a new Phetools object and discard the previous one, if any.
-    /// ToDo, this is Mendelian only, we need to extend it.
+    /// Generate a CohortType from seed HPO terms and some information about the disease & gene
+    /// Mendelian only
     pub fn create_template_dto_from_seeds(
         &mut self,
         dto: DiseaseData,
@@ -489,22 +464,11 @@ impl PhenoboardSingleton {
     ) -> Result<CohortData, String> {
         println!("{}:{} - input {}", file!(), line!(), &input);
         let fresult = self.map_text_to_term_list(&input);
-        let directory = select_or_create_folder()?;
-        match &self.ontology {
-            Some(hpo) => {
-                let hpo_arc = Arc::clone(hpo);
-                let mut phetools = PheTools::new(hpo_arc);
-                let dgdto = phetools.create_cohort_dto_from_seeds(
-                    cohort_type,
-                    dto,
-                    directory,
-                    fresult,
-                )?;
-                self.phetools = Some(phetools);
-                return Ok(dgdto);
-            },
-            None =>  Err(format!("Could not retrieve ontology"))
-            }
+        let hpo = match &self.ontology {
+            Some(onto) => onto.clone(),
+            None => { return Err("HPO object not initialized".to_string()); }
+        };
+        ga4ghphetools::factory::create_cohort_dto_from_seeds(cohort_type, dto, fresult, hpo)     
     }
 
 
@@ -574,14 +538,6 @@ impl PhenoboardSingleton {
         Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
     }
 
-    pub fn set_external_template_dto(&mut self, dto: &EtlDto) -> Result<(), String> {
-        match self.phetools.as_mut() {
-            Some(phetools) => phetools.set_external_template_dto(dto),
-            None => Err(format!("phetools not initialized")),
-        }
-    }
-
-
     pub fn get_biocurator_orcid(&self) -> Result<String, String> {
        self.settings.get_biocurator_orcid()
     }
@@ -594,11 +550,37 @@ impl PhenoboardSingleton {
         &self,
         cohort_dto: CohortData
     ) -> Result<Vec<VariantDto>, String> {
-        match &self.phetools {
-            Some(ptools) => ptools.analyze_variants(cohort_dto),
-            None => Err("Phetools not initialized".to_string()),
+        ga4ghphetools::variant::analyze_variants(cohort_dto)
+    }
+
+
+    /// Ensure the directory at `dir_path` exists, creating it if necessary, 
+    /// and return its canonical (absolute) path.
+    ///
+    /// # Arguments
+    ///
+    /// * `dir_path` - Path to the directory to get or create.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `io::Error` if the directory cannot be created or canonicalized.
+    pub fn get_or_create_dir<P: AsRef<Path>>(dir_path: P) -> std::io::Result<PathBuf> {
+        let path = dir_path.as_ref();
+
+        if !path.exists() {
+            std::fs::create_dir_all(path)?;
         }
-}
+
+        if !path.is_dir() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Path exists but is not a directory: {:?}", path),
+            ));
+        }
+
+        path.canonicalize()
+    }
+
  
 
 
@@ -612,7 +594,6 @@ impl Default for PhenoboardSingleton {
             ontology: None, 
             pt_template_path: None, 
             pt_template_dir_path: None,
-            phetools: None, 
             hpo_auto_complete: vec![],
         }
     }

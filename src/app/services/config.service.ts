@@ -13,7 +13,7 @@ import { ColumnTableDto, EtlDto } from '../models/etl_dto';
   providedIn: 'root'
 })
 export class ConfigService {
-
+ 
   
   constructor() {}
 
@@ -271,10 +271,7 @@ export class ConfigService {
    * @param template: list of columns from the external table
    */
   async saveJsonExternalTemplate(template: EtlDto) {
-    console.log("saveJsonExternalTemplate", template);
-    //await invoke('save_external_template_json', {  template });
-     const raw = await invoke('ping', { data: template });
-    console.log('raw as seen by rust:', raw);
+    await invoke('save_external_template_json', {  template });
   }
 
   async loadJsonExternalTemplate(): Promise<EtlDto> {
@@ -320,5 +317,11 @@ export class ConfigService {
     if (! val) { return false;}
     return val.startsWith("c.") || val.startsWith("n.") || val.startsWith("m.");
   }  
+
+  async mergeCohortData(cohort_previous: CohortData, cohort_dto_new: CohortData) {
+    return await invoke<CohortData>('merge_cohort_data_from_etl_dto', 
+      { previous: cohort_previous, transformed: cohort_dto_new});
+  }
+
 
 }

@@ -1740,9 +1740,17 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     console.log('Type of DTO being sent:', etl_dto.constructor.name);
     console.log('DTO keys:', Object.keys(etl_dto));
     try {
+      
+     
       const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
       console.log("Got new dto - ", cohort_dto_new);
       if (this.cohortService.currentCohortContainsData()) {
+        const cohort_previous = this.cohortService.getCohortData();
+        if (cohort_previous === null) {
+          this.notificationService.showError("Cohort data not retrieved");
+          return;
+        }
+        this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
         this.notificationService.showError("TO DO IMPLEMENT MERGE");
       } else {
         this.cohortService.setCohortData(cohort_dto_new);
