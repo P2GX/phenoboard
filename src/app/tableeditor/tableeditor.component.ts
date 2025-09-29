@@ -1750,8 +1750,9 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
           this.notificationService.showError("Cohort data not retrieved");
           return;
         }
-        this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
-        this.notificationService.showError("TO DO IMPLEMENT MERGE");
+        const merged_cohort = await this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
+        this.cohortService.setCohortData(merged_cohort);
+        this.router.navigate(['/pttemplate']);
       } else {
         this.cohortService.setCohortData(cohort_dto_new);
         this.router.navigate(['/pttemplate']);

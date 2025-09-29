@@ -403,7 +403,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   
-
+  /** Open a context menu after a right-click on an HPO column */
   onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, cell: CellValue) {
     event.preventDefault();
     this.contextMenuVisible = true;
@@ -490,7 +490,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       const cellValue: CellValue = getCellValue(option);
       const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingHpoRowIndex, this.pendingHpoColumnIndex, cellValue);
       this.cohortDto = updatedCohort;
-        console.log("after",this.cohortDto)
+      this.cohortService.setCohortData(updatedCohort);
     }  
       
     
