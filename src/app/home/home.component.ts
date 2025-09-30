@@ -135,6 +135,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     
 
   async loadHpo() {
+    this.clearData();
     try {
       await this.configService.loadHPO();
     } catch (error: any) {
@@ -146,6 +147,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
+    this.clearData();
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
@@ -167,7 +169,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   /* After loading HPO, we may create a new template (new cohort) */
   async createNewPhetoolsTemplate() {
     this.cohortService.clearCohortData();
-     await this.router.navigate(['/newtemplate']);
+    await this.router.navigate(['/newtemplate']);
   }
 
 
@@ -203,6 +205,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
 
   async chooseJsonTemplateFile() {
+    this.clearData();
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtJson();
@@ -228,10 +231,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   /** Clear existing datasets, e.g., when we move to a new template */
   clearData() {
     this.backendStatusService.clearStatus();
-    this.newTemplateMessage = this.NOT_INIT;
-    console.log("clear daa, ntm =", this.newTemplateMessage);
-    this.jsonTemplateFileMessage = this.NOT_INIT;
     this.cohortService.clearCohortData();
+    this.templateFileMessage = this.NOT_INIT;
+    this.newTemplateMessage = this.NOT_INIT;
+    this.templateFileMessage = this.NOT_INIT;
+    this.jsonTemplateFileMessage = this.NOT_INIT;
   }
 
 }

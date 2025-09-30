@@ -1700,8 +1700,9 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     this.notificationService.showSuccess("Imported cohort data");
   }
 
+  /** Indexing for rows in template forloops. row identity is its index */
   trackRow(index: number, row: any): number {
-    return index; // row identity is its index
+    return index; 
   }
 
  
@@ -1736,14 +1737,8 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
-    console.log('Sending DTO to backend:', JSON.stringify(etl_dto, null, 2));
-    console.log('Type of DTO being sent:', etl_dto.constructor.name);
-    console.log('DTO keys:', Object.keys(etl_dto));
     try {
-      
-     
       const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
-      console.log("Got new dto - ", cohort_dto_new);
       if (this.cohortService.currentCohortContainsData()) {
         const cohort_previous = this.cohortService.getCohortData();
         if (cohort_previous === null) {

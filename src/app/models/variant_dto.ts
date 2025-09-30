@@ -79,6 +79,7 @@ export interface HgvsVariant {
   hgvs: string;
   transcript: string;
   gHgvs: string;
+  pHgvs?: string; // corresponds to Option<String> in Rust
   variantKey: string;
 }
 

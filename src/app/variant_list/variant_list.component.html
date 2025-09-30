@@ -4,7 +4,7 @@
   <thead>
     <tr>
       <th class="border border-gray-400 px-4 py-2">Variant String</th>
-      <th class="border border-gray-400 px-4 py-2">Variant Key</th>
+      <th class="border border-gray-400 px-4 py-2">Variant Consequence</th>
       <th class="border border-gray-400 px-4 py-2">Count</th>
        <th class="border border-gray-400 px-4 py-2">Category</th>
       <th class="border border-gray-400 px-4 py-2">Validated?</th>
@@ -12,19 +12,23 @@
     </tr>
   </thead>
   <tbody>
-    @for (v of variantDtoList; track v.variantKey) {
+    @for (v of variantDisplayList; track v.variantString) {
       <tr>
         <td class="border border-gray-400 px-4 py-2">{{ v.variantString }}</td>
-        <td class="border border-gray-400 px-4 py-2">{{ v.variantKey }}</td>
+        <td class="border border-gray-400 px-4 py-2">{{ v.consequence }}</td>
          <td class="border border-gray-400 px-4 py-2">{{ v.count }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.variantType }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.isValidated ? '✅' : '❌' }}</td>
-        <button
-          class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-          (click)="validateVariant(v)"
-        >
-          Validate
-        </button>
+        <td class="border border-gray-400 px-4 py-2 text-center">
+          <div class="flex justify-center items-center">
+            <button
+              class="text-sm text-gray-600 border border-gray-300 px-2 py-0.5 rounded hover:bg-gray-100"
+              (click)="validateVariant(v)"
+            >
+              Validate
+            </button>
+          </div>
+        </td>
       </tr>
     }
   </tbody>
