@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  font-family: Inter, Roboto, "Helvetica Neue", sans-serif;
+  color: #333;
+}
+
+h1[mat-dialog-title] {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  text-align: center;       /* centers the title */
+  border-bottom: 1px solid #e0e0e0;
+}
+
+
+
+[mat-dialog-content] {
+  padding: 1rem 0;
+  min-height: 400px; /* already in your markup */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+app-hpomining,
+app-hpopolishing {
+  flex: 1;
+  display: block;
+}
+
+[mat-dialog-actions] {
+  margin-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 0.75rem;
+}
+
+button[mat-button] {
+  text-transform: none;
+  font-weight: 500;
+  color: #555;
+}
+
+button[mat-button]:hover {
+  background-color: #f5f5f5;
+}

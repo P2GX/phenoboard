@@ -1788,22 +1788,21 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 
     // Preview values
     const newValues = Array(rowCount).fill(constantValue);
-    this.previewOriginal = Array(rowCount).fill(''); // same length, but empty originals
-    // Set up preview state
-    this.previewColumnIndex = index + 1; // insert right AFTER the clicked column
-    this.previewTransformed = newValues;
-    this.previewTransformName = TransformType.ConstantColumn;
-    this.pendingHeader = {
+    const header = {
       original: columnName.trim(),
       current: columnName.trim(),
       columnType: EtlColumnType.Raw,
     };
-    this.pendingColumnType = EtlColumnType.Raw;
-    this.pendingColumnTransformed = false;
+    const column: ColumnDto = {
+      id: crypto.randomUUID(),
+      transformed: false,
+      header: header,
+      values: newValues
+    };
+    this.etlDto.table.columns.splice(index + 1, 0, column);
+    this.reRenderTableRows();
 
-    this.showPreview("constant column");
-
-    return this.previewTransformed;
+    return [];
   }
 
 

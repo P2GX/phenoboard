@@ -1,6 +1,6 @@
 import { Component, Input, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule,  } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, NgModel,  } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
@@ -22,7 +22,8 @@ import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
-
+import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
+import { NgModule } from '@angular/core';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -31,11 +32,12 @@ import { NotificationService } from '../services/notification.service';
   selector: 'app-addcase',
   standalone: true,
   imports: [CommonModule, FormsModule, AddagesComponent, 
-    AdddemoComponent, HpoAutocompleteComponent, MatIconModule, ],
+    AdddemoComponent, HpoAutocompleteComponent, MatIconModule ],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
+
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
@@ -520,5 +522,20 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
     resetPmidDto() {
       this.pmidDto = defaultPmidDto(); // or however you want to reset it
+    }
+
+    openHpoTwoStepDialog() {
+      console.log("openHpoTwoStepDialog")
+      const dialogRef = this.dialog.open(HpoTwostepComponent, {
+        width: '900px',
+        height: '700px',
+        disableClose: true,
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          console.log('Final annotations:', result);
+        }
+      });
     }
 }

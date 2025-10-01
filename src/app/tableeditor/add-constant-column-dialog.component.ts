@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-add-constant-column-dialog',
   template: `
     <h1 mat-dialog-title>Add Constant Column</h1>
-    <div mat-dialog-content>
+    <div mat-dialog-content class="dialog-content">
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Column Name</mat-label>
         <input matInput [(ngModel)]="data.columnName" />
@@ -25,8 +25,20 @@ import { FormsModule } from '@angular/forms';
       <button mat-flat-button color="primary" (click)="onSave()">Add</button>
     </div>
   `,
+  styles: [`
+    .dialog-content {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    mat-form-field {
+      margin-bottom: 16px;
+    }
+  `],
   imports: [MatInputModule, CommonModule, FormsModule]
 })
+
 export class AddConstantColumnDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<AddConstantColumnDialogComponent>,

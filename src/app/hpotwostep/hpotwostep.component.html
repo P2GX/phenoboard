@@ -1,0 +1,19 @@
+<h1 mat-dialog-title>HPO Text Mining</h1>
+
+<div mat-dialog-content class="min-h-[400px]">
+  @if(step === 1) {
+    <app-hpomining
+      (success)="onTextMiningSuccess($event)"
+      (error)="onTextMiningError($event)">
+    </app-hpomining>
+  } @else if (step === 2) {
+    <app-hpopolishing
+      [annotations]="annotations"
+      (done)="onPolishingDone($event)">
+    </app-hpopolishing>
+  }
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="close()" class="btn-outline-primary mt-2">Cancel</button>
+</div>
