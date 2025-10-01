@@ -157,6 +157,16 @@
 </table>
 </div>
 
+<div class="space-y-1">
+  <app-hpoautocomplete
+    [inputString]="hpoInputString"
+    (selected)="selectedHpoTerm = $event"
+    [onSubmit]="submitSelectedHpo"
+    #hpoAutocomplete
+  ><span card-title>Add new HPO term</span></app-hpoautocomplete>
+  <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+</div>
+
 </div>
   <!-- Done button -->
   <div class="flex justify-end mt-4">
@@ -166,5 +176,6 @@
     >
       Finish
     </button>
+     <button class="btn-outline-primary" (click)="onCancel()">Cancel</button>
   </div>
 </div>

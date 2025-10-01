@@ -32,7 +32,7 @@ import { NgModule } from '@angular/core';
   selector: 'app-addcase',
   standalone: true,
   imports: [CommonModule, FormsModule, AddagesComponent, 
-    AdddemoComponent, HpoAutocompleteComponent, MatIconModule ],
+    AdddemoComponent, MatIconModule ],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
@@ -72,6 +72,9 @@ export class AddcaseComponent {
   showPopup: boolean = false;
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
+
+  showTwoStepHpoButton: boolean = true;
+  hpoAnnotations: HpoTermData[] = [];
 
   allele1: VariantDto | null = null;
   allele2: VariantDto | null = null;
@@ -527,15 +530,22 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     openHpoTwoStepDialog() {
       console.log("openHpoTwoStepDialog")
       const dialogRef = this.dialog.open(HpoTwostepComponent, {
-        width: '900px',
-        height: '700px',
+        width: '1200px',
+        height: '900px',
         disableClose: true,
       });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           console.log('Final annotations:', result);
+          this.hpoAnnotations = result;
+          this.showTwoStepHpoButton = false;
         }
       });
+    }
+
+    resetAnnotations() {
+      this.hpoAnnotations = [];
+      this.showTwoStepHpoButton = true;
     }
 }

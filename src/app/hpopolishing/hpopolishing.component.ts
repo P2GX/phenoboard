@@ -1,4 +1,3 @@
-import { MatDialogRef } from '@angular/material/dialog';
 import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
@@ -6,6 +5,8 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
+import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
+import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 
 
 @Component({
@@ -13,11 +14,18 @@ import { ConfigService } from '../services/config.service';
   templateUrl: './hpopolishing.component.html',
   styleUrls: ['./hpopolishing.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, HpoAutocompleteComponent]
 })
 export class HpoPolishingComponent implements OnInit {
+
+
+  /** These are the raw textmining results and contain hits, in-between text, and may contain duplicates */
   @Input() annotations: TextAnnotationDto[] = [];
-  @Output() done = new EventEmitter<TextAnnotationDto[]>();
+  @Output() done = new EventEmitter<HpoTermData[]>();
+  @Output() cancel = new EventEmitter<void>();
+
+  addedAnnotations: HpoTermData[] = [];
+  uniqueHpoAnnotations: HpoTermData[] = [];
 
   showCollapsed = false;
   showPopup = false;
@@ -28,6 +36,10 @@ export class HpoPolishingComponent implements OnInit {
   predefinedOptions: string[] = [];
   showDropdownMap: { [termId: string]: boolean } = {};
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
+   /* used for autocomplete widget */
+    hpoInputString: string = '';
+    selectedHpoTerm: HpoTermDuplet | null = null;
+
 
   constructor(private ageService: AgeInputService,
     private configService: ConfigService
@@ -35,8 +47,6 @@ export class HpoPolishingComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log("annotations at init:", this.annotations);
-    console.log("annotations:", JSON.stringify(this.annotations, null, 2));
   }
 
   openPopup(ann: TextAnnotationDto, event: MouseEvent) {
@@ -117,7 +127,93 @@ export class HpoPolishingComponent implements OnInit {
     annotation.onsetString = newValue;
   }
 
+    submitSelectedHpo = async () => {
+    if (this.selectedHpoTerm == null) {
+      return;
+    }
+    await this.submitHpoAutocompleteTerm(this.selectedHpoTerm);
+  };
+
+  async submitHpoAutocompleteTerm(autocompletedTerm: HpoTermDuplet): Promise<void> {
+    if (autocompletedTerm) {
+      const hpoTermData: HpoTermData= {
+        termDuplet: autocompletedTerm,
+        entry: {
+          type: 'Observed'
+        }
+      };
+      this.addedAnnotations.push(hpoTermData);
+    }
+  }
+
+  /** We get a list of TextAnnotationDto objects from the HPO Textmining app. 
+   * We want to extract the corresponding unique set of HPO terms with observations. 
+   * This function converts one such annotation to an HpoTermData object.
+  */
+    convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermData {
+      let cellValue: CellValue | null = null;
+      if (textAnn.isObserved) {
+        let status = 'observed'; // status could be observed or an age of onset.
+        if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
+          status = textAnn.onsetString; // if there is a non-empty/non-na onset, use it for our value
+          cellValue = {
+            type: "OnsetAge",
+            data: status
+          }
+        } else {
+          cellValue = { type: "Observed"}
+        }
+      } else {
+         cellValue = { type: "Excluded"}
+      }
+      const duplet: HpoTermDuplet = {
+        hpoLabel: textAnn.label,
+        hpoId:  textAnn.termId,
+      };
+      
+      return {
+        termDuplet: duplet, 
+        entry: cellValue,
+      };
+    }
+  
+
   finish() {
-    this.done.emit(this.annotations);
+    const mining_hits: TextAnnotationDto[] = this.getFenominalAnnotations();
+    const uniqueMap = new Map<string, TextAnnotationDto>();
+
+    for (const hit of mining_hits) {
+      const existing = uniqueMap.get(hit.termId);
+      if (!existing) {
+        // Not seen yet, add it
+        uniqueMap.set(hit.termId, hit);
+      } else {
+        // Already seen, check if onset or observed differs
+        if (
+          existing.onsetString !== hit.onsetString ||
+          existing.isObserved !== hit.isObserved
+        ) {
+          throw new Error(
+            `Conflicting annotations for term ${hit.termId}: ` +
+            `existing(${existing.onsetString}, ${existing.isObserved}), ` +
+            `new(${hit.onsetString}, ${hit.isObserved})`
+          );
+        }
+        // else identical, skip
+      }
+    }
+    const uniqueHits: TextAnnotationDto[] = Array.from(uniqueMap.values());
+    let uniqueHpoData: HpoTermData[] = uniqueHits.map(h => this.convertTextAnnotationToHpoAnnotation(h));
+    this.addedAnnotations.forEach(t => {
+      if (!uniqueMap.has(t.termDuplet.hpoId)) {
+        uniqueHpoData.push(t);
+      }
+    });
+
+    this.done.emit(uniqueHpoData);
+  }
+
+  onCancel() {
+    this.cancel.emit();
   }
 }

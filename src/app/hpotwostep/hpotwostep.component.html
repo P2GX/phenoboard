@@ -4,16 +4,14 @@
   @if(step === 1) {
     <app-hpomining
       (success)="onTextMiningSuccess($event)"
-      (error)="onTextMiningError($event)">
+      (error)="onTextMiningError($event)"
+      (cancel)="close()">
     </app-hpomining>
   } @else if (step === 2) {
     <app-hpopolishing
       [annotations]="annotations"
-      (done)="onPolishingDone($event)">
+      (done)="onPolishingDone($event)"
+      (cancel)="close()">
     </app-hpopolishing>
   }
-</div>
-
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="close()" class="btn-outline-primary mt-2">Cancel</button>
 </div>

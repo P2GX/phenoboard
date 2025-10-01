@@ -16,6 +16,7 @@ export class HpoMiningComponent {
 
   @Output() success = new EventEmitter<TextAnnotationDto[]>();
   @Output() error = new EventEmitter<string>();
+  @Output() cancel = new EventEmitter<void>();
 
   constructor(
     private configService: ConfigService,
@@ -39,5 +40,9 @@ export class HpoMiningComponent {
       this.notificationService.showError(message);
       this.error.emit(message);
     }
+  }
+
+  onCancel() {
+    this.cancel.emit();
   }
 }

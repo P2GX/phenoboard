@@ -3,6 +3,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { HpoMiningComponent } from '../hpomining/hpomining.component';
 import { HpoPolishingComponent } from "../hpopolishing/hpopolishing.component";
+import { HpoTermData } from '../models/hpo_term_dto';
 
 
 @Component({
@@ -28,7 +29,7 @@ export class HpoTwostepComponent {
   }
 
   /** return result to parent */
-  onPolishingDone(finalAnnotations: TextAnnotationDto[]) {
+  onPolishingDone(finalAnnotations: HpoTermData[]) {
     this.dialogRef.close(finalAnnotations);  
   }
 
