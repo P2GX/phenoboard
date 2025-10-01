@@ -1,5 +1,11 @@
 <div class="w-full px-[5%]">
-<div style="margin: 16px 0;">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6 mt-6">
+  Add Case Data
+</h1>
+<div
+  class="flex items-center gap-4 p-3 border rounded"
+  style="border-color: #e9ecef; margin-bottom:10px;"
+>
   @if (!pmidDto || !pmidDto.title) {
     <!-- Show lookup button when no successful result -->
     <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
@@ -26,92 +32,113 @@
   }
 </div>
 
+<!-- Enter ages of onset/last encounter-->
+<div
+  class="flex items-center gap-4 p-3 border rounded"
+  style="border-color: #e9ecef; margin-bottom:10px;"
+>
+  <button mat-stroked-button color="primary" (click)="openAgeDialog()">
+    Add/Edit Age Entries
+  </button>
+  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+    @for (entry of ageEntries; track entry; let i = $index) {
+      <span class="bg-gray-100 px-2 py-1 rounded">{{ entry }}</span>
+    }
+  </div>
+</div>
+  <!-- <app-adddemo #adddemoComponent (demoSubmitted)="handleDemographicData($event)"></app-adddemo> -->
 
-  @if (showAgeEntryArea) {
-    <app-addages #addagesComponent></app-addages>
-  }
-  <app-adddemo #adddemoComponent (demoSubmitted)="handleDemographicData($event)"></app-adddemo>
+<!-- Demographic information-->
+<div
+  class="flex items-center gap-4 p-3 border rounded"
+  style="border-color: #e9ecef; margin-bottom:10px;"
+>
+  <button mat-stroked-button color="primary" (click)="openAddDemoDialog()">
+  ➕ Add/edit Demographics
+</button>
+  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+    {{ demographicSummary }}
+  </div>
+</div>
+
+
+<div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
+  <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">HPO Annotations</h3>
 
   @if (showTwoStepHpoButton) {
-     <div class="space-y-4 p-1 border rounded-md text-sm text-gray-500">
-  <button mat-flat-button color="primary" (click)="openHpoTwoStepDialog()">
-    Test 2 step HPO Annotation
-  </button>
-  </div>
-} @else {
-  <div class="flex items-center justify-between p-2 border rounded bg-gray-50">
-  <div class="flex flex-wrap gap-1 text-sm text-gray-500">
-    <span *ngFor="let annot of hpoAnnotations">
-      {{ annot.termDuplet.hpoLabel }}: {{annot.entry}}
-    </span>
-  </div>
-
-  <button
-    class="text-xs text-gray-600 hover:text-gray-800"
-    (click)="resetAnnotations()"
-  >
-    Reset
-  </button>
-</div>
-}
-
-
-
-
-<!-- ALLELE 1 -->
-<div class="flex items-center gap-4 w-full">
-  <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 1</button>
-  @if (allele1 != null){
-  <span class="flex items-center gap-2 text-sm text-gray-700">
-    <span
-      class="inline-block w-2.5 h-2.5 rounded-full"
-      [ngClass]="{
-        'bg-green-500': true,
-        'bg-red-500': false
-      }"
-    ></span>
-    {{ allele1.variantString }} ({{allele1.geneSymbol}})
-    <button mat-icon-button 
-            (click)="allele1 = null" 
-            aria-label="Clear variant" 
-            class="flex-shrink p-0 w-5 h-5">
-      <mat-icon>close</mat-icon>
+    <button 
+      type="button"
+      (click)="openHpoTwoStepDialog()"
+      class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 block">
+      + Add HPO Annotations
     </button>
-  </span>
   } @else {
-   <p class="text-gray-400">na</p>
-   }
+    <div class="flex items-center justify-between p-2 border rounded bg-gray-50">
+      <div class="flex flex-wrap gap-1 text-sm text-gray-500">
+        @for (annot of hpoAnnotations; track annot) {
+          <span>
+            {{ annot.termDuplet.hpoLabel }}: {{ annot.entry }}
+          </span>
+        }
+      </div>
+
+      <button
+        class="px-2 py-1 text-xs rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+        (click)="resetAnnotations()"
+      >
+        Reset
+      </button>
+    </div>
+  }
 </div>
-<!-- ALLELE 2 -->
-<div class="flex items-center gap-4 w-full">
-  <button button (click)="openAddAllele1Dialog()" class="btn-outline-primary">Add Allele 2</button>
-  @if (allele2) {
-    <span class="flex items-center gap-2 text-sm text-gray-700">
-      <span
-          class="inline-block w-2.5 h-2.5 rounded-full"
-          [ngClass]="{
-            'bg-green-500': true,
-            'bg-red-500': false
-          }"
-      ></span>
-      {{ allele2.variantString }} ({{allele2.geneSymbol}})
-      @if (!allele2) {
-      <button mat-icon-button 
-          (click)="allele2 = null" 
-          aria-label="Clear variant" 
-          class="flex-shrink p-0 w-5 h-5">
+
+
+<!-- Allele Section -->
+<div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
+  <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Alleles</h3>
+  <button 
+    type="button"
+    (click)="openAddAlleleDialog()" 
+    class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">
+    + Add Allele
+  </button>
+
+  <!-- List of alleles -->
+  <ul class="mt-3 space-y-2">
+    @for (allele of alleles; track allele) {
+      <li class="flex items-center justify-between text-sm bg-gray-50 px-3 py-2 rounded-md border">
+        <div class="flex items-center gap-2 text-gray-700">
+          <span 
+            class="inline-block w-2.5 h-2.5 rounded-full"
+            [ngClass]="{
+              'bg-green-500': true,
+              'bg-red-500': false
+            }">
+          </span>
+          {{ allele.variantString }} ({{ allele.geneSymbol }})
+        </div>
+        <button mat-icon-button 
+                (click)="removeAllele(allele)" 
+                aria-label="Remove allele"
+                class="text-gray-400 hover:text-red-600 transition">
           <mat-icon>close</mat-icon>
         </button>
-      }
-    </span>
+      </li>
+    } @empty {
+      <p class="text-gray-400 italic">No alleles added</p>
     }
-    @if (!allele2) { <p class="text-gray-400">na</p> }
+  </ul>
 </div>
 
-<div class="space-y-1">
-    <button
-      (click)="submitNewRow()"
-      class="btn-outline-primary"
-    >Submit row</button>
-</div>
 
+<div class="mt-6 flex justify-center">
+  <button
+    (click)="submitNewRow()"
+    [disabled]="!canSubmitRow()"
+    class="px-6 py-3 rounded-md text-white font-semibold shadow-md transition
+           disabled:opacity-50 disabled:cursor-not-allowed
+           bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
+  >
+    🚀 Submit Case
+  </button>
+</div>

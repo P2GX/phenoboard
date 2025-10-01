@@ -1,17 +1,22 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogActions, MatDialogModule } from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-addages',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatDialogActions, MatDialogModule],
   templateUrl: './addages.component.html',
   styleUrl: './addages.component.css'
 })
 export class AddagesComponent {
-  constructor(public ageService: AgeInputService){}
+  constructor(
+    public ageService: AgeInputService,
+    public dialogRef: MatDialogRef<AddagesComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any){ }
 
 
   ageInput = ''; //new FormControl('');
@@ -51,5 +56,14 @@ export class AddagesComponent {
 
   reset(): void {
     this.entries = [];
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
+  onSave(): void {
+    // return some value
+    this.dialogRef.close(this.entries);
   }
 }

@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Add Comment</h2>
 
 <mat-dialog-content>
-  <mat-form-field appearance="outline" class="w-full">
+  <mat-form-field class="w-full">
     <mat-label>Comment</mat-label>
     <textarea
       matInput
@@ -19,10 +19,10 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button mat-dialog-close class="btn-outline-cancel">Cancel</button>
   <button
     mat-button
-    color="primary"
+    class="btn-outline-primary"
     [disabled]="commentControl.invalid"
     (click)="save()"
   >
