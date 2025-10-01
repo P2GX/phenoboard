@@ -17,7 +17,7 @@ import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
-import { HpoMappingRow, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoMappingRow, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -33,6 +33,7 @@ import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 
 import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
+import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 
 
 
@@ -138,19 +139,20 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
  
 
   columnTypeColors: ColumnTypeColorMap = {
-    raw: '#ffffff',
-    familyId: '#f0f8ff',
-    patientId: '#e6ffe6',
-    singleHpoTerm: '#fff0f5',
-    multipleHpoTerm: '#ffe4e1',
-    geneSymbol: '#f5f5dc',
-    variant: '#f0fff0',
-    disease: '#fdf5e6',
-    ageOfOnset: '#e0ffff',
-    ageAtLastEncounter: '#e0ffff',
-    deceased: '#f5f5f5',
-    sex: '#f5f5f5',
-    ignore: '#d3d3d3'
+    [EtlColumnType.Raw]: '#ffffff',
+    [EtlColumnType.FamilyId]: '#f0f8ff',
+    [EtlColumnType.PatientId]: '#e6ffe6',
+    [EtlColumnType.SingleHpoTerm]: '#fff0f5',
+    [EtlColumnType.MultipleHpoTerm]: '#ffe4e1',
+    [EtlColumnType.GeneSymbol]: '#f5f5dc',
+    [EtlColumnType.Variant]: '#f0fff0',
+    [EtlColumnType.Disease]: '#fdf5e6',
+    [EtlColumnType.AgeOfOnset]: '#e0ffff',
+    [EtlColumnType.AgeAtLastEncounter]: '#e0ffff',
+    [EtlColumnType.Deceased]: '#f5f5f5',
+    [EtlColumnType.Sex]: '#f5f5f5',
+    [EtlColumnType.Ignore]: '#d3d3d3',
+    [EtlColumnType.HpoTextMining]: '#e0ffff'
   };
 
   
@@ -1951,6 +1953,76 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     this.pendingHeader = null;
     this.pendingHeaderName = null;
     this.pendingColumnType = null;
+  }
+
+  
+  isHpoTextMiningColumn(colIndex: number): boolean {
+    if (this.etlDto === null) {
+      return false;
+    }
+    const column = this.etlDto.table.columns[colIndex];
+    if (! column ) {
+      return false;
+    }
+    return column.header.columnType === EtlColumnType.HpoTextMining;
+  }
+
+  getHpoTermCount(colIndex: number, rowIndex: number): number {
+    const cellData: HpoTermData[] = this.getHpoCellData(colIndex, rowIndex);
+    return cellData?.length ?? 0;
+  }
+
+  getHpoTooltipContent(colIndex: number, rowIndex: number): string {
+    const cellData: HpoTermData[] = this.getHpoCellData(colIndex, rowIndex);
+    if (!cellData || cellData.length === 0) return 'No terms';
+
+    return cellData
+      .map(term => {
+        const value = term.entry;
+        switch (value.type) {
+          case 'Observed':
+          case 'Excluded':
+          case 'Na':
+            return `${term.termDuplet.hpoLabel}: ${value.type}`;
+          case 'OnsetAge':
+          case 'Modifier':
+            return `${term.termDuplet.hpoLabel}: ${value.data} (${value.type})`;
+          default:
+            return `${term.termDuplet.hpoLabel}: unknown`;
+        }
+      })
+      .join('\n');
+    }
+
+  openHpoMiningDialog(colIndex: number, rowIndex: number) {
+    
+    const dialogRef = this.dialog.open(HpoTwostepComponent, {
+      width: '1200px',
+      height: '900px',
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.displayRows[rowIndex][colIndex] = JSON.stringify(result);
+      }
+    });
+  }
+
+  private getHpoCellData(colIndex: number, rowIndex: number): HpoTermData[] {
+    const cell = this.displayRows[rowIndex][colIndex];
+    if (!cell) return [];
+    if (Array.isArray(cell)) return cell;
+    try {
+      return JSON.parse(cell);
+    } catch {
+      this.notificationService.showError(`Invalid HPO data in cell: "${cell}"`);
+      return [];
+    }
+  }
+
+  clearHpoMining(colIndex: number, rowIndex: number) {
+    this.displayRows[rowIndex][colIndex] = "";
   }
 
 }

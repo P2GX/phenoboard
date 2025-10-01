@@ -75,18 +75,35 @@
       </th>
     }
   </tr>
-
-  <!-- ===== DATA ROWS ===== -->
+<!-- ===== DATA ROWS ===== -->
 @for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
   <tr>
-    
     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
-      <td
-        [ngClass]="{
-          'edit-mode-narrow': editModeActive
-        }"
-        (contextmenu)="onRightClickCell($event, rowIndex, colIndex)"
-      >
+      <td>
+        @if (isHpoTextMiningColumn(colIndex)) {
+          <!-- HPO Text Mining Cell -->
+          <button
+            class="hpo-button"
+            [class.has-terms]="getHpoTermCount(colIndex, rowIndex) > 0"
+            [matTooltip]="getHpoTooltipContent(colIndex, rowIndex)"
+            matTooltipClass="hpo-tooltip-custom"
+            matTooltipPosition="above"
+            matTooltipShowDelay="500"
+            (click)="openHpoMiningDialog(colIndex, rowIndex)"
+          >
+            <span class="icon">🔍</span>
+            @if (getHpoTermCount(colIndex, rowIndex) > 0) {
+              <span class="badge">{{ getHpoTermCount(colIndex, rowIndex) }}</span>
+              <span 
+                class="clear-btn" 
+                (click)="clearHpoMining(colIndex, rowIndex); $event.stopPropagation()"
+                matTooltip="Clear mined terms"
+                matTooltipShowDelay="300"
+              >×</span>
+            }
+          </button>
+        } @else {
+          <!-- Normal Table Cell -->
           <div 
             class="table-cell" 
             [matTooltip]="row[colIndex]"
@@ -94,13 +111,13 @@
             matTooltipPosition="above"
             matTooltipShowDelay="300"
           >
-            {{ row[colIndex] }}
+           {{ row[colIndex] }}
           </div>
-          
-        </td>
-      }
-    </tr>
-  }
+        }
+      </td>
+    }
+  </tr>
+}
 
 </table>
 <div style="height: 40px;"></div>

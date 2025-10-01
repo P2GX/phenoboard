@@ -16,6 +16,7 @@ export enum EtlColumnType {
   AgeAtLastEncounter = "ageAtLastEncounter",
   Sex = "sex",
   Deceased = "deceased",
+  HpoTextMining = "hpoTextMining",
   Ignore = "ignore",
 }
 

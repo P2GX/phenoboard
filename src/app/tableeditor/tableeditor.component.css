@@ -588,3 +588,93 @@
   padding: 0.5rem 0.75rem !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
 }
+
+
+
+.hpo-mining-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #10b981;
+}
+
+.hpo-button {
+  position: relative;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.hpo-button:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.hpo-button.has-terms {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.hpo-button.has-terms:hover {
+  background: #dcfce7;
+}
+
+.hpo-button .icon {
+  font-size: 14px;
+}
+
+.hpo-button .badge {
+  background: #10b981;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}
+
+.hpo-button .clear-btn {
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: auto;
+}
+
+.hpo-button .clear-btn:hover {
+  background: #dc2626;
+}
+
+/* Custom tooltip styling for HPO terms */
+::ng-deep .hpo-tooltip-custom {
+  background: #1f2937 !important;
+  color: white !important;
+  font-size: 12px !important;
+  max-width: 300px !important;
+  white-space: pre-line !important;
+  padding: 8px 12px !important;
+}
+
+/* Keep your existing custom-tooltip styles */
+::ng-deep .custom-tooltip {
+  /* Your existing tooltip styles */
+}
