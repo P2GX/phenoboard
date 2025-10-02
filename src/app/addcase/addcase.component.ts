@@ -360,10 +360,12 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         disableClose: true,
       });
 
-      dialogRef.afterClosed().subscribe(result => {
+      dialogRef.afterClosed().subscribe((result: { hpoData: HpoTermData[]; ages: string[] } | undefined) => {
         if (result) {
           console.log('Final annotations:', result);
-          this.hpoAnnotations = result;
+          this.hpoAnnotations = result.hpoData;
+          // Merge ages into ageEntries, keeping only unique strings
+          this.ageEntries = Array.from(new Set([...this.ageEntries, ...result.ages]));
           this.showTwoStepHpoButton = false;
         }
       });

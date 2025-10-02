@@ -108,6 +108,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   pmid: string | null = null;
   title: string | null = null;
   diseaseData: DiseaseData | null = null;
+  /** Strings such as P3Y, Congenital onset, that have been used so far to annotate onsets etc. */
+  currentAgeStrings: string[] = [];
   
   INVISIBLE: number = -1; 
   contextMenuColHeader: EtlColumnHeader | null = null;
@@ -1361,7 +1363,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 
 /** Applies one of the transforms to a column and sets the corresponding "pending values". 
  * We will then see the pending modal dialog to check the results of transform.
- */
+ 
   applyNamedTransformOLD(colIndex: number | null, transformName: TransformType): void {
     console.log("applyNamedTransformed for type ", transformName);
     if (colIndex === null || !this.etlDto) return;
@@ -1403,7 +1405,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     this.showPreview(transformName);
     // if user clicks confirm, applyTransformConfirmed is executed
   }
-
+*/
   /** After the user applies a transform to a column, the user sees a model dialog with
    * the results. If all is good, the user presses confirm, which causes this method to
    * run and change the contents of the original column.
@@ -1821,7 +1823,6 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     if (rowIndex == null) {
       return;
     }
-    console.log("open var edit")
     try{
       const hgvs: HgvsVariant | null = await this.variantDialog.openVariantDialog();
       
@@ -1869,7 +1870,6 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     const chr: string = this.cohortService.getChromosome();
     try{
       const sv: StructuralVariant | null = await this.svDialog.openSvDialog(gt, cell_contents, chr);
-      
       if (sv) {
         const vkey = sv.variantKey;
         if (! vkey) {

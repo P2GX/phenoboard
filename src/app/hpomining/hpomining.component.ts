@@ -24,11 +24,9 @@ export class HpoMiningComponent {
   ) {}
 
   async runTextMining(): Promise<void> {
-    console.log("RUN TM")
     try {
       const result: TextAnnotationDto[] | string =
         await this.configService.map_text_to_annotations(this.pastedText);
-        console.log("result=", result)
       if (typeof result === 'string') {
         this.notificationService.showError(result);
         this.error.emit(result);

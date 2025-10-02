@@ -79,9 +79,10 @@
 @for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
   <tr>
     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
-      <td>
+     
         @if (isHpoTextMiningColumn(colIndex)) {
           <!-- HPO Text Mining Cell -->
+            <td>
           <button
             class="hpo-button"
             [class.has-terms]="getHpoTermCount(colIndex, rowIndex) > 0"
@@ -102,8 +103,15 @@
               >×</span>
             }
           </button>
+          </td>
         } @else {
           <!-- Normal Table Cell -->
+           <td
+            [ngClass]="{
+              'edit-mode-narrow': editModeActive
+            }"
+            (contextmenu)="onRightClickCell($event, rowIndex, colIndex)"
+          >
           <div 
             class="table-cell" 
             [matTooltip]="row[colIndex]"
@@ -113,8 +121,9 @@
           >
            {{ row[colIndex] }}
           </div>
+          </td>
         }
-      </td>
+      
     }
   </tr>
 }

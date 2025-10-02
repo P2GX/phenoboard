@@ -304,7 +304,6 @@ export class ConfigService {
   }
 
   async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {
-    console.log("in service transformToCohortData dto=", etlDto);
     return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});
   }
 

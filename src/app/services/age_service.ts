@@ -36,12 +36,21 @@ export class AgeInputService {
     }
 
     /** always present "na" as the first value. These are the age terms that are selectable for the phenotypic features */
-    setSelectedTerms(terms: string[]) {
-        this.selectedTerms = [...terms];
+    addSelectedTerms(terms: string[]) {
+        this.selectedTerms = Array.from(new Set([...this.selectedTerms, ...terms]));
     }
 
     addSelectedTerm(term: string) {
-        this.selectedTerms.push(term);
+        this.selectedTerms = Array.from(new Set([...this.selectedTerms, term]));
+    }
+
+    removeSelectedTerm(term: string) {
+        this.selectedTerms = this.selectedTerms.filter(t => t !== term);
+    }
+
+    removeSelectedTerms(terms: string[]) {
+        const removeSet = new Set(terms);
+        this.selectedTerms = this.selectedTerms.filter(t => !removeSet.has(t));
     }
 
     clearSelectedTerms() {

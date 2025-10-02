@@ -649,17 +649,6 @@ async  fn get_cohort_data_from_etl_dto(
             return Err("Could not create CohortData because HPO was not initialized".to_string());
         },
     };
-    println!("DTO received: {:#?}", dto);
-    println!("HGVS variants count: {}", dto.hgvs_variants.len());
-    println!("Structural variants count: {}", dto.structural_variants.len());
-    
-    // Check if variants have the required fields
-    for (key, variant) in &dto.hgvs_variants {
-        println!("HGVS variant {}: {:#?}", key, variant);
-    }
-    
-    println!("{}{} - get_cohort_data_from_etl_dto", file!(), line!());
-    println!("{}{} - get_cohort_data_from_etl_dto", file!(), line!() );
     ga4ghphetools::etl::get_cohort_data_from_etl_dto(hpo, dto)
 }
 

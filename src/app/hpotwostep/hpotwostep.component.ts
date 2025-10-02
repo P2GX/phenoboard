@@ -20,7 +20,6 @@ export class HpoTwostepComponent {
 
   onTextMiningSuccess(result: TextAnnotationDto[]) {
     this.annotations = result;
-    console.log("HpoTwostepComponent - onTextMiningSuccess annotations=", this.annotations);
     this.step = 2;
   }
 
@@ -29,8 +28,8 @@ export class HpoTwostepComponent {
   }
 
   /** return result to parent */
-  onPolishingDone(finalAnnotations: HpoTermData[]) {
-    this.dialogRef.close(finalAnnotations);  
+  onPolishingDone(result: HpoTermData[]) {
+    this.dialogRef.close(result);  
   }
 
   close() {

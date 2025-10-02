@@ -1,4 +1,4 @@
-import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
+import { ParentChildDto, TextAnnotationDto, to_annotation_dto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
@@ -7,8 +7,10 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { AddagesComponent } from '../addages/addages.component';
+import { MatDialog } from '@angular/material/dialog';
 
-
+/** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
   selector: 'app-hpopolishing',
   templateUrl: './hpopolishing.component.html',
@@ -18,42 +20,47 @@ import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 })
 export class HpoPolishingComponent implements OnInit {
 
-
   /** These are the raw textmining results and contain hits, in-between text, and may contain duplicates */
   @Input() annotations: TextAnnotationDto[] = [];
   @Output() done = new EventEmitter<HpoTermData[]>();
   @Output() cancel = new EventEmitter<void>();
 
+  constructor(private ageService: AgeInputService,
+      private configService: ConfigService,
+      private dialog: MatDialog,
+    ) {
+    }
   addedAnnotations: HpoTermData[] = [];
-  uniqueHpoAnnotations: HpoTermData[] = [];
+  hpoAnnotations: TextAnnotationDto[] = [];
 
   showCollapsed = false;
   showPopup = false;
   selectedAnnotation: TextAnnotationDto | null = null;
-  rightClickOptions: string[] = [];
   popupX = 0;
   popupY = 0;
-  predefinedOptions: string[] = [];
   showDropdownMap: { [termId: string]: boolean } = {};
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
    /* used for autocomplete widget */
-    hpoInputString: string = '';
-    selectedHpoTerm: HpoTermDuplet | null = null;
+  hpoInputString: string = '';
+  selectedHpoTerm: HpoTermDuplet | null = null;
 
 
-  constructor(private ageService: AgeInputService,
-    private configService: ConfigService
-  ) {
-  }
+  
 
   ngOnInit() {
+    const hpo_annots: TextAnnotationDto[] = this.getFenominalAnnotations();
+    const unique_hpo_hits: TextAnnotationDto[] = Array.from(
+      new Map(
+        hpo_annots.map(tad => {
+
+          return [JSON.stringify(tad), tad]; // key is full object
+        })
+      ).values()
+    );
+    this.hpoAnnotations = unique_hpo_hits;
   }
 
   openPopup(ann: TextAnnotationDto, event: MouseEvent) {
-    this.rightClickOptions = [
-      ...(this.predefinedOptions ?? []),
-      ...this.ageService.getSelectedTerms()
-    ];
     this.selectedAnnotation = ann;
     this.showPopup = true;
 
@@ -127,7 +134,7 @@ export class HpoPolishingComponent implements OnInit {
     annotation.onsetString = newValue;
   }
 
-    submitSelectedHpo = async () => {
+  submitSelectedHpo = async () => {
     if (this.selectedHpoTerm == null) {
       return;
     }
@@ -136,13 +143,8 @@ export class HpoPolishingComponent implements OnInit {
 
   async submitHpoAutocompleteTerm(autocompletedTerm: HpoTermDuplet): Promise<void> {
     if (autocompletedTerm) {
-      const hpoTermData: HpoTermData= {
-        termDuplet: autocompletedTerm,
-        entry: {
-          type: 'Observed'
-        }
-      };
-      this.addedAnnotations.push(hpoTermData);
+      const annot: TextAnnotationDto = to_annotation_dto(autocompletedTerm);
+      this.hpoAnnotations.push(annot);
     }
   }
 
@@ -215,5 +217,22 @@ export class HpoPolishingComponent implements OnInit {
 
   onCancel() {
     this.cancel.emit();
+  }
+
+  get availableOnsetTerms(): string[] {
+    return this.ageService.getSelectedTerms();
+  }
+
+  addOnsetString() {
+    const dialogRef = this.dialog.open(AddagesComponent, {
+          width: '400px',
+          data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
+        });
+    
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
+          }
+        });
   }
 }
