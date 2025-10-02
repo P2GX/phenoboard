@@ -1,7 +1,7 @@
-import { ParentChildDto, TextAnnotationDto, to_annotation_dto } from '../models/text_annotation_dto';
+import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto, textAnnotationToHpoAnnotation, to_annotation_dto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
@@ -30,8 +30,8 @@ export class HpoPolishingComponent implements OnInit {
       private dialog: MatDialog,
     ) {
     }
-  addedAnnotations: HpoTermData[] = [];
-  hpoAnnotations: TextAnnotationDto[] = [];
+  
+  hpoAnnotations: HpoAnnotationDto[] = [];
 
   showCollapsed = false;
   showPopup = false;
@@ -49,11 +49,11 @@ export class HpoPolishingComponent implements OnInit {
 
   ngOnInit() {
     const hpo_annots: TextAnnotationDto[] = this.getFenominalAnnotations();
-    const unique_hpo_hits: TextAnnotationDto[] = Array.from(
+    const unique_hpo_hits: HpoAnnotationDto[] = Array.from(
       new Map(
         hpo_annots.map(tad => {
-
-          return [JSON.stringify(tad), tad]; // key is full object
+          const hpoAnnot = textAnnotationToHpoAnnotation(tad);
+          return [JSON.stringify(hpoAnnot), hpoAnnot]; // key is full object
         })
       ).values()
     );
@@ -83,7 +83,7 @@ export class HpoPolishingComponent implements OnInit {
     this.closePopup();
   }
 
-   toggleObserved(annot: TextAnnotationDto | null): void {
+   toggleObserved(annot: HpoAnnotationDto | null): void {
       if (annot == null) {
         return;
       }
@@ -106,20 +106,22 @@ export class HpoPolishingComponent implements OnInit {
       await openUrl(hpo_url);
     }
 
-
-  toggleDropdown(annotation: TextAnnotationDto) {
+    /** This is called when the user clicks on a link in the menu of hits to see the parents and the children of the current HPO term */
+  showParentChildDropdown(annotation: HpoAnnotationDto) {
     const termId = annotation.termId;
 
     this.showDropdownMap[termId] = !this.showDropdownMap[termId];
 
     if (this.showDropdownMap[termId] && !this.parentChildHpoTermMap[termId]) {
       this.configService.getHpoParentAndChildTerms(annotation).then(relativeTermDtos => {
+        console.log("relativeTermDtos", relativeTermDtos)
         this.parentChildHpoTermMap[termId] = relativeTermDtos;
       });
     }
   }
 
- replaceTerm(annotation: TextAnnotationDto, replacement: TextAnnotationDto) {
+  /** This is used in the GUI to replace a term by a parent or child term. */
+ replaceTerm(annotation: HpoAnnotationDto, replacement: HpoAnnotationDto) {
     annotation.termId = replacement.termId;
     annotation.label = replacement.label;
     this.showDropdownMap[annotation.termId] = false;
@@ -127,10 +129,10 @@ export class HpoPolishingComponent implements OnInit {
 
   /* Remove an annotation from the HTML table. */
   deleteAnnotation(index: number): void {
-    this.annotations.splice(index, 1);
+    this.hpoAnnotations.splice(index, 1);
   }
 
-  updateOnset(annotation: TextAnnotationDto, newValue: string): void {
+  updateOnset(annotation: HpoAnnotationDto, newValue: string): void {
     annotation.onsetString = newValue;
   }
 
@@ -152,7 +154,7 @@ export class HpoPolishingComponent implements OnInit {
    * We want to extract the corresponding unique set of HPO terms with observations. 
    * This function converts one such annotation to an HpoTermData object.
   */
-    convertTextAnnotationToHpoAnnotation(textAnn: TextAnnotationDto): HpoTermData {
+    convertTextAnnotationToHpoAnnotation(textAnn: HpoAnnotationDto): HpoTermData {
       let cellValue: CellValue | null = null;
       if (textAnn.isObserved) {
         let status = 'observed'; // status could be observed or an age of onset.
@@ -182,7 +184,7 @@ export class HpoPolishingComponent implements OnInit {
 
   finish() {
     const mining_hits: TextAnnotationDto[] = this.getFenominalAnnotations();
-    const uniqueMap = new Map<string, TextAnnotationDto>();
+    const uniqueMap = new Map<string, HpoAnnotationDto>();
 
     for (const hit of mining_hits) {
       const existing = uniqueMap.get(hit.termId);
@@ -204,14 +206,8 @@ export class HpoPolishingComponent implements OnInit {
         // else identical, skip
       }
     }
-    const uniqueHits: TextAnnotationDto[] = Array.from(uniqueMap.values());
+    const uniqueHits: HpoAnnotationDto[] = Array.from(uniqueMap.values());
     let uniqueHpoData: HpoTermData[] = uniqueHits.map(h => this.convertTextAnnotationToHpoAnnotation(h));
-    this.addedAnnotations.forEach(t => {
-      if (!uniqueMap.has(t.termDuplet.hpoId)) {
-        uniqueHpoData.push(t);
-      }
-    });
-
     this.done.emit(uniqueHpoData);
   }
 

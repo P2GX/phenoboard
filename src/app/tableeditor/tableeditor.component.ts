@@ -2004,7 +2004,20 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.displayRows[rowIndex][colIndex] = JSON.stringify(result);
+        const etlDto = this.etlDto;
+        if (! etlDto) {
+          this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
+          return;
+        }
+        const col = etlDto.table.columns[colIndex];
+        if (! col) {
+          this.notificationService.showError("Could not add mining results because column not defined");
+          return;
+        }
+        const jsonized_cell_calue = JSON.stringify(result);
+        col.values[rowIndex] = jsonized_cell_calue;
+        //this.displayRows[rowIndex][colIndex] = jsonized_cell_calue;
+        this.reRenderTableRows();
       }
     });
   }

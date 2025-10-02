@@ -30,7 +30,6 @@ type Option = { label: string; value: string };
   selector: 'app-pttemplate',
   standalone: true,
   imports: [
-    AddagesComponent,
     HpoAutocompleteComponent,
     CommonModule,
     MatButtonModule,
@@ -718,7 +717,23 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   return diffs;
 }
 
+  
+openAgeDialog(): void {
+  const dialogRef = this.dialog.open(AddagesComponent, {
+    width: '400px',
+    data: { /* pass inputs if needed */ }
+  });
 
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.ageService.addSelectedTerms(result);
+    }
+  });
+}
+
+get ageEntries(): string[] {
+  return this.ageService.getSelectedTerms();
+}
   
 
 }

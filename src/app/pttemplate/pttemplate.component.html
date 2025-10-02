@@ -319,10 +319,19 @@
   </div>
 
   <!-- Add Ages -->
-  <div class="flex flex-col">
-    <label class="text-xs font-medium text-gray-600 mb-1">Add Onset</label>
-    <app-addages #addagesComponent class="w-full"></app-addages>
+ <div
+  class="flex items-center gap-4 p-3 border rounded"
+  style="border-color: #e9ecef; margin-bottom:10px;"
+>
+  <button mat-stroked-button color="primary" (click)="openAgeDialog()">
+    Add/Edit Age Entries
+  </button>
+  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+    @for (entry of ageEntries; track entry; let i = $index) {
+      <span class="bg-gray-100 px-2 py-1 rounded">{{ entry }}</span>
+    }
   </div>
+</div>
 
   <!-- Actions -->
   <div class="flex items-center gap-3 ml-auto">

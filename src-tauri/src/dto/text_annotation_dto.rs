@@ -23,6 +23,19 @@ pub struct TextAnnotationDto {
     pub onset_string: String,
 }
 
+/// A version of the information above that we use in the HPO text-mining process after we have
+/// extracted and displayed the HPO hits and no longer care about their positions or the
+/// original text.
+/// Useful because it is easier to manipulate (unique)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HpoAnnotationDto {
+    pub term_id: String,
+    pub label: String,
+    pub is_observed: bool,
+    pub onset_string: String,
+}
+
 impl TextAnnotationDto {
     pub fn text_annot(text: impl Into<String>, start: usize, end: usize) -> Self {
         let mut dto = TextAnnotationDto::default();
@@ -80,8 +93,8 @@ impl Default for TextAnnotationDto {
 /// This makes it easy for use to replace a term in the GUI
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParentChildDto {
-    pub parents: Vec<TextAnnotationDto>,
-    pub children: Vec<TextAnnotationDto>,
+    pub parents: Vec<HpoAnnotationDto>,
+    pub children: Vec<HpoAnnotationDto>,
 }
 
 impl Default for ParentChildDto {

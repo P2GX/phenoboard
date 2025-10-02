@@ -13,7 +13,7 @@ use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -305,7 +305,7 @@ async fn fetch_pmid_title(
 #[tauri::command]
 fn get_hpo_parent_and_children_terms(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    annotation: TextAnnotationDto
+    annotation: HpoAnnotationDto
 ) -> Result<ParentChildDto, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();

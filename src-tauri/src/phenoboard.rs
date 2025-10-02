@@ -2,7 +2,7 @@
 //!
 
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
 use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
@@ -479,7 +479,7 @@ impl PhenoboardSingleton {
     
     pub fn get_hpo_parent_and_children_terms(
         &self,
-        annotation: TextAnnotationDto) 
+        annotation: HpoAnnotationDto) 
         -> ParentChildDto 
     {
         let hpo = match &self.ontology {
@@ -490,21 +490,23 @@ impl PhenoboardSingleton {
             Ok(tid) => tid,
             Err(_) => return ParentChildDto::default(), // should never happen
         };
-        let children: Vec<TextAnnotationDto> = hpo.iter_child_ids(&tid)
+        let children: Vec<HpoAnnotationDto> = hpo.iter_child_ids(&tid)
             .filter_map(|child_tid| {
-                hpo.term_by_id(child_tid).map(|term| TextAnnotationDto {
+                hpo.term_by_id(child_tid).map(|term| HpoAnnotationDto {
                     term_id: child_tid.to_string(),
                     label: term.name().to_string(),
-                    ..Default::default()
+                    is_observed: annotation.is_observed,
+                    onset_string: annotation.onset_string.clone()
                 })
             })
             .collect();
-        let parents: Vec<TextAnnotationDto> = hpo.iter_parent_ids(&tid)
+        let parents: Vec<HpoAnnotationDto> = hpo.iter_parent_ids(&tid)
             .filter_map(|parent_tid| {
-                hpo.term_by_id(parent_tid).map(|term| TextAnnotationDto {
+                hpo.term_by_id(parent_tid).map(|term| HpoAnnotationDto {
                     term_id: parent_tid.to_string(),
                     label: term.name().to_string(),
-                    ..Default::default()
+                    is_observed: annotation.is_observed,
+                    onset_string: annotation.onset_string.clone(),
                 })
             })
             .collect();
