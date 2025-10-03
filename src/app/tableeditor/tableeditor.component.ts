@@ -34,6 +34,7 @@ import { SvDialogService } from '../services/svManualEntryDialogService';
 
 import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
+import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
 
 
 
@@ -827,7 +828,7 @@ cancelValueTransformation() {
 }
 
 /** This methods sets up some context variables as sets contextMenuCellVisible to true, which opens up a list of options
- * (1) editCellValueManually (2) useValueFromAbove, and (3) openVariantEditor
+ * (1) editCellValueManually (2) useValueFromAbove, and (3) openVariantEditor, (4) delete row
  */
 onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   event.preventDefault();
@@ -852,6 +853,53 @@ onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
   this.contextMenuCellValue = col.values[rowIndex] ?? ''; 
   this.contextMenuCellType = header.columnType;
 }
+
+
+deleteRowAtI(etl: EtlDto, i: number): EtlDto {
+   const newColumns = etl.table.columns.map(col => ({
+    ...col,
+    values: [
+      ...col.values.slice(0, i),
+      ...col.values.slice(i + 1)
+    ]
+  }));
+  return {
+    ...etl,
+    table: {
+      ...etl.table,
+      columns: newColumns
+    }
+  };
+}
+
+ async deleteRow() {
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
+      return;
+    }
+    console.log("deleteRow")
+    let rowIndex: number | null = this.contextMenuCellRow;
+    if (rowIndex == null) {
+  this.notificationService.showError("Could not delete row because we could not get context menu cell row index.");
+      return;
+    }
+    const col1 = etlDto.table.columns[0].values[rowIndex];
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '400px',
+      data: { message: `Are you sure you want to delete row ${rowIndex}: ${col1}?` }
+    });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+       this.etlDto = this.deleteRowAtI(etlDto, rowIndex);
+        this.reRenderTableRows();
+    } else {
+      this.notificationService.showError("Did not delete row");
+    }
+  });
+   
+  }
+
 
   /**
    * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function

@@ -26,9 +26,6 @@ jobs:
       - name: Install mdBook
         run: cargo install mdbook --version 0.4.40 --locked
 
-      - name: Build API docs
-        run: cargo doc --no-deps --release
-
       - name: Build mdBook
         run: mdbook build book
 

@@ -185,6 +185,12 @@
         >
            <mat-icon>edit</mat-icon> Edit cell contents
         </li>
+        <li
+          style="padding: 4px 8px; cursor: pointer;"
+          (click)="deleteRow()"
+        >
+           <mat-icon>delete</mat-icon> Delete row
+        </li>
        @if (hasValueAbove()) {
           <li (click)="useValueFromAbove()">
             <mat-icon>content_copy</mat-icon> Copy value from above

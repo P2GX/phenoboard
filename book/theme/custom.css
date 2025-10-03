@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&display=swap');
+
+body {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+/* Make code blocks prettier */
+pre code {
+  background: #2e3440;
+  color: #d8dee9;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.9em;
+}
+
+/* Style the sidebar */
+.sidebar {
+  background-color: #1c1c1c;
+  color: #f0f0f0;
+}
+
+.sidebar a {
+  color: #ffcc00;
+}
+
+/* Improve heading styles */
+h1, h2, h3 {
+  font-family: 'Fira Sans', sans-serif;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+
+figure {
+  display: block;
+  text-align: center;
+  margin: 2em auto;
+  max-width: 90%;
+}
+
+figure img {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-size: 0.9em;
+  font-style: italic;
+  color: #555;
+  margin-top: 0.6em;
+  line-height: 1.4;
+}
+
+figcaption strong {
+  font-style: normal;
+  color: #333;
+}
+
+figcaption a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+figcaption a:hover {
+  text-decoration: underline;
+}
