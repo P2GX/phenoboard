@@ -23,4 +23,20 @@ export class NotificationService {
       verticalPosition: 'bottom',
     });
   }
+
+  showWarning(message: string, duration: number = 6000) {
+    this.snackBar.open(message, 'Close', {
+      panelClass: ['warning-snackbar'],
+      duration,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
+  }
+
+  warnPmid(pmid: string) {
+    const msg = `Warning: ${pmid} already in Cohort database`;
+    this.showWarning(msg);
+  }
+
+
 }

@@ -1,0 +1,7 @@
+[book]
+authors = ["Peter Robinson"]
+language = "en"
+multilingual = false
+src = "."
+title = "GA4GH Phenoboard"
+numbered = false

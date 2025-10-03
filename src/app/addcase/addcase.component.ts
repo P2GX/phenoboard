@@ -339,6 +339,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
         if (result) {
           this.pmidDto = result;
+          const pmid = this.pmidDto.pmid;
+          if (this.cohortService.pmidExists(pmid)) {
+            this.notificationService.warnPmid(pmid);
+          }
         } else {
           this.notificationService.showError('Could not retrieve PMID');
         }

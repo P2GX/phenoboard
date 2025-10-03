@@ -143,14 +143,24 @@ export class CohortDtoService {
             return [];
         }
         const sourceList: SourcePmid[] = [];
+        const seenPmidSet = new Set();
         cohort.rows.forEach(row => {
-            const sourcePmid: SourcePmid = {
-                pmid: row.individualData.pmid,
-                title: row.individualData.title,
-            };
-            sourceList.push(sourcePmid);
+            const pmid = row.individualData.pmid;
+            const title = row.individualData.title;
+            if (! seenPmidSet.has(pmid)) {
+                seenPmidSet.add(pmid);
+                    const sourcePmid: SourcePmid = {
+                        pmid: pmid,
+                        title: title,
+                    };
+                    sourceList.push(sourcePmid);
+            }
         })
-       return Array.from(new Set(sourceList));;
+       return sourceList;
+    }
+
+    pmidExists(pmid: string): boolean {
+        return this.getAllPmids().some(p => p.pmid === pmid);
     }
 
     /** This method is used to see if the current CohortData is initialized and has data rows -- if this is

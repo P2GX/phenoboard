@@ -224,6 +224,12 @@ button.btn-outline-cancel {
   box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
 }
 
+::ng-deep .warning-snackbar {
+  background-color: #ffcc00; /* amber */
+  color: #000; /* readable text */
+  font-weight: 500;
+}
+
 /* Action button styling */
 .mat-mdc-snack-bar-action button {
   color: #ffffff !important; /* white dismiss button */
@@ -283,3 +289,4 @@ button.btn-outline-cancel {
 .mat-chip-set mat-chip {
   font-size: 12px;
 }
+
