@@ -41,6 +41,8 @@
 <div style="margin-top: 16px; text-align: right;">
     <button (click)="showJson = true" class="btn-outline-primary">Show Cohort JSON</button>
     <button (click)="showJson = false" class="btn-outline-primary" style="margin-left: 8px;">Hide JSON</button>
+    <button (click)="showAllPmid()" class="btn-outline-primary" style="margin-left: 8px;">Show all PMIDs</button>
+    <button (click)="showAllPpkt()" class="btn-outline-primary" style="margin-left: 8px;">Show all phenopackets</button>
 </div>
 
 } @else {
@@ -51,8 +53,23 @@
 @if (showJson) {
   <p><span>✅</span>CohortDTO loaded with {{ cohort?.rows?.length }} rows.</p>
   <pre>{{ cohort | json }}</pre>
-} @else {
-  @if (cohort) {
+} @else if (showPmid) {
+  <ul class="list-disc list-inside space-y-1">
+  @for (pmid of pmidList; track pmid) {
+    <li>
+      <a 
+        [href]="'https://pubmed.ncbi.nlm.nih.gov/' + extractPmid(pmid.pmid)"
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="text-blue-600 hover:underline"
+      >
+        {{ pmid.title }}
+      </a>
+      ({{ pmid.pmid }})
+    </li>
+  }
+</ul>
+}  @else if (cohort) {
     <h2>Individuals in cohort</h2>
     @for (row of cohort.rows; track row) {
       <li>
@@ -61,8 +78,8 @@
         </a>
     </li>
     }
-  }
 }
+
 
 
 

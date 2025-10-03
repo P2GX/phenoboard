@@ -8,30 +8,31 @@ import { NgFor } from '@angular/common';
 @Component({
   selector: 'app-column-type-dialog',
   template: `
-    <h2 mat-dialog-title>Select Column Type</h2>
-    <mat-dialog-content>
-      <mat-radio-group [formControl]="selectedType">
-        @for (type of data.etlTypes; track type){
-            <mat-radio-button
-            [value]="type"
-            style="display: block; margin: 6px 0;"
-            >
-            {{ type }}
-            </mat-radio-button>
-        }
-      </mat-radio-group>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="dialogRef.close()"  class="btn-outline-primary">Cancel</button>
-      <button
-        mat-raised-button
-         class="btn-outline-primary"
-        (click)="dialogRef.close(selectedType.value)"
-      >
-        Confirm
-      </button>
-    </mat-dialog-actions>
-  `,
+  <h2 mat-dialog-title>Select Column Type</h2>
+  <mat-dialog-content>
+    <mat-radio-group 
+      [formControl]="selectedType"
+      style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px;"
+    >
+      @for (type of data.etlTypes; track type) {
+        <mat-radio-button [value]="type" style="margin: 0;">
+          {{ type }}
+        </mat-radio-button>
+      }
+    </mat-radio-group>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()" class="btn-outline-primary">Cancel</button>
+    <button
+      mat-raised-button
+      class="btn-outline-primary"
+      (click)="dialogRef.close(selectedType.value)"
+    >
+      Confirm
+    </button>
+  </mat-dialog-actions>
+`,
   standalone: true,
   imports: [
     ReactiveFormsModule,

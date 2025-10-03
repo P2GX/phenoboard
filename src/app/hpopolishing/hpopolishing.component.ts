@@ -9,6 +9,7 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
 import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { AddagesComponent } from '../addages/addages.component';
 import { MatDialog } from '@angular/material/dialog';
+import { NotificationService } from '../services/notification.service';
 
 /** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
@@ -28,6 +29,7 @@ export class HpoPolishingComponent implements OnInit {
   constructor(private ageService: AgeInputService,
       private configService: ConfigService,
       private dialog: MatDialog,
+      private notificationService: NotificationService
     ) {
     }
   
@@ -122,8 +124,19 @@ export class HpoPolishingComponent implements OnInit {
 
   /** This is used in the GUI to replace a term by a parent or child term. */
  replaceTerm(annotation: HpoAnnotationDto, replacement: HpoAnnotationDto) {
-    annotation.termId = replacement.termId;
-    annotation.label = replacement.label;
+    const idx = this.hpoAnnotations.indexOf(annotation);
+    if (idx < 0) {
+      this.notificationService.showError(`C ould not get index of Hpo Annotation "${annotation}"`);
+      return;
+    }
+    const updated = {
+      ...annotation,              // keep onsetString, observed, etc
+      termId: replacement.termId, // replace IDs
+      label: replacement.label
+    };
+    this.hpoAnnotations[idx] = updated;
+    // Force change detection
+    this.hpoAnnotations = [...this.hpoAnnotations];
     this.showDropdownMap[annotation.termId] = false;
   }
 
@@ -183,10 +196,9 @@ export class HpoPolishingComponent implements OnInit {
   
 
   finish() {
-    const mining_hits: TextAnnotationDto[] = this.getFenominalAnnotations();
     const uniqueMap = new Map<string, HpoAnnotationDto>();
 
-    for (const hit of mining_hits) {
+    for (const hit of this.hpoAnnotations) {
       const existing = uniqueMap.get(hit.termId);
       if (!existing) {
         // Not seen yet, add it

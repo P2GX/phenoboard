@@ -99,8 +99,6 @@ export class AddcaseComponent {
   hpoInputString: string = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
 
-  ageEntries: string[] = [];
-
   private unlisten: UnlistenFn | null = null;
   private unlistenFns: UnlistenFn[] = [];
 
@@ -323,7 +321,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.resetWindow();
     this.alleles = [];
     this.annotations = [];
-    this.ageEntries = [];
     this.hpoAnnotations = [];
     this.selectedAnnotation = null;
     this.selectionRange = null;
@@ -360,12 +357,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         disableClose: true,
       });
 
-      dialogRef.afterClosed().subscribe((result: { hpoData: HpoTermData[]; ages: string[] } | undefined) => {
+      dialogRef.afterClosed().subscribe((result: HpoTermData[] | undefined) => {
         if (result) {
           console.log('Final annotations:', result);
-          this.hpoAnnotations = result.hpoData;
-          // Merge ages into ageEntries, keeping only unique strings
-          this.ageEntries = Array.from(new Set([...this.ageEntries, ...result.ages]));
+          this.hpoAnnotations = result;
           this.showTwoStepHpoButton = false;
         }
       });
@@ -384,7 +379,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.ageEntries = result;
+        this.notificationService.showSuccess(`Added age "${result}"`);
       }
     });
   }
@@ -392,7 +387,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   openAddDemoDialog() {
     const dialogRef = this.dialog.open(AdddemoComponent, {
       width: '1000px',
-      data: { ageStrings: this.ageEntries, demoDto: this.demographData }
+      data: { ageStrings: this.ageService.getSelectedTerms(), demoDto: this.demographData }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
@@ -402,6 +397,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         this.notificationService.showError("Could not get demographic data");
       }
     });
+  }
+
+  get ageEntries(): string[] {
+    return this.ageService.getSelectedTerms();
   }
 
   get demographicSummary(): string {

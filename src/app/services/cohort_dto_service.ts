@@ -3,6 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData, RowData } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { SourcePmid } from '../models/cohort_description_dto';
 
 
 
@@ -136,51 +137,20 @@ export class CohortDtoService {
 
 
     /** Return a list of all variant strings for structural variants */
-    getVariantDtos(): VariantDto[] {
-       /*
-        const template = this.getCohortDto();
-        const prefixes = ['DEL', 'DUP', 'INV', 'INS', 'SV', 'TRANSL'];
-        if (template == null) {
+    getAllPmids(): SourcePmid[] {
+        const cohort = this.getCohortData();
+        if (! cohort) {
             return [];
         }
-        const seen = new Set<string>();
-        const dto_list: VariantDto[] = [];
-
-        for (const row of template.rows) {
-            for (const geneVar of row.geneVarDtoList) {
-                if (geneVar.allele1 == "na" || seen.has(geneVar.allele1)) {
-                    continue;
-                }
-                seen.add(geneVar.allele1);
-                const is_sv = prefixes.some(prefix => geneVar.allele1.startsWith(prefix));
-                const dto = {
-                    variant_string: geneVar.allele1,
-                    transcript: geneVar.transcript,
-                    hgnc_id: geneVar.hgncId,
-                    gene_symbol: geneVar.geneSymbol,
-                    validated: is_sv ? true : false,
-                    is_structural: is_sv,
-                };
-                dto_list.push(dto);
-                if (geneVar.allele2 == "na" || seen.has(geneVar.allele2)) {
-                    continue;
-                }
-                seen.add(geneVar.allele2);
-                const is_sv2 = prefixes.some(prefix => geneVar.allele2.startsWith(prefix));
-                const dto2 = {
-                    variant_string: geneVar.allele2,
-                    transcript: geneVar.transcript,
-                    hgnc_id: geneVar.hgncId,
-                    gene_symbol: geneVar.geneSymbol,
-                    validated: is_sv2 ? true : false,
-                    is_structural: is_sv,
-                }
-                dto_list.push(dto2);
-            }
-        }
-        return dto_list;
-        */
-       return [];
+        const sourceList: SourcePmid[] = [];
+        cohort.rows.forEach(row => {
+            const sourcePmid: SourcePmid = {
+                pmid: row.individualData.pmid,
+                title: row.individualData.title,
+            };
+            sourceList.push(sourcePmid);
+        })
+       return Array.from(new Set(sourceList));;
     }
 
     /** This method is used to see if the current CohortData is initialized and has data rows -- if this is

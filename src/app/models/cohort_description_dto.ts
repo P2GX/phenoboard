@@ -24,3 +24,9 @@ export const EMPTY_COHORT_DESCRIPTION: CohortDescriptionDto = {
   hgncId: "",
   transcript: ""
 };
+
+
+export interface SourcePmid {
+  pmid: string,
+  title: string,
+}

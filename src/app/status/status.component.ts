@@ -6,6 +6,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { RouterModule } from '@angular/router'; 
+import { SourcePmid } from '../models/cohort_description_dto';
 
 @Component({
   selector: 'app-status',
@@ -16,6 +17,8 @@ import { RouterModule } from '@angular/router';
 })
 export class StatusComponent implements OnInit {
 
+
+
   constructor(private configService: ConfigService, 
     private cohortService: CohortDtoService,
     private etl_service: EtlSessionService,
@@ -25,6 +28,8 @@ export class StatusComponent implements OnInit {
 
   
   diseaseList!: DiseaseData[];
+  pmidList: SourcePmid[] = [];
+  showPmid = false;
   showJson = false;
 
 
@@ -63,7 +68,28 @@ export class StatusComponent implements OnInit {
   }
 
   
-  
+  showAllPmid() {
+    this.pmidList = this.cohortService.getAllPmids();
+    this.showPmid = true;
+  }
+
+  showAllPpkt() {
+    this.showPmid = false;
+    this.showJson = false;
+  }
+
+  /** Return a cleaned PMID id suitable for the PubMed URL.
+ *  - Prefer the first sequence of digits if present.
+ *  - Fallback: strip a leading "PMID:" prefix and trim.
+ */
+extractPmid(raw?: string): string {
+  if (!raw) return '';
+  // prefer the first run of digits
+  const m = raw.match(/\d+/);
+  if (m) return m[0];
+  // fallback: remove common "PMID:" style prefix
+  return raw.replace(/^\s*PMID:\s*/i, '').trim();
+}
   
 
 }

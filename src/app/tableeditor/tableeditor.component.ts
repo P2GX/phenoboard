@@ -295,7 +295,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   async loadExcelRowBased() {
     this.errorMessage = null;
     try {
-        const table = await this.configService.loadExternalExcel();
+        const table = await this.configService.loadExternalExcelRowBased();
         if (table != null) {
             this.etlDto = fromColumnDto(table);
           console.log("Got the table", this.etlDto);
@@ -507,6 +507,7 @@ editUniqueValuesInColumn(index: number): void {
       return;
     }
     const col = etlDto.table.columns[colIndex];
+    const column_title = col.header.original || "n/a";
    let best_hpo_match = "";
     try {
       best_hpo_match = (await this.configService.getBestHpoMatch(col.header.original)) ?? "";
@@ -515,7 +516,7 @@ editUniqueValuesInColumn(index: number): void {
     }
     const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
       width: '500px',
-      data: { bestMatch: best_hpo_match },
+      data: { bestMatch: best_hpo_match, title: column_title },
     });
 
     const selectedTerm: HpoTermDuplet = await firstValueFrom(dialogRef.afterClosed());

@@ -90,11 +90,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       status => this.status = status
     );
     this.update_gui_variables();
-  }
-
-  ngAfterViewInit() {
     this.configService.emitStatusFromBackend();
   }
+
+ 
 
   protected override onCohortDtoLoaded(template: CohortData): void {
     this.cdRef.detectChanges();
