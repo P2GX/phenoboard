@@ -877,7 +877,6 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
     if (etlDto == null) {
       return;
     }
-    console.log("deleteRow")
     let rowIndex: number | null = this.contextMenuCellRow;
     if (rowIndex == null) {
   this.notificationService.showError("Could not delete row because we could not get context menu cell row index.");
@@ -886,7 +885,7 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
     const col1 = etlDto.table.columns[0].values[rowIndex];
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '400px',
-      data: { message: `Are you sure you want to delete row ${rowIndex}: ${col1}?` }
+      data: { message: `Delete row ${rowIndex}`, subMessage: col1 }
     });
 
   dialogRef.afterClosed().subscribe(result => {

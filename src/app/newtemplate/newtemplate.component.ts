@@ -8,8 +8,8 @@ import { DiseaseData, newMendelianTemplate, CohortData, CohortType } from '../mo
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 
-
-
+import { DiseaseIdSanitizerDirective } from '../directives/disease-id.directive';
+import { TrimDirective } from '../directives/trim.directive';
 
 /**
  * Component for creating a Template for a new disease. This is the first thing we need to use
@@ -18,7 +18,7 @@ import { ConfigService } from '../services/config.service';
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive, DiseaseIdSanitizerDirective, TrimDirective],
   templateUrl: './newtemplate.component.html',
   styleUrls: ['./newtemplate.component.scss'],
 })

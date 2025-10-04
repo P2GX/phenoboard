@@ -71,7 +71,7 @@ export class MultiHpoComponent {
       return 'na';
     }
     const normalizedRowText = rowText.toLowerCase().trim();
-    const not_app_set = new Set(["na", "n/a", "nd", "?", "no"]);
+    const not_app_set = new Set(["na", "n/a", "nd", "?", "no", "/", "n.d."]);
     if (not_app_set.has(normalizedRowText)) {
       return "na";
     }

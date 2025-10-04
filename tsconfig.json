@@ -20,7 +20,7 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
-    "types": ["@tauri-apps/api"]
+    "types": ["@tauri-apps/api"],
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

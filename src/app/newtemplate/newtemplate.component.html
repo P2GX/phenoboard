@@ -63,6 +63,7 @@
                   formControlName="diseaseId" 
                   [ngClass]="{ 'error-border': hasError('diseaseId') }"
                   placeholder="Enter disease ID"
+                  appDiseaseIdSanitizer
                   class="form-input"
                   >
                   @if (mendelianDataForm.get('diseaseId')?.touched && mendelianDataForm.get('diseaseId')?.invalid) {
@@ -82,6 +83,7 @@
                   id="diseaseName" 
                   type="text" 
                   formControlName="diseaseName"
+                  appTrim
                   class="form-input"
                   >
               @if (mendelianDataForm.get('diseaseName')?.touched && mendelianDataForm.get('diseaseName')?.invalid) {
@@ -101,12 +103,20 @@
                   id="cohortAcronym" 
                   type="text" 
                   formControlName="cohortAcronym"
+                  appTrim
                   class="form-input"
                   >
-              <div *ngIf="mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid" class="error-message">
-                      <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('required')" class="error-message">Cohort acronym is required.</span>
-                      <span *ngIf="mendelianDataForm.get('cohortAcronym')?.hasError('pattern')" class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+              @if (mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid) {
+              <div class="error-message">
+                @if (mendelianDataForm.get('cohortAcronym')?.hasError('required')) {
+                      <span class="error-message">Cohort acronym is required.</span>
+                }
+                @if (mendelianDataForm.get('cohortAcronym')?.hasError('pattern')) {
+                      <span class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
+                }
               </div>
+              ç
+            }
           </div>
           <div class="form-group">
               <label for="hgnc" class="form-label">HGNC identifier</label>
@@ -123,6 +133,7 @@
               type="text" 
               formControlName="symbol"
               placeholder="Enter HGNC-approved gene symbol"
+              appTrim
               class="form-input">
               <div *ngIf="mendelianDataForm.get('symbol')?.touched && mendelianDataForm.get('symbol')?.invalid" class="error-message">
                   <span *ngIf="mendelianDataForm.get('symbol')?.hasError('required')" class="error-message">Gene symbol is required.</span>
@@ -135,6 +146,7 @@
               id="transcript" 
               type="text" 
               formControlName="transcript"
+              appTrim
               placeholder="Enter MANE transcript including version number"
               class="form-input">
               <div *ngIf="mendelianDataForm.get('transcript')?.touched && mendelianDataForm.get('transcript')?.invalid" class="error-message">

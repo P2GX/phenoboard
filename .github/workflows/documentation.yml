@@ -29,11 +29,6 @@ jobs:
       - name: Build mdBook
         run: mdbook build book
 
-      - name: Copy API docs into mdBook output
-        run: |
-          mkdir -p book/book/api
-          cp -r target/doc/ga4ghphetools/* book/book/api/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

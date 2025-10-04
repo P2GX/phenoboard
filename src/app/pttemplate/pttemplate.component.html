@@ -266,18 +266,17 @@
         (contextmenu)="onRightClick($event, i, rowIndex, cell)"
         [class.observed-cell]="cell.type=='Observed'"
         [class.excluded-cell]="cell.type=='Excluded'"
+        [class.onset-cell]="cell.type=='OnsetAge'"
         [class.na-cell]="cell.type=='Na'"
       >
         @switch (cell.type) {
-          @case ('Observed') {  ✅. }
+          @case ('Observed') {  ✅ }
           @case ('Excluded') {  ❌  }
           @case ('Na') { n/a }
           @case ('OnsetAge') {
-            <div
-              class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
-              [title]="cell.data"
-            >
-              {{ cell.data }}
+            <div class="onset-cell" [title]="cell.data">
+              <span class="onset-icon">🕒</span>
+              <span class="onset-text">{{ cell.data }}</span>
             </div>
           }
           @case ('Modifier') {

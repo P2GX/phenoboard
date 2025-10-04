@@ -69,6 +69,38 @@
   color: #b91c1c; /* Dark red */
 }
 
+.onset-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 4rem;
+  border-radius: 6px;
+  background-color: #dbeafe; /* light blue */
+  color: #1e40af; /* dark blue text */
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.1s ease-in;
+}
+
+.onset-cell:hover {
+  background-color: #bfdbfe; /* slightly darker blue */
+  box-shadow: 0 0 3px rgba(30, 64, 175, 0.4);
+}
+
+/* Hide the symbol, show text on hover */
+.onset-cell .onset-text {
+  display: none;
+}
+
+.onset-cell:hover .onset-text {
+  display: inline;
+}
+
+.onset-cell:hover .onset-icon {
+  display: none;
+}
+
 .na-cell {
   background-color: #f5f5f5;
   color: #999;
