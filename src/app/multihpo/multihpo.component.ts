@@ -3,7 +3,6 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from '@angular/material/chips';
-import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +17,11 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
+
+
+/// symbols for not applicable or unknown status
+ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "no", "/", "n.d.",  "unknown",]);
+
 
 @Component({
   selector: 'app-multihpo',
@@ -71,8 +75,7 @@ export class MultiHpoComponent {
       return 'na';
     }
     const normalizedRowText = rowText.toLowerCase().trim();
-    const not_app_set = new Set(["na", "n/a", "nd", "?", "no", "/", "n.d."]);
-    if (not_app_set.has(normalizedRowText)) {
+    if (NOT_APPLICABLE.has(normalizedRowText)) {
       return "na";
     }
     const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
@@ -147,19 +150,7 @@ export class MultiHpoComponent {
     this.hpoMappings.forEach((row, rowIndex) => {
       const rowText = this.data.rows[rowIndex];
       const normalizedRowText = rowText.toLowerCase().trim();
-      
-      // Check if the original text indicates "no data" or "unknown"
-      const notApplicable = new Set([
-        "na",
-        "n/a",
-        "unknown",
-        "n.a.",
-        "nd",
-        "n/d",
-        "n.d.",
-        "?"
-      ]);
-      const hasNaIndicators = notApplicable.has(normalizedRowText);
+      const hasNaIndicators = NOT_APPLICABLE.has(normalizedRowText);
       row.forEach(entry => {
         if (entry.status == 'na' && !hasNaIndicators) { 
           entry.status = 'excluded';

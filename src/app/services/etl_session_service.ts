@@ -52,7 +52,15 @@ export class EtlSessionService {
   
   parseAgeToIso8601(ageStr: string | null | undefined): string {
     if (ageStr == null || ageStr == undefined) {
-      return '';
+      return 'na';
+    }
+    const naSymbols = new Set(["na", "","?", "-", "/"]);
+    const neonatalSymbols = new Set(["neonate", "neonatal", "neonatal onset"])
+    if (naSymbols.has(ageStr)) {
+      return 'na';
+    }
+    if (naSymbols.has(ageStr.toLowerCase())) {
+      return "Neonatal onset";
     }
     const lower = ageStr.trim().toLowerCase();
 

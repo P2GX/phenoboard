@@ -35,6 +35,8 @@ import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
+import { SplitColumnDialogComponent } from './split-age-sex-column.component';
+import { sep } from '@tauri-apps/api/path';
 
 
 
@@ -47,6 +49,7 @@ enum TransformType {
   OnsetAge = 'Onset Age',
   LastEncounterAge = 'Age at last encounter',
   SexColumn = 'Sex column',
+  SplitAgeSex = "Split Age/Sex column",
   StringSanitize = 'Sanitize (trim/ASCII)',
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
@@ -213,6 +216,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     },
     [TransformType.UpdateVariants]: (colIndex) => {
       this.updateVariants(colIndex);
+    },
+    [TransformType.SplitAgeSex]: (colIndex) => {
+      this.splitAgeSex(colIndex);
     },
     [TransformType.SetColumnType]: (colIndex) => {
       this.setColumnTypeDialog(colIndex);
@@ -1091,6 +1097,67 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
     this.reRenderTableRows();
   }
 
+
+splitAgeSex(index: number | null) {
+  const etlDto = this.etlDto;
+  if (!etlDto || index === null) return;
+
+  const columns = etlDto.table.columns;
+  const originalColumn = columns[index];
+  if (!originalColumn) return;
+
+  // 🧩 open the dialog first
+  const dialogRef = this.dialog.open(SplitColumnDialogComponent, {
+    width: '400px',
+    data: { separator: '/' }
+  });
+
+  dialogRef.afterClosed().subscribe((result) => {
+    if (!result) return; // user cancelled
+    let separator = String(result.separator ?? '').trim();
+    if (! separator) {
+      this.notificationService.showError("Could not extract separator");
+      return;
+    }
+    let sexPosition = Number(result.sexPosition);
+    let agePosition = Number(result.agePosition);
+    if (![0, 1].includes(sexPosition)) sexPosition = 0;
+    if (![0, 1].includes(agePosition)) agePosition = 1;
+    //  copy original column
+    const sexColumn: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    const ageColumn: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+
+    sexColumn.id = crypto.randomUUID();
+    ageColumn.id = crypto.randomUUID();
+
+    sexColumn.header = { ...sexColumn.header, original: `Sex (${originalColumn.header.original})` };
+    ageColumn.header = { ...ageColumn.header, original: `Age (${originalColumn.header.original})` };
+
+    const sexValues: string[] = [];
+    const ageValues: string[] = [];
+    for (const cell of originalColumn.values) {
+      const text = cell == null ? '' : cell;
+      const parts = text.split(separator);
+      const sexVal = (parts[sexPosition]?.trim() || 'U');
+      const ageVal = (parts[agePosition]?.trim() || 'na');
+      sexValues.push(sexVal);
+      ageValues.push(ageVal);
+    }
+    originalColumn.values = sexValues;
+    ageColumn.values = ageValues;
+    columns.splice(index + 1, 0, ageColumn);
+
+    this.etlDto = {
+      ...etlDto,
+      table: {
+        ...etlDto.table,
+        columns: [...columns],
+      }
+    }
+    this.reRenderTableRows();
+  });
+}
+
   /**
    * 
    * @param index Used by the angular code to determine if a column is transformed and
@@ -1205,7 +1272,8 @@ transformCategories = {
         TransformType.DuplicateColumn,
         TransformType.ConstantColumn,
         TransformType.MergeIndividualFamily,
-        TransformType.ToggleTransformed
+        TransformType.ToggleTransformed,
+        TransformType.SplitAgeSex,
     ]
   }
 };
@@ -1223,6 +1291,7 @@ getTransformDisplayName(transform: TransformType): string {
     [TransformType.LastEncounterAge]: 'Last Encounter Age',
     [TransformType.LastEncounterAgeAssumeYears]: 'Last Encounter Age (assume years)',
     [TransformType.SexColumn]: 'Sex Column',
+    [TransformType.SplitAgeSex]: 'Split Age/sex Column',
     [TransformType.SingleHpoTerm]: 'Single HPO Term',
     [TransformType.MultipleHpoTerm]: 'Multiple HPO Terms',
     [TransformType.AnnotateVariants]: 'Annotate variants',
@@ -1364,6 +1433,10 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.duplicateColumn(colIndex);
       return;
 
+    case TransformType.SplitAgeSex:
+      this.splitAgeSex(colIndex);
+      return;
+
     case TransformType.AnnotateVariants:
       this.annotateVariants(colIndex);
       return;
@@ -1409,51 +1482,6 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 }
 
 
-/** Applies one of the transforms to a column and sets the corresponding "pending values". 
- * We will then see the pending modal dialog to check the results of transform.
- 
-  applyNamedTransformOLD(colIndex: number | null, transformName: TransformType): void {
-    console.log("applyNamedTransformed for type ", transformName);
-    if (colIndex === null || !this.etlDto) return;
-
-    if (transformName == TransformType.SingleHpoTerm) {
-      this.hpoAutoForColumnName(colIndex);
-      return;
-    }
-    if (transformName === TransformType.MultipleHpoTerm) {
-      this.processMultipleHpoColumn(colIndex);
-      return;
-    }
-
-    const handler = this.transformHandlers[transformName];
-    if (!handler) return;
-    const col = this.etlDto.table.columns[colIndex];
-    const originalValues = col.values.map(v => v ?? '');
-    this.previewColumnIndex = colIndex;
-    this.previewOriginal = col.values.map(v => v ?? '');
-    this.previewTransformed = this.transformColumnElementwise(colIndex, transformName);
-    this.previewOriginal = originalValues;
-    this.pendingHeader = col.header;
-    if (transformName == TransformType.SexColumn) {
-      this.pendingColumnType = EtlColumnType.Sex;
-      this.pendingColumnTransformed = true;
-    } else if (transformName == TransformType.OnsetAge || 
-      transformName == TransformType.OnsetAgeAssumeYears) {
-      this.pendingColumnType = EtlColumnType.AgeOfOnset;
-      this.pendingColumnTransformed = true;
-    } else if (transformName == TransformType.LastEncounterAge || 
-              transformName == TransformType.LastEncounterAgeAssumeYears) {
-      this.pendingColumnType = EtlColumnType.AgeAtLastEncounter;
-      this.pendingColumnTransformed = true;
-    } else {
-      this.pendingColumnType = col.header.columnType;
-      this.pendingColumnTransformed = false;
-    }
-    
-    this.showPreview(transformName);
-    // if user clicks confirm, applyTransformConfirmed is executed
-  }
-*/
   /** After the user applies a transform to a column, the user sees a model dialog with
    * the results. If all is good, the user presses confirm, which causes this method to
    * run and change the contents of the original column.
