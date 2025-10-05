@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { CohortData, GeneTranscriptData, DiseaseData, RowData } from '../models/cohort_dto';
+import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { SourcePmid } from '../models/cohort_description_dto';
@@ -14,6 +14,7 @@ import { SourcePmid } from '../models/cohort_description_dto';
  */
 @Injectable({ providedIn: 'root' })
 export class CohortDtoService {
+    
   
     
     constructor(private configService: ConfigService){
@@ -205,6 +206,17 @@ export class CohortDtoService {
             return sv.chromosome;
         });
         return '';
+    }
+
+    addBiocuration(biocurationEvent: CurationEvent) {
+        const cohort = this.getCohortData();
+        if (cohort === null) {
+            return;
+        }
+        if (!cohort.curationHistory) {
+            cohort.curationHistory = [];
+        }
+        cohort.curationHistory.push(biocurationEvent);
     }
 
 }

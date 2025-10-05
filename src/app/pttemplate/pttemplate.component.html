@@ -274,7 +274,7 @@
           @case ('Excluded') {  ❌  }
           @case ('Na') { n/a }
           @case ('OnsetAge') {
-            <div class="onset-cell" [title]="cell.data">
+            <div class="onset-content" [title]="cell.data">
               <span class="onset-icon">🕒</span>
               <span class="onset-text">{{ cell.data }}</span>
             </div>
@@ -332,15 +332,17 @@
   </div>
 </div>
 
-  <!-- Actions -->
-  <div class="flex items-center gap-3 ml-auto">
+ <!-- Actions -->
+<div class="flex flex-col gap-2 ml-auto">
+  <!-- First Row -->
+  <div class="flex items-center gap-3">
     <button 
       (click)="validateCohort()" 
       class="px-4 py-2 text-sm rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
     >
       Validate
     </button>
-     <button 
+    <button 
       (click)="sanitizeCohort()" 
       class="px-4 py-2 text-sm rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
     >
@@ -353,18 +355,30 @@
       Save
     </button>
     <button 
+      (click)="recordBiocuration()" 
+      class="px-4 py-2 text-sm rounded-lg border border-orange-600 text-orange-600 hover:bg-orange-50 transition"
+    >
+      Record Biocuration
+    </button>
+  </div>
+  
+  <!-- Second Row -->
+  <div class="flex items-center gap-3">
+    
+    <button 
       (click)="exportPpkt()" 
       class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-purple-50 transition"
     >
       Export phenopackets
     </button>
-     <button 
+    <button 
       (click)="exportHpoa()" 
       class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
     >
       Export Hpoa
     </button>
   </div>
+</div>
 </div>
 
 <!-- Context Menu -->

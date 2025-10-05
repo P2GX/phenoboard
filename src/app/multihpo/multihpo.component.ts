@@ -20,7 +20,7 @@ import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
 
 
 /// symbols for not applicable or unknown status
- const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "no", "/", "n.d.",  "unknown",]);
+ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "no", "/", "n.d.",  "unknown","n"]);
 
 
 @Component({
@@ -49,16 +49,20 @@ import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
 })
 export class MultiHpoComponent {
   allHpoTerms: HpoTermDuplet[];
+  /* unique original entries (no duplicates)*/
+  uniqueEntries: string[] = [];
   hpoMappings: HpoMappingRow[] = [];
   /* HPO autocomplete input (not necessarily a valid HPO term yet) */
   hpoInputString: string = ''; 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: string[] },
+    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: string[], title: string },
     private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
-    this.allHpoTerms = data.terms;
-    this.hpoMappings = data.rows.map(rowText =>
+    this.allHpoTerms = data.terms ?? [];
+    this.uniqueEntries = Array.from(new Set((data.rows ?? []).map(r => (r ?? '').trim()))).filter(r => r !== '');
+
+    this.hpoMappings = this.uniqueEntries.map(rowText =>
       this.allHpoTerms.map(term => ({
         term,
         status: this.getInitialStatus(rowText, term) as HpoStatus
@@ -71,20 +75,12 @@ export class MultiHpoComponent {
    * Uses case-insensitive matching and handles partial matches.
    */
   private getInitialStatus(rowText: string, term: HpoTermDuplet): HpoStatus {
-    if (!rowText || !term.hpoLabel) {
-      return 'na';
-    }
+    if (!rowText || !term.hpoLabel) return 'na';
     const normalizedRowText = rowText.toLowerCase().trim();
-    if (NOT_APPLICABLE.has(normalizedRowText)) {
-      return "na";
-    }
+    if (NOT_APPLICABLE.has(normalizedRowText)) return "na";
     const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
-    if (normalizedTermLabel == "normal") {
-      return "excluded";
-    }
-    if (normalizedRowText === normalizedTermLabel) {
-      return 'observed';
-    }
+    if (normalizedTermLabel == "normal") return "excluded"; 
+    if (normalizedRowText === normalizedTermLabel) return 'observed';
     // Check if the row text contains the HPO term label (skip short entries such as na)
     if (normalizedRowText.includes(normalizedTermLabel) && normalizedRowText.length > 4) {
       return 'observed';
@@ -101,46 +97,44 @@ export class MultiHpoComponent {
   }
 
   save() {
+    const mappedRows: HpoMappingRow[] = (this.data.rows ?? []).map(row => {
+      const trimmed = (row ?? '').trim();
+      const idx = this.uniqueEntries.indexOf(trimmed);
+      if (idx >= 0) {
+        // clone so caller can mutate if desired without mutating this dialog state
+        return this.hpoMappings[idx].map(e => ({ ...e }));
+      }
+      return this.allHpoTerms.map(term => ({ term, status: 'na' as HpoStatus }));
+    });
     this.dialogRef.close({
-      hpoMappings: this.hpoMappings,
+      hpoMappings: mappedRows,
       allHpoTerms: this.allHpoTerms,
     });
   }
 
-  // Fixed: Return the actual entry, ensuring it always exists
   getEntry(rowIndex: number, termIndex: number) {
+    if (!this.hpoMappings[rowIndex]) {
+      this.hpoMappings[rowIndex] = this.allHpoTerms.map(term => ({ term, status: 'na' as HpoStatus }));
+    }
     return this.hpoMappings[rowIndex][termIndex];
   }
 
-  // Alternative: Get entry by term ID but ensure it exists
-  getEntryByTermId(rowIndex: number, termId: string): { term: HpoTermDuplet; status: HpoStatus } {
-    const entry = this.hpoMappings[rowIndex].find(e => e.term.hpoId === termId);
-    if (!entry) {
-      // This should never happen if data is properly initialized, but provides safety
-      throw new Error(`Entry not found for row ${rowIndex}, term ${termId}`);
-    }
-    return entry;
+  trackByTermId(_: number, term: HpoTermDuplet) {
+    return term?.hpoId ?? term?.hpoLabel ?? _; // fallback
   }
-
-  // Track by function for better performance
-  trackByTermId(index: number, term: HpoTermDuplet): string {
-    return term.hpoId;
-  }
-
+    
   addHpoTerm(term: HpoTermDuplet) {
-    if (
-      term &&
-      !this.allHpoTerms.some(t => t.hpoId === term.hpoId)
-    ) {
-      this.allHpoTerms.push(term);
-
-     this.hpoMappings.forEach((row, rowIndex) => {
-        const rowText = this.data.rows[rowIndex];
-        const initialStatus = this.getInitialStatus(rowText, term);
-        row.push({ term, status: initialStatus as HpoStatus });
-      });
-    }
+    if (!term) return;
+    if (this.allHpoTerms.some(t => t.hpoId === term.hpoId)) return;
+    this.allHpoTerms.push(term);
+    // Add a new column for this term on each unique-entry mapping
+    this.hpoMappings.forEach((row, rowIndex) => {
+      const initialStatus = this.getInitialStatus(this.uniqueEntries[rowIndex], term);
+      row.push({ term, status: initialStatus as HpoStatus });
+    });
   }
+
+  
 
  
   /** Set the value for an HPO term in a cell to excluded if the current status is "na"
@@ -148,11 +142,11 @@ export class MultiHpoComponent {
    */
   setAllNaToExcluded() {
     this.hpoMappings.forEach((row, rowIndex) => {
-      const rowText = this.data.rows[rowIndex];
+      const rowText = this.uniqueEntries[rowIndex] ?? '';
       const normalizedRowText = rowText.toLowerCase().trim();
       const hasNaIndicators = NOT_APPLICABLE.has(normalizedRowText);
       row.forEach(entry => {
-        if (entry.status == 'na' && !hasNaIndicators) { 
+        if (entry.status === 'na' && !hasNaIndicators) {
           entry.status = 'excluded';
         }
       });

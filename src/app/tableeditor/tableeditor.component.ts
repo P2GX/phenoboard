@@ -751,7 +751,7 @@ editUniqueValuesInColumn(index: number): void {
     );
     const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
-      data: { terms: hpoTerms, rows: colValues }
+      data: { terms: hpoTerms, rows: colValues, title: col.header.original }
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
     if (!result) {

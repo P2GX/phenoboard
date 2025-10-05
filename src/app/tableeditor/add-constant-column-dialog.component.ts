@@ -21,8 +21,8 @@ import { FormsModule } from '@angular/forms';
       </mat-form-field>
     </div>
     <div mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancel</button>
-      <button mat-flat-button color="primary" (click)="onSave()">Add</button>
+      <button mat-button (click)="onCancel()" class="btn-outline-cancel">Cancel</button>
+      <button mat-flat-button (click)="onSave()" class="btn-outline-primary">Add</button>
     </div>
   `,
   styles: [`

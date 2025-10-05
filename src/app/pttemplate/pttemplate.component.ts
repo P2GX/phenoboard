@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData } from '../models/cohort_dto';
+import { DiseaseData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent } from '../models/cohort_dto';
 import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
@@ -43,6 +43,7 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
+
 
 
   constructor(
@@ -734,6 +735,22 @@ openAgeDialog(): void {
 get ageEntries(): string[] {
   return this.ageService.getSelectedTerms();
 }
+
+  async recordBiocuration() {
+    
+    const orcid = await this.configService.getCurrentOrcid();
+    if (! orcid) {
+      this.notificationService.showError("Could not retrieve ORCID id");
+      return;
+    }
+    const biocurationEvent = createCurationEvent(orcid);
+    if (! biocurationEvent) {
+      this.notificationService.showError("Could not create biocuration event");
+      return;
+    }
+    this.cohortService.addBiocuration(biocurationEvent);
+    this.notificationService.showSuccess(`Added biocuration event: ${biocurationEvent.orcid} on ${biocurationEvent.date}`)
+  }
   
 
 }

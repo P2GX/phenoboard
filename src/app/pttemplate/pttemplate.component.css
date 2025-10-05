@@ -69,8 +69,23 @@
   color: #b91c1c; /* Dark red */
 }
 
-.onset-cell {
+.onset-content {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 4rem;
+  border-radius: 6px;
+  background-color: inherit; /* inherit from parent td */
+  color: #1e40af; /* dark blue text */
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.1s ease-in;
+  padding: 2px 4px; /* add some padding */
+}
+
+.onset-cell {
+  /*display: flex; */
   align-items: center;
   justify-content: center;
   max-width: 4rem;

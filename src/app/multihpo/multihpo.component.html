@@ -1,6 +1,7 @@
 <h1 mat-dialog-title>Map Column to HPO Terms</h1>
 
 <div mat-dialog-content>
+  <h2>{{ data.title }} </h2>
   <h3>HPO Terms for mapping</h3>
 
   <!-- Chip set with removable HPO terms -->
@@ -8,7 +9,12 @@
     @for (term of allHpoTerms; track trackByTermId($index, term)) {
       <mat-chip removable (removed)="removeHpoTerm(term)" color="primary">
         {{ term.hpoLabel }}
-         <span matChipRemove style="cursor: pointer; font-weight: bold; color: red;">×</span>
+        <span
+          matChipRemove
+          style="cursor: pointer; font-weight: bold; color: red;"
+        >
+          ×
+        </span>
       </mat-chip>
     }
   </mat-chip-set>
@@ -24,9 +30,13 @@
     </app-hpoautocomplete>
   </div>
 
-  <!-- Compact Color-coded Table -->
-  <table mat-table [dataSource]="data.rows" class="w-full compact-table" style="border-collapse: collapse;">
-    
+  <!-- Compact color-coded table -->
+  <table
+    mat-table
+    [dataSource]="uniqueEntries"
+    class="w-full compact-table"
+    style="border-collapse: collapse;"
+  >
     <!-- Original string column -->
     <ng-container matColumnDef="original">
       <th mat-header-cell *matHeaderCellDef class="compact-header">Original</th>
@@ -37,10 +47,16 @@
 
     <!-- HPO toggle column -->
     <ng-container matColumnDef="hpo">
-      <th mat-header-cell *matHeaderCellDef class="compact-header">HPO Terms</th>
-      <td mat-cell *matCellDef="let row; let i = index" class="compact-cell hpo-cell">
+      <th mat-header-cell *matHeaderCellDef class="compact-header">
+        HPO Terms
+      </th>
+      <td
+        mat-cell
+        *matCellDef="let row; let i = index"
+        class="compact-cell hpo-cell"
+      >
         <div class="hpo-grid">
-          @for (term of allHpoTerms; track trackByTermId($index, term); let termIndex = $index) {
+          @for (term of allHpoTerms; track trackByTermId; let termIndex = $index) {
             <div class="hpo-row">
               <span class="hpo-label">{{ term.hpoLabel }}</span>
               <mat-button-toggle-group
@@ -65,19 +81,25 @@
       </td>
     </ng-container>
 
-    <!-- Header + Row definitions -->
-    <tr mat-header-row *matHeaderRowDef="['original', 'hpo']" class="compact-header-row"></tr>
-    <tr mat-row *matRowDef="let row; let i = index; columns: ['original','hpo']" class="compact-row" [class.even-row]="i % 2 === 0"></tr>
+    <tr
+      mat-header-row
+      *matHeaderRowDef="['original', 'hpo']"
+      class="compact-header-row"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; let i = index; columns: ['original', 'hpo']"
+      class="compact-row"
+      [class.even-row]="i % 2 === 0"
+    ></tr>
   </table>
 
-  <!-- Bulk actions -->
   <div class="mt-4">
     <button mat-stroked-button color="warn" (click)="setAllNaToExcluded()">
       Set all NA → Excluded
     </button>
   </div>
 
-  <!-- Dialog actions -->
   <div mat-dialog-actions align="end">
     <button mat-button (click)="cancel()">Cancel</button>
     <button mat-raised-button color="primary" (click)="save()">Save</button>
