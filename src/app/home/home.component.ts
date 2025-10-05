@@ -64,7 +64,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   override async ngOnInit() {
     super.ngOnInit();
     const currentOrcid = await this.getCurrentOrcid();
-    this.biocuratorOrcid = currentOrcid || "not initialized";
+    this.biocuratorOrcid = currentOrcid || "not initialized";
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
@@ -89,8 +89,9 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.statusSubscription = this.backendStatusService.status$.subscribe(
       status => this.status = status
     );
-    this.update_gui_variables();
     this.configService.emitStatusFromBackend();
+    this.update_gui_variables();
+    
   }
 
  
@@ -137,9 +138,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.clearData();
     try {
       await this.configService.loadHPO();
+      await this.configService.resetPtTemplate();
     } catch (error: any) {
       const msg = error?.message ?? String(error);
-      this.notificationService.showError(`❌ Failed to load HPO:\n${msg}`);
+      this.notificationService.showError(`Failed to load HPO: ${msg}`);
       this.hpoMessage = "Error calling load_hpo";
     } 
   }
@@ -150,7 +152,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
-       this.isRunning = false;
+      this.isRunning = false;
       if (data == null) {
         const errorMessage = "Could not retrieve template (null error)"
         this.notificationService.showError(errorMessage);
@@ -168,6 +170,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   /* After loading HPO, we may create a new template (new cohort) */
   async createNewPhetoolsTemplate() {
     this.cohortService.clearCohortData();
+    await this.configService.resetPtTemplate();
     await this.router.navigate(['/newtemplate']);
   }
 
@@ -224,6 +227,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   openExternalTemplate() {
     this.clearData();
+    this.configService.resetPtTemplate();
     this.router.navigate(['/tableeditor']);
   }
 

@@ -37,6 +37,7 @@ pub fn run() {
             create_template_dto_from_seeds,
             get_hp_json_path,
             get_pt_template_path,
+            reset_pt_template_path,
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
             get_hpo_autocomplete_terms,
@@ -274,6 +275,15 @@ fn get_pt_template_path(
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
     singleton.pt_template_path()
+}
+
+#[tauri::command]
+fn reset_pt_template_path(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+)  {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    singleton.reset_pt_template_path();
 }
 
 

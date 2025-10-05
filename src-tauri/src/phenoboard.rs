@@ -124,6 +124,10 @@ impl PhenoboardSingleton {
         }
     }
 
+    pub fn reset_pt_template_path(&mut self) {
+        self.pt_template_path = None;
+    }
+
 
     /// The template files are located in a subsub directory of the project directory.
     /// This function retrieves a PathBuf that points to the project directory.

@@ -68,6 +68,11 @@ export class ConfigService {
     return await invoke<CohortData>("load_phetools_template", { "fixErrors": true});
   }
 
+    /** Load an excel template file and try to fix some common errors (outdated HPO labels, whitespace) */
+  async resetPtTemplate(): Promise<void> {
+    return await invoke<void>("reset_pt_template_path");
+  }
+
   async fetchStatus(): Promise<void> {
     const status: StatusDto = await invoke('get_status');
     console.log('Status received:', status);
