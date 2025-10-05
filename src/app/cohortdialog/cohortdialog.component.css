@@ -1,0 +1,60 @@
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-input {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: border-color 0.2s;
+}
+
+.form-input.ng-invalid.ng-touched {
+  border-color: #dc2626; /* red-600 */
+  background-color: #fff5f5;
+}
+
+.error-text {
+  color: #dc2626; /* red-600 */
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-outline-primary {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.btn-outline-primary:hover {
+  background-color: #e0ebff;
+}
+
+.btn-cancel,
+.btn-outline-cancel {
+  border: 1px solid #aaa;
+  color: #444;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.btn-cancel:hover,
+.btn-outline-cancel:hover {
+  background-color: #eee;
+}

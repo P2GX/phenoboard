@@ -10,6 +10,13 @@ import { ConfigService } from '../services/config.service';
 
 import { DiseaseIdSanitizerDirective } from '../directives/disease-id.directive';
 import { TrimDirective } from '../directives/trim.directive';
+import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { NotificationService } from '../services/notification.service';
+
+
+
 
 /**
  * Component for creating a Template for a new disease. This is the first thing we need to use
@@ -24,22 +31,15 @@ import { TrimDirective } from '../directives/trim.directive';
 })
 export class NewTemplateComponent extends TemplateBaseComponent implements OnInit, OnDestroy  {
 
+
   constructor(
-    private fb: FormBuilder, 
     private configService: ConfigService,
+    private notificationService: NotificationService,
     ngZone: NgZone, 
     templateService: CohortDtoService,
+    private dialog: MatDialog,
     cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
-      this.mendelianDataForm = this.fb.group({
-        diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
-        diseaseName: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
-        cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
-        hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
-        symbol: ['', [Validators.required, noWhitespaceValidator]],
-        transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
-        multiText: ['', [Validators.required]], // 
-      });
   }
 
   /* after the user submits data, we hide everything else and display a message */
@@ -49,10 +49,13 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
   meldedTemplate = false;
   mendelianTemplate = false;
 
-  mendelianDataForm: FormGroup;
-  tableData: string[] = [];
+  diseaseA: DiseaseData | null = null;
+  diseaseB: DiseaseData | null = null;
+  thisCohortType: CohortType | null = null;
   jsonData: string = '';
   errorMessage: string | null = null;
+
+  pendingCohort: CohortData | null = null;
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -72,85 +75,109 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     }
 
 
-  
-
-  /** Activate by the submit button of the form. */
-  async onSubmitMendelian() {
-    if (!this.mendelianDataForm.valid) {
-      this.errorMessage = "Invalid entries in data entry form."
-      return;
-    }
-      const diseaseId = this.mendelianDataForm.get('diseaseId')?.value;
-      const diseaseName = this.mendelianDataForm.get('diseaseName')?.value;
-      const cohortAcronym = this.mendelianDataForm.get('cohortAcronym')?.value;
-      const hgnc = this.mendelianDataForm.get('hgnc')?.value;
-      const symbol = this.mendelianDataForm.get('symbol')?.value;
-      const transcript = this.mendelianDataForm.get('transcript')?.value;
-      const multiText = this.mendelianDataForm.get('multiText')?.value;
-
-      const diseaseData: DiseaseData = newMendelianTemplate(diseaseId, diseaseName, hgnc, symbol, transcript);
-
-      console.log("Disease ID:", diseaseId);
-      console.log("Disease Name:", diseaseName);
-      console.log("cohortAcronym:", cohortAcronym);
-      console.log("HGNC:", hgnc);
-      console.log("Symbol:", symbol);
-      console.log("Transcript:", transcript);
-      console.log("Multi Text:", multiText);
-
-      try {
-        const ctype: CohortType = "mendelian";
-        const template = await this.configService.createNewTemplateFromSeeds(diseaseData, ctype, multiText);
-        this.cohortService.setCohortData(template);
-        this.showSuccessMessage = true;
-      } catch (error) {
-          this.errorMessage = String(error);
-      }
-      
-
-      
-  }
 
 
-  hasError(field: string): boolean {
-    return this.mendelianDataForm.controls[field].invalid && this.mendelianDataForm.controls[field].touched;
-  }
-
-  markAllFieldsAsTouched() {
-    Object.keys(this.mendelianDataForm.controls).forEach(field => {
-      const control = this.mendelianDataForm.get(field);
-      if (control) {
-        control.markAsTouched();
-      }
-    });
-  }
-
-  getObjectKeys(obj: any): string[] {
-    return obj ? Object.keys(obj) : [];
-  }
+ 
 
 
-digenic() {
-  this.mendelianTemplate = true;
-  this.meldedTemplate = false;
-  this.digenicTemplate = false;
-  this.resetCohort();
-}
-melded() {
+
+ async melded() {
   this.mendelianTemplate = false;
   this.meldedTemplate = true;
   this.digenicTemplate = false;
   this.resetCohort();
-}
-mendelian() {
+    const first = await this.dialog.open(CohortDialogComponent, {
+      width: '450px',
+      height: '550px',
+      data: { title: 'Enter Disease A Info', mode: 'melded' }
+    });
+    if (!first) return;
+    const first_disease = await firstValueFrom(first.afterClosed());
+    const second = await this.dialog.open(CohortDialogComponent, {
+      width: '450px',
+      height: '550px',
+      data: { title: 'Enter Disease B Info', mode: 'melded' }
+    });
+    if (!second) return;
+    const second_disease = await firstValueFrom(first.afterClosed());
+    this.createTemplate({ diseaseA: first_disease, diseaseB: second_disease }, 'melded');
+  }
+
+  async digenic() {
+    this.mendelianTemplate = false;
+    this.meldedTemplate = false;
+    this.digenicTemplate = true;
+    this.resetCohort();
+    const dialogRef = this.dialog.open(CohortDialogComponent, {
+      width: '450px',
+      height: '550px',
+      data: { title: 'Create Digenic Cohort', mode: 'digenic' }
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) return;
+
+    this.createTemplate(result, 'digenic');
+  }
+
+
+async mendelian() {
   this.mendelianTemplate = true;
   this.meldedTemplate = false;
   this.digenicTemplate = false;
   this.resetCohort();
+  const dialogRef = this.dialog.open(CohortDialogComponent, {
+      width: '450px',
+      height: '650px',
+      data: { title: 'Create Mendelian Cohort', mode: 'mendelian' }
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) {
+      this.notificationService.showError("Could not get data for Mendelian cohort");
+      return;
+    }
+    this.createTemplate(result, 'mendelian');
 }
 
-resetCohort() {
-  this.cohortService.clearCohortData();
-}
+private async createTemplate(data: any, ctype: CohortType) {
+  if (ctype == "mendelian") {  
+    try {
+        const diseaseData: DiseaseData = newMendelianTemplate(
+          data.diseaseId, data.diseaseName, data.hgnc1, data.symbol1, data.transcript1
+        );
+        this.diseaseA = diseaseData;
+        const template = await this.configService.createNewTemplate(
+          diseaseData,
+          ctype,
+        );
+        this.pendingCohort = template;
+        this.thisCohortType = "mendelian";
+      } catch (error) {
+        this.errorMessage = String(error);
+      }
+    } else if (ctype =="melded") {
+      this.notificationService.showError("melded not implemented");
+    } else if (ctype == "digenic") {
+      this.notificationService.showError("digenic not implemented");
+    } else {
+      this.notificationService.showError(`Did not recognize cohort type: "${ctype}"`);
+    }
+  } 
+
+  resetCohort() {
+    this.mendelianTemplate = false;
+    this.meldedTemplate = false;
+    this.digenicTemplate = false;
+    this.cohortService.clearCohortData();
+  }
+
+  onConfirm() {
+    const cohort = this.pendingCohort;
+    if (! cohort) {
+      this.notificationService.showError("CohortData not initialized");
+      return;
+    }
+    this.cohortService.setCohortData(cohort);
+    this.showSuccessMessage = true;
+  }
 
 }

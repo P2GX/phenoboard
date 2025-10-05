@@ -34,7 +34,7 @@ pub fn run() {
             load_ptools_json,
             load_hpo,
             map_text_to_annotations,
-            create_template_dto_from_seeds,
+            create_new_cohort_data,
             get_hp_json_path,
             get_pt_template_path,
             reset_pt_template_path,
@@ -292,15 +292,14 @@ fn reset_pt_template_path(
 /// This function performs text mining on that text and creates
 /// the initial Template DTO we use to add patient data to
 #[tauri::command]
-fn create_template_dto_from_seeds(
+fn create_new_cohort_data(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseData,
     cohort_type: CohortType,
-    input: String
 ) -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.create_template_dto_from_seeds(dto, cohort_type, input)
+    singleton.create_new_cohort_data(dto, cohort_type)
 }
 
 

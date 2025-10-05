@@ -5,3 +5,7 @@ multilingual = false
 src = "."
 title = "GA4GH Phenoboard"
 numbered = false
+
+[build]
+src = "content"
+build-dir = "book"

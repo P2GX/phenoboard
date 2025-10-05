@@ -1,0 +1,107 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="flex flex-col gap-3 mt-2">
+
+    <!-- Disease section -->
+    <h3 class="font-semibold text-gray-700 mb-1">Disease Info</h3>
+
+    <!-- OMIM ID -->
+    <div class="form-field">
+      <input placeholder="e.g., OMIM:123456" formControlName="diseaseId" class="form-input" />
+      @if (form.get('diseaseId')?.invalid && form.get('diseaseId')?.touched) {
+        <p class="error-text">Please enter a valid OMIM ID (e.g. OMIM:123456)</p>
+      }
+    </div>
+
+    <!-- Disease name -->
+    <div class="form-field">
+      <input placeholder="Disease name" formControlName="diseaseName" class="form-input" />
+      @if (form.get('diseaseName')?.invalid && form.get('diseaseName')?.touched) {
+        <p class="error-text">Disease name is required.</p>
+      }
+    </div>
+
+    <!-- Cohort -->
+    <div class="form-field">
+      <input placeholder="Cohort acronym" formControlName="cohortAcronym" class="form-input" />
+      @if (form.get('cohortAcronym')?.invalid && form.get('cohortAcronym')?.touched) {
+        <p class="error-text">Cohort acronym is required.</p>
+      }
+    </div>
+
+    <!-- Gene(s) section -->
+    <h3 class="font-semibold text-gray-700 mt-3 mb-1">
+      {{ data.mode === 'digenic' ? 'Gene 1 Info' : 'Gene Info' }}
+    </h3>
+
+    <div class="form-field">
+      <input placeholder="e.g., HGNC:1234" formControlName="hgnc1" class="form-input" />
+      @if (form.get('hgnc1')?.invalid && form.get('hgnc1')?.touched) {
+        <p class="error-text">Valid HGNC ID required (e.g., HGNC:1234)</p>
+      }
+    </div>
+
+    <div class="form-field">
+      <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol1" class="form-input" />
+      @if (form.get('symbol1')?.invalid && form.get('symbol1')?.touched) {
+        <p class="error-text">Gene symbol is required.</p>
+      }
+    </div>
+
+    <div class="form-field">
+      <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript1" class="form-input" />
+      @if (form.get('transcript1')?.invalid && form.get('transcript1')?.touched) {
+        <p class="error-text">Transcript must be in format NM_000492.4</p>
+      }
+    </div>
+
+    @if (data.mode === 'digenic') {
+      <h3 class="font-semibold text-gray-700 mt-3 mb-1">Gene 2 Info</h3>
+
+      <div class="form-field">
+        <input placeholder="HGNC:5678" formControlName="hgnc2" class="form-input" />
+        @if (form.get('hgnc2')?.invalid && form.get('hgnc2')?.touched) {
+          <p class="error-text">Valid HGNC ID required.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <input placeholder="Gene symbol (e.g. SLC26A9)" formControlName="symbol2" class="form-input" />
+        @if (form.get('symbol2')?.invalid && form.get('symbol2')?.touched) {
+          <p class="error-text">Gene symbol is required.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <input placeholder="Transcript (e.g. NM_001160.3)" formControlName="transcript2" class="form-input" />
+        @if (form.get('transcript2')?.invalid && form.get('transcript2')?.touched) {
+          <p class="error-text">Transcript must be in format NM_001160.3</p>
+        }
+      </div>
+    }
+  </form>
+</mat-dialog-content>
+
+@if (showPasteArea) {
+  <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      Paste OMIM data here (clipboard access was denied):
+    </label>
+    <textarea 
+      [(ngModel)]="pastedText"
+      class="w-full h-32 border border-gray-300 rounded p-2 font-mono text-sm"
+      placeholder="Paste here..."
+    ></textarea>
+    <div class="flex gap-2 mt-2">
+      <button (click)="processPastedText()" class="btn-primary">Process</button>
+      <button (click)="showPasteArea = false" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+} @else {
+  <mat-dialog-actions align="end" class="mt-3">
+    <button (click)="showPasteArea = true" class="btn-outline-primary">📋 Paste OMIM data</button>
+    <button mat-button (click)="cancel()" class="btn-outline-cancel">Cancel</button>
+    <button mat-raised-button [disabled]="form.invalid" (click)="submit()" class="btn-primary">OK</button>
+  </mat-dialog-actions>
+}

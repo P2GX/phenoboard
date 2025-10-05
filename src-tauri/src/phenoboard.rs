@@ -460,19 +460,16 @@ impl PhenoboardSingleton {
 
     /// Generate a CohortType from seed HPO terms and some information about the disease & gene
     /// Mendelian only
-    pub fn create_template_dto_from_seeds(
+    pub fn create_new_cohort_data(
         &mut self,
         dto: DiseaseData,
-        cohort_type: CohortType,
-        input: String
+        cohort_type: CohortType
     ) -> Result<CohortData, String> {
-        println!("{}:{} - input {}", file!(), line!(), &input);
-        let fresult = self.map_text_to_term_list(&input);
         let hpo = match &self.ontology {
             Some(onto) => onto.clone(),
             None => { return Err("HPO object not initialized".to_string()); }
         };
-        ga4ghphetools::factory::create_cohort_dto_from_seeds(cohort_type, dto, fresult, hpo)     
+        ga4ghphetools::factory::create_new_cohort_data(cohort_type, dto,  hpo)     
     }
 
 

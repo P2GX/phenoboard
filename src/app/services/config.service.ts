@@ -44,12 +44,10 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplateFromSeeds(dto: DiseaseData, cohortType: CohortType, input: string):  Promise<CohortData> {
-    console.log("getNewTemplateFromSeeds in service", dto, input);
-    return await invoke<CohortData>("create_template_dto_from_seeds", {
+  async createNewTemplate(dto: DiseaseData, cohortType: CohortType):  Promise<CohortData> {
+    return await invoke<CohortData>("create_new_cohort_data", {
       'dto': dto,
       'cohortType': cohortType,
-      'input': input,
     });
   }
   

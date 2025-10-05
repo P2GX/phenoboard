@@ -50,121 +50,108 @@
   </button>
 
 
-  @if (mendelianTemplate) {
-  <p>Mendelian template</p>
-  <!-- Either show the form or the table -->
-    <form [formGroup]="mendelianDataForm" (ngSubmit)="onSubmitMendelian()" class="form-container">
-      <div class="form-column">
-          <div class="form-group">
-              <label for="diseaseId" class="form-label">Disease identifier</label>
-              <input 
-                  id="diseaseId" 
-                  type="text" 
-                  formControlName="diseaseId" 
-                  [ngClass]="{ 'error-border': hasError('diseaseId') }"
-                  placeholder="Enter disease ID"
-                  appDiseaseIdSanitizer
-                  class="form-input"
-                  >
-                  @if (mendelianDataForm.get('diseaseId')?.touched && mendelianDataForm.get('diseaseId')?.invalid) {
-                    <div class="error-message">
-                      @if (mendelianDataForm.get('diseaseId')?.hasError('required')) {
-                        <span class="error-message">Disease ID is required.</span>
-                      }
-                      @if (mendelianDataForm.get('diseaseId')?.hasError('pattern')) {
-                        <span class="error-message">Disease ID must follow the pattern "OMIM:123456".</span>
-                      }
-                    </div>
-                  }
-          </div>
-          <div class="form-group">
-              <label for="diseaseName" class="form-label">Disease name</label>
-              <input 
-                  id="diseaseName" 
-                  type="text" 
-                  formControlName="diseaseName"
-                  appTrim
-                  class="form-input"
-                  >
-              @if (mendelianDataForm.get('diseaseName')?.touched && mendelianDataForm.get('diseaseName')?.invalid) {
-                <div class="error-message">
-                  @if (mendelianDataForm.get('diseaseName')?.hasError('required')) {
-                    <span class="error-message">Disease Name is required.</span>
-                  }
-                  @if (mendelianDataForm.get('diseaseName')?.hasError('pattern')) {
-                    <span class="error-message">Disease name must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-                  }
-                </div>
-              }
-          </div>
-          <div class="form-group">
-              <label for="cohortAcronym" class="form-label">Cohort acronym</label>
-              <input 
-                  id="cohortAcronym" 
-                  type="text" 
-                  formControlName="cohortAcronym"
-                  appTrim
-                  class="form-input"
-                  >
-              @if (mendelianDataForm.get('cohortAcronym')?.touched && mendelianDataForm.get('cohortAcronym')?.invalid) {
-              <div class="error-message">
-                @if (mendelianDataForm.get('cohortAcronym')?.hasError('required')) {
-                      <span class="error-message">Cohort acronym is required.</span>
-                }
-                @if (mendelianDataForm.get('cohortAcronym')?.hasError('pattern')) {
-                      <span class="error-message">Cohort acronym must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-                }
-              </div>
-              ç
-            }
-          </div>
-          <div class="form-group">
-              <label for="hgnc" class="form-label">HGNC identifier</label>
-              <input id="hgnc" type="text" formControlName="hgnc" class="form-input">
-              <div *ngIf="mendelianDataForm.get('hgnc')?.touched && mendelianDataForm.get('hgnc')?.invalid" class="error-message">
-                  <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('required')" class="error-message">HGNC ID is required.</span>
-                  <span *ngIf="mendelianDataForm.get('hgnc')?.hasError('pattern')" class="error-message">HGNC ID must follow the pattern "HGNC:123456".</span>
-              </div>
-          </div>
-          <div class="form-group">
-          <label for="hgnc" class="form-label">Gene symbol</label>
-          <input 
-              id="symbol" 
-              type="text" 
-              formControlName="symbol"
-              placeholder="Enter HGNC-approved gene symbol"
-              appTrim
-              class="form-input">
-              <div *ngIf="mendelianDataForm.get('symbol')?.touched && mendelianDataForm.get('symbol')?.invalid" class="error-message">
-                  <span *ngIf="mendelianDataForm.get('symbol')?.hasError('required')" class="error-message">Gene symbol is required.</span>
-                  <span *ngIf="mendelianDataForm.get('symbol')?.hasError('pattern')" class="error-message">Gene symbol must be at least 2 characters long and not contain leading or trailing whitespace.</span>
-              </div>
-          </div>
-          <div class="form-group">
-          <label for="transcript" class="form-label">Transcript</label>
-          <input 
-              id="transcript" 
-              type="text" 
-              formControlName="transcript"
-              appTrim
-              placeholder="Enter MANE transcript including version number"
-              class="form-input">
-              <div *ngIf="mendelianDataForm.get('transcript')?.touched && mendelianDataForm.get('transcript')?.invalid" class="error-message">
-                  <span *ngIf="mendelianDataForm.get('transcript')?.hasError('required')" class="error-message">Transcript is required.</span>
-                  <span *ngIf="mendelianDataForm.get('transcript')?.hasError('pattern')" class="error-message">Transcript must include version number and may not contain leading or trailing whitespace.</span>
-              </div>
-          </div>
-          <button type="submit" class="primary" [disabled]="mendelianDataForm.invalid">Create template</button>
+  @if (thisCohortType) {
+   <div class="template-section">
+    <p class="section-header">🧬 {{thisCohortType}} cohort</p>
+    @if (diseaseA) {
+      <div class="summary-card">
+        <table class="min-w-full border border-gray-300 rounded-md">
+          <tbody>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Disease ID</td>
+              <td class="p-2">{{ diseaseA.diseaseId }}</td>
+            </tr>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Disease Label</td>
+              <td class="p-2">{{ diseaseA.diseaseLabel }}</td>
+            </tr>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Gene(s)</td>
+              <td class="p-2">
+                <table class="border border-gray-200 w-full text-sm">
+                  <thead>
+                    <tr class="bg-gray-100">
+                      <th class="p-1 text-left">Symbol</th>
+                      <th class="p-1 text-left">HGNC ID</th>
+                      <th class="p-1 text-left">Transcript</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (gene of diseaseA.geneTranscriptList; track gene) {
+                      <tr>
+                        <td class="p-1">{{ gene.geneSymbol }}</td>
+                        <td class="p-1">{{ gene.hgncId }}</td>
+                        <td class="p-1">{{ gene.transcript }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+         @if (diseaseB) {
+          <table class="min-w-full border border-gray-300 rounded-md">
+          <tbody>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Disease ID</td>
+              <td class="p-2">{{ diseaseB.diseaseId }}</td>
+            </tr>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Disease Label</td>
+              <td class="p-2">{{ diseaseB.diseaseLabel }}</td>
+            </tr>
+            <tr>
+              <td class="font-semibold p-2 bg-gray-50">Gene(s)</td>
+              <td class="p-2">
+                <table class="border border-gray-200 w-full text-sm">
+                  <thead>
+                    <tr class="bg-gray-100">
+                      <th class="p-1 text-left">Symbol</th>
+                      <th class="p-1 text-left">HGNC ID</th>
+                      <th class="p-1 text-left">Transcript</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (gene of diseaseB.geneTranscriptList; track gene) {
+                      <tr>
+                        <td class="p-1">{{ gene.geneSymbol }}</td>
+                        <td class="p-1">{{ gene.hgncId }}</td>
+                        <td class="p-1">{{ gene.transcript }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex justify-end gap-2 mt-4">
+          <button class="btn-outline-cancel" (click)="resetCohort()">Reset</button>
+          <button class="btn-outline-primary" (click)="onConfirm()">Next</button>
+        </div>
+     
+         }
+ </div>
+  
+
+      <div class="actions">
+        <button mat-stroked-button color="warn" (click)="resetCohort()" class="btn-outline-cancel">
+          Reset
+        </button>
+        <button mat-raised-button color="primary" (click)="onConfirm()" class="btn-outline-primary">
+          Confirm and Continue →
+        </button>
       </div>
-      <!-- Right Column: Text Area for the 'seed text' that should contain HPO terms we might want to curate -->
-    <div class="text-area-column">
-      <label for="multiText">Seed text</label>
-      <textarea id="multiText" formControlName="multiText" rows="10" class="text-area"></textarea>
-      <div *ngIf="mendelianDataForm.get('multiText')?.touched && mendelianDataForm.get('multiText')?.invalid" class="error-message">
-          <span *ngIf="mendelianDataForm.get('multiText')?.hasError('required')" class="error-message">Seed text is required.</span>
+    } @else {
+      <div class="warning-message">
+        <p>Please complete all required fields before proceeding.</p>
       </div>
-    </div>
-    </form>
+       <button mat-stroked-button color="warn" (click)="resetCohort()">
+          Reset
+        </button>
+    }
+  </div>
   } @else if (meldedTemplate) {
     <p>Melded template not implemented</p>
   } @else if (digenicTemplate) {
