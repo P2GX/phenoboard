@@ -76,27 +76,52 @@
     </div>
 
     <!-- Mode of inheritance button -->
-    <div>
-       <button 
-          (click)="showMoi = true"
-          class="btn-outline-primary"
-        >
-          Set Mode of inheritance
+   @if (cohort) {
+  <ul class="space-y-2">
+    @for (disease of cohort.diseaseList; track disease; let i = $index) {
+      <li class="flex flex-col border-b border-gray-200 pb-1">
+        <div class="flex items-center justify-between text-sm">
+          <span class="font-medium text-gray-800">
+            {{ disease.diseaseLabel }}
+          </span>
+          <button
+            (click)="toggleMoiSelector(i)"
+            [class]="
+              'ml-2 text-xs rounded-md px-2 py-0.5 border transition-colors ' +
+              (showMoiIndex === i
+                ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
+                : 'text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400')
+            "
+          >
+            {{ showMoiIndex === i ? 'Hide' : 'Set MOI' }}
         </button>
-      @if (showMoi) {
-        <app-moiselector (moiChange)="onMoiChange($event)"></app-moiselector>
-      }
-      <!-- small grey text under moi button -->
-     <div class="text-xs text-gray-500 mt-1">
-        Selected MOIs:
-        <ul>
-          @for(moi of moiList; track moi.hpoId) {
-            <li>{{ moi.hpoLabel }} ({{ moi.hpoId }}) — {{ moi.citation }}</li>
+        </div>
+
+        <!-- inline list of MOIs -->
+        <div class="text-xs text-gray-500 truncate">
+          @if (disease.modeOfInheritanceList.length > 0) {
+            @for (moi of disease.modeOfInheritanceList; track moi.hpoId) {
+              <span>
+                <i>{{ moi.hpoLabel }}</i>{{ moi.citation ? ' — ' + moi.citation : '' }}
+                {{ $last ? '' : ', ' }}
+              </span>
+            }
+          } @else {
+            <span class="italic text-gray-400">No MOI set</span>
           }
-        </ul>
-      </div>
-    </div>
-  <div>
+        </div>
+
+        @if (showMoiIndex === i) {
+          <div class="mt-1">
+            <app-moiselector (moiChange)="onMoiChange($event, i)"></app-moiselector>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+}
+
+
        <button (click)="toggleVariantColumn()" class="btn-outline-primary">
         @if(showAlleleColumn){
             Hide allele

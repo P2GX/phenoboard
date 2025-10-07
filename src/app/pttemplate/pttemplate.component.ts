@@ -92,7 +92,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   ];
 
   contextMenuOptions: Option[] = [];
- 
+  showMoiIndex: number | null = null;
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -122,6 +122,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     if (!cohort) return [];
     return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
   }
+
+  toggleMoiSelector(i: number) {
+    this.showMoiIndex = this.showMoiIndex === i ? null : i;
+  }
+
+  
 
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
@@ -497,13 +503,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showError("Need to specify acronym before saving cohort");
       return;
     }
-    const moiList = this.moiList;
-    if ( moiList.length == 0) {
-      this.notificationService.showError("Need to specify a mode of inheritance (or multiple)");
+
+   cohort.diseaseList.forEach(d => {
+    if (d.modeOfInheritanceList.length == 0) {
+      this.notificationService.showError(`No mode of inheritance specified for ${d.diseaseLabel}`);
       return;
     }
+   })
 
-    console.log("saveCohort: moi=", this.moiList);
     if (cohort.diseaseList.length > 0) {
       cohort.diseaseList[0].modeOfInheritanceList = this.moiList;
     }
@@ -639,7 +646,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         return cohort.diseaseList[0].diseaseLabel;
       }
     }
-
+ /*
     onMoiChange(mois: ModeOfInheritance[]) {
       console.log("onMoiChange mois=", mois);
       const cohort = this.cohortService.getCohortData();
@@ -654,7 +661,20 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showSuccess(
         `Set ${mois.length} modes of inheritance`
       );
+    }*/
+
+   onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number) {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) {
+      return;
     }
+    // Attach MOI to the correct disease
+    const disease = cohort.diseaseList[diseaseIndex];
+    if (!disease.modeOfInheritanceList) {
+      disease.modeOfInheritanceList = [];
+    }
+    newMoiList.forEach(moi => {disease.modeOfInheritanceList.push(moi)});
+  }
 
     isAlleleValidated(alleleKey: string): boolean {
       const cohort = this.cohortDto;
