@@ -159,7 +159,6 @@ export class AddVariantComponent {
     }
     this.configService.validateOneHgvs(this.selectedGene.geneSymbol, this.selectedGene.hgncId, this.selectedGene.transcript, this.variant_string)
         .then((hgvs) => {
-          console.log("adding hgvs", hgvs);
           this.currentHgvsVariant = hgvs;
           this.variantValidated = true;
           cohortDto.hgvsVariants[hgvs.variantKey] = hgvs;

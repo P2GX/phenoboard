@@ -4,8 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData, IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent } from '../models/cohort_dto';
-import { CohortDescriptionDto, EMPTY_COHORT_DESCRIPTION} from '../models/cohort_description_dto'
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
@@ -63,7 +62,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   cohortDto: CohortData | null = null;
 
   selectedCellContents: CellValue | null = null;
-  cohortDescription: CohortDescriptionDto | null = null;
   successMessage: string | null = null;
 
   /* used for autocomplete widget */
@@ -97,7 +95,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
  
 
   override ngOnInit(): void {
-    console.log("PtTemplateComponent - ngInit");
     super.ngOnInit();
     this.cohortService.cohortData$.subscribe(dto => {
       this.cohortDto = dto;
@@ -113,7 +110,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   protected override onCohortDtoLoaded(cohortDto: CohortData): void {
     console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
-    this.cohortDescription = this.generateCohortDescriptionDto(cohortDto);
     this.cdRef.detectChanges();
   }
 
@@ -253,7 +249,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
               this.notificationService.showError("No cohort available");
             }
           } else {
-            console.error("Error in openAddAllele1Dialog")
+            console.error("Error in open Allele Dialog")
           }
         });
   }
@@ -295,49 +291,31 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-
-  generateCohortDescriptionDto(cohortDto: CohortData | null): CohortDescriptionDto  {
-    if (cohortDto == null) {
-      return EMPTY_COHORT_DESCRIPTION;
+  get diseaseDescription(): string {
+    const cohort = this.cohortService.getCohortData()
+    if (! cohort ) {
+      return "Could not retrieve cohort";
     }
-    console.log("generateCohortDescriptionDto", cohortDto);
-    const diseaseList: DiseaseData[] = cohortDto.diseaseList;
-    if (diseaseList.length == 0) {
-      this.notificationService.showError("Cannot generate description of a cohort with an empty disease-list");
-      return EMPTY_COHORT_DESCRIPTION;
-    } else if (diseaseList.length > 1) {
-      this.notificationService.showError("Cohort description for Melded phenotypes not yet implemented");
-      return EMPTY_COHORT_DESCRIPTION;
-    }
-    const diseaseData = diseaseList[0];
-    if (diseaseData.geneTranscriptList.length < 1) {
-      this.notificationService.showError("Could not find GeneTrascript Data");
-      return EMPTY_COHORT_DESCRIPTION;
-    }
-    const gt_dto = diseaseData.geneTranscriptList[0];
-    const diseaseLabel = diseaseData.diseaseLabel;
-    const diseaseId = diseaseData.diseaseId;
-    
-    let diseaseDatabase = 'N/A';
-    let idPart = '';
-
-    if (diseaseId.includes(':')) {
-      [diseaseDatabase, idPart] = diseaseId.split(':');
-    }
-
-    return {
-      valid: true,
-      cohortType: cohortDto.cohortType,
-      numIndividuals: cohortDto.rows.length,
-      numHpos: cohortDto.hpoHeaders.length,
-      diseaseLabel: diseaseLabel,
-      diseaseId: diseaseId,
-      diseaseDatabase,
-      geneSymbol: gt_dto.geneSymbol,
-      hgncId: gt_dto.hgncId,
-      transcript: gt_dto.transcript,
-    };
+    const diseaseStrings = cohort.diseaseList.map(disease => {
+      const label = disease.diseaseLabel ?? "Unknown disease";
+      const genes = disease.geneTranscriptList
+        ?.map(g => g.geneSymbol)
+        .filter((s: string | undefined) => !!s)
+        .join(", ");
+      return genes ? `${label} (${genes})` : label;
+    });
+    return diseaseStrings.join(" and ");
   }
+
+  get numVariants(): number {
+    const cohort = this.cohortService.getCohortData()
+    if (! cohort ) {
+      return 0;
+    } else {
+      return Object.keys(cohort.hgvsVariants).length + Object.keys(cohort.structuralVariants).length
+    }
+  }
+
 
   async validateCohort() {
     console.log("validate")
@@ -531,8 +509,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
      console.log("saveCohort: ", cohort);
     await this.configService.saveCohort(cohort);
-    this.cohortDescription = this.generateCohortDescriptionDto(cohort);
-    
   }
 
   

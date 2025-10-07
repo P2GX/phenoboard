@@ -1,13 +1,11 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { noLeadingTrailingSpacesValidator, noWhitespaceValidator } from '../validators/validators';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { DiseaseData, newMendelianTemplate, CohortData, CohortType } from '../models/cohort_dto';
+import { DiseaseData, newDiseaseData, CohortData, CohortType, GeneTranscriptData } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
-
 import { DiseaseIdSanitizerDirective } from '../directives/disease-id.directive';
 import { TrimDirective } from '../directives/trim.directive';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
@@ -91,6 +89,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       height: '550px',
       data: { title: 'Enter Disease A Info', mode: 'melded' }
     });
+    console.log("first=", first);
     if (!first) return;
     const first_disease = await firstValueFrom(first.afterClosed());
     const second = await this.dialog.open(CohortDialogComponent, {
@@ -98,8 +97,9 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       height: '550px',
       data: { title: 'Enter Disease B Info', mode: 'melded' }
     });
+    console.log("second=", second);
     if (!second) return;
-    const second_disease = await firstValueFrom(first.afterClosed());
+    const second_disease = await firstValueFrom(second.afterClosed());
     this.createTemplate({ diseaseA: first_disease, diseaseB: second_disease }, 'melded');
   }
 
@@ -141,8 +141,8 @@ async mendelian() {
 private async createTemplate(data: any, ctype: CohortType) {
   if (ctype == "mendelian") {  
     try {
-        const diseaseData: DiseaseData = newMendelianTemplate(
-          data.diseaseId, data.diseaseName, data.hgnc1, data.symbol1, data.transcript1
+        const diseaseData: DiseaseData = newDiseaseData(
+          data.diseaseId, data.diseaseLabel, data.hgnc1, data.symbol1, data.transcript1
         );
         this.diseaseA = diseaseData;
         const template = await this.configService.createNewTemplate(
@@ -155,7 +155,36 @@ private async createTemplate(data: any, ctype: CohortType) {
         this.errorMessage = String(error);
       }
     } else if (ctype =="melded") {
-      this.notificationService.showError("melded not implemented");
+      const diseaseA = data.diseaseA;
+      const diseaseB = data.diseaseB;
+      const gtlA: GeneTranscriptData = {
+        hgncId: diseaseA.hgnc1,
+        geneSymbol: diseaseA.symbol1,
+        transcript: diseaseA.transcript1
+      };
+      const diseaseDataA: DiseaseData = {
+        diseaseId: diseaseA.diseaseId,
+        diseaseLabel: diseaseA.diseaseLabel,
+        modeOfInheritanceList: [],
+        geneTranscriptList: [gtlA]
+      };
+      this.diseaseA = diseaseDataA;
+       const gtlB: GeneTranscriptData = {
+        hgncId: diseaseB.hgnc1,
+        geneSymbol: diseaseB.symbol1,
+        transcript: diseaseB.transcript1
+      };
+      const diseaseDataB: DiseaseData = {
+        diseaseId: diseaseB.diseaseId,
+        diseaseLabel: diseaseB.diseaseLabel,
+        modeOfInheritanceList: [],
+        geneTranscriptList: [gtlB]
+      };
+      this.diseaseB = diseaseDataB;
+      const cohort = await this.configService.createNewMeldedTemplate(this.diseaseA, this.diseaseB);
+      this.pendingCohort = cohort;
+      console.log("pending melded cohodt", cohort);
+       this.thisCohortType = "melded";
     } else if (ctype == "digenic") {
       this.notificationService.showError("digenic not implemented");
     } else {

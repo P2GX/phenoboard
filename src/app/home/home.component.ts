@@ -15,6 +15,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FormsModule } from '@angular/forms';
 import {MatCheckboxModule } from '@angular/material/checkbox'
 import { NotificationService } from '../services/notification.service';
+import { AgeInputService } from '../services/age_service';
 
 @Component({
   selector: 'app-home',
@@ -30,6 +31,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     ngZone: NgZone, 
     private configService: ConfigService,
     private backendStatusService: BackendStatusService,
+    private ageService: AgeInputService,
     override cohortService: CohortDtoService,
     private router: Router,
     private dialog: MatDialog,
@@ -136,6 +138,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   async loadHpo() {
     this.clearData();
+    this.resetBackend();
     try {
       await this.configService.loadHPO();
       await this.configService.resetPtTemplate();
@@ -149,6 +152,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
     this.clearData();
+    this.resetBackend();
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
@@ -170,6 +174,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   /* After loading HPO, we may create a new template (new cohort) */
   async createNewPhetoolsTemplate() {
     this.cohortService.clearCohortData();
+    this.resetBackend();
     await this.configService.resetPtTemplate();
     await this.router.navigate(['/newtemplate']);
   }
@@ -208,6 +213,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   async chooseJsonTemplateFile() {
     this.clearData();
+    this.resetBackend();
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtJson();
@@ -227,7 +233,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   openExternalTemplate() {
     this.clearData();
-    this.configService.resetPtTemplate();
+    this.resetBackend();
     this.router.navigate(['/tableeditor']);
   }
 
@@ -239,6 +245,11 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.newTemplateMessage = this.NOT_INIT;
     this.templateFileMessage = this.NOT_INIT;
     this.jsonTemplateFileMessage = this.NOT_INIT;
+  }
+
+  resetBackend() {
+    this.configService.resetPtTemplate();
+    this.ageService.clearSelectedTerms();
   }
 
 }

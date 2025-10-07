@@ -161,6 +161,7 @@ export class AddcaseComponent {
         if (allele.variantKey) allele_keys.push(allele.variantKey)
       });
       const cohort_dto = this.cohortService.getCohortData();
+      console.log("add case, cohort=", cohort_dto);
       if (cohort_dto != null) {
         try {
           const updated_dto: CohortData = await this.configService.addNewRowToCohort(

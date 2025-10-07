@@ -98,27 +98,9 @@ export interface CohortData {
 
 
 
-
-
-
-
-
-
 /// This is used to transmit information about a new disease template
 /// It can be used for Mendelian, Melded, Digenic
-
-/// Mendelian: disease_dto_list and gene_variant_dto_list must both be of length 1
-/// Melded: both of length two
-/// Digenic: disease_dto of length 1, gene_variant_dto of length 2
-/*
-export interface DiseaseGeneData {
-    diseaseDataList: DiseaseData[],
-    /// Gene (or genes, for digenic/Melded) diagnosed in individuals of the cohort
-    geneTranscriptDataList: GeneTranscriptData[],
-
-}*/
-
-export function newMendelianTemplate(
+export function newDiseaseData(
     diseaseId: string, 
     diseaseLabel: string, 
     hgnc: string, 

@@ -6,6 +6,7 @@ mod settings;
 mod util;
 
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
+use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -35,6 +36,7 @@ pub fn run() {
             load_hpo,
             map_text_to_annotations,
             create_new_cohort_data,
+            create_new_melded_cohort,
             get_hp_json_path,
             get_pt_template_path,
             reset_pt_template_path,
@@ -300,6 +302,20 @@ fn create_new_cohort_data(
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
     singleton.create_new_cohort_data(dto, cohort_type)
+}
+
+#[tauri::command]
+fn create_new_melded_cohort(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    diseases: Vec<DiseaseData>,
+) -> Result<CohortData, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let mut singleton = singleton_arc.lock().unwrap();
+    let hpo_version = match singleton.get_hpo() {
+        Some(hpo) => hpo.version().to_string(),
+        None => { return  Err("HPO not initialized".to_string());}
+    };
+    Ok(ga4ghphetools::factory::create_new_melded_cohort(diseases, &hpo_version))
 }
 
 

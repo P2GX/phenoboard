@@ -4,7 +4,6 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
-import { CohortData } from '../models/cohort_dto';
 
 @Component({
   selector: 'app-cohort-dialog',
@@ -26,7 +25,7 @@ export class CohortDialogComponent {
   ) {
     this.form = this.fb.group({
       diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
-      diseaseName: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+      diseaseLabel: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
       cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
       hgnc1: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
       symbol1: ['', [Validators.required, noWhitespaceValidator]],
@@ -98,7 +97,7 @@ export class CohortDialogComponent {
     const geneSymbol = omimIdIndex + 3 < parts.length ? parts[omimIdIndex + 3] : null;
 
     this.form.patchValue({
-      diseaseName: diseaseLabel,
+      diseaseLabel: diseaseLabel,
       diseaseId: `OMIM:${omimId}`,
       symbol1: geneSymbol,
     });

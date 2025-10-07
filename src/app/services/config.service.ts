@@ -50,6 +50,13 @@ export class ConfigService {
       'cohortType': cohortType,
     });
   }
+
+  async createNewMeldedTemplate(diseaseA: DiseaseData, diseaseB: DiseaseData): Promise<CohortData> {
+    const diseaseList = [diseaseA, diseaseB];
+    return await invoke<CohortData>("create_new_melded_cohort",
+      { 'diseases': diseaseList, }
+    )
+  }
   
 
   /** Load the version-one format Excel template (all of which are Mendelian) */
@@ -101,11 +108,6 @@ export class ConfigService {
   // used when we have the GUI show us one specific column for editing
   async  editCellOfCurrentColumn(value: string, row: number): Promise<void> {
     return await invoke('edit_current_column', {value: value, row: row});
-  }
-
-
-  async getTemplateSummary(): Promise<Record<string, string>> {
-    return await invoke('get_template_summary');
   }
 
   async getHpoData(): Promise<Record<string, string>> {

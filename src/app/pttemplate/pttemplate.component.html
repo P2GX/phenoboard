@@ -1,32 +1,30 @@
 @let cohort = cohortDto;
 
 <div class="p-6 bg-gray-50">
-  @if (cohortDescription && cohortDescription.valid) {
+  @if (cohort) {
     <div class="text-sm text-gray-700 space-y-2">
       <h2 class="text-xl font-semibold text-gray-800">
-        {{ cohortDescription.diseaseLabel }} (<i>{{ cohortDescription.geneSymbol }}</i>)
-      </h2>
-
+        <strong>{{ cohort.cohortType }}</strong> cohort  </h2>
+        <ul>@for (disease of cohort.diseaseList; track disease; let i = $index) {
+          <li> <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" 
+              target="_blank" class="text-blue-600 underline">
+              {{ disease.diseaseLabel }} ({{ disease.diseaseId }})
+            </a>
+            {{ disease.diseaseLabel }}
+            @if (disease.geneTranscriptList.length){
+              (
+                @for (gene  of disease.geneTranscriptList; track gene; let j =$index) {
+                <i>{{ gene.geneSymbol }}</i
+                >{{ j < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
+                }
+              )
+            }</li>
+        }
+        </ul>
       <p>
-        This is a <strong>{{ cohortDescription.cohortType }}</strong> cohort of 
-        <strong>{{ cohortDescription.numIndividuals }}</strong> individuals 
-        diagnosed with 
-      @if (cohortDescription.diseaseDatabase == "OMIM") {
-        <a [href]="'https://omim.org/entry/' + getOmimId(cohortDescription.diseaseId)" 
-           target="_blank" class="text-blue-600 underline">
-          {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-        </a>
-      } @else {
-        <span>
-          {{ cohortDescription.diseaseLabel }} ({{ cohortDescription.diseaseId }})
-        </span>
-      }. Variants were identified in 
-        <a [href]="'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + cohortDescription.hgncId" 
-           target="_blank" class="text-blue-600 underline">
-          {{ cohortDescription.geneSymbol }} ({{ cohortDescription.hgncId }})
-        </a>
-         (transcript of reference: <code>{{ cohortDescription.transcript }}</code>). 
-        <strong>{{ cohortDescription.numHpos }}</strong> distinct HPO terms were observed.</p>
+        This is a <strong>{{ cohort.cohortType }}</strong> cohort of 
+        <strong>{{ cohort.rows.length }}</strong> individuals. {{ numVariants }} Variants were identified. 
+        <strong>{{ cohort.hpoHeaders.length }}</strong> distinct HPO terms were observed.</p>
         <p> 
       </p>
     </div>

@@ -16,8 +16,8 @@
 
     <!-- Disease name -->
     <div class="form-field">
-      <input placeholder="Disease name" formControlName="diseaseName" class="form-input" />
-      @if (form.get('diseaseName')?.invalid && form.get('diseaseName')?.touched) {
+      <input placeholder="Disease label" formControlName="diseaseLabel" class="form-input" />
+      @if (form.get('diseaseLabel')?.invalid && form.get('diseaseLabel')?.touched) {
         <p class="error-text">Disease name is required.</p>
       }
     </div>
