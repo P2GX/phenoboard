@@ -22,6 +22,8 @@ const VALUE_TO_STATE: Record<string, HpoStatus> = {
   'N': 'excluded',
   'n': 'excluded',
   '-': 'excluded',
+  '–': 'excluded', // en dash
+  '—': 'excluded', // em dash
   'na': 'na'
 };
 

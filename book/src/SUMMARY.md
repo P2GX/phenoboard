@@ -4,5 +4,7 @@
 - [Applications](./applications.md)
 - [Help](help/overview.md)
     - [Installation](help/installation.md)
+    - [Start page](help/start.md)
+    - [New cohort](help/newcohort.md)
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
