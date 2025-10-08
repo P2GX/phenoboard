@@ -2,10 +2,13 @@
 authors = ["Peter Robinson"]
 language = "en"
 multilingual = false
-src = "."
+src = "src"
 title = "GA4GH Phenoboard"
 numbered = false
 
 [build]
-src = "content"
 build-dir = "book"
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "ayu"

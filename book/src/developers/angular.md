@@ -1,11 +1,26 @@
 # Angular tips
 
-This page includes aide-mémoires for some common operations.
+Some useful tips for working with angular.
 
-## Create a component
 
-We are using standalone architecture, and thus to make a new component, 
+
+## Reset cache
+Sometimes Stale build artifacts or module cache may lead to errors. We can clean the cache as follows.
+
 ```bash
-npx nx g @nx/angular:component navbar
-````
-the ``--project``argument is not working. Thus, manually create the directory (e.g., src/app/navbar), and move the created files there.
+# Clean Angular/Nx cache
+npx nx reset
+# Clean node_modules and dist
+rm -rf node_modules dist .angular .output .vite
+# Clear package manager cache (optional but helpful)
+npm cache clean --force
+# Reinstall
+npm install
+```
+
+## Incompatibilitie
+
+Avoid BrowserAnimationsModule in standalone components.  Importing it seems to lead to the error
+```bash
+NG05100: Providers from the BrowserModule have already been loaded.
+```
