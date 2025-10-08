@@ -194,7 +194,7 @@ export class ConfigService {
 
 
    async saveCohort(cohort_dto: CohortData): Promise<void> {
-    return invoke<void>('save_template', {cohortDto: cohort_dto});
+    return invoke<void>('save_cohort_data', {cohortDto: cohort_dto});
   }
 
   async validateCohort(cohort_dto: CohortData): Promise<void> {

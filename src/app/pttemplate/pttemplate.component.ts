@@ -21,6 +21,7 @@ import { GeneEditDialogData, StructuralVariant, VariantDto } from '../models/var
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent } from '../addvariant/addvariant.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
+import { FormsModule } from '@angular/forms';
 
 
 type Option = { label: string; value: string };
@@ -29,8 +30,9 @@ type Option = { label: string; value: string };
   selector: 'app-pttemplate',
   standalone: true,
   imports: [
-    HpoAutocompleteComponent,
     CommonModule,
+    FormsModule,
+    HpoAutocompleteComponent,
     MatButtonModule,
     MatTableModule,
     MatTooltipModule,
@@ -42,8 +44,6 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
-
-
 
   constructor(
     private configService: ConfigService, 
@@ -76,6 +76,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   pendingHpoRowIndex: number | null = null;
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
+  cohortAcronymInput: string = '';
   
   predefinedOptions: Option[] = [
     { label: 'Observed ✅', value: 'observed' },
@@ -101,6 +102,29 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     });
     document.addEventListener('click', this.onClickAnywhere.bind(this));
     this.contextMenuOptions = [...this.predefinedOptions];
+    this.cohortAcronymInput = this.getSuggestedAcronym();
+  }
+  
+  /** Get suggest cohort acronym for melded only (others should be blank because the user
+   * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
+  getSuggestedAcronym(): string {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) return '';
+    if (cohort.cohortType === 'melded') {
+      // Collect all gene symbols from both diseases
+      const symbols = cohort.diseaseList
+        .flatMap(disease => 
+          disease.geneTranscriptList.map(gt => gt.geneSymbol)
+        )
+        .filter(Boolean) // remove null/undefined just in case
+        .sort((a: string, b: string) => a.localeCompare(b)); // alphabetic sort
+
+      return symbols.join('-');
+    }  else if (cohort.cohortAcronym != null) {
+      return cohort.cohortAcronym;
+    } else {
+      return '';
+    }
   }
 
   override ngOnDestroy(): void {
@@ -505,27 +529,24 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
 
    cohort.diseaseList.forEach(d => {
-    if (d.modeOfInheritanceList.length == 0) {
-      this.notificationService.showError(`No mode of inheritance specified for ${d.diseaseLabel}`);
-      return;
-    }
-   })
-
-    if (cohort.diseaseList.length > 0) {
-      cohort.diseaseList[0].modeOfInheritanceList = this.moiList;
-    }
-     console.log("saveCohort: ", cohort);
+      if (d.modeOfInheritanceList.length == 0) {
+        this.notificationService.showError(`No mode of inheritance specified for ${d.diseaseLabel}`);
+        return;
+      }
+    });
     await this.configService.saveCohort(cohort);
   }
 
   
 
   async exportPpkt() {
-    if (! this.cohortDto) {
-      alert("Cohort DTO not initialized");
+    const cohort_dto = this.cohortDto;
+    if (! cohort_dto) {
+      this.notificationService.showError("CohortData not initialized");
       return;
     }
-    const cohort_dto = this.cohortDto;
+   
+    console.log("exportPpkt-cohort=", cohort_dto);
     try {
       const res = await this.configService.exportPpkt(cohort_dto);
       this.notificationService.showSuccess(res);

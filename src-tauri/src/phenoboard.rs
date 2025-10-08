@@ -401,6 +401,7 @@ impl PhenoboardSingleton {
             Ok(orcid_id) => orcid_id,
             Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
         };
+        println!("{}{}: cohort={:?}", file!(), line!(), cohort_dto);
         match &self.ontology {
             Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort_dto, out_dir, orcid, hpo.clone()),
             None => Err("Cannot export phenopackets because HPO not initialized".to_string()),

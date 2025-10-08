@@ -56,7 +56,7 @@
         class="compact-cell hpo-cell"
       >
         <div class="hpo-grid">
-          @for (term of allHpoTerms; track trackByTermId; let termIndex = $index) {
+          @for (term of allHpoTerms; track trackByTermId($index, term); let termIndex = $index) {
             <div class="hpo-row">
               <span class="hpo-label">{{ term.hpoLabel }}</span>
               <mat-button-toggle-group

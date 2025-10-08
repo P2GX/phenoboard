@@ -23,7 +23,7 @@ import { NotificationService } from '../services/notification.service';
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive, DiseaseIdSanitizerDirective, TrimDirective],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './newtemplate.component.html',
   styleUrls: ['./newtemplate.component.scss'],
 })

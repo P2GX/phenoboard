@@ -133,7 +133,6 @@ export class AddcaseComponent {
    * for one new case.
    */
   async submitNewRow(): Promise<void> {
-    console.log("submitNewRow - top");
     if (this.pmidDto == null) {
       this.notificationService.showError("Cannot submit new row without PMID");
       return;

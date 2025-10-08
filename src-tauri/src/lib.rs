@@ -47,7 +47,7 @@ pub fn run() {
             submit_autocompleted_hpo_term,
             validate_template,
             sanitize_cohort_data,
-            save_template,
+            save_cohort_data,
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
@@ -310,7 +310,7 @@ fn create_new_melded_cohort(
     diseases: Vec<DiseaseData>,
 ) -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    let singleton = singleton_arc.lock().unwrap();
     let hpo_version = match singleton.get_hpo() {
         Some(hpo) => hpo.version().to_string(),
         None => { return  Err("HPO not initialized".to_string());}
@@ -420,7 +420,7 @@ fn sanitize_cohort_data(
 
 
 #[tauri::command]
-fn save_template(
+fn save_cohort_data(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     cohort_dto: CohortData) 
 -> Result<(), String> {

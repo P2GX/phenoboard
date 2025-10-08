@@ -10,6 +10,7 @@ struct PubmedResponse {
 #[derive(Debug, Deserialize)]
 struct PubmedResult {
     #[serde(rename = "uids")]
+    #[allow(dead_code)]
     uids: Vec<String>,
     #[serde(flatten)]
     records: std::collections::HashMap<String, ArticleRecord>,
