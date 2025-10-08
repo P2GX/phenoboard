@@ -3,25 +3,48 @@ use fenominal::fenominal::FenominalHit;
 use crate::dto::text_annotation_dto::TextAnnotationDto;
 
 
-pub fn text_to_annotations(input_text: &str, fenominal_hits: &Vec<FenominalHit>) -> Result<Vec<TextAnnotationDto>, String> {
-    let mut text_annotations: Vec<TextAnnotationDto> = Vec::new();
-    let mut last_index = 0;
+pub fn text_to_annotations(
+    input_text: &str,
+    fenominal_hits: &[FenominalHit],
+) -> Result<Vec<TextAnnotationDto>, String> {
+    let mut text_annotations = Vec::new();
+    let mut last_index = 0usize;
+ 
+
     for hit in fenominal_hits {
-        let text = &html_escape::encode_text(&input_text[last_index..hit.span.start]);
-        let text_dto = TextAnnotationDto::text_annot(text.to_string(), last_index, hit.span.start);
-        let matched_text = &input_text[hit.span.clone()];
-        text_annotations.push(text_dto); // text in between the HPO hits, needed for display!
-        let hpo_dto = TextAnnotationDto::from_fenominal(matched_text, hit);
-        text_annotations.push(hpo_dto);
+        if hit.span.start > input_text.len() || hit.span.end > input_text.len() || hit.span.start >= hit.span.end {
+            return Err(format!("Invalid span {:?} for text length {}", hit.span, input_text.len()));
+        }
+
+        // non-hit text before this hit
+        if hit.span.start > last_index {
+            let before_text = &input_text[last_index..hit.span.start];
+            let escaped = html_escape::encode_text(before_text);
+            text_annotations.push(TextAnnotationDto::text_annot(
+                escaped.to_string(),
+                last_index,
+                hit.span.start,
+            ));
+        }
+
+        // matched hit text
+        let matched_text = &input_text[hit.span.start..hit.span.end];
+        text_annotations.push(TextAnnotationDto::from_fenominal(matched_text, hit));
 
         last_index = hit.span.end;
     }
-    // Add any remaining text after last hit
-    let text = &html_escape::encode_text(&input_text[last_index..]);
-    if text.len() > 0 {
-        let last_pos = last_index + text.len();
-        let text_dto = TextAnnotationDto::text_annot(text.to_string(), last_index, last_pos);
-        text_annotations.push(text_dto);
+
+    // trailing text
+    if last_index < input_text.len() {
+        let tail = &input_text[last_index..];
+        let escaped = html_escape::encode_text(tail);
+        text_annotations.push(TextAnnotationDto::text_annot(
+            escaped.to_string(),
+            last_index,
+            input_text.len(),
+        ));
     }
+
     Ok(text_annotations)
 }
+

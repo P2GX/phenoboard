@@ -6,6 +6,7 @@ use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_a
 use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
+use deunicode::deunicode;
 use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
@@ -272,8 +273,10 @@ impl PhenoboardSingleton {
     /// 
     /// * Returns: A list of  representing the fenominal hits.
     pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
+        println!("{}{}{}", file!(), line!(), input_text);
         match self.get_sorted_fenominal_hits(input_text) {
             Ok(fenominal_hits) => {
+                println!("{:?}", fenominal_hits);
                 return util::text_to_annotation::text_to_annotations(input_text, &fenominal_hits);
             },
             Err(e) => {return Err(e.to_string()); },
@@ -281,14 +284,19 @@ impl PhenoboardSingleton {
     }
 
     /// Run fenominal and sort the results by span.
+    /// We use deunicode to remove Unicode characters such as en-dash that are used in some input texts.
+    /// en-dash is a 3-byte UTF-8 sequence (U+2013), and can cause UTF-8 character boundary issues with
+    /// the text mining utilities in fenominal and phenoboard, and we do not need unicode characters for the downstream 
+    /// processing
     fn get_sorted_fenominal_hits(&self, input_text: &str) 
         -> Result<Vec<FenominalHit>, String>
     {
+        let deunicoded_text = deunicode(input_text);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let fenominal = Fenominal::new(hpo_arc);
-                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&input_text);
+                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text);
                 fenominal_hits.sort_by_key(|hit| hit.span.start);
                 return Ok(fenominal_hits);
             }
