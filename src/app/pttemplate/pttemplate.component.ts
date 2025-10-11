@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -45,7 +45,7 @@ type Option = { label: string; value: string };
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
-export class PtTemplateComponent extends TemplateBaseComponent implements OnInit {
+export class PtTemplateComponent extends TemplateBaseComponent implements OnInit, AfterViewInit {
 
   constructor(
     private configService: ConfigService, 
@@ -60,7 +60,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
-    Object = Object; // <-- expose global Object to template
+  // References to the HTML elements
+  @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;
+  @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
+  @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
+  tableWidth: string = '100%'; 
+  Object = Object; // <-- expose global Object to template
   cohortDto: CohortData | null = null;
 
   selectedCellContents: CellValue | null = null;
@@ -73,6 +78,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   contextMenuVisible: boolean = false;
   contextMenuX:number = 0;
   contextMenuY: number = 0;
+  /* used for first column only */
+  individualContextMenuVisible = false;
+  individualMenuX = 0;
+  individualMenuY = 0;
+  contextRow: any | null = null;
+  filteredRows: any[] = [];
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
@@ -822,5 +833,69 @@ get ageEntries(): string[] {
     }, 200); // adjust delay as needed (ms)
   }
 
+  /* right click on first column can focus on row or PMIDs */
+  onIndividualRightClick(event: MouseEvent, row: any) {
+    event.preventDefault();
 
+    this.contextRow = row;
+    this.individualContextMenuVisible = true;
+    this.individualMenuX = event.clientX;
+    this.individualMenuY = event.clientY;
+
+    // Close on click outside
+    document.addEventListener('click', this.closeIndividualContextMenu.bind(this), { once: true });
+  }
+
+  closeIndividualContextMenu() {
+    this.individualContextMenuVisible = false;
+  }
+
+  /** Focus on a single row */
+focusOnRow() {
+  if (!this.contextRow) return;
+  this.filteredRows = [this.contextRow];
+  this.closeContextMenu();
+}
+
+/** Focus on all rows with the same PMID */
+focusOnPmid() {
+  if (!this.contextRow) return;
+  const cohort = this.cohortService.getCohortData();
+  if (! cohort) return;
+  const pmid = this.contextRow.individualData.pmid;
+  this.filteredRows = cohort.rows.filter(
+    r => r.individualData.pmid === pmid
+  );
+  this.closeContextMenu();
+}
+
+/** Show info like the existing hover popup */
+showInfoForRow() {
+  if (!this.contextRow) return;
+  this.closeContextMenu();
+  this.showRowInfo(this.contextRow); // call your existing hover/info logic here
+}
+
+showRowInfo(row: any) {
+  this.notificationService.showError("Need to implement rhowRowInfo")
+}
+
+/** Optional: reset filter */
+resetFilter() {
+  this.filteredRows = [];
+}
+
+  getDisplayedRows() {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) return [];
+    if (this.filteredRows.length == 0) {
+      return cohort.rows;
+    } else {
+      return this.filteredRows;
+    }
+  }
+
+getAlleleKeys(map: Record<string, any>): string[] {
+  return Object.keys(map);
+}
 }

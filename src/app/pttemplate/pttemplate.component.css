@@ -177,3 +177,32 @@ button[mat-icon-button] {
   align-items: center;
   gap: 4px;
 }
+
+.top-scroll-mirror {
+  height: 15px; /* Adjust height to match typical scrollbar height */
+  margin-right: 60px; /* Adjust if needed to clear the vertical scrollbar area */
+}
+
+/* Optional: Hide the visual scrollbar for a cleaner look on supported browsers */
+.invisible-scrollbar {
+  /* For Webkit browsers (Chrome, Safari, Edge) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.invisible-scrollbar::-webkit-scrollbar {
+  display: none; /* Webkit */
+}
+
+/* Ensure the sticky header has a background to cover the scrolling rows */
+.pt-table thead {
+  /* These should be set via Tailwind classes as discussed previously: sticky top-0 bg-white z-10 */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white; 
+}
+
+.focused-row {
+  background-color: #eef5ff;
+}

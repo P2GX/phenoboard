@@ -161,12 +161,13 @@ button.btn-outline-cancel {
 
 .pt-table {
   border-collapse: collapse;
-  width: 100%;
+  width: auto;
   font-size: 12px;
   min-width: max-content; /* prevents table from shrinking */
     margin-left: 20px;
     margin-right: 40px;
 }
+
 
 .pt-table th {
   border: none;
