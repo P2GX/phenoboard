@@ -134,7 +134,22 @@
     </div>
   </div>
 </div>
-
+<div class="mt-4 flex items-center gap-2">
+  <label for="hpoFilter" class="text-sm text-gray-700">Filter HPO columns:</label>
+  <select
+    id="hpoFilter"
+    [(ngModel)]="selectedTopLevelHpo"
+    (change)="onHpoFilterChange()"
+    class="border rounded p-1 text-sm"
+  >
+    <option [ngValue]="null">Show all</option>
+    @for (groupKey of hpoGroupKeys; track groupKey) {
+      <option [ngValue]="groupKey">
+        {{ groupKey }}
+      </option>
+    }
+  </select>
+</div>
 
   <!-- Table with one row per phenopacket -->
   @if (cohort){
@@ -154,8 +169,8 @@
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
-          @for (header of cohort.hpoHeaders; track header.hpoId) {
-           @if(shouldDisplayHpoColumn($index)) {
+          @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
+            @if (visibleColumns.includes(i)) {
               <th
                 class="rotate-header hpo-col hpo-col-th"
                 (mouseenter)="setHover('hpoHeader', 0, $index, true)"
@@ -183,7 +198,7 @@
   </tr>
   </thead>
     <tbody>
-      @for (row of cohort.rows; track row.individualData.individualId; let rowIndex = $index) {
+      @for (row of cohort.rows; track row.individualData; let rowIndex = $index) {
       <tr>
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column">
@@ -284,7 +299,7 @@
 
 <!-- The values of the HPO columns-->
     @for (cell of row.hpoData; track i; let i = $index) {
-      @if(shouldDisplayHpoColumn(i)) {
+      @if(visibleColumns.includes(i)) {
       <td
         class="hpo-col"
         (contextmenu)="onRightClick($event, i, rowIndex, cell)"

@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent, HpoGroupMap } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
@@ -13,7 +13,7 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { firstValueFrom } from 'rxjs';
+import { filter, firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
@@ -25,6 +25,8 @@ import { FormsModule } from '@angular/forms';
 
 
 type Option = { label: string; value: string };
+
+
 
 @Component({
   selector: 'app-pttemplate',
@@ -95,10 +97,29 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   contextMenuOptions: Option[] = [];
   showMoiIndex: number | null = null;
 
+    /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
+    selectedTopLevelHpo: string | null = null;
+    /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
+    hpoGroups: HpoGroupMap = new Map<string, HpoTermDuplet[]>();
+    hpoGroupKeys: string[] = [];
+    visibleColumns: number[] = [];
+
   override ngOnInit(): void {
     super.ngOnInit();
     this.cohortService.cohortData$.subscribe(dto => {
+      if (!dto) return;
+
       this.cohortDto = dto;
+      this.configService.getTopLevelHpoTerms(dto)
+        .then(groups => {
+          this.hpoGroups = new Map(Object.entries(groups));
+          this.hpoGroupKeys = Array.from(this.hpoGroups.keys());
+          this.visibleColumns = this.getVisibleColumns();
+        })
+        .catch(err => {
+          console.error('Error fetching HPO groups:', err);
+          this.hpoGroupKeys = [];
+        });
     });
     document.addEventListener('click', this.onClickAnywhere.bind(this));
     this.contextMenuOptions = [...this.predefinedOptions];
@@ -768,6 +789,38 @@ get ageEntries(): string[] {
     this.cohortService.addBiocuration(biocurationEvent);
     this.notificationService.showSuccess(`Added biocuration event: ${biocurationEvent.orcid} on ${biocurationEvent.date}`)
   }
+
+  /** Calculate the columns we show if the user chooses to filter to a top-level term */
+  getVisibleColumns(): number[] {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) return [];
+    if (cohort.rows.length < 1) return [];
+    const row1 = cohort.rows[0];
+    const n_cols = row1.hpoData.length;
   
+    
+    // if we have fewer than 20 columns, show all
+    if (n_cols <= 20 || !this.selectedTopLevelHpo) {
+      return Array.from({ length: n_cols }, (_, i) => i);
+    }
+
+    const allowedTerms = this.hpoGroups.get(this.selectedTopLevelHpo) ?? [];
+    const allowedIds = allowedTerms.map(term => term.hpoId);
+
+    // Return indices of headers whose HPO ID is allowed
+    return cohort.hpoHeaders
+      .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
+      .filter(i => i !== -1);
+  }
+
+  private filterChangeTimeout: any;
+
+  onHpoFilterChange(): void {
+    clearTimeout(this.filterChangeTimeout);
+    this.filterChangeTimeout = setTimeout(() => {
+      this.visibleColumns = this.getVisibleColumns();
+    }, 200); // adjust delay as needed (ms)
+  }
+
 
 }

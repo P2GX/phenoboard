@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { IndividualData, CohortData, DiseaseData, CohortType } from '../models/cohort_dto';
+import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap } from '../models/cohort_dto';
 import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
@@ -13,6 +13,7 @@ import { ColumnTableDto, EtlDto } from '../models/etl_dto';
   providedIn: 'root'
 })
 export class ConfigService {
+ 
  
   
   constructor() {}
@@ -155,8 +156,25 @@ export class ConfigService {
     return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto, cohortDto: cohort_dto})
   }
 
-  async validateSv(dto: VariantDto, cohort_dto: CohortData): Promise<StructuralVariant> {
-    return invoke<StructuralVariant>('validate_structural_variant', {dto: dto, cohortDto: cohort_dto});
+  async validateSv(dto: VariantDto): Promise<StructuralVariant> {
+    const symbol = dto.geneSymbol;
+    const hgnc = dto.hgncId;
+    const transcript = dto.transcript;
+    const allele = dto.variantString;
+    return invoke<StructuralVariant>('validate_structural_variant',
+      {symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        allele: allele});
+        // validate_structural_variant (     variant_dto: VariantDto)
+  }
+
+  async validateOneSv(symbol: string, hgnc: string, transcript: string, allele: string): Promise<StructuralVariant> {
+    return invoke<StructuralVariant>('validate_one_structural_variant',
+      {symbol: symbol, 
+        hgnc: hgnc,
+        transcript: transcript,
+        allele: allele});
   }
 
   async validateOneHgvs(symbol: string, hgnc: string, transcript: string, allele: string): Promise<HgvsVariant> {
@@ -167,13 +185,7 @@ export class ConfigService {
         allele: allele});
   }
 
-    async validateOneSv(symbol: string, hgnc: string, transcript: string, allele: string): Promise<StructuralVariant> {
-    return invoke<StructuralVariant>('validate_one_structural_variant',
-      {symbol: symbol, 
-        hgnc: hgnc,
-        transcript: transcript,
-        allele: allele});
-  }
+
   
   async validateAllHgvsVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,HgvsVariant>> {
     return invoke<Record<string,HgvsVariant>>('validate_all_hgvs_variants', {
@@ -327,5 +339,10 @@ export class ConfigService {
       { previous: cohort_previous, transformed: cohort_dto_new});
   }
 
-
+   async getTopLevelHpoTerms(cohortDto: CohortData): Promise<HpoGroupMap>
+   { 
+      return await invoke<HpoGroupMap>('get_hpo_terms_by_toplevel', {
+        cohort: cohortDto
+      });
+  }
 }

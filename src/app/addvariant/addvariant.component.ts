@@ -111,6 +111,7 @@ export class AddVariantComponent {
       this.variantValidated = false;
       return;
     }
+    console.log("submitSvDto, ", this.variant_string);
     this.errorMessage = null;
     const vv_dto: VariantDto = {
       variantString: this.variant_string,
@@ -124,10 +125,10 @@ export class AddVariantComponent {
     const cohortDto = this.templateService.getCohortData();
     if (cohortDto == null) {
       // should never happen
-      console.error("Attempt to validate HGVS with null cohortDto");
+      console.error("Attempt to validate SV with null cohortDto");
       return;
     }
-    this.configService.validateSv(vv_dto, cohortDto)
+    this.configService.validateSv(vv_dto)
         .then((sv) => {
           console.log("Adding sv", sv);
           this.currentStructuralVariant = sv;
@@ -144,7 +145,6 @@ export class AddVariantComponent {
    * sets the currentHgvsVariant variable and adds it to the HGVS map
    */
   async submitHgvsDto(): Promise<void> {
-    console.log("submitHgvsDto line 113, variant=", this.variant_string)
     if (!this.variant_string || !this.selectedGene) {
       this.errorMessage = 'Please enter a valid variant and select a gene.';
       this.variantValidated = false;

@@ -209,10 +209,10 @@ export class HpoPolishingComponent implements OnInit {
           existing.onsetString !== hit.onsetString ||
           existing.isObserved !== hit.isObserved
         ) {
-          throw new Error(
+          alert(
             `Conflicting annotations for term ${hit.termId}: ` +
             `existing(${existing.onsetString}, ${existing.isObserved}), ` +
-            `new(${hit.onsetString}, ${hit.isObserved})`
+            `new(${hit.onsetString}, ${hit.isObserved}). Fix this and try again`
           );
         }
         // else identical, skip

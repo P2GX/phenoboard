@@ -15,6 +15,7 @@ pub fn text_to_annotations(
         if hit.span.start > input_text.len() || hit.span.end > input_text.len() || hit.span.start >= hit.span.end {
             return Err(format!("Invalid span {:?} for text length {}", hit.span, input_text.len()));
         }
+        println!("{:?}", hit);
 
         // non-hit text before this hit
         if hit.span.start > last_index {
@@ -44,7 +45,7 @@ pub fn text_to_annotations(
             input_text.len(),
         ));
     }
-
+    println!("{:?}", text_annotations);
     Ok(text_annotations)
 }
 

@@ -32,12 +32,10 @@ import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.c
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 
-import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-age-sex-column.component';
-import { sep } from '@tauri-apps/api/path';
-
 
 
 
@@ -142,7 +140,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   contextMenuCellType: EtlColumnType | null = null;
   transformedColumnValues: string[] = [];
 
- 
+
 
   columnTypeColors: ColumnTypeColorMap = {
     [EtlColumnType.Raw]: '#ffffff',
@@ -613,7 +611,17 @@ editUniqueValuesInColumn(index: number): void {
             allValid = false;
           });
       } else {
-        this.configService.validateOneSv(symbol, hgnc, transcript, val)
+        const dto: VariantDto = {
+            variantString: val,
+            variantKey: null,
+            transcript: transcript,
+            hgncId: hgnc,
+            geneSymbol: symbol,
+            variantType: "SV",
+            isValidated: false,
+            count: 1
+        };
+        this.configService.validateSv(dto)
           .then((sv) => {
             if (this.etlDto == null) {
               return;
@@ -1019,10 +1027,11 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
   }
 
   /**
-   * This is used to hide all columns except the first and the edit column, 
-   * or to show all columns, depending on this.editModeActive
-   * @param row 
-   * @returns array of indices of columns that should be made visible
+   * Determine which table columns should be visible.
+   * - In normal mode: show all columns (or filtered by selected top-level HPO).
+   * - In edit mode: show only the first column and the edit/transformed columns.
+   * 
+   * @returns array of column indices to display
    */
   getVisibleColumns(): number[] {
     if (this.etlDto == null) {

@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::HpoTermData, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
@@ -54,7 +54,7 @@ pub fn run() {
             validate_all_hgvs_variants,
             validate_all_structural_variants,
             validate_one_hgvs_variant,
-            validate_one_structural_variant,
+            validate_structural_variant,
             export_ppkt,
             load_external_excel,
             load_external_template_json,
@@ -63,7 +63,8 @@ pub fn run() {
             save_biocurator_orcid,
             get_variant_analysis,
             get_cohort_data_from_etl_dto,
-            merge_cohort_data_from_etl_dto
+            merge_cohort_data_from_etl_dto,
+            get_hpo_terms_by_toplevel
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -504,13 +505,10 @@ fn validate_one_hgvs_variant(
 }
 
 #[tauri::command]
-fn validate_one_structural_variant(
-    symbol: &str,
-    hgnc: &str,
-    transcript: &str,
-    allele: &str) 
+fn validate_structural_variant(
+    variant_dto: VariantDto) 
 -> Result<StructuralVariant, String> {
-    ga4ghphetools::variant::validate_one_structural_variant(symbol, hgnc, transcript, allele)
+    ga4ghphetools::variant::validate_structural_variant(variant_dto)
 }
 
 #[tauri::command]
@@ -695,4 +693,20 @@ async fn merge_cohort_data_from_etl_dto(
         },
     };
     ga4ghphetools::factory::merge_cohort_data_from_etl_dto(previous, transformed, hpo)
+}
+
+#[tauri::command]
+async fn get_hpo_terms_by_toplevel(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort: CohortData,
+)-> Result<HashMap<String, Vec<HpoTermDuplet>>, String> {
+    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = phenoboard_arc.lock().unwrap();
+    let hpo = match singleton.get_hpo() {
+        Some(hpo) => hpo.clone(),
+        None => {
+            return Err("Could not create CohortData because HPO was not initialized".to_string());
+        },
+    };
+    ga4ghphetools::hpo::get_hpo_terms_by_toplevel(cohort, hpo)
 }
