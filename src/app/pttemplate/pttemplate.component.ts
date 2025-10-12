@@ -13,7 +13,7 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { filter, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
@@ -83,13 +83,17 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   individualMenuX = 0;
   individualMenuY = 0;
   contextRow: any | null = null;
-  filteredRows: any[] = [];
+  filteredRows: RowData[] = [];
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
+  pendingRow: RowData | null = null;
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
   cohortAcronymInput: string = '';
+
+  rowInfoKey: string| null = null;
+  rowInfoVisible: boolean = false;
   
   predefinedOptions: Option[] = [
     { label: 'Observed ✅', value: 'observed' },
@@ -133,6 +137,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         });
     });
     document.addEventListener('click', this.onClickAnywhere.bind(this));
+    document.addEventListener('click', this.closeIndividualContextMenu.bind(this), { once: true });
     this.contextMenuOptions = [...this.predefinedOptions];
     this.cohortAcronymInput = this.getSuggestedAcronym();
   }
@@ -444,13 +449,15 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   
   /** Open a context menu after a right-click on an HPO column */
-  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, cell: CellValue) {
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowData: RowData, cell: CellValue) {
     event.preventDefault();
     this.contextMenuVisible = true;
     this.contextMenuX = event.clientX;
     this.contextMenuY = event.clientY;
     this.pendingHpoColumnIndex = hpoColumnIndex;
     this.pendingHpoRowIndex = hpoRowIndex;
+    this.pendingRow = rowData;
+    console.log("pending c&r=", this.pendingHpoColumnIndex, this.pendingHpoRowIndex)
     this.selectedCellContents = cell;
     this.contextMenuOptions = [
       ...this.predefinedOptions,
@@ -472,27 +479,32 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-/**  Update the indicated table cell to have the new indicated CellValue (e.g., na, excluded, P14D)*/
+  /**  Update the indicated table cell to have the new indicated CellValue (e.g., na, excluded, P14D).
+   * This is called after the user has right-clicked on an HPO cell -  onRightClick, which sets
+   * this.contextMenuVisible to true, allowing the methods onMenuOptionClick to be called, which in
+   * turn calls this method with the indicated row and column index
+  */
   updateHpoCell(
     cohort: CohortData,
-    rowIndex: number,
+    targetRow: RowData,
     colIndex: number,
     newValue: CellValue
   ): CohortData {
     return {
       ...cohort,
-      rows: cohort.rows.map((row, rIdx) => {
-        if (rIdx !== rowIndex) return row;
-
-        return {
-          ...row,
-          hpoData: row.hpoData.map((cell, cIdx) =>
-            cIdx === colIndex ?  newValue  : cell
-          )
-        };
-      })
+      rows: cohort.rows.map((row) =>
+        row === targetRow
+          ? {
+              ...row,
+              hpoData: row.hpoData.map((cell, cIdx) =>
+                cIdx === colIndex ? newValue : cell
+              ),
+            }
+          : row
+      ),
     };
   }
+
 
 
   /* This function can only be called if contextMenuVisible is set true; this happens with the
@@ -501,13 +513,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   * and to persist it.
   */
   onMenuOptionClick(option: string): void {
-    console.log("onMenuOptionClick option=",option);
-    if (this.pendingHpoColumnIndex == null) {
-      this.notificationService.showError("Attempt to perform right-option with null column index");
-      return;
-    }
-    if (this.pendingHpoRowIndex == null) {
-      this.notificationService.showError("Attempt to perform right-option with null row index");
+    if (this.pendingHpoColumnIndex == null || !this.pendingRow) {
+      this.notificationService.showError("No cell context found");
       return;
     }
     if (option.startsWith('focus')) {
@@ -528,14 +535,16 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       }
       console.log(currentDto)
       const cellValue: CellValue = getCellValue(option);
-      const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingHpoRowIndex, this.pendingHpoColumnIndex, cellValue);
+      const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingRow, this.pendingHpoColumnIndex, cellValue);
       this.cohortDto = updatedCohort;
       this.cohortService.setCohortData(updatedCohort);
+      this.updateFilteredRows();
     }  
       
     
     this.pendingHpoColumnIndex = null;
     this.pendingHpoRowIndex = null;
+    this.pendingRow = null;
     this.contextMenuVisible = false;
   }
 
@@ -836,14 +845,11 @@ get ageEntries(): string[] {
   /* right click on first column can focus on row or PMIDs */
   onIndividualRightClick(event: MouseEvent, row: any) {
     event.preventDefault();
-
     this.contextRow = row;
-    this.individualContextMenuVisible = true;
     this.individualMenuX = event.clientX;
     this.individualMenuY = event.clientY;
-
-    // Close on click outside
-    document.addEventListener('click', this.closeIndividualContextMenu.bind(this), { once: true });
+    this.individualContextMenuVisible = true;
+    event.stopPropagation();
   }
 
   closeIndividualContextMenu() {
@@ -855,6 +861,26 @@ focusOnRow() {
   if (!this.contextRow) return;
   this.filteredRows = [this.contextRow];
   this.closeContextMenu();
+  this.individualContextMenuVisible = false;
+}
+
+/* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
+  * the following logic to make sure we show it in the GUI. */
+updateFilteredRows(): void {
+  const cohort = this.cohortService.getCohortData();
+  if (!cohort) return;
+  if (!this.filteredRows?.length) {
+    this.filteredRows = [];
+    return;
+  }
+  const filteredKeys = new Set(
+    this.filteredRows.map(
+      row => `${row.individualData.pmid}-${row.individualData.individualId}`
+    )
+  );
+  this.filteredRows = cohort.rows.filter(row =>
+    filteredKeys.has(`${row.individualData.pmid}-${row.individualData.individualId}`)
+  );
 }
 
 /** Focus on all rows with the same PMID */
@@ -866,24 +892,50 @@ focusOnPmid() {
   this.filteredRows = cohort.rows.filter(
     r => r.individualData.pmid === pmid
   );
+   this.individualContextMenuVisible = false;
   this.closeContextMenu();
+}
+
+showAllRows() {
+  this.filteredRows = [];
+  this.individualContextMenuVisible = false;
+  this.rowInfoKey = null;
+  this.rowInfoVisible = true;
+  this.closeRowInfo();
 }
 
 /** Show info like the existing hover popup */
 showInfoForRow() {
-  if (!this.contextRow) return;
-  this.closeContextMenu();
-  this.showRowInfo(this.contextRow); // call your existing hover/info logic here
+  this.individualContextMenuVisible = false;
+  const row = this.contextRow;
+
+  if (! row) {
+    this.rowInfoKey = null;
+    this.notificationService.showError("Cannot retrieve context row"); 
+    return;
+  }
+  this.rowInfoKey = this.getRowKey(row);
+    console.log("showInfoForRow key=", this.rowInfoKey)
+  this.rowInfoVisible = true;
+  this.cdRef.detectChanges();
 }
 
-showRowInfo(row: any) {
-  this.notificationService.showError("Need to implement rhowRowInfo")
-}
 
-/** Optional: reset filter */
-resetFilter() {
-  this.filteredRows = [];
-}
+  closeRowInfo() {
+    this.rowInfoKey = null;
+    this.rowInfoVisible = false;
+    this.cdRef.detectChanges();
+  }
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.rowInfoKey = null;
+  }
+
+  /** Optional: reset filter */
+  resetFilter() {
+    this.filteredRows = [];
+  }
 
   getDisplayedRows() {
     const cohort = this.cohortService.getCohortData();
@@ -895,7 +947,14 @@ resetFilter() {
     }
   }
 
-getAlleleKeys(map: Record<string, any>): string[] {
-  return Object.keys(map);
-}
+  getAlleleKeys(map: Record<string, any>): string[] {
+    return Object.keys(map);
+  }
+
+  /** Get a unique key for a row based on the PMID and individualId (the combination of these two is garanteed to be unique) */
+  getRowKey(row: RowData): string {
+    const pmid = row?.individualData?.pmid ?? '';
+    const id = row?.individualData?.individualId ?? '';
+    return `${pmid}::${id}`; // use :: to avoid accidental collisions
+  }
 }
