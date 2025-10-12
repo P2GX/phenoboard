@@ -211,7 +211,7 @@
           {{ row.individualData.individualId }}
           @if(!row.individualData.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
           <!-- Info popup for this row -->
-          @if (rowInfoVisible ) {
+          @if (rowInfoVisible && getRowKey(row) === rowInfoKey) {
             <div
               class="fixed bg-white border border-gray-300 rounded shadow-md z-[9999] text-sm"
               [style.left.px]="individualMenuX"
@@ -463,7 +463,7 @@
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="showAllRows()">Show all rows</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
-          (click)="showInfoForRow()">Show info</li>
+          (click)="showInfoForRow(contextRow)">Show info</li>
     </ul>
   </div>
 }

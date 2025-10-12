@@ -92,7 +92,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   hpoFocusRange = 0; // number of columns to each side
   cohortAcronymInput: string = '';
 
-  rowInfoKey: string| null = null;
+  public rowInfoKey: string| null = null;
   rowInfoVisible: boolean = false;
   
   predefinedOptions: Option[] = [
@@ -220,6 +220,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
 
   openIndividualEditor(individual: IndividualData) {
+    this.individualContextMenuVisible = false;
     const dialogRef = this.dialog.open(IndividualEditComponent, {
       width: '500px',
       data: { ...individual }, // pass a copy
@@ -874,12 +875,11 @@ updateFilteredRows(): void {
     return;
   }
   const filteredKeys = new Set(
-    this.filteredRows.map(
-      row => `${row.individualData.pmid}-${row.individualData.individualId}`
-    )
+    this.filteredRows.map(row => this.getIndividualKey(row.individualData))
   );
-  this.filteredRows = cohort.rows.filter(row =>
-    filteredKeys.has(`${row.individualData.pmid}-${row.individualData.individualId}`)
+
+  this.filteredRows = cohort.rows.filter(r =>
+    filteredKeys.has(this.getIndividualKey(r.individualData))
   );
 }
 
@@ -905,10 +905,8 @@ showAllRows() {
 }
 
 /** Show info like the existing hover popup */
-showInfoForRow() {
+showInfoForRow(row: RowData | null) {
   this.individualContextMenuVisible = false;
-  const row = this.contextRow;
-
   if (! row) {
     this.rowInfoKey = null;
     this.notificationService.showError("Cannot retrieve context row"); 
@@ -927,10 +925,6 @@ showInfoForRow() {
     this.cdRef.detectChanges();
   }
 
-  @HostListener('document:click')
-  onDocumentClick() {
-    this.rowInfoKey = null;
-  }
 
   /** Optional: reset filter */
   resetFilter() {
@@ -956,5 +950,9 @@ showInfoForRow() {
     const pmid = row?.individualData?.pmid ?? '';
     const id = row?.individualData?.individualId ?? '';
     return `${pmid}::${id}`; // use :: to avoid accidental collisions
+  }
+
+  getIndividualKey(individual: IndividualData): string {
+    return `${individual.pmid || 'NA'}-${individual.individualId || 'NA'}`;
   }
 }
