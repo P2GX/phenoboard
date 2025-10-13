@@ -64,7 +64,8 @@ pub fn run() {
             get_variant_analysis,
             get_cohort_data_from_etl_dto,
             merge_cohort_data_from_etl_dto,
-            get_hpo_terms_by_toplevel
+            get_hpo_terms_by_toplevel,
+            save_html_report
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -709,4 +710,68 @@ async fn get_hpo_terms_by_toplevel(
         },
     };
     ga4ghphetools::hpo::get_hpo_terms_by_toplevel(cohort, hpo)
+}
+
+/// Save a rendered HTML report for the given cohort data.
+///
+/// This command opens a file chooser dialog asking the user where to save
+/// the rendered HTML report. It then generates the HTML via
+/// [`export::html::render`] and writes it to disk.
+///
+/// # Arguments
+/// * `app` — The Tauri app handle (used to open dialogs and emit events).
+/// * `cohort` — The cohort data to render.
+/// * `hpo_path` — Path to the serialized ontology file (used to reconstruct the ontology).
+///
+/// # Returns
+/// * `Ok(())` on success.
+/// * `Err(String)` if the rendering or saving fails.
+///
+/// # Notes
+/// The operation runs in a blocking task using `tokio::task::spawn_blocking`
+/// to prevent blocking the async runtime.
+#[tauri::command]
+async fn save_html_report(
+    app: AppHandle,
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    cohort: CohortData,
+) -> Result<(), String> {
+    let app_handle = app.clone();
+      //let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    //let singleton = phenoboard_arc.lock().unwrap();
+    let hpo = {
+        let guard = singleton.lock().unwrap();
+        guard
+            .get_hpo()
+            .ok_or_else(|| "Could not create CohortData because HPO was not initialized".to_string())?
+    };
+    tokio::task::spawn_blocking(move || {
+        // Ask user for save destination
+        if let Some(file) = app_handle.dialog().file()
+            .add_filter("HTML files", &["html"])
+            .set_file_name("cohort_report.html")
+            .blocking_save_file()
+        {
+            if let Some(path_ref) = file.as_path() {
+                let mut path = path_ref.to_path_buf();
+                // Ensure .html extension
+                if path.extension().map_or(true, |ext| ext != "html") {
+                    path.set_extension("html");
+                }
+                ga4ghphetools::export::render_html(cohort, hpo, &path)
+                    .map_err(|e| format!("Failed to render HTML: {}", e))?;
+                // Confirm success
+                app_handle.emit("htmlReportSaved", "success").ok();
+                Ok(())
+            } else {
+                app_handle.emit("htmlReportSaved", "failure").ok();
+                Err("Failed to extract path from FileDialogPath".to_string())
+            }
+        } else {
+            app_handle.emit("htmlReportSaved", "cancelled").ok();
+            Err("User cancelled file selection".to_string())
+        }
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
 }

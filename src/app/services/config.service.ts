@@ -339,9 +339,14 @@ export class ConfigService {
       { previous: cohort_previous, transformed: cohort_dto_new});
   }
 
-   async getTopLevelHpoTerms(cohortDto: CohortData): Promise<HpoGroupMap>
-   { 
+  async getTopLevelHpoTerms(cohortDto: CohortData): Promise<HpoGroupMap> { 
       return await invoke<HpoGroupMap>('get_hpo_terms_by_toplevel', {
+        cohort: cohortDto
+      });
+  }
+
+   async saveHtmlReport(cohortDto: CohortData): Promise<void> { 
+      return await invoke<void>('save_html_report', {
         cohort: cohortDto
       });
   }

@@ -17,8 +17,6 @@ import { SourcePmid } from '../models/cohort_description_dto';
 })
 export class StatusComponent implements OnInit {
 
-
-
   constructor(private configService: ConfigService, 
     private cohortService: CohortDtoService,
     private etl_service: EtlSessionService,
@@ -91,5 +89,13 @@ extractPmid(raw?: string): string {
   return raw.replace(/^\s*PMID:\s*/i, '').trim();
 }
   
+saveHtmlSummary() {
+  const cohort = this.cohortService.getCohortData();
+  if (! cohort) {
+    alert("Cohort not initialized");
+    return;
+  }
+  this.configService.saveHtmlReport(cohort);
+}
 
 }
