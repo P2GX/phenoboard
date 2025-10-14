@@ -231,7 +231,8 @@ export class HpoPolishingComponent implements OnInit {
     return this.ageService.getSelectedTerms();
   }
 
-  addOnsetString() {
+  /** add the onset string to the Age service, and also update the current row */
+  addOnsetString(annotation: HpoAnnotationDto) {
     const dialogRef = this.dialog.open(AddagesComponent, {
           width: '400px',
           data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
@@ -239,7 +240,13 @@ export class HpoPolishingComponent implements OnInit {
     
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
-            result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
+            if (result.length == 1) {
+              const onset = result[0];
+              annotation.onsetString = onset;
+              this.ageService.addSelectedTerm(onset);
+            } else {
+              result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
+            }
           }
         });
   }

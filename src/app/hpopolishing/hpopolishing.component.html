@@ -129,11 +129,11 @@
 </td>
 
 
-        <td class="border px-1 py-[1px]">
-        <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
-          {{ annotation.isObserved ? 'Yes' : 'No' }}
-        </span>
-      </td>
+    <td class="border px-1 py-[1px]">
+      <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
+        {{ annotation.isObserved ? 'Yes' : 'No' }}
+      </span>
+    </td>
       <td class="border px-1 py-[1px]">{{ annotation.onsetString }}</td>
       <td class="border px-1 py-[1px] flex gap-1 flex-wrap items-center">
         <button (click)="deleteAnnotation(i)" class="bg-red-500 text-white px-1 py-0.5 text-[10px] rounded">Delete</button>
@@ -151,7 +151,7 @@
             </option>
           }
         </select>
-        <button (click)="addOnsetString()" class="bg-green-500 text-white px-1 py-0.5 text-[10px] rounded">Add onset</button>
+        <button (click)="addOnsetString(annotation)" class="bg-green-500 text-white px-1 py-0.5 text-[10px] rounded">Add onset</button>
       </td>
     </tr>
   </tbody>

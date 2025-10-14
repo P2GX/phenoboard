@@ -54,7 +54,7 @@ export class AgeInputService {
     }
 
     clearSelectedTerms() {
-        this.selectedTerms = [];
+        this.selectedTerms = ["na"];
     }
 
     getSelectedTerms(): string[] {
