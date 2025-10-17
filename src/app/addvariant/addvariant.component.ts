@@ -13,6 +13,13 @@ import { ConfigService } from '../services/config.service';
 import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs } from '../models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { GeneTranscriptData } from '../models/cohort_dto';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+
+
+export interface VariantAcceptedEvent {
+  variant: string;
+  alleleCount: number; // mono or biallelic
+}
 
 
 /**
@@ -27,12 +34,13 @@ import { GeneTranscriptData } from '../models/cohort_dto';
   selector: 'app-addvariant',
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, 
-      MatCardModule, MatInputModule, MatFormFieldModule, 
+      MatCardModule,MatCheckboxModule, MatInputModule, MatFormFieldModule, 
       MatOption, MatSelectModule],
   templateUrl: './addvariant.component.html',
   styleUrl: './addvariant.component.css'
 })
 export class AddVariantComponent {
+
   constructor(
     private configService: ConfigService, 
     private templateService: CohortDtoService,
@@ -42,9 +50,6 @@ export class AddVariantComponent {
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.templateService.getGeneTranscriptDataList();
   }
-
-  /** This will emit an event that can be captured by the parent component (see method addVariantToDto)  */
-  @Output() variantAccepted = new EventEmitter<string>();
   
   /* If the current variant was HGVS and was validated, this variant is non-null */
   currentHgvsVariant: HgvsVariant | null = null;
@@ -53,6 +58,7 @@ export class AddVariantComponent {
 
   variant_string: string = '';
   isHgvs: boolean = false;
+  isBiallelic: boolean = false;
 
   errorMessage: string | null = null;
   variantValidated: boolean = false;
@@ -194,24 +200,17 @@ export class AddVariantComponent {
   /**
    * Emits the validated variant to the parent component so it can be added
    * to the current phenopacket row object.
-   *
-   * The parent component must handle this event using a binding like:
-   *
-   * ```html
-   * <app-add-variant-dialog
-   *   (variantAccepted)="handleVariantAccepted($event)">
-   * </app-add-variant-dialog>
-   * ```
    */
   addVariantToPpkt() {
-    console.log("addVariantToPpkt - top");
     if (this.variantValidated && this.currentHgvsVariant != null) {
        this.templateService.addHgvsVariant(this.currentHgvsVariant);
-       const varDisplay = displayHgvs(this.currentHgvsVariant, true);
+       const varDisplay: VariantDto = displayHgvs(this.currentHgvsVariant, true);
+       varDisplay.count = this.isBiallelic ? 2: 1;
        this.dialogRef.close(varDisplay);
     } else if (this.variantValidated && this.currentStructuralVariant != null) {
       this.templateService.addStructuralVariant(this.currentStructuralVariant);
-      const varDisplay = displaySv(this.currentStructuralVariant, true);
+      const varDisplay: VariantDto = displaySv(this.currentStructuralVariant, true);
+      varDisplay.count = this.isBiallelic ? 2: 1;
       this.dialogRef.close(varDisplay);
     } else {
       alert("Unable to add variant")

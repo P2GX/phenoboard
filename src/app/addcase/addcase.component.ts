@@ -285,6 +285,12 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       if (result) {
         const allele = result;
         this.alleles.push(allele);
+        if (result.count == 2) {
+          this.alleles.push(allele);
+        }
+        if (this.alleles.length > 2) {
+          this.notificationService.showError(`Warning: ${this.alleles.length} alleles`)
+        }
         console.log('allele added:', result);
       } else {
         this.notificationService.showError("Error in openAddAlleleDialog")

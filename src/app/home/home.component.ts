@@ -137,11 +137,12 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     
 
   async loadHpo() {
-    this.clearData();
-    this.resetBackend();
+  
     try {
       await this.configService.loadHPO();
       await this.configService.resetPtTemplate();
+      this.clearData();
+      this.resetBackend();
     } catch (error: any) {
       const msg = error?.message ?? String(error);
       this.notificationService.showError(`Failed to load HPO: ${msg}`);
@@ -151,8 +152,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   // select an Excel file with a cohort of phenopackets
   async chooseExistingTemplateFile() {
-    this.clearData();
-    this.resetBackend();
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
@@ -162,6 +161,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.notificationService.showError(errorMessage);
         return;
       }
+      this.clearData();
+      this.resetBackend();  
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
