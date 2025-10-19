@@ -273,11 +273,10 @@ impl PhenoboardSingleton {
     /// 
     /// * Returns: A list of  representing the fenominal hits.
     pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
-        println!("{}{}{}", file!(), line!(), input_text);
-        match self.get_sorted_fenominal_hits(input_text) {
+         let deunicoded_text = deunicode(input_text);
+        match self.get_sorted_fenominal_hits(&deunicoded_text) {
             Ok(fenominal_hits) => {
-                println!("{:?}", fenominal_hits);
-                return util::text_to_annotation::text_to_annotations(input_text, &fenominal_hits);
+                return util::text_to_annotation::text_to_annotations(&deunicoded_text, &fenominal_hits);
             },
             Err(e) => {return Err(e.to_string()); },
         }
@@ -317,11 +316,12 @@ impl PhenoboardSingleton {
     ///
     /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
     pub fn map_text_to_term_list(&mut self, input_text: &str) -> Vec<TermId> {
+        let deunicoded_text = deunicode(input_text);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let fenominal = Fenominal::new(hpo_arc);
-                let fenom_hits: Vec<FenominalHit> = fenominal.process(input_text);
+                let fenom_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text);
                 let mut tid_list: Vec<TermId> = Vec::new();
                 for hit in fenom_hits {
                     // Fenominal hit.term_id can be unwrapped
@@ -373,23 +373,17 @@ impl PhenoboardSingleton {
 
     /// Get the default directory for the current cohort. Used to figure out where to save files.
     fn get_default_dir(&self) -> Result<PathBuf, String> {
-        // First try to get the cohort directory
         if let Some(cohort_dir) = &self.pt_template_dir_path {
             return Ok(cohort_dir.clone());
         }
-        // Fall back to user's home directory
         let home_dir = env::var("HOME")
             .or_else(|_| env::var("USERPROFILE")) // Windows fallback
             .map_err(|_| "Failed to get home directory".to_string())?;
-        
         Ok(PathBuf::from(home_dir))
     }
 
     fn get_phenopackets_output_dir(&self) -> Result<PathBuf, String> {
         let default_dir = self.get_default_dir()?;
-        println!("default_dir {:?}", default_dir);
-
-        // Try to open file dialog
         FileDialog::new()
             .set_directory(default_dir)
             .set_title("Select Output Directory")
@@ -409,7 +403,6 @@ impl PhenoboardSingleton {
             Ok(orcid_id) => orcid_id,
             Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
         };
-        println!("{}{}: cohort={:?}", file!(), line!(), cohort_dto);
         match &self.ontology {
             Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort_dto, out_dir, orcid, hpo.clone()),
             None => Err("Cannot export phenopackets because HPO not initialized".to_string()),
@@ -609,4 +602,30 @@ impl Default for PhenoboardSingleton {
             hpo_auto_complete: vec![],
         }
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    
+
+    use std::io::BufReader;
+
+    use super::*;
+    pub fn hpo() -> Arc<FullCsrOntology> {
+        let path = "/Users/robin/data/hpo/hp.json";
+        let reader = BufReader::new(File::open(path).unwrap());
+        let loader = OntologyLoaderBuilder::new().obographs_parser().build();
+        let hpo = loader.load_from_read(reader).unwrap();
+        Arc::new(hpo)
+    }
+
+    #[test]
+    fn test_fenominal() {
+        let text = "The proband (II‐5) is a 74‐year‐old male. Since childhood, he had poor vision. At 60 years, he manifested slowly progressive ataxic–spastic gait and a mild hearing defect. Brain MRI displayed cerebellar atrophy, mild cerebral atrophy, and severe optic atrophy. Electromyography showed axonal neuropathy. At last examination, he showed blindness, with severe ophthalmoparesis and nystagmus, moderate hearing loss, mild speech impairment, generalized hypotonia without weakness, ataxic–spastic gait, and global hyperreflexia. Muscle respiratory chain activities were normal. The proband's father (I‐1) and brother (II‐1) were referred to have optic atrophy and hearing loss. The 47‐year‐old proband's son (III‐5) had nystagmus and optic atrophy since early childhood (3 years). At last examination, hearing was normal and there were no signs of neurological involvement. He had severe visual loss with complete color blindness, very poor visual acuity (0.1), and pale optic discs. Optical coherence tomography (OCT) examination showed bilateral severely reduced RNFL thickness.";
+        let singleton = PhenoboardSingleton::new();
+        let res = singleton.map_text_to_annotations(text);
+        assert!(res.is_ok())
+    }
+
 }
