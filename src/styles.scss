@@ -291,3 +291,6 @@ button.btn-outline-cancel {
   font-size: 12px;
 }
 
+.edit-dialog .mat-mdc-dialog-container {
+  z-index: 2001 !important; /* default dialogs use around 1000–1050 */
+}

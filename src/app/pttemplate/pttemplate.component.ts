@@ -223,6 +223,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     this.individualContextMenuVisible = false;
     const dialogRef = this.dialog.open(IndividualEditComponent, {
       width: '500px',
+      panelClass: 'edit-dialog',// Ensures above the current dialog
       data: { ...individual }, // pass a copy
     });
     dialogRef.afterClosed().subscribe((result: IndividualData | null) => {
@@ -913,7 +914,6 @@ showInfoForRow(row: RowData | null) {
     return;
   }
   this.rowInfoKey = this.getRowKey(row);
-    console.log("showInfoForRow key=", this.rowInfoKey)
   this.rowInfoVisible = true;
   this.cdRef.detectChanges();
 }

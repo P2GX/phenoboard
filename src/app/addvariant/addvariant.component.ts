@@ -85,6 +85,7 @@ export class AddVariantComponent {
    */
   onVariantInput(): void {
     this.resetVars();
+    this.variant_string = this.variant_string.replace(/\s+/g, '');
     if (!this.variant_string) {
       this.errorMessage = 'Empty variant not allowed';
       this.isHgvs = false;

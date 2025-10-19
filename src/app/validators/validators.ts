@@ -35,9 +35,18 @@ export function asciiValidator() {
 }
 
 
-/** Trim whitespace from beginning and end and remove non-ASCII characters */
+/** Trim whitespace from beginning and end, replace emdash/endash with normal dash, 
+ * normalize non-standard whitespace, collapse repeated continguous whitespace characters,
+ * and remove non-ASCII characters */
 export function sanitizeString(input: string): string {
     return input
-    .trim()
-    .replace(/[^\x00-\x7F]/g, ""); 
+        .trim()
+        // Normalize Unicode dashes and similar punctuation to "-"
+        .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-")
+        // Normalize various Unicode spaces to a regular space
+        .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ")
+        // Collapse multiple spaces
+        .replace(/\s+/g, " ")
+        // Remove control and other non-ASCII characters (optional)
+        .replace(/[^\x20-\x7E]/g, "");
 }
