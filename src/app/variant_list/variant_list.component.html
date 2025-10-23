@@ -1,5 +1,6 @@
 <div class="primary-box">
 <h1 class="h1-primary">Variant Validation</h1>
+<p class="metadata-caption">Check variants and annotations. If needed, delete a variant (you will need to add back a correct variant in the table view). If a variant is not used to annotate any individual, the count cell is shown in red. Typically, users should delete such variants.</p>
 <table class="table-auto border-collapse border border-gray-400 w-full">
   <thead>
     <tr>
@@ -8,24 +9,28 @@
       <th class="border border-gray-400 px-4 py-2">Count</th>
        <th class="border border-gray-400 px-4 py-2">Category</th>
       <th class="border border-gray-400 px-4 py-2">Validated?</th>
-      <th class="border border-gray-400 px-4 py-2">validate</th>
+      <th class="border border-gray-400 px-4 py-2">Edit</th>
     </tr>
   </thead>
   <tbody>
-    @for (v of variantDisplayList; track v.variantString) {
+    @for (v of variantDisplayList; track $index) {
       <tr>
-        <td class="border border-gray-400 px-4 py-2">{{ v.variantString }}</td>
+        <td class="border border-gray-400 px-4 py-2" 
+          [attr.title]="v.variantKey">{{ v.variantString }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.consequence }}</td>
-         <td class="border border-gray-400 px-4 py-2">{{ v.count }}</td>
+         <td 
+          class="border border-gray-400 px-4 py-2"
+          [ngClass]="{ 'bg-red-200': v.count === 0 }"
+         >{{ v.count }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.variantType }}</td>
         <td class="border border-gray-400 px-4 py-2">{{ v.isValidated ? '✅' : '❌' }}</td>
         <td class="border border-gray-400 px-4 py-2 text-center">
           <div class="flex justify-center items-center">
             <button
               class="text-sm text-gray-600 border border-gray-300 px-2 py-0.5 rounded hover:bg-gray-100"
-              (click)="validateVariant(v)"
+              (click)="deleteVariant(v)"
             >
-              Validate
+              Delete
             </button>
           </div>
         </td>

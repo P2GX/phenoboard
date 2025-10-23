@@ -146,12 +146,3 @@ export interface GeneEditDialogData {
   gtData: GeneTranscriptData[];
   cohort: CohortData;
 }
-
-/*
-export interface AlleleEditDto {
-  geneSymbol: string;
-  allele?: string;
-  transcript: string;
-  count: number;
-  previously_validated: boolean;
-}*/

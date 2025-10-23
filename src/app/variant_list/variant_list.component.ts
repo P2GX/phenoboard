@@ -11,21 +11,14 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { VariantDto, VariantType } from '../models/variant_dto';
 import { CohortData } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
+import { NotificationService } from '../services/notification.service';
 
-
-
-
-/*
-      <th class="border border-gray-400 px-4 py-2">Variant String</th>
-      <th class="border border-gray-400 px-4 py-2">Variant Consequence</th>
-      <th class="border border-gray-400 px-4 py-2">Count</th>
-       <th class="border border-gray-400 px-4 py-2">Category</th>
-      <th class="border border-gray-400 px-4 py-2">Validated?</th>
-      */
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
   variantString: string;
+  /** Key used in maps */
+  variantKey: string;
   /** Key to be used in the HashMap */
   consequence: string;
   /** type of variant category */
@@ -49,6 +42,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   constructor(
     private configService: ConfigService, 
     override cohortService: CohortDtoService,
+    private notificationService: NotificationService,
     ngZone: NgZone, 
     override cdRef: ChangeDetectorRef) {
       super(cohortService, ngZone, cdRef)
@@ -88,6 +82,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
     Object.entries(cohort.hgvsVariants).forEach(([vkey, hgvs]) => {
       const display: VariantDisplay = {
         variantString: hgvs.hgvs,  
+        variantKey: hgvs.variantKey,
         consequence: hgvs.pHgvs || "n/a",  
         variantType: "HGVS",      
         isValidated: true,       
@@ -99,6 +94,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
      Object.entries(cohort.structuralVariants).forEach(([vkey, sv]) => {
       const display: VariantDisplay = {
         variantString: sv.label,  
+        variantKey: sv.variantKey,
         consequence: "structural",  
         variantType: sv.svType,      
         isValidated: true,       
@@ -111,6 +107,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
       if (!validatedKeys.has(vkey)) {
         const display: VariantDisplay = {
           variantString: vkey,   
+          variantKey: vkey,
           consequence: "unknown",
           variantType: "UNKNOWN",
           isValidated: false,
@@ -129,10 +126,44 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   /** The user clicks on the button to validate a single variant. We therefore send the variant to the back end, where the resulting
    * validated variant is added back to the CohortDto. If successful, we update the cohort Dto in the backend and update it in our service
    */
-  validateVariant(varDto: VariantDisplay) {
-    throw new Error('validateVariant not implemented.');
+  deleteVariant(varDto: VariantDisplay) {
+    let cohort = this.cohortService.getCohortData();
+    if (! cohort) {
+      this.notificationService.showError("Cohort not initialized");
+      return;
+    }
+    const variant = varDto.variantKey;
+    console.log("key=", variant);
+    console.log("dto", varDto);
+    if (variant in cohort.hgvsVariants) {
+      delete cohort.hgvsVariants[variant];
+      this.cohortService.setCohortData(cohort);
+      this.updateView(cohort);
+      this.notificationService.showSuccess(`Removed variant: ${variant}`);
+    } else if (variant in cohort.structuralVariants){
+      delete cohort.structuralVariants[variant];
+      this.cohortService.setCohortData(cohort);
+      this.updateView(cohort);
+      this.notificationService.showSuccess(`Removed structural variant: ${variant}`);
+    } else {
+      this.notificationService.showError(`Did not find variant key ${variant}`)
+    }
   }
 
+  /**
+   * Refreshes the component's display list and forces Angular change detection.
+   */
+  private updateView(cohort: CohortData): void {
+    // 1. Clear the old list
+    this.variantDisplayList = []; 
+    
+    // 2. Re-populate the list based on the new cohort data
+    this.initVariantDisplay(cohort); 
+    
+    // 3. Force change detection (optional, but good practice when component state changes
+    //    asynchronously or outside standard input/output bindings)
+    this.cdRef.detectChanges();
+  }
   
     
 }

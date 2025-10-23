@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import {MatCheckboxModule } from '@angular/material/checkbox'
 import { NotificationService } from '../services/notification.service';
 import { AgeInputService } from '../services/age_service';
+import { PmidService } from '../services/pmid_service';
 
 @Component({
   selector: 'app-home',
@@ -33,6 +34,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     private backendStatusService: BackendStatusService,
     private ageService: AgeInputService,
     override cohortService: CohortDtoService,
+    private pmidService: PmidService,
     private router: Router,
     private dialog: MatDialog,
     override cdRef: ChangeDetectorRef,
@@ -213,8 +215,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
 
   async chooseJsonTemplateFile() {
-    this.clearData();
-    this.resetBackend();
+  
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtJson();
@@ -224,6 +225,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.notificationService.showError(errorMessage);
         return;
       }
+      this.clearData();
+      this.resetBackend();
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
       } catch (error: any) {
@@ -242,6 +245,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   clearData() {
     this.backendStatusService.clearStatus();
     this.cohortService.clearCohortData();
+    this.pmidService.clearAllPmids();
     this.templateFileMessage = this.NOT_INIT;
     this.newTemplateMessage = this.NOT_INIT;
     this.templateFileMessage = this.NOT_INIT;

@@ -43,3 +43,8 @@
     }
   }
   
+  .metadata-caption {
+  font-size: 0.85em; /* Makes the text slightly smaller than default */
+  color: #777777; /* A medium grey color */
+  margin-top: 5px; /* Add a little space above it */
+}
