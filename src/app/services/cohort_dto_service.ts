@@ -15,6 +15,7 @@ import { SourcePmid } from '../models/cohort_description_dto';
 @Injectable({ providedIn: 'root' })
 export class CohortDtoService {
     
+    
   
     
     constructor(private configService: ConfigService){
@@ -217,6 +218,23 @@ export class CohortDtoService {
             cohort.curationHistory = [];
         }
         cohort.curationHistory.push(biocurationEvent);
+    }
+
+    /** In the variant tab, the user can update/edit structural variant definitions, e.g., 
+     * the user can change the SV type from SV (generic) to DEL (deletion), etc. This has
+     * the effect of changing the SV key, and so this method updates the rows (which may contain
+     * the "old" keys) accordingly.
+     */
+    updateSv(cohort: CohortData, currentSvKey: string, updatedSvKey: string) {
+        cohort.rows.forEach(row => {
+            Object.entries(row.alleleCountMap).forEach(([key, count]) => {
+                if (key === currentSvKey) {
+                    delete row.alleleCountMap[key];
+                    row.alleleCountMap[updatedSvKey] = count;
+                }
+                });
+            });
+        this.setCohortData(cohort);
     }
 
 }

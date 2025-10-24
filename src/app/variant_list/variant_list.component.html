@@ -13,7 +13,7 @@
     </tr>
   </thead>
   <tbody>
-    @for (v of variantDisplayList; track $index) {
+    @for (v of variantDisplayList; track v.variantKey) {
       <tr>
         <td class="border border-gray-400 px-4 py-2" 
           [attr.title]="v.variantKey">{{ v.variantString }}</td>
@@ -32,6 +32,12 @@
             >
               Delete
             </button>
+            <button
+              class="text-sm text-gray-600 border border-gray-300 px-2 py-0.5 rounded hover:bg-gray-100"
+              (click)="editSv(v)"
+            >
+              Edit SV
+            </button>
           </div>
         </td>
       </tr>
@@ -39,7 +45,7 @@
   </tbody>
 </table>
 
-@if (! errorMessage && variantDtoList.length == 0) {
+@if (! errorMessage && variantDisplayList.length == 0) {
   <p class="text-gray-400 mt-2">No variants available.</p>
 }
 

@@ -745,6 +745,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       if (cohort == null) {
         return false;
       }
+      console.log("alleleKey=", alleleKey);
+      console.log("sv dict=", cohort.structuralVariants);
       if (alleleKey in cohort.hgvsVariants) {
         return true;
       } else if (alleleKey in cohort.structuralVariants) {

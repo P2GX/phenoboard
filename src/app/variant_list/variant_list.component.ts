@@ -8,11 +8,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { VariantDto, VariantType } from '../models/variant_dto';
+import { StructuralVariant, VariantDto, VariantType } from '../models/variant_dto';
 import { CohortData } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { NotificationService } from '../services/notification.service';
-
+import { SvDialogService } from '../services/svManualEntryDialogService';
+import { GeneTranscriptData } from '../models/cohort_dto';
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
@@ -39,17 +40,17 @@ export interface VariantDisplay {
   styleUrls: ['./variant_list.component.css']
 })
 export class VariantListComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+
   constructor(
-    private configService: ConfigService, 
     override cohortService: CohortDtoService,
     private notificationService: NotificationService,
+    private svDialog: SvDialogService,
     ngZone: NgZone, 
     override cdRef: ChangeDetectorRef) {
       super(cohortService, ngZone, cdRef)
     }
 
   errorMessage: string | null = null;
-  variantDtoList: VariantDto[] | [] = [];
 
   variantDisplayList: VariantDisplay[] = [];
   
@@ -58,18 +59,17 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
     }
   override async ngOnInit() {
     super.ngOnInit();
-    try {
-      const cohort = this.cohortService.getCohortData();
-      if (cohort != null) {
-        this.initVariantDisplay(cohort);
-      }
-    } catch (err) {
-      this.errorMessage = String(err);
-    }
+    this.initVariantDisplay();
   }
 
 
-  initVariantDisplay(cohort: CohortData) {
+  initVariantDisplay() {
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) {
+      this.notificationService.showError("Cohort nit initialized");
+      return;
+    }
+    let varDisplayList: VariantDisplay[] = [];
     const rowToKeyMap: { [key: string]: number } = {};
     const validatedKeys = new Set<string>();
     cohort.rows.forEach((row) => {
@@ -88,7 +88,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
         isValidated: true,       
         count: rowToKeyMap[vkey] || 0,  
       };
-      this.variantDisplayList.push(display);
+      varDisplayList.push(display);
       validatedKeys.add(vkey);
     });
      Object.entries(cohort.structuralVariants).forEach(([vkey, sv]) => {
@@ -100,7 +100,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
         isValidated: true,       
         count: rowToKeyMap[vkey] || 0,  
       };
-      this.variantDisplayList.push(display);
+      varDisplayList.push(display);
       validatedKeys.add(vkey);
     });
     Object.entries(rowToKeyMap).forEach(([vkey, count]) => {
@@ -113,10 +113,10 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
           isValidated: false,
           count,
         };
-      this.variantDisplayList.push(display);
+      varDisplayList.push(display);
     }
   });
-
+  this.variantDisplayList = varDisplayList;
   }
 
   override ngOnDestroy() {
@@ -133,17 +133,15 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     const variant = varDto.variantKey;
-    console.log("key=", variant);
-    console.log("dto", varDto);
     if (variant in cohort.hgvsVariants) {
       delete cohort.hgvsVariants[variant];
       this.cohortService.setCohortData(cohort);
-      this.updateView(cohort);
+      this.updateView();
       this.notificationService.showSuccess(`Removed variant: ${variant}`);
     } else if (variant in cohort.structuralVariants){
       delete cohort.structuralVariants[variant];
       this.cohortService.setCohortData(cohort);
-      this.updateView(cohort);
+      this.updateView();
       this.notificationService.showSuccess(`Removed structural variant: ${variant}`);
     } else {
       this.notificationService.showError(`Did not find variant key ${variant}`)
@@ -153,16 +151,57 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   /**
    * Refreshes the component's display list and forces Angular change detection.
    */
-  private updateView(cohort: CohortData): void {
+  private updateView(): void {
     // 1. Clear the old list
     this.variantDisplayList = []; 
     
     // 2. Re-populate the list based on the new cohort data
-    this.initVariantDisplay(cohort); 
+    this.initVariantDisplay(); 
     
     // 3. Force change detection (optional, but good practice when component state changes
     //    asynchronously or outside standard input/output bindings)
     this.cdRef.detectChanges();
+  }
+
+  async editSv(variant: VariantDisplay) {
+    if ( variant.variantType === "HGVS") {
+      this.notificationService.showError("Cannot apply structural variant editing to HGVS");
+      return;
+    }
+    const svKey = variant.variantKey;
+    const cohort = this.cohortService.getCohortData();
+    if (! cohort) {
+      this.notificationService.showError("Cohort not initialized");
+      return;
+    }
+    const currentSv = cohort.structuralVariants[svKey];
+    if (!currentSv) {
+      this.notificationService.showError(`Could not retrieve data for SV ${svKey}`);
+      return;
+    }
+    const gtdata: GeneTranscriptData = {
+      hgncId: currentSv.hgncId,
+      geneSymbol: currentSv.geneSymbol,
+      transcript: currentSv.transcript
+    };
+    try{
+          const sv: StructuralVariant | null = await this.svDialog.openSvDialog(gtdata, variant.variantString, currentSv.chromosome);
+          
+          if (sv) {
+            if (sv.variantKey !== svKey) {
+                // 2. Remove the old entry from the map
+                delete cohort.structuralVariants[svKey];
+            }
+            cohort.structuralVariants[sv.variantKey] = sv;
+            this.cohortService.updateSv(cohort, svKey, sv.variantKey);
+            this.updateView();
+            this.cdRef.detectChanges();
+            this.notificationService.showSuccess(`Structural variant ${svKey} updated to ${sv.variantKey}`);
+          }
+        } catch (error) {
+          const errMsg = String(error);
+          this.notificationService.showError(errMsg);
+        }
   }
   
     
