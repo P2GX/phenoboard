@@ -88,7 +88,10 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     });
     await listen<{ current: number; total: number }>('progress', (event) => {
       const { current, total } = event.payload;
-      this.progressValue = Math.round((current / total) * 100);
+      this.ngZone.run(() => {
+        this.progressValue = Math.round((current / total) * 100);
+      });
+      
     });
     this.statusSubscription = this.backendStatusService.status$.subscribe(
       status => this.status = status

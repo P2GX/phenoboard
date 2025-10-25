@@ -4,11 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, createCurationEvent, HpoGroupMap } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, HpoGroupMap } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
-import { GeneEditComponent } from '../gene_edit/gene_edit.component';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
@@ -17,11 +16,12 @@ import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
-import { GeneEditDialogData, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { StructuralVariant, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent } from '../addvariant/addvariant.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { FormsModule } from '@angular/forms';
+import { MatRadioModule } from '@angular/material/radio';
 
 
 type Option = { label: string; value: string };
@@ -36,6 +36,7 @@ type Option = { label: string; value: string };
     FormsModule,
     HpoAutocompleteComponent,
     MatButtonModule,
+    MatRadioModule,
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
@@ -241,6 +242,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   /**
    * Opens a dialog that allows editing or adding alleles
    */
+  /*
   openGeneEditor(alleleKey: string | undefined, row: RowData) {
     const cohort = this.cohortDto;
     if (!cohort) {
@@ -283,6 +285,25 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         this.notificationService.showSuccess("Deleted allele");
       }
     });
+  }
+  */
+
+  onAlleleCountChange(geneSymbol: string, row: RowData, newCount: number) {
+    if (!geneSymbol || !row) return;
+
+    // Ensure alleleCountMap exists
+    if (!row.alleleCountMap) {
+      row.alleleCountMap = {};
+    }
+
+    row.alleleCountMap[geneSymbol] = newCount;
+
+    this.notificationService.showSuccess(
+      `Set ${geneSymbol} allele count to ${newCount}`
+    );
+
+    // Optionally sync to backend if needed
+    // this.cohortService.updateAlleleCount(row, geneSymbol, newCount);
   }
 
   addAllele(row: RowData) {
@@ -760,9 +781,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.showAlleleColumn = !this.showAlleleColumn;
     }
 
-    deleteAllele(alleleKey: string, row: RowData) {
-      delete row.alleleCountMap[alleleKey];
-    }
+   
 
   /** for debugging. Puts the differences between to structures, can be output to console. */
   deepDiff(a: any, b: any, path: string[] = []): string[] {

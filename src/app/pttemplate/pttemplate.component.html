@@ -273,16 +273,17 @@
 
           <!-- Right side: actions -->
           <div class="flex items-center gap-x-2">
-            <button mat-icon-button color="primary"
-                    aria-label="Edit allele"
-                    (click)="openGeneEditor(geneSymbol, row)">
-              <mat-icon style="font-size: 16px; line-height: 16px;">✏️</mat-icon>
-            </button>
-            <button mat-icon-button color="warn"
-                    aria-label="Delete allele"
-                    (click)="deleteAllele(geneSymbol, row)">
-              <mat-icon style="font-size: 16px; line-height: 16px;">🗑️</mat-icon>
-            </button>
+            <mat-radio-group
+              [value]="row.alleleCountMap[geneSymbol] || 0"
+              (change)="onAlleleCountChange(geneSymbol, row, $event.value)"
+              aria-label="Select allele count"
+              class="flex items-center gap-2">
+
+              <mat-radio-button [value]="1">1</mat-radio-button>
+              <mat-radio-button [value]="2">2</mat-radio-button>
+              <mat-radio-button [value]="0">🗑️</mat-radio-button>
+            </mat-radio-group>
+       
           </div>
         </div>
         } <!-- for gene -->
