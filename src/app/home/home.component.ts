@@ -120,9 +120,8 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
         this.ptTemplateLoaded = true; 
         this.templateFileMessage = status.ptTemplatePath;
       } else {
-        console.log("ptTemplatePath = not initialized");
         this.ptTemplateLoaded = false;
-        this.templateFileMessage = "not initialized";
+        this.templateFileMessage = this.NOT_INIT;
       }
     });
   }
@@ -156,6 +155,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   async chooseExistingTemplateFile() {
     try {
       this.isRunning = true;
+      this.templateFileMessage = "loading";
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
       this.isRunning = false;
       if (data == null) {
@@ -170,6 +170,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       } catch (error: any) {
         const errorMessage = String(error);
         this.notificationService.showError(errorMessage);
+        this.templateFileMessage = errorMessage;
       }
     }
 
