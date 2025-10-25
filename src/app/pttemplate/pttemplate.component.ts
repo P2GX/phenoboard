@@ -588,8 +588,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.notificationService.showError("CohortData not initialized");
       return;
     }
-   
-    console.log("exportPpkt-cohort=", cohort_dto);
     try {
       const res = await this.configService.exportPpkt(cohort_dto);
       this.notificationService.showSuccess(res);

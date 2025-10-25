@@ -14,25 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
     <form [formGroup]="form" class="dialog-form">
       <mat-form-field class="w-full">
         <mat-label>Separator character</mat-label>
-        <input matInput formControlName="separator" maxlength="3" placeholder="e.g. /">
+        <input matInput formControlName="separator" maxlength="3" placeholder="e.g. /,:,-, etc.">
       </mat-form-field>
-
-      <mat-form-field class="w-full">
-        <mat-label>Which is Sex?</mat-label>
-        <mat-select formControlName="sexPosition">
-          <mat-option [value]="0">First</mat-option>
-          <mat-option [value]="1">Second</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field class="w-full">
-        <mat-label>Which is Age?</mat-label>
-        <mat-select formControlName="agePosition">
-          <mat-option [value]="0">First</mat-option>
-          <mat-option [value]="1">Second</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </form>
 
     <div class="dialog-actions">
       <button mat-button (click)="cancel()">Cancel</button>
@@ -55,8 +38,6 @@ export class SplitColumnDialogComponent {
   ) {
     this.form = this.fb.group({
       separator: [data.separator ?? '/', Validators.required],
-      sexPosition: [0, Validators.required],
-      agePosition: [1, Validators.required],
     });
   }
 

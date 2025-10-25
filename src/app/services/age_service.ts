@@ -16,14 +16,15 @@ export class AgeInputService {
         'Middle age onset', 'Late onset' ];
 
     readonly isoPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?$/;
+    readonly gestationalAgePattern = /^G\d{1,2}w(?:[0-6]d)?$/;
     /** The user selects these terms for use in annotations */
     public selectedTerms: string[] = ["na"];
 
     /**
-     * Returns true if the input is a valid ISO8601 age string or a known HPO term ("na" is also an allowed entry)
+     * Returns true if the input is a valid ISO8601 age string, a gestational age string, or a known HPO term ("na" is also an allowed entry)
      */
     validateAgeInput(input: string): boolean {
-        return input == "na" || this.onsetTerms.includes(input) || this.isoPattern.test(input);
+        return input == "na" || this.onsetTerms.includes(input) || this.isoPattern.test(input) || this.gestationalAgePattern.test(input);
     }
 
     /** Expose an Angular validator that uses the same logic */
