@@ -22,7 +22,7 @@ import { AddVariantComponent } from '../addvariant/addvariant.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { FormsModule } from '@angular/forms';
 import { MatRadioModule } from '@angular/material/radio';
-
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 type Option = { label: string; value: string };
 
@@ -36,7 +36,7 @@ type Option = { label: string; value: string };
     FormsModule,
     HpoAutocompleteComponent,
     MatButtonModule,
-    MatRadioModule,
+    MatButtonToggleModule,
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
@@ -714,7 +714,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
             label = sv.label;
           }
       }
-      return `${label} (n=${allelecount})`;
+      
+      return label;
     }
 
     getDiseaseLabel(diseaseId: string): string {

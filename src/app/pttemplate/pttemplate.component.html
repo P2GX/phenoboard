@@ -273,16 +273,18 @@
 
           <!-- Right side: actions -->
           <div class="flex items-center gap-x-2">
-            <mat-radio-group
+            <mat-button-toggle-group
               [value]="row.alleleCountMap[geneSymbol] || 0"
               (change)="onAlleleCountChange(geneSymbol, row, $event.value)"
-              aria-label="Select allele count"
-              class="flex items-center gap-2">
+              appearance="legacy"
+              class="allele-toggle-group"
+              appearance="legacy"
+              aria-label="Select allele count">
 
-              <mat-radio-button [value]="1">1</mat-radio-button>
-              <mat-radio-button [value]="2">2</mat-radio-button>
-              <mat-radio-button [value]="0">🗑️</mat-radio-button>
-            </mat-radio-group>
+              <mat-button-toggle [value]="1">1</mat-button-toggle>
+              <mat-button-toggle [value]="2">2</mat-button-toggle>
+              <mat-button-toggle [value]="0" aria-label="Delete">🗑️</mat-button-toggle>
+            </mat-button-toggle-group>
        
           </div>
         </div>

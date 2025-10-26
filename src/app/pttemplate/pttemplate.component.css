@@ -206,3 +206,47 @@ button[mat-icon-button] {
 .focused-row {
   background-color: #eef5ff;
 }
+
+.allele-toggle-group {
+  display: inline-flex;
+  gap: 3px; /* small separation between buttons */
+  height: 26px;
+  background: transparent;
+  border: none;
+}
+
+.allele-toggle-group .mat-button-toggle {
+  min-width: 28px;
+  height: 26px;
+  line-height: 24px;
+  padding: 0 5px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px !important;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centers emoji perfectly */
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.allele-toggle-group .mat-button-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+/* Selected (checked) state */
+.allele-toggle-group .mat-button-toggle-checked {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+/* Remove Material’s focus/ink effects and checkmark overlays */
+.allele-toggle-group .mat-button-toggle-focus-overlay,
+.allele-toggle-group .mat-button-toggle-checked .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+.allele-toggle-group .mat-pseudo-checkbox {
+  display: none !important; /* completely hide checkmark */
+}
