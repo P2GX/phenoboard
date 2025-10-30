@@ -1,10 +1,10 @@
 {
   "name": "phenoboard",
-  "version": "0.4.46",
+  "version": "0.4.47",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
-    "build": "nx build --base-href ./",
+    "build": "nx build phenoboard --base-href ./",
     "watch": "nx build --watch --configuration development",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
