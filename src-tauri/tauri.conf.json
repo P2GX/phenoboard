@@ -4,9 +4,9 @@
   "version": "0.3.1",
   "identifier": "org.p2gx.phenoboard",
   "build": {
-    "beforeDevCommand": "npm run start",
+    "beforeDevCommand": "npx nx serve phenoboard --configuration=development",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npx nx build phenoboard --configuration=development",
     "frontendDist": "../dist/phenoboard/browser"
   },
   "app": {
@@ -25,7 +25,10 @@
         "label": "main",
         "title": "GA4GH Phenoboard",
         "width": 1400,
-        "height": 900
+        "height": 900,
+        "resizable": true,
+        "fullscreen": false,
+        "devtools": true
       }
     ],
     "security": {

@@ -14,35 +14,25 @@ The application makes major use of the following rust crates.
 This page summarizes some of the angular and Rust/tauri commands that have been useful to create the application.
 
 
-## Initial setup
-These steps were used to initialize the application and do not need to be repeated
-```bash 
-npm create tauri@latest
-```
-The installer will ask questions about settings. We chose typescript, angular, npm.
-
-Following this, run the following command.
-
-```bash 
-npm install
-```
-
-Note that we are using **standalone** components.
-
-## Run the GUI application in development mode
+## Running in development mode
+Most users should use the provided installation programs. Developers can start the program in development mode as follows
 ```bash 
 npm run tauri dev
 ```
 
 
-
-### Creating new components
-To generate a new component, navigate to the src/app folder, make a directory with the name of the component, cd into the new directory, 
-and enter the following command.
+## Creating installation program
+To generate an installation program (for the current OS), run the following
 ```bash 
-npx nx generate @nx/angular:component <name> --standalone
+npm run tauri build
 ```
-This will initialize the typical four files for an angular component.
+This will create an installer in the following location
+```bash
+src-tauri/target/release/bundle/dmg/phenoboard_0.3.1_aarch64.dmg
+```
+
+This can be attached to a release. Double-clicking the file will open a typical MacIntosh installation window.
+
 
 
 ## Port issues
@@ -65,6 +55,13 @@ Can be useful with the DevTools panel
 npm run start
 ```
 
+
+## Documentation
+We create documentation using the mdbook package. A local server can be started as follows.
+```bash
+cd book
+mdbook serve --open
+```
 
 
 

@@ -2,11 +2,12 @@
 
 :root {
   --accent-color: #ffcc00;
-  --bg-dark: #1e1e1e;
-  --bg-light: #fafafa;
-  --text-light: #f0f0f0;
-  --text-dark: #333;
-  --border-color: #ccc;
+  --bg-dark: #f4f5f7;           /* lighter sidebar background */
+  --bg-light: #ffffff;          /* pure white main background */
+  --text-light: #333333;        /* dark readable text for light sidebar */
+  --text-dark: #222222;
+  --border-color: #ddd;
+  --base-font-size: 17px;       /* slightly larger default text */
 }
 
 /* General body and typography */
@@ -14,8 +15,11 @@ body {
   font-family: 'Fira Sans', sans-serif;
   background: var(--bg-light);
   color: var(--text-dark);
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: var(--base-font-size);
   transition: background 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
 }
 
 /* Code blocks */
@@ -24,7 +28,7 @@ pre code {
   color: #d8dee9;
   border-radius: 8px;
   padding: 12px 16px;
-  font-size: 0.9em;
+  font-size: 0.95em;
   overflow-x: auto;
 }
 
@@ -32,17 +36,30 @@ pre code {
 .sidebar {
   background: var(--bg-dark);
   color: var(--text-light);
-  padding-top: 1em;
+  padding: 1em;
+  width: 250px;
+  min-height: 100vh;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar a {
   color: var(--accent-color);
   text-decoration: none;
+  display: block;
+  padding: 0.4em 0;
+  font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .sidebar a:hover {
-  color: white;
+  color: #000;
+}
+
+/* Main content */
+main {
+  background: var(--bg-light);
+  color: var(--text-dark);
+  padding: 2em 3em;
 }
 
 /* Headings */
@@ -50,14 +67,19 @@ h1, h2, h3, h4 {
   font-family: 'Fira Sans', sans-serif;
   margin-top: 1.4em;
   margin-bottom: 0.5em;
-  scroll-margin-top: 80px; /* makes anchor links nicer */
+  scroll-margin-top: 80px;
 }
 
 h1 {
-  font-size: 1.9em;
+  font-size: 2em;
   color: #222;
   border-bottom: 2px solid var(--accent-color);
   padding-bottom: 0.3em;
+}
+
+h2 {
+  font-size: 1.6em;
+  color: #333;
 }
 
 /* Figures */
@@ -71,7 +93,7 @@ figure {
 figure img {
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
   max-width: 100%;
   height: auto;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -83,7 +105,7 @@ figure img:hover {
 }
 
 figcaption {
-  font-size: 0.9em;
+  font-size: 0.95em;
   font-style: italic;
   color: #666;
   margin-top: 0.6em;
@@ -101,4 +123,16 @@ figcaption a {
 
 figcaption a:hover {
   text-decoration: underline;
+}
+
+.page {
+  display: flex;
+}
+
+.sidebar {
+  flex: 0 0 250px;
+}
+
+main {
+  flex: 1;
 }
