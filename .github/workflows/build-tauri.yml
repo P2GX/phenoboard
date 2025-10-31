@@ -42,7 +42,7 @@ jobs:
       # 3. Build Frontend (Angular / React / etc.)
       # ------------------------------------
       - name: Build Frontend
-        run: npm run build -- --configuration=production
+        run: npm run build -- --configuration=production --no-cloud
 
       # ------------------------------------
       # 4. Install platform-specific deps
