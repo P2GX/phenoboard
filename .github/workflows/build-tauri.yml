@@ -1,0 +1,101 @@
+name: Build Tauri App for All Platforms
+
+on:
+  push:
+    tags:
+      - 'v*' # Build on version tags, e.g., v1.0.0
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------
+      # 1. Setup Environment (Rust & Node)
+      # ------------------------------------
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # ------------------------------------
+      # 2. Install Dependencies
+      # ------------------------------------
+      - name: Install dependencies
+        run: npm install
+
+      # ------------------------------------
+      # 3. Build Frontend (Angular / React / etc.)
+      # ------------------------------------
+      - name: Build Frontend
+        run: npm run build -- --configuration=production
+
+      # ------------------------------------
+      # 4. Install platform-specific deps
+      # ------------------------------------
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install macOS dependencies
+        if: matrix.platform == 'macos-latest'
+        run: brew install osslsigncode || true
+
+      # ------------------------------------
+      # 5. Build Tauri App
+      # ------------------------------------
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY || '' }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD || '' }}
+
+      # ------------------------------------
+      # 6. Upload Artifacts
+      # ------------------------------------
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.platform }}
+          path: |
+            src-tauri/target/release/bundle/**/*
+          if-no-files-found: ignore
+
+  # ------------------------------------
+  # 7. Create Single Release
+  # ------------------------------------
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Display structure
+        run: ls -R dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
