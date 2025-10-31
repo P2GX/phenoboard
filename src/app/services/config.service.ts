@@ -157,16 +157,8 @@ export class ConfigService {
   }
 
   async validateSv(dto: VariantDto): Promise<StructuralVariant> {
-    const symbol = dto.geneSymbol;
-    const hgnc = dto.hgncId;
-    const transcript = dto.transcript;
-    const allele = dto.variantString;
     return invoke<StructuralVariant>('validate_structural_variant',
-      {symbol: symbol, 
-        hgnc: hgnc,
-        transcript: transcript,
-        allele: allele});
-        // validate_structural_variant (     variant_dto: VariantDto)
+      {variantDto: dto});
   }
 
   async validateOneSv(symbol: string, hgnc: string, transcript: string, allele: string): Promise<StructuralVariant> {

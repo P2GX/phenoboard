@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output,Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -8,13 +8,18 @@ import { MatOption } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
 import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs } from '../models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { GeneTranscriptData } from '../models/cohort_dto';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+
+// Define the shape of the data you pass in
+export interface AddVariantDialogData {
+  isSv: boolean;
+}
 
 export interface VariantAcceptedEvent {
   variant: string;
@@ -40,21 +45,29 @@ export interface VariantAcceptedEvent {
   styleUrl: './addvariant.component.css'
 })
 export class AddVariantComponent {
+  structuralMode: boolean = false;
 
   constructor(
     private configService: ConfigService, 
-    private templateService: CohortDtoService,
-    private dialogRef: MatDialogRef<AddVariantComponent, VariantDto | null>
+    private cohortService: CohortDtoService,
+    private dialogRef: MatDialogRef<AddVariantComponent, VariantDto | null>,
+    @Inject(MAT_DIALOG_DATA) public data: { isSv: boolean }
   ){}
   
   async ngOnInit(): Promise<void> {
-    this.geneOptions = this.templateService.getGeneTranscriptDataList();
+    this.geneOptions = this.cohortService.getGeneTranscriptDataList();
+    if (this.geneOptions && this.geneOptions.length === 1) {
+        // Set the selectedGene model property to the only entry in the list
+        this.selectedGene = this.geneOptions[0];
+    }
+    this.structuralMode = this.data.isSv
   }
   
   /* If the current variant was HGVS and was validated, this variant is non-null */
   currentHgvsVariant: HgvsVariant | null = null;
   /* If the current variant was structural and was validated, this variant is non-null */
   currentStructuralVariant: StructuralVariant | null = null;
+
 
   variant_string: string = '';
   isHgvs: boolean = false;
@@ -129,7 +142,7 @@ export class AddVariantComponent {
       isValidated: false,
       count: 0
     };
-    const cohortDto = this.templateService.getCohortData();
+    const cohortDto = this.cohortService.getCohortData();
     if (cohortDto == null) {
       // should never happen
       console.error("Attempt to validate SV with null cohortDto");
@@ -137,7 +150,6 @@ export class AddVariantComponent {
     }
     this.configService.validateSv(vv_dto)
         .then((sv) => {
-          console.log("Adding sv", sv);
           this.currentStructuralVariant = sv;
           this.variantValidated = true;
         })
@@ -158,7 +170,7 @@ export class AddVariantComponent {
       return;
     }
     this.errorMessage = null;
-    const cohortDto = this.templateService.getCohortData();
+    const cohortDto = this.cohortService.getCohortData();
     if (cohortDto == null) {
       // should never happen
       console.error("Attempt to validate HGVS with null cohortDto");
@@ -204,12 +216,12 @@ export class AddVariantComponent {
    */
   addVariantToPpkt() {
     if (this.variantValidated && this.currentHgvsVariant != null) {
-       this.templateService.addHgvsVariant(this.currentHgvsVariant);
-       const varDisplay: VariantDto = displayHgvs(this.currentHgvsVariant, true);
-       varDisplay.count = this.isBiallelic ? 2: 1;
-       this.dialogRef.close(varDisplay);
+       this.cohortService.addHgvsVariant(this.currentHgvsVariant);
+       const varDto: VariantDto = displayHgvs(this.currentHgvsVariant, true);
+       varDto.count = this.isBiallelic ? 2: 1;
+       this.dialogRef.close(varDto);
     } else if (this.variantValidated && this.currentStructuralVariant != null) {
-      this.templateService.addStructuralVariant(this.currentStructuralVariant);
+      this.cohortService.addStructuralVariant(this.currentStructuralVariant);
       const varDisplay: VariantDto = displaySv(this.currentStructuralVariant, true);
       varDisplay.count = this.isBiallelic ? 2: 1;
       this.dialogRef.close(varDisplay);

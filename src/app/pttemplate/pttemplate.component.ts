@@ -301,9 +301,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     this.notificationService.showSuccess(
       `Set ${geneSymbol} allele count to ${newCount}`
     );
-
-    // Optionally sync to backend if needed
-    // this.cohortService.updateAlleleCount(row, geneSymbol, newCount);
   }
 
   addAllele(row: RowData) {

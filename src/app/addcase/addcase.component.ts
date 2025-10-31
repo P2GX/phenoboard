@@ -15,14 +15,14 @@ import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
-import { VariantDto } from '../models/variant_dto';
+import { StructuralVariant, VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
-import { NgModule } from '@angular/core';
+import { SvDialogService } from '../services/svManualEntryDialogService';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -47,6 +47,7 @@ export class AddcaseComponent {
     public ageService: AgeInputService,
     private cohortService: CohortDtoService,
     private dialog: MatDialog,
+    private svDialog: SvDialogService,
     private router: Router,
     private notificationService: NotificationService,
   ) {}
@@ -274,29 +275,49 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
 
+    openVariantEditor(structural: boolean) {
+       const dialogRef = this.dialog.open(AddVariantComponent, {
+        data: {
+            isSv: structural
+          },
+            width: '600px'
+          });
+      
+          dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+            if (result) {
+              const variantKey = result.variantKey;
+              const alleleCount = result.count;
+              if (variantKey == null) {
+                this.notificationService.showError("Could not retrieve variantKey");
+                return;
+              }
+              if (! result.isValidated) {
+                this.notificationService.showError("Variant could not be validated");
+                return;
+              }
+              /* If we get here, the variant was validated and added to the cohort. */
+              /* We add it with a count of 1 -- they user may need to adjust */
+              const dto: VariantDto = {
+                variantString: result.variantString,
+                transcript: result.transcript,
+                hgncId: result.hgncId,
+                geneSymbol: result.geneSymbol,
+                variantType: 'HGVS',
+                isValidated: false,
+                count: alleleCount
+              };
+              this.alleles.push(dto);
+              if (alleleCount == 2) {
+                this.alleles.push(dto);
+              }
+            
+            } else {
+              console.error("Error in open Allele Dialog")
+            }
+          });
+    }
 
-  /** Allow the user to enter data about Allele1 */
-  openAddAlleleDialog() {
-    const dialogRef = this.dialog.open(AddVariantComponent, {
-      width: '600px'
-    });
 
-    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
-      if (result) {
-        const allele = result;
-        this.alleles.push(allele);
-        if (result.count == 2) {
-          this.alleles.push(allele);
-        }
-        if (this.alleles.length > 2) {
-          this.notificationService.showError(`Warning: ${this.alleles.length} alleles`)
-        }
-        console.log('allele added:', result);
-      } else {
-        this.notificationService.showError("Error in openAddAlleleDialog")
-      }
-    });
-  }
 
   removeAllele(allele: any) {
     this.alleles = this.alleles.filter(a => a !== allele);
