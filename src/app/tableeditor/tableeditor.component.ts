@@ -31,7 +31,6 @@ import { Router } from '@angular/router';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
-
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
@@ -94,7 +93,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   ) {
     super(templateService, ngZone, cdRef);
     this.pmidForm = this.fb.group({
-      pmid: [defaultPmidDto()],  // or null if you allow null
+      pmid: [defaultPmidDto()], 
     });
   }
   Object = Object;
@@ -198,44 +197,20 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.OnsetAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.OnsetAge),
     [TransformType.LastEncounterAge]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LastEncounterAge),
     [TransformType.SexColumn]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.SexColumn),
-    [TransformType.SingleHpoTerm]: (colIndex) => {
-      this.hpoAutoForColumnName(colIndex);
-    },
-    [TransformType.MultipleHpoTerm]: (colIndex: number) => {
-      this.processMultipleHpoColumn(colIndex);
-    },
-    [TransformType.ReplaceUniqeValues]: (colIndex: number) => {
-      this.editUniqueValuesInColumn(colIndex);
-    },
+    [TransformType.SingleHpoTerm]: (colIndex) => { this.hpoAutoForColumnName(colIndex); },
+    [TransformType.MultipleHpoTerm]: (colIndex: number) => { this.processMultipleHpoColumn(colIndex); },
+    [TransformType.ReplaceUniqeValues]: (colIndex: number) => { this.editUniqueValuesInColumn(colIndex); },
     [TransformType.OnsetAgeAssumeYears]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.OnsetAgeAssumeYears),
     [TransformType.LastEncounterAgeAssumeYears]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LastEncounterAgeAssumeYears),
-    [TransformType.AnnotateVariants]: (colIndex) => {
-      this.annotateVariants(colIndex);
-    },
-    [TransformType.UpdateVariants]: (colIndex) => {
-      this.updateVariants(colIndex);
-    },
-    [TransformType.SplitAgeSex]: (colIndex) => {
-      this.splitAgeSex(colIndex);
-    },
-    [TransformType.SetColumnType]: (colIndex) => {
-      this.setColumnTypeDialog(colIndex);
-    },
-    [TransformType.DeleteColumn]: (colIndex) => {
-      this.deleteColumn(colIndex)
-    },
-    [TransformType.DuplicateColumn]: (colIndex) => {
-      this.duplicateColumn(colIndex);
-    },
-    [TransformType.ConstantColumn]: (colIndex) => {
-      this.addConstantColumn(colIndex);
-    },
-    [TransformType.MergeIndividualFamily]: (colIndex) => {
-      this.mergeIndividualAndFamilyColumns();
-    },
-    [TransformType.ToggleTransformed]: (colIndex) => {
-      this.toggleTransformed(colIndex);
-    }
+    [TransformType.AnnotateVariants]: (colIndex) => { this.annotateVariants(colIndex); },
+    [TransformType.UpdateVariants]: (colIndex) => { this.updateVariants(colIndex); },
+    [TransformType.SplitAgeSex]: (colIndex) => {  this.splitAgeSex(colIndex); },
+    [TransformType.SetColumnType]: (colIndex) => {  this.setColumnTypeDialog(colIndex);},
+    [TransformType.DeleteColumn]: (colIndex) => {  this.deleteColumn(colIndex)  },
+    [TransformType.DuplicateColumn]: (colIndex) => { this.duplicateColumn(colIndex); },
+    [TransformType.ConstantColumn]: (colIndex) => { this.addConstantColumn(colIndex); },
+    [TransformType.MergeIndividualFamily]: (colIndex) => { this.mergeIndividualAndFamilyColumns();  },
+    [TransformType.ToggleTransformed]: (colIndex) => { this.toggleTransformed(colIndex); }
   };
 
  
@@ -245,7 +220,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.etl_service.etlDto$.subscribe(dto => { this.etlDto = dto});
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
-      // value = { pmid: PmidDto }
     });
   }
 
@@ -266,10 +240,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   override ngOnDestroy(): void {
     super.ngOnDestroy();
   }
-
-  /*protected override onCohortDtoLoaded(template: CohortData): void {
-    console.log("TableEditorComponent:onTemplateLoaded: ", template);
-  }*/
 
   /** Load an external Excel file, e.g., a Supplementary Table from a publication
    * that describes a cohort of individuals (one per column).
@@ -328,7 +298,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
     const columnTableDto = this.etlDto.table;
     if (!columnTableDto.columns.length) {
-      alert("Could not create table because externalTable had no columns");
+      this.notificationService.showError("Could not create table because externalTable had no columns");
       return;
     }
     const headers = columnTableDto.columns.map(col => col.header);

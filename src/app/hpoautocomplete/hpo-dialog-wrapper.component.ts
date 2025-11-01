@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogContent, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HpoAutocompleteComponent } from './hpoautocomplete.component';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
@@ -27,6 +27,7 @@ export class HpoDialogWrapperComponent {
     public dialogRef: MatDialogRef<HpoDialogWrapperComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { bestMatch: string, title: string }
   ) {}
+
 
   onSelected(term: HpoTermDuplet) {
     this.dialogRef.close(term);

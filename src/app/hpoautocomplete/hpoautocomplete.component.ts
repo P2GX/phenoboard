@@ -45,6 +45,14 @@ export class HpoAutocompleteComponent implements OnInit {
     if (changes['inputString'] && changes['inputString'].currentValue !== undefined) {
       this.control.setValue(this.inputString);
     }
+    if (this.inputString) {
+      this.control.setValue(this.inputString, { emitEvent: false });
+    }
+    // visually highlight the text so the user can overwrite it immediately
+    setTimeout(() => {
+      const input = document.querySelector('input[matInput]') as HTMLInputElement;
+      if (input) input.select();
+    });
   }
 
   ngOnInit(): void {
