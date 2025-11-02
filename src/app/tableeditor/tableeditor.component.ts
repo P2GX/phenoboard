@@ -1306,7 +1306,7 @@ getTransformDisplayName(transform: TransformType): string {
     [TransformType.LastEncounterAge]: 'Last Encounter Age',
     [TransformType.LastEncounterAgeAssumeYears]: 'Last Encounter Age (assume years)',
     [TransformType.SexColumn]: 'Sex Column',
-    [TransformType.SplitColumn]: 'Split Age/sex Column',
+    [TransformType.SplitColumn]: 'Split Column',
     [TransformType.SingleHpoTerm]: 'Single HPO Term',
     [TransformType.MultipleHpoTerm]: 'Multiple HPO Terms',
     [TransformType.AnnotateVariants]: 'Annotate variants',
@@ -1768,7 +1768,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     if (etlDto == null) {
       return;
     }
-    if (! colIndex) {
+    if (colIndex === null || colIndex === undefined) {
       this.notificationService.showError(`Column index was null, attempt to set column to ${coltype}`);
       return;
     }
@@ -1789,6 +1789,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
   }
 
   async setColumnTypeDialog(colIndex: number) {
+    console.log("setColumnTypeDialog coli=", colIndex);
     const etlDto = this.etlDto;
     if (etlDto == null) {
       return;

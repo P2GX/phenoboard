@@ -1,50 +1,74 @@
 # Installation
 
-Phenoboard will be offered as a prepackage Mac or Windows installer once the initial development phase is finished. For now, it can be installed and run as follows.
+Phenoboard is available as prepackaged installers for macOS, Windows, and Linux. Download the latest version from the [Releases](https://github.com/p2gx/phenoboard/releases) page.
 
+## Installing on macOS
 
+> **File to download:** `phenoboard_0.5.10_aarch64.dmg`  
+> This is the macOS installer for Apple Silicon (M1/M2/M3 Macs)
 
-## Running on macOS
+Because this application is open-source and distributed for free, it is not signed or notarized by Apple. macOS will warn you the first time you try to open it. Here's how to install:
 
-Because this application is open-source and distributed for free, it is not signed or notarized by Apple.
-That means macOS will warn you the first time you try to open it. Here’s how to open it:
+1. Download the `.dmg` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+2. Open the DMG and drag the app into your Applications folder
+3. When you try to open it, macOS will show a message:  
+   *"App can't be opened because it is from an unidentified developer"*
+4. Open **System Settings → Privacy & Security**
+5. Scroll down — you'll see an **"Open Anyway"** button for this app
+6. Click **Open Anyway**, then confirm when prompted
+7. macOS will remember your choice — you won't have to do this again
 
-1. Download the .dmg file from the Releases page.
-2. Open the DMG and drag the app into your Applications folder.
-3. When you try to open it, macOS will show a message:
+## Installing on Windows
 
-4. “App can’t be opened because it is from an unidentified developer.”
-5. Open System Settings → Privacy & Security.
-6. Scroll down — you’ll see an “Open Anyway” button for this app.
-7. Click Open Anyway, then confirm when prompted.
-8. macOS will remember your choice — you won’t have to do this again.
+> **File to download:** `phenoboard_0.5.10_x64_en-US.msi`  
+> Windows installer (MSI format)
 
-## Running on Windows
+1. Download the `.msi` installer from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+2. Double-click to start the installer
+3. If Windows shows a blue SmartScreen dialog saying:  
+   *"Windows protected your PC"*
+4. Click **"More info"** → **"Run anyway"**
 
-1. Download the .msi installer from the Releases page.
-2. Double-click to start the installer.
-3. If Windows shows a blue SmartScreen dialog saying:
+> **Note:** Windows shows this for unsigned apps from new developers. Once you install and run it, the warning will not reappear.
 
-    “Windows protected your PC”
+## Installing on Linux
 
-4. click “More info” → “Run anyway.”
+### Debian/Ubuntu (recommended)
 
-Note:
-Windows shows this for unsigned apps from new developers.
-Once you install and run it, the warning will not reappear.
+> **File to download:** `phenoboard_0.5.10_amd64.deb`  
+> Debian/Ubuntu package
 
-## Installing on linux
-
-1. Download the .deb package  (Debian/Ubuntu).
-
-
+1. Download the `.deb` package from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+2. Install using:
 ```bash
-sudo apt install ./yourapp.deb
+sudo apt install ./phenoboard_0.5.10_amd64.deb
 ```
 
-For other distributions, you can build from source (see below).
+Or using dpkg:
+```bash
+sudo dpkg -i phenoboard_0.5.10_amd64.deb
+```
 
-## Build from source
+### Other Linux Distributions
+
+> **File to download:** `phenoboard_0.5.10_amd64.AppImage`  
+> Universal Linux application (no installation needed)
+
+1. Download the `.AppImage` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+2. Make it executable:
+```bash
+chmod +x phenoboard_0.5.10_amd64.AppImage
+```
+
+3. Run it:
+```bash
+./phenoboard_0.5.10_amd64.AppImage
+```
+
+---
+
+## Building from Source
+
 This will work on any OS.
 
 ```bash

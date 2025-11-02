@@ -142,25 +142,26 @@
   [style.top.px]="columnContextMenuY"
   [style.left.px]="columnContextMenuX"
   class="context-menu"
-  (click)="columnContextMenuVisible = false"
 >
   <div style="padding: 5px 12px; font-weight: bold;">
     Column: {{ contextMenuColHeader?.original }}<br />
     Type: {{ contextMenuColType }}
   </div>
   <ul>
-    @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
-     <li (click)="clearColumnFilter()">Show All Columns</li>
-     <li class="has-submenu">
-       Set Column Type ▸
+    @if(contextMenuColIndex !== null) {
+      <li (click)="startEditColumn(contextMenuColIndex); columnContextMenuVisible = false">Focus on Column</li>
+      <li (click)="clearColumnFilter(); columnContextMenuVisible = false">Show All Columns</li>
+      <li class="has-submenu">
+        Set Column Type ▸
         <ul class="submenu">
           @for (category of etlTypeKeys; track category) {
-            <li (click)="setColumnType(contextMenuColIndex, category)">
-                  {{ category }}
-                </li>
-            }
+            <li (click)="setColumnType(contextMenuColIndex, category); columnContextMenuVisible = false">
+              {{ category }}
+            </li>
+          }
         </ul>
      </li>
+    }
     <li class="has-submenu">
   Transform Column ▸
   <ul class="submenu">
@@ -169,7 +170,7 @@
         {{ category.label }} ▸
         <ul class="submenu">
           @for (transform of category.transforms; track transform) {
-            <li (click)="applyNamedTransform(contextMenuColIndex, transform)">
+            <li (click)="applyNamedTransform(contextMenuColIndex, transform); columnContextMenuVisible = false">
               {{ getTransformDisplayName(transform) }}
             </li>
           }

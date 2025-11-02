@@ -2,7 +2,7 @@
 
 This page explains the release process whereby installers are added to a Release on the project GitHub page.
 
-Following an important update, increment the Application version (we are using the same version number in Cargo.toml and package.json).
+Following an important update, increment the Application version (we are using the same version number in Cargo.toml and package.json and tauri.conf.json).
 The version number will be something like 0.5.12. Adjust the tag accordingly and enter the following commands.
 
 ```bash

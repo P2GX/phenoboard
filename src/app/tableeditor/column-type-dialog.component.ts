@@ -3,7 +3,6 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-column-type-dialog',
