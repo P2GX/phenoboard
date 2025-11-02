@@ -364,9 +364,7 @@ openPubmedDialog() {
 
   dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
     if (result) {
-      this.pmidDto = result;
-      const pmid = this.pmidDto.pmid;
-
+      const pmid = result.pmid;
       if (this.cohortService.pmidExists(pmid)) {
         // 🟡 Ask user to confirm before continuing
         const confirmRef = this.dialog.open(ConfirmDialogComponent, {
@@ -386,6 +384,7 @@ openPubmedDialog() {
             this.pmidDto = result;
           } else {
             this.notificationService.showWarning('Cancelled adding duplicate PMID.');
+            this.pmidDto = defaultPmidDto();
           }
         });
         } else {

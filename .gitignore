@@ -31,3 +31,10 @@ dist/
 .DS_Store
 src-tauri/.DS_Store
 src-tauri/gen/
+
+src-tauri/icons/*.ico
+src-tauri/icons/*.icns
+src-tauri/icons/*x*.png
+src-tauri/icons/android/
+src-tauri/icons/ios/
+src-tauri/icons/.icon-square.png.swp
