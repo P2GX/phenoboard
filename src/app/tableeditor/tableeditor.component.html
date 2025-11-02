@@ -57,8 +57,10 @@
   <tr class="header-row">
     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
       @let col = etlDto.table.columns[colIndex];
-      <th [ngClass]="getColumnClass(colIndex)"
-      (contextmenu)="onRightClickHeader($event, colIndex)">
+      <th 
+        [ngClass]="getColumnClass(colIndex)"
+        [ngStyle]="{ 'background-color': getColumnColor(col.header.columnType) }"
+        (contextmenu)="onRightClickHeader($event, colIndex)">
         <span [matTooltip]="col.header.current || ''">
           {{ col.header.original }}
         </span>
@@ -70,7 +72,8 @@
   <tr class="type-row">
      @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
         @let col = etlDto.table.columns[colIndex];
-      <th class="border border-gray-400 px-2 py-1 text-center text-sm text-gray-600">
+      <th [ngClass]="getColumnClass(colIndex)"
+        (contextmenu)="onRightClickHeader($event, colIndex)">
         {{ col.header.columnType }}
       </th>
     }
@@ -142,12 +145,22 @@
   (click)="columnContextMenuVisible = false"
 >
   <div style="padding: 5px 12px; font-weight: bold;">
-    Column: {{ contextMenuColHeader }}<br />
+    Column: {{ contextMenuColHeader?.original }}<br />
     Type: {{ contextMenuColType }}
   </div>
   <ul>
     @if(contextMenuColIndex !== null){<li (click)="startEditColumn(contextMenuColIndex)">Focus on Column</li>}
      <li (click)="clearColumnFilter()">Show All Columns</li>
+     <li class="has-submenu">
+       Set Column Type ▸
+        <ul class="submenu">
+          @for (category of etlTypeKeys; track category) {
+            <li (click)="setColumnType(contextMenuColIndex, category)">
+                  {{ category }}
+                </li>
+            }
+        </ul>
+     </li>
     <li class="has-submenu">
   Transform Column ▸
   <ul class="submenu">

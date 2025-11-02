@@ -46,7 +46,7 @@ enum TransformType {
   OnsetAge = 'Onset Age',
   LastEncounterAge = 'Age at last encounter',
   SexColumn = 'Sex column',
-  SplitAgeSex = "Split Age/Sex column",
+  SplitColumn = "Split column",
   StringSanitize = 'Sanitize (trim/ASCII)',
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
@@ -62,7 +62,19 @@ enum TransformType {
   ConstantColumn="Add constant column to right",
   MergeIndividualFamily="Merge family/individual columns",
   ToggleTransformed="Toggle transformed status",
+  RawColumnType="raw",
+  FamilyIdColumnType="Family ID",
+  PatientIdColumnType="Individual ID",
+  GeneSymbolColumnType="Gene symbol",
+  VariantColumnType="Variant",
+  DiseaseColumnType="Disease",
+  AgeOfOnsetColumnType="Age of onset",
+  AgeAtLastEncounterColumnType="Age at last encounter",
+  SexColumnType="Sex",
+  DeceasedColumnType="Deceased",
+  IgnoreColumnType="Ignore"
 }
+
 
 
 
@@ -77,6 +89,7 @@ enum TransformType {
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+[x: string]: any;
   
 
   constructor(private configService: ConfigService, 
@@ -124,6 +137,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   contextMenuColIndex: number | null = null;
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
+  etlTypeKeys = Object.keys(EtlColumnType) as (keyof typeof EtlColumnType)[];
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
@@ -204,13 +218,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.LastEncounterAgeAssumeYears]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LastEncounterAgeAssumeYears),
     [TransformType.AnnotateVariants]: (colIndex) => { this.annotateVariants(colIndex); },
     [TransformType.UpdateVariants]: (colIndex) => { this.updateVariants(colIndex); },
-    [TransformType.SplitAgeSex]: (colIndex) => {  this.splitAgeSex(colIndex); },
-    [TransformType.SetColumnType]: (colIndex) => {  this.setColumnTypeDialog(colIndex);},
-    [TransformType.DeleteColumn]: (colIndex) => {  this.deleteColumn(colIndex)  },
+    [TransformType.SplitColumn]: (colIndex) => { this.splitColumn(colIndex); },
+    [TransformType.SetColumnType]: (colIndex) => { this.setColumnTypeDialog(colIndex); },
+    [TransformType.DeleteColumn]: (colIndex) => { this.deleteColumn(colIndex); },
     [TransformType.DuplicateColumn]: (colIndex) => { this.duplicateColumn(colIndex); },
     [TransformType.ConstantColumn]: (colIndex) => { this.addConstantColumn(colIndex); },
-    [TransformType.MergeIndividualFamily]: (colIndex) => { this.mergeIndividualAndFamilyColumns();  },
-    [TransformType.ToggleTransformed]: (colIndex) => { this.toggleTransformed(colIndex); }
+    [TransformType.MergeIndividualFamily]: (colIndex) => { this.mergeIndividualAndFamilyColumns(); },
+    [TransformType.ToggleTransformed]: (colIndex) => { this.toggleTransformed(colIndex); },
+    [TransformType.RawColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Raw); },
+    [TransformType.FamilyIdColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.FamilyId); },
+    [TransformType.PatientIdColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.PatientId); },
+    [TransformType.GeneSymbolColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.GeneSymbol); },
+    [TransformType.VariantColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Variant); },
+    [TransformType.DiseaseColumnType]:(colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Disease); },
+    [TransformType.AgeOfOnsetColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.AgeOfOnset); },
+    [TransformType.SexColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Sex); },
+    [TransformType.DeceasedColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Deceased); },
+    [TransformType.IgnoreColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Ignore); },
   };
 
  
@@ -373,6 +397,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /** This method is called if the user right clicks on the header (first row) */
   onRightClickHeader(event: MouseEvent, colIndex: number): void {
     event.preventDefault();
+    console.log('right-clicked header index', colIndex);
     this.contextMenuColIndex = colIndex;
     this.contextMenuColHeader = this.displayHeaders[colIndex] ?? null; 
     this.contextMenuColType = this.displayHeaders[colIndex]?.columnType ?? null;
@@ -768,8 +793,6 @@ async confirmValueTransformation() {
     this.notificationService.showError("Could not confirm value transformation because table or column was null");
     return;
   }
-  console.log("confirmValueTransformation")
-
   const colIndex = this.previewColumnIndex;
   const col = this.etlDto.table.columns[colIndex];
   const header = this.displayHeaders[colIndex];
@@ -919,13 +942,11 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
         // result is updated entries
         this.editingValue = this.contextMenuCellValue || this.editingValue;
       }
-    });
-    this.editModalVisible = true;
-    this.contextMenuCellVisible = false;
-    return;
-  }
-
-
+      });
+      this.editModalVisible = true;
+      this.contextMenuCellVisible = false;
+      return;
+    }
     this.editingValue = this.contextMenuCellValue;
     this.editModalVisible = true;
     this.contextMenuCellVisible = false;
@@ -1076,8 +1097,8 @@ deleteRowAtI(etl: EtlDto, i: number): EtlDto {
     this.reRenderTableRows();
   }
 
-
-splitAgeSex(index: number | null) {
+/** Split a column into two according to a token such as "/" or ":" */
+splitColumn(index: number | null) {
   const etlDto = this.etlDto;
   if (!etlDto || index === null) return;
 
@@ -1085,7 +1106,6 @@ splitAgeSex(index: number | null) {
   const originalColumn = columns[index];
   if (!originalColumn) return;
 
-  // 🧩 open the dialog first
   const dialogRef = this.dialog.open(SplitColumnDialogComponent, {
     width: '400px',
     data: { separator: '/' }
@@ -1098,33 +1118,33 @@ splitAgeSex(index: number | null) {
       this.notificationService.showError("Could not extract separator");
       return;
     }
-    let sexPosition = Number(result.sexPosition);
-    let agePosition = Number(result.agePosition);
-    if (![0, 1].includes(sexPosition)) sexPosition = 0;
-    if (![0, 1].includes(agePosition)) agePosition = 1;
+    let columnAPosition = Number(result.sexPosition);
+    let columnBPosition = Number(result.agePosition);
+    if (![0, 1].includes(columnAPosition)) columnAPosition = 0;
+    if (![0, 1].includes(columnBPosition)) columnBPosition = 1;
     //  copy original column
-    const sexColumn: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
-    const ageColumn: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    const columnB: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
 
-    sexColumn.id = crypto.randomUUID();
-    ageColumn.id = crypto.randomUUID();
+    columnA.id = crypto.randomUUID();
+    columnB.id = crypto.randomUUID();
 
-    sexColumn.header = { ...sexColumn.header, original: `Sex (${originalColumn.header.original})` };
-    ageColumn.header = { ...ageColumn.header, original: `Age (${originalColumn.header.original})` };
+    columnA.header = { ...columnA.header, original: `Sex (${originalColumn.header.original})` };
+    columnB.header = { ...columnB.header, original: `Age (${originalColumn.header.original})` };
 
-    const sexValues: string[] = [];
-    const ageValues: string[] = [];
+    const columnAValues: string[] = [];
+    const columBValues: string[] = [];
     for (const cell of originalColumn.values) {
       const text = cell == null ? '' : cell;
       const parts = text.split(separator);
-      const sexVal = (parts[sexPosition]?.trim() || 'U');
-      const ageVal = (parts[agePosition]?.trim() || 'na');
-      sexValues.push(sexVal);
-      ageValues.push(ageVal);
+      const aVal = (parts[columnAPosition]?.trim() || 'U');
+      const bVal = (parts[columnBPosition]?.trim() || 'na');
+      columnAValues.push(aVal);
+      columBValues.push(bVal);
     }
-    originalColumn.values = sexValues;
-    ageColumn.values = ageValues;
-    columns.splice(index + 1, 0, ageColumn);
+    originalColumn.values = columnAValues;
+    columnB.values = columBValues;
+    columns.splice(index + 1, 0, columnB);
 
     this.etlDto = {
       ...etlDto,
@@ -1207,6 +1227,20 @@ splitAgeSex(index: number | null) {
     this.editModalVisible = false;
   }
 
+  columnTypeCategories: TransformType [] = [
+    TransformType.RawColumnType,
+    TransformType.FamilyIdColumnType,
+    TransformType.PatientIdColumnType,
+    TransformType.GeneSymbolColumnType,
+    TransformType.VariantColumnType,
+    TransformType.DiseaseColumnType,
+    TransformType.AgeOfOnsetColumnType,
+    TransformType.SexColumnType,
+    TransformType.DeceasedColumnType,
+    TransformType.IgnoreColumnType
+  ]
+
+
   // Organized transform structure
 transformCategories = {
   basic: {
@@ -1252,7 +1286,7 @@ transformCategories = {
         TransformType.ConstantColumn,
         TransformType.MergeIndividualFamily,
         TransformType.ToggleTransformed,
-        TransformType.SplitAgeSex,
+        TransformType.SplitColumn,
     ]
   }
 };
@@ -1270,7 +1304,7 @@ getTransformDisplayName(transform: TransformType): string {
     [TransformType.LastEncounterAge]: 'Last Encounter Age',
     [TransformType.LastEncounterAgeAssumeYears]: 'Last Encounter Age (assume years)',
     [TransformType.SexColumn]: 'Sex Column',
-    [TransformType.SplitAgeSex]: 'Split Age/sex Column',
+    [TransformType.SplitColumn]: 'Split Age/sex Column',
     [TransformType.SingleHpoTerm]: 'Single HPO Term',
     [TransformType.MultipleHpoTerm]: 'Multiple HPO Terms',
     [TransformType.AnnotateVariants]: 'Annotate variants',
@@ -1280,7 +1314,17 @@ getTransformDisplayName(transform: TransformType): string {
     [TransformType.DuplicateColumn]: 'Duplicate column',
     [TransformType.ConstantColumn]: 'Add constant column',
     [TransformType.MergeIndividualFamily]: 'Merge individual and family columns',
-    [TransformType.ToggleTransformed]: 'Toggle transformed status'
+    [TransformType.ToggleTransformed]: 'Toggle transformed status',
+    [TransformType.RawColumnType]: 'Raw',
+    [TransformType.FamilyIdColumnType]: 'Family ID',
+    [TransformType.PatientIdColumnType]: 'Individual ID',
+    [TransformType.GeneSymbolColumnType]: 'Gene symbol',
+    [TransformType.VariantColumnType]: 'Variant',
+    [TransformType.DiseaseColumnType]: 'Disease',
+    [TransformType.AgeOfOnsetColumnType]: 'Age of onset',
+    [TransformType.SexColumnType]: 'Sex',
+    [TransformType.DeceasedColumnType]: 'Deceased',
+    [TransformType.IgnoreColumnType]: 'Ignore'
   };
   return displayNames[transform] || transform;
 }
@@ -1412,8 +1456,8 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.duplicateColumn(colIndex);
       return;
 
-    case TransformType.SplitAgeSex:
-      this.splitAgeSex(colIndex);
+    case TransformType.SplitColumn:
+      this.splitColumn(colIndex);
       return;
 
     case TransformType.AnnotateVariants:
@@ -1640,19 +1684,17 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
 
 
 
-  /** TODO - document */
+  /** Used by processHpoColumn to retrieve the HpoTermDuplet corresponding to a transformed column */
   get_single_hpo_term(header: EtlColumnHeader) : Promise<HpoTermDuplet> {
     return new Promise((resolve, reject) => {
       if (header.columnType !== EtlColumnType.SingleHpoTerm) {
         reject(new Error("Header is not a single HPO term column"));
         return;
       }
-
       if (!header.hpoTerms || header.hpoTerms.length == 0) {
         reject(new Error("No HPO term found in header metadata"));
         return;
       }
-
       resolve(header.hpoTerms[0]);
     });
   }
@@ -1711,6 +1753,32 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     } else {
       return 'normal-column';
     }
+  }
+
+  /* The column types (e.g., individual, HPO,...) have different colors. Default is white. */
+  getColumnColor(type: EtlColumnType): string {
+    return this.columnTypeColors[type] ?? '#ffffff'; // default white
+  }
+
+  async setColumnType(colIndex: number | null, coltype: string) {
+    const etlDto = this.etlDto;
+    if (etlDto == null) {
+      return;
+    }
+    if (! colIndex) {
+      this.notificationService.showError(`Column index was null, attempt to set column to ${coltype}`);
+      return;
+    }
+    if (this.etlTypeKeys.includes(coltype as keyof typeof EtlColumnType)) {
+      const key = coltype as keyof typeof EtlColumnType;
+      const enumValue = EtlColumnType[key];
+      etlDto.table.columns[colIndex].header.columnType = enumValue;
+      this.reRenderTableRows();
+    } else {
+      this.notificationService.showError(`Could not find column type ${coltype}`);
+      console.log("available types:", this.etlTypeKeys);
+    }
+
   }
 
   async setColumnTypeDialog(colIndex: number) {

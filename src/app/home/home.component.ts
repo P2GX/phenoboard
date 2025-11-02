@@ -72,7 +72,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.unlisten = await listen('backend_status', (event) => {
       this.ngZone.run(() => {
         const status = event.payload as StatusDto;
-        console.log("got backend status: ", status);
         this.backendStatusService.setStatus(status);
         this.update_gui_variables();
       });
@@ -113,7 +112,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   async update_gui_variables() {
     const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
-      console.log("in update_gui, status = ", status);
       if (status.hpoLoaded) {
         this.hpoMessage = status.hpoVersion;
       } else {
