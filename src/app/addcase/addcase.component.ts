@@ -23,6 +23,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
+import { ConfirmDialogComponent } from './confirmdialog.component';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -47,14 +48,12 @@ export class AddcaseComponent {
     public ageService: AgeInputService,
     private cohortService: CohortDtoService,
     private dialog: MatDialog,
-    private svDialog: SvDialogService,
     private router: Router,
     private notificationService: NotificationService,
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
  
   cohortDto$ = this.cohortService.cohortData$;
-  //pmidForm: FormGroup;
   pmidDto: PmidDto = defaultPmidDto();
 
 
@@ -357,27 +356,50 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
 
-    openPubmedDialog() {
-      const dialogRef = this.dialog.open(PubmedComponent, {
-        width: '600px',
-        data: { pmidDto: null } // optional initial data
-      });
-  
-      dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-        if (result) {
-          this.pmidDto = result;
-          const pmid = this.pmidDto.pmid;
-          if (this.cohortService.pmidExists(pmid)) {
-            this.notificationService.warnPmid(pmid);
+openPubmedDialog() {
+  const dialogRef = this.dialog.open(PubmedComponent, {
+    width: '600px',
+    data: { pmidDto: null } // optional initial data
+  });
+
+  dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
+    if (result) {
+      this.pmidDto = result;
+      const pmid = this.pmidDto.pmid;
+
+      if (this.cohortService.pmidExists(pmid)) {
+        // 🟡 Ask user to confirm before continuing
+        const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '400px',
+          data: {
+            title: 'Duplicate PMID',
+            message: `${pmid} is already in the database. Do you want to continue anyway?`,
+            confirmText: 'Continue',
+            cancelText: 'Cancel'
           }
+        });
+
+        confirmRef.afterClosed().subscribe((confirmed: boolean) => {
+          if (confirmed) {
+            // user explicitly confirmed, proceed
+            this.notificationService.showWarning(`Continuing with duplicate PMID ${pmid}`);
+            this.pmidDto = result;
+          } else {
+            this.notificationService.showWarning('Cancelled adding duplicate PMID.');
+          }
+        });
         } else {
-          this.notificationService.showError('Could not retrieve PMID');
+          // Normal behavior if not duplicate
+          this.pmidDto = result;
         }
-      });
-    }
+      } else {
+        this.notificationService.showError('Could not retrieve PMID');
+      }
+    });
+  }
 
     resetPmidDto() {
-      this.pmidDto = defaultPmidDto(); // or however you want to reset it
+      this.pmidDto = defaultPmidDto();
     }
 
     openHpoTwoStepDialog() {

@@ -23,6 +23,18 @@ jobs:
       # ------------------------------------
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
     
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -34,7 +46,7 @@ jobs:
       # 2. Install Dependencies
       # ------------------------------------
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       # ------------------------------------
       # 3. Build Frontend (Angular / React / etc.)
