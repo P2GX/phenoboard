@@ -1,16 +1,14 @@
-# phenoboard
-GA4GH Phenoboard
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://p2gx.github.io/phenoboard/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![GA4GH](https://img.shields.io/badge/GA4GH-Phenopackets-orange.svg)](https://github.com/phenopackets)
+[![HPO](https://img.shields.io/badge/HPO-Human%20Phenotype%20Ontology-purple.svg)](https://hpo.jax.org/)
+
+# GA4GH Phenoboard
 
 Curation of individuals with Human Phenotype Ontology and GA4GH Phenopacket Schema.
+See the [documention](https://p2gx.github.io/phenoboard/) for a tutorial. Go to the 
+[Releases](https://p2gx.github.io/phenoboard/releases) page for installation files for Macintosh, Windows, and Debian/Ubuntu linux.
 
-Phenopboard is still in early development. It makes heavy use of [ga4ghphenotools](https://github.com/P2GX/ga4ghphetools.git)
-and some development is using a locally compiled version of this library. Before official release, we will create Mac, Windows, and linux installers for users.
 
 
-## Run the GUI application in development mode
-```bash 
-npm run tauri dev
-```
-
-Also see the [documention](https://p2gx.github.io/phenoboard/).
-
+![Phenoboard Screenshot](book/src/img/phenoboard-screenshot.png)
