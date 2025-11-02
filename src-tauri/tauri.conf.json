@@ -4,9 +4,9 @@
   "version": "0.3.1",
   "identifier": "org.p2gx.phenoboard",
   "build": {
-    "beforeDevCommand": "npx nx serve phenoboard --configuration=development",
+    "beforeDevCommand": "npx nx serve phenoboard --configuration=development  --no-cloud",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npx nx build phenoboard --configuration=development",
+    "beforeBuildCommand": "npx nx build phenoboard --configuration=development  --no-cloud",
     "frontendDist": "../dist/phenoboard/browser"
   },
   "app": {

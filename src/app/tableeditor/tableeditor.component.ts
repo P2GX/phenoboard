@@ -137,7 +137,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   contextMenuColIndex: number | null = null;
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
-  etlTypeKeys = Object.keys(EtlColumnType) as (keyof typeof EtlColumnType)[];
+  etlTypeKeys = [EtlColumnType.Ignore, EtlColumnType.PatientId, EtlColumnType.FamilyId,
+    EtlColumnType.AgeOfOnset, EtlColumnType.AgeAtLastEncounter, EtlColumnType.Variant,
+    EtlColumnType.Sex, EtlColumnType.Deceased, EtlColumnType.Raw ]
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
@@ -1760,6 +1762,7 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
     return this.columnTypeColors[type] ?? '#ffffff'; // default white
   }
 
+  /** Allows the user to manually set the column type */
   async setColumnType(colIndex: number | null, coltype: string) {
     const etlDto = this.etlDto;
     if (etlDto == null) {
@@ -1769,16 +1772,20 @@ async applyNamedTransform(colIndex: number | null, transformName: TransformType)
       this.notificationService.showError(`Column index was null, attempt to set column to ${coltype}`);
       return;
     }
-    if (this.etlTypeKeys.includes(coltype as keyof typeof EtlColumnType)) {
-      const key = coltype as keyof typeof EtlColumnType;
-      const enumValue = EtlColumnType[key];
+    if (this.etlTypeKeys.includes(coltype as EtlColumnType)) {
+      const enumValue = Object.entries(EtlColumnType)
+        .find(([key]) => key.toLowerCase() === coltype.toLowerCase())
+        ?.[1];
+      if (! enumValue) {
+        this.notificationService.showError(`Could not find column type ${coltype}`);
+        return;
+      }
       etlDto.table.columns[colIndex].header.columnType = enumValue;
       this.reRenderTableRows();
     } else {
       this.notificationService.showError(`Could not find column type ${coltype}`);
       console.log("available types:", this.etlTypeKeys);
     }
-
   }
 
   async setColumnTypeDialog(colIndex: number) {
