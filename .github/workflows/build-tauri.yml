@@ -23,9 +23,7 @@ jobs:
       # ------------------------------------
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
-
+    
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -36,13 +34,13 @@ jobs:
       # 2. Install Dependencies
       # ------------------------------------
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # ------------------------------------
       # 3. Build Frontend (Angular / React / etc.)
       # ------------------------------------
       - name: Build Frontend
-        run: npm run build -- --configuration=production --no-cloud
+        run: npm run build -- --configuration=production --skip-nx-cache
 
       # ------------------------------------
       # 4. Install platform-specific deps
@@ -51,7 +49,13 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
 
       - name: Install macOS dependencies
         if: matrix.platform == 'macos-latest'
