@@ -59,21 +59,24 @@ export class EtlSessionService {
     if (naSymbols.has(ageStr)) {
       return 'na';
     }
-    if (naSymbols.has(ageStr.toLowerCase())) {
+    if (neonatalSymbols.has(ageStr.toLowerCase())) {
       return "Neonatal onset";
     }
     const lower = ageStr.trim().toLowerCase();
 
-    // Match decimal years like "2.5 y" or "2.5 years"
-    const decimalYearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
-    if (decimalYearMatch && !lower.includes('month') && !lower.includes('day')) {
-      const yearsFloat = parseFloat(decimalYearMatch[1]);
-      const years = Math.floor(yearsFloat);
-      const months = Math.round((yearsFloat - years) * 12);
-      let result = 'P';
-      if (years > 0) result += `${years}Y`;
-      if (months > 0) result += `${months}M`;
-      return result;
+   
+   // Only handle decimal years if *no months or days* are present
+    if (!/[md]/.test(lower)) {
+      const decimalYearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
+      if (decimalYearMatch) {
+        const yearsFloat = parseFloat(decimalYearMatch[1]);
+        const years = Math.floor(yearsFloat);
+        const months = Math.round((yearsFloat - years) * 12);
+        let result = 'P';
+        if (years > 0) result += `${years}Y`;
+        if (months > 0) result += `${months}M`;
+        return result;
+      }
     }
 
     const yearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
@@ -87,7 +90,7 @@ export class EtlSessionService {
     const years = Math.floor(rawYears);
     const extraMonths = Math.round((rawYears - years) * 12);
     const months = Math.floor(rawMonths) + extraMonths;
-
+    
     let result = 'P';
     if (years > 0) result += `${years}Y`;
     if (months > 0) result += `${months}M`;

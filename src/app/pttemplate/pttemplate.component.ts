@@ -327,7 +327,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
               // Find the matching row in cohort.rows
               const rowIndex = cohort.rows.findIndex(r => r === row);
               if (rowIndex >= 0) {
-                row.alleleCountMap[variantKey] = 1;
+                row.alleleCountMap[variantKey] = result.count;
                 cohort.rows[rowIndex] = row; // update row reference
                 this.cohortService.setCohortData(cohort); // push back to service
                 this.notificationService.showSuccess(`Allele ${variantKey} added`);
@@ -366,7 +366,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
           return;
         }
         // Initialize to 1 if missing, otherwise increment
-        row.alleleCountMap[vkey] = (row.alleleCountMap[vkey] ?? 0) + 1;
+        row.alleleCountMap[vkey] = (row.alleleCountMap[vkey] ?? 0)  ;
         if (!(vkey in cohort.structuralVariants)) {
           cohort.structuralVariants[vkey] = sv;
         }

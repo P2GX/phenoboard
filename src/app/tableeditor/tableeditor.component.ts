@@ -34,7 +34,7 @@ import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
-import { SplitColumnDialogComponent } from './split-age-sex-column.component';
+import { SplitColumnDialogComponent } from './split-column.component';
 
 
 
@@ -1338,13 +1338,9 @@ getTransformDisplayName(transform: TransformType): string {
       this.notificationService.showError("Attempt to transform column with null ETL DTO");
       return [];
     }
-
     const col = this.etlDto.table.columns[colIndex];
     if (!col || !col.values) return [];
-
     const originalValues = col.values.map(v => v ?? '');
-
-  
 
     const transformedValues: string[] = originalValues.map(val => {
       switch (transform) {

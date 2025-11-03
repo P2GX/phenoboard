@@ -148,7 +148,9 @@ private async createTemplate(data: any, ctype: CohortType) {
         const template = await this.configService.createNewTemplate(
           diseaseData,
           ctype,
+          data.cohortAcronym
         );
+        this
         this.pendingCohort = template;
         this.thisCohortType = "mendelian";
       } catch (error) {
@@ -181,10 +183,9 @@ private async createTemplate(data: any, ctype: CohortType) {
         geneTranscriptList: [gtlB]
       };
       this.diseaseB = diseaseDataB;
-      const cohort = await this.configService.createNewMeldedTemplate(this.diseaseA, this.diseaseB);
+      const cohort = await this.configService.createNewMeldedTemplate(this.diseaseA, this.diseaseB, data.cohortAcronym);
       this.pendingCohort = cohort;
-      console.log("pending melded cohodt", cohort);
-       this.thisCohortType = "melded";
+      this.thisCohortType = "melded";
     } else if (ctype == "digenic") {
       this.notificationService.showError("digenic not implemented");
     } else {

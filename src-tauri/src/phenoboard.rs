@@ -465,13 +465,14 @@ impl PhenoboardSingleton {
     pub fn create_new_cohort_data(
         &mut self,
         dto: DiseaseData,
-        cohort_type: CohortType
+        cohort_type: CohortType,
+        acronym: String
     ) -> Result<CohortData, String> {
         let hpo = match &self.ontology {
             Some(onto) => onto.clone(),
             None => { return Err("HPO object not initialized".to_string()); }
         };
-        ga4ghphetools::factory::create_new_cohort_data(cohort_type, dto,  hpo)     
+        ga4ghphetools::factory::create_new_cohort_data(cohort_type, dto, acronym, hpo)     
     }
 
 

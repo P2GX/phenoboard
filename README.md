@@ -3,7 +3,8 @@
 [![GA4GH](https://img.shields.io/badge/GA4GH-Phenopackets-orange.svg)](https://github.com/phenopackets)
 [![HPO](https://img.shields.io/badge/HPO-Human%20Phenotype%20Ontology-purple.svg)](https://hpo.jax.org/)
 
-# GA4GH Phenoboard
+# <img src="src-tauri/icons/icon.png" alt="Phenoboard Icon" width="24" height="24" style="vertical-align: middle;"> GA4GH Phenoboard
+
 
 Curation of individuals with Human Phenotype Ontology and GA4GH Phenopacket Schema.
 See the [documention](https://p2gx.github.io/phenoboard/) for a tutorial. Go to the 

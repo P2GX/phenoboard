@@ -300,16 +300,18 @@ fn create_new_cohort_data(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     dto: DiseaseData,
     cohort_type: CohortType,
+    acronym: String
 ) -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let mut singleton = singleton_arc.lock().unwrap();
-    singleton.create_new_cohort_data(dto, cohort_type)
+    singleton.create_new_cohort_data(dto, cohort_type, acronym)
 }
 
 #[tauri::command]
 fn create_new_melded_cohort(
     singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
     diseases: Vec<DiseaseData>,
+    acronym: String
 ) -> Result<CohortData, String> {
     let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = singleton_arc.lock().unwrap();
@@ -317,7 +319,7 @@ fn create_new_melded_cohort(
         Some(hpo) => hpo.version().to_string(),
         None => { return  Err("HPO not initialized".to_string());}
     };
-    Ok(ga4ghphetools::factory::create_new_melded_cohort(diseases, &hpo_version))
+    Ok(ga4ghphetools::factory::create_new_melded_cohort(diseases, acronym, &hpo_version))
 }
 
 

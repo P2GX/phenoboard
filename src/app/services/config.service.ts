@@ -45,17 +45,18 @@ export class ConfigService {
    * @param input Seed text from which we generate initial HPO columns
    * @returns 
    */
-  async createNewTemplate(dto: DiseaseData, cohortType: CohortType):  Promise<CohortData> {
+  async createNewTemplate(dto: DiseaseData, cohortType: CohortType, acronym: string):  Promise<CohortData> {
     return await invoke<CohortData>("create_new_cohort_data", {
       'dto': dto,
       'cohortType': cohortType,
+      'acronym': acronym
     });
   }
 
-  async createNewMeldedTemplate(diseaseA: DiseaseData, diseaseB: DiseaseData): Promise<CohortData> {
+  async createNewMeldedTemplate(diseaseA: DiseaseData, diseaseB: DiseaseData, acronym: string): Promise<CohortData> {
     const diseaseList = [diseaseA, diseaseB];
     return await invoke<CohortData>("create_new_melded_cohort",
-      { 'diseases': diseaseList, }
+      { 'diseases': diseaseList, 'acronym': acronym}
     )
   }
   
