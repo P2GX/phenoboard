@@ -11,12 +11,24 @@ Because this application is open-source and distributed for free, it is not sign
 
 1. Download the `.dmg` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
 2. Open the DMG and drag the app into your Applications folder
-3. When you try to open it, macOS will show a message:  
+3. When you try to open it, macOS may show an error message:  
    *"App can't be opened because it is from an unidentified developer"*
-4. Open **System Settings → Privacy & Security**
-5. Scroll down — you'll see an **"Open Anyway"** button for this app
-6. Click **Open Anyway**, then confirm when prompted
-7. macOS will remember your choice — you won't have to do this again
+   or
+   *“phenoboard” is damaged and can’t be opened. You should move it to the Trash*
+
+This error happens because macOS applies strict security checks for programs downloaded from the Web. There are at least three ways of dealing with this. (Of course, do not move the app to the trash!)
+
+**1) Open System Settings → Privacy & Security**
+- Scroll down — you'll see an **"Open Anyway"** button for this app
+- Click **Open Anyway**, then confirm when prompted
+- macOS will remember your choice — you won't have to do this again
+
+**2) xattr**
+- run in Terminal: `xattr -cr /Applications/phenoboard.app`
+
+**3) System Settings**
+-  go to System Settings → Privacy & Security → click "Open Anyway"
+
 
 ## Installing on Windows
 
