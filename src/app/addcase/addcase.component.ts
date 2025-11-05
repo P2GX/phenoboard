@@ -1,6 +1,6 @@
-import { Component, Input, NgZone, ViewChild } from '@angular/core';
+import { Component, Input, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, NgModel,  } from '@angular/forms';
+import { FormsModule} from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
@@ -8,21 +8,19 @@ import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddagesComponent } from "../addages/addages.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
-import { ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
+import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
-import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent } from "../addvariant/addvariant.component";
-import { StructuralVariant, VariantDto } from '../models/variant_dto';
+import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
-import { SvDialogService } from '../services/svManualEntryDialogService';
 import { ConfirmDialogComponent } from './confirmdialog.component';
 
 /**
@@ -40,8 +38,6 @@ import { ConfirmDialogComponent } from './confirmdialog.component';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-
-
   constructor(
     private ngZone: NgZone,
     private configService: ConfigService,
@@ -77,7 +73,6 @@ export class AddcaseComponent {
  
 
   selectionRange: Range | null = null;
-  //parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
   showDropdownMap: { [termId: string]: boolean } = {};
   rightClickOptions: string[] = [];
   predefinedOptions: string[] = ["observed", "excluded", "na"];
@@ -115,7 +110,6 @@ export class AddcaseComponent {
       } else {
         this.tableData = null;
       }
-      
     });
   }
 
@@ -125,7 +119,6 @@ export class AddcaseComponent {
       this.unlisten();
       this.unlisten = null;
     }
-    
   }
 
   /** This function is called when the user wants to finalize
@@ -137,48 +130,50 @@ export class AddcaseComponent {
       this.notificationService.showError("Cannot submit new row without PMID");
       return;
     }
-      let pmid_dto = this.pmidDto;
-      if (this.demographData == null) {
-        this.notificationService.showError("Cannot submit row unless demographic information is initialized");
-        return;
+    let pmid_dto = this.pmidDto;
+    if (this.demographData == null) {
+      this.notificationService.showError("Cannot submit row unless demographic information is initialized");
+      return;
+    }
+    // combine PMID and Demographic data DTOs to create an individual
+    const individual_dto: IndividualData = {
+      pmid: pmid_dto.pmid,
+      title: pmid_dto.title,
+      individualId: this.demographData.individualId,
+      comment: this.demographData.comment,
+      ageOfOnset: this.demographData.ageOfOnset,
+      ageAtLastEncounter: this.demographData.ageAtLastEncounter,
+      deceased: this.demographData.deceased,
+      sex: this.demographData.sex
+    };
+    const hpoAnnotations: HpoTermData[] = this.hpoAnnotations;
+    let allele_keys: string[] = [];
+    console.log("submitNewRow, this.alleles=", this.alleles);
+    this.alleles.forEach(allele => {
+      if (allele.variantKey) allele_keys.push(allele.variantKey)
+    });
+  console.log("submitNewRow, allele_keys=", allele_keys);
+    const cohort_dto = this.cohortService.getCohortData();
+    //console.log("add case, cohort=", cohort_dto);
+    console.log("Add case allele keys=", allele_keys);
+    if (cohort_dto != null) {
+      try {
+        const updated_dto: CohortData = await this.configService.addNewRowToCohort(
+            individual_dto, 
+            hpoAnnotations, 
+            allele_keys,
+            cohort_dto);
+        this.cohortService.setCohortData(updated_dto);
+      } catch (error) {
+        this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
+        this.notificationService.showError(this.errorString);
       }
-
-      // combine the above
-      const individual_dto: IndividualData = {
-        pmid: pmid_dto.pmid,
-        title: pmid_dto.title,
-        individualId: this.demographData.individualId,
-        comment: this.demographData.comment,
-        ageOfOnset: this.demographData.ageOfOnset,
-        ageAtLastEncounter: this.demographData.ageAtLastEncounter,
-        deceased: this.demographData.deceased,
-        sex: this.demographData.sex
-      };
-      const hpoAnnotations: HpoTermData[] = this.hpoAnnotations;
-      let allele_keys: string[] = [];
-      this.alleles.forEach(allele => {
-        if (allele.variantKey) allele_keys.push(allele.variantKey)
-      });
-      const cohort_dto = this.cohortService.getCohortData();
-      console.log("add case, cohort=", cohort_dto);
-      if (cohort_dto != null) {
-        try {
-          const updated_dto: CohortData = await this.configService.addNewRowToCohort(
-              individual_dto, 
-              hpoAnnotations, 
-              allele_keys,
-              cohort_dto);
-          this.cohortService.setCohortData(updated_dto);
-        } catch (error) {
-          this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
-          this.notificationService.showError(this.errorString);
-        }
-      } else {
-        this.notificationService.showError("Attempt to add new row with null template_dto")
-      }
-      this.resetAllInputVars();
-      /* After creating a new row, we jump to the template editor component. */
-     await this.router.navigate(['/pttemplate']);
+    } else {
+      this.notificationService.showError("Attempt to add new row with null template_dto")
+    }
+    this.resetAllInputVars();
+    /* After creating a new row, we jump to the template editor component. */
+    await this.router.navigate(['/pttemplate']);
   }
 
   private handleBackendStatus(payload: unknown): void {
@@ -274,46 +269,47 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
 
-    openVariantEditor(structural: boolean) {
-       const dialogRef = this.dialog.open(AddVariantComponent, {
-        data: {
-            isSv: structural
-          },
-            width: '600px'
-          });
-      
-          dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
-            if (result) {
-              const variantKey = result.variantKey;
-              const alleleCount = result.count;
-              if (variantKey == null) {
-                this.notificationService.showError("Could not retrieve variantKey");
-                return;
-              }
-              if (! result.isValidated) {
-                this.notificationService.showError("Variant could not be validated");
-                return;
-              }
-              /* If we get here, the variant was validated and added to the cohort. */
-              /* We add it with a count of 1 -- they user may need to adjust */
-              const dto: VariantDto = {
-                variantString: result.variantString,
-                transcript: result.transcript,
-                hgncId: result.hgncId,
-                geneSymbol: result.geneSymbol,
-                variantType: 'HGVS',
-                isValidated: false,
-                count: alleleCount
-              };
-              this.alleles.push(dto);
-              if (alleleCount == 2) {
-                this.alleles.push(dto);
-              }
-            
-            } else {
-              console.error("Error in open Allele Dialog")
-            }
-          });
+  openVariantEditor(structural: boolean) {
+    console.log("openVariantEditor structural=", structural);
+    const dialogRef = this.dialog.open(AddVariantComponent, {
+      data: {
+        isSv: structural
+      },
+        width: '600px'
+      });
+    
+      dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+        if (result) {
+          const variantKey = result.variantKey;
+          const alleleCount = result.count;
+          if (variantKey == null) {
+            this.notificationService.showError("Could not retrieve variantKey");
+            return;
+          }
+          if (! result.isValidated) {
+            this.notificationService.showError("Variant could not be validated");
+            return;
+          }
+          /* If we get here, the variant was validated and added to the cohort. */
+          /* We add it with a count of 1 -- they user may need to adjust */
+          const dto: VariantDto = {
+            variantString: result.variantString,
+            variantKey: result.variantKey,
+            transcript: result.transcript,
+            hgncId: result.hgncId,
+            geneSymbol: result.geneSymbol,
+            variantType: 'HGVS',
+            isValidated: false,
+            count: alleleCount
+          };
+          this.alleles.push(dto);
+          if (alleleCount == 2) {
+            this.alleles.push(dto);
+          }
+        } else {
+          console.error("Error in open Allele Dialog")
+        }
+      });
     }
 
 

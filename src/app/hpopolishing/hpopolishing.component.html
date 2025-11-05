@@ -68,7 +68,7 @@
 <div class="mt-4 p-2 border rounded bg-gray-50">
   <strong>Annotated Terms: n={{ getFenominalAnnotations().length }}</strong>
   <!-- text-annotations.component.html -->
-<div class="max-h-64 overflow-y-auto border border-gray-300 rounded">
+<div class="max-h-64  border border-gray-300 rounded">
   <table class="table-auto w-full border-collapse text-xs leading-tight">
   <thead class="bg-gray-100 sticky top-0 z-10">
     <tr>
@@ -79,61 +79,57 @@
       <th class="border px-1 py-[1px]">Actions</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody class="overflow-y-auto">
     <tr *ngFor="let annotation of hpoAnnotations; let i = index">
       <td class="border px-1 py-[1px]">
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
             {{ annotation.termId }}
-          </a></td>
-        <td class="border px-1 py-[1px] relative">
-  <span (click)="showParentChildDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
-    {{ annotation.label }} ▼
-  </span>
+          </a>
+      </td>
+      <td class="border px-1 py-[1px] relative">
+        <span (click)="showParentChildDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
+          {{ annotation.label }} ▼
+        </span>
+        @if (showDropdownMap[annotation.termId]) {
+          <div class="absolute left-0 top-full z-50 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg">           
+            @if (!parentChildHpoTermMap[annotation.termId]) {
+              <div class="p-2 text-gray-500 text-sm italic">
+                Loading...
+              </div>
+            }
+            @if (parentChildHpoTermMap[annotation.termId]) {
+              <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
+              <ul>
+                @for (parent of parentChildHpoTermMap[annotation.termId].parents; track parent.termId) {
+                  <li
+                    (click)="replaceTerm(annotation, parent)"
+                    class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+                  >
+                    {{ parent.label }} ({{ parent.termId }})
+                  </li>
+                }
+              </ul>
 
-  @if (showDropdownMap[annotation.termId]) {
-    <div class="absolute left-0 top-full z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg">
-      
-      @if (!parentChildHpoTermMap[annotation.termId]) {
-        <div class="p-2 text-gray-500 text-sm italic">
-          Loading...
-        </div>
-      }
-
-      @if (parentChildHpoTermMap[annotation.termId]) {
-        <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
-        <ul>
-          @for (parent of parentChildHpoTermMap[annotation.termId].parents; track parent.termId) {
-            <li
-              (click)="replaceTerm(annotation, parent)"
-              class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-            >
-              {{ parent.label }} ({{ parent.termId }})
-            </li>
-          }
-        </ul>
-
-        <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
-        <ul>
-          @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
-            <li
-              (click)="replaceTerm(annotation, child)"
-              class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-            >
-              {{ child.label }} ({{ child.termId }})
-            </li>
-          }
-        </ul>
-      }
-    </div>
-  }
-</td>
-
-
-    <td class="border px-1 py-[1px]">
-      <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
-        {{ annotation.isObserved ? 'Yes' : 'No' }}
-      </span>
-    </td>
+              <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
+              <ul>
+                @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
+                  <li
+                    (click)="replaceTerm(annotation, child)"
+                    class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
+                  >
+                    {{ child.label }} ({{ child.termId }})
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </td>
+      <td class="border px-1 py-[1px]">
+        <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
+          {{ annotation.isObserved ? 'Yes' : 'No' }}
+        </span>
+      </td>
       <td class="border px-1 py-[1px]">{{ annotation.onsetString }}</td>
       <td class="border px-1 py-[1px] flex gap-1 flex-wrap items-center">
         <button (click)="deleteAnnotation(i)" class="bg-red-500 text-white px-1 py-0.5 text-[10px] rounded">Delete</button>
