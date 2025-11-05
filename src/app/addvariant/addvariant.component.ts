@@ -98,7 +98,10 @@ export class AddVariantComponent {
    */
   onVariantInput(): void {
     this.resetVars();
-    this.variant_string = this.variant_string.replace(/\s+/g, '');
+    if (this.isHgvs) {
+      // we stripg whitespace from HGVS variants because it is common for publications to add space e.c., c.123 A > T
+      this.variant_string = this.variant_string.replace(/\s+/g, '');
+    }
     if (!this.variant_string) {
       this.errorMessage = 'Empty variant not allowed';
       this.isHgvs = false;
