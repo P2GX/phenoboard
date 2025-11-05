@@ -80,7 +80,8 @@
     </tr>
   </thead>
   <tbody class="overflow-y-auto">
-    <tr *ngFor="let annotation of hpoAnnotations; let i = index">
+    @for (annotation of hpoAnnotations; track i; let i = $index) {
+    <tr>
       <td class="border px-1 py-[1px]">
           <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
             {{ annotation.termId }}
@@ -150,6 +151,7 @@
         <button (click)="addOnsetString(annotation)" class="bg-green-500 text-white px-1 py-0.5 text-[10px] rounded">Add onset</button>
       </td>
     </tr>
+  }
   </tbody>
 </table>
 </div>
