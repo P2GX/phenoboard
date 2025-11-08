@@ -5,7 +5,7 @@ Phenoboard is available as prepackaged installers for macOS, Windows, and Linux.
 ## Installing on macOS
 
 > **File to download:** `phenoboard_0.5.10_aarch64.dmg`  
-> This is the macOS installer for Apple Silicon (M1/M2/M3 Macs)
+> This is the macOS installer for Apple Silicon (M1/M2/M3/M4 Macs)
 
 Because this application is open-source and distributed for free, it is not signed or notarized by Apple. macOS will warn you the first time you try to open it. Here's how to install:
 
@@ -16,17 +16,14 @@ Because this application is open-source and distributed for free, it is not sign
    or
    *“phenoboard” is damaged and can’t be opened. You should move it to the Trash*
 
-This error happens because macOS applies strict security checks for programs downloaded from the Web. There are at least three ways of dealing with this. (Of course, do not move the app to the trash!)
+This error happens because macOS applies strict security checks for programs downloaded from the Web. There are at least two ways of dealing with this. (Of course, do not move the app to the trash!)
 
-**1) Open System Settings → Privacy & Security**
-- Scroll down — you'll see an **"Open Anyway"** button for this app
-- Click **Open Anyway**, then confirm when prompted
-- macOS will remember your choice — you won't have to do this again
 
-**2) xattr**
+**1) xattr**
 - run in Terminal: `xattr -cr /Applications/phenoboard.app`
+(to open the Terminal, search for Terminal in Spotlight and then paste the above text into it and press Enter)
 
-**3) System Settings**
+**2) System Settings**
 -  go to System Settings → Privacy & Security → click "Open Anyway"
 
 
