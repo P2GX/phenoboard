@@ -12,7 +12,20 @@ import { CommonModule } from "@angular/common";
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatSelectModule, MatOptionModule, MatChipsModule, FormsModule],
   templateUrl: './multihpo-dialog-vis-component.html',
-  styleUrls: []
+  styles: [`
+    mat-dialog-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 8px; /* prevents scrollbar from overlapping text */
+    }
+    mat-dialog-actions {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      box-shadow: 0 -4px 6px -2px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+  `]
 })
 export class MultipleHpoDialogComponent {
   entries: { hpoId: string; label: string; status: 'observed' | 'excluded' }[] = [];

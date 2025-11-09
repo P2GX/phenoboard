@@ -22,7 +22,8 @@
     <div class="input-group">
       <input 
         id="pmid-input"
-        [(ngModel)]="pmidDto.pmid" 
+        [(ngModel)]="pmidDto.pmid"
+         (ngModelChange)="onPmidChange($event)"
         placeholder="Enter PMID"
         class="form-control">
       <button 

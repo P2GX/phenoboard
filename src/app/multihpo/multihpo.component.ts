@@ -118,10 +118,6 @@ export class MultiHpoComponent {
     }
     return this.hpoMappings[rowIndex][termIndex];
   }
-
-  trackByTermId(_: number, term: HpoTermDuplet) {
-    return term?.hpoId ?? term?.hpoLabel ?? _; // fallback
-  }
     
   addHpoTerm(term: HpoTermDuplet) {
     if (!term) return;

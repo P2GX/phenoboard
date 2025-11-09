@@ -6,7 +6,7 @@
 
   <!-- Chip set with removable HPO terms -->
   <mat-chip-set>
-    @for (term of allHpoTerms; track trackByTermId($index, term)) {
+    @for (term of allHpoTerms; track term.hpoId) {
       <mat-chip removable (removed)="removeHpoTerm(term)" color="primary">
         {{ term.hpoLabel }}
         <span
@@ -56,7 +56,7 @@
         class="compact-cell hpo-cell"
       >
         <div class="hpo-grid">
-          @for (term of allHpoTerms; track trackByTermId($index, term); let termIndex = $index) {
+          @for (term of allHpoTerms; track term.hpoId; let termIndex = $index) {
             <div class="hpo-row">
               <span class="hpo-label">{{ term.hpoLabel }}</span>
               <mat-button-toggle-group

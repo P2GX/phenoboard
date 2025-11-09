@@ -100,4 +100,10 @@ export class PubmedComponent implements OnInit {
     console.log('Cancel clicked');
     this.dialogRef.close(null);
   }
+
+  /* remove stray whitespaces */
+  onPmidChange(value: string): void {
+    this.pmidDto.pmid = value.replace(/\s+/g, '');
+  }
+
 }
