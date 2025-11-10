@@ -16,7 +16,8 @@ Because this application is open-source and distributed for free, it is not sign
    or
    *“phenoboard” is damaged and can’t be opened. You should move it to the Trash*
 
-This error happens because macOS applies strict security checks for programs downloaded from the Web. There are at least two ways of dealing with this. (Of course, do not move the app to the trash!)
+This error happens because macOS applies strict security checks for programs downloaded from the Web that are not signed with a paid Apple Developers account. 
+There are at least two ways of dealing with this. (Of course, do not move the app to the trash!)
 
 
 **1) xattr**
@@ -24,6 +25,7 @@ This error happens because macOS applies strict security checks for programs dow
 (to open the Terminal, search for Terminal in Spotlight and then paste the above text into it and press Enter)
 
 **2) System Settings**
+Depending on our OS version, you may also be able to do the following:
 -  go to System Settings → Privacy & Security → click "Open Anyway"
 
 

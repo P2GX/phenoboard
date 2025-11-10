@@ -16,3 +16,5 @@
     - [Table editor](help/table-editor.md)
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
+    - [Practical tips](developers/practical.md)
+    - [Release](developers/release.md)
