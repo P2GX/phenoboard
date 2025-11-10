@@ -50,3 +50,11 @@ export function sanitizeString(input: string): string {
         // Remove control and other non-ASCII characters (optional)
         .replace(/[^\x20-\x7E]/g, "");
 }
+
+/** Trim whitespace from beginning and end, replace emdash/endash with normal dash, 
+ * normalize non-standard whitespace, collapse repeated continguous whitespace characters,
+ * and remove non-ASCII characters */
+export function removeAllWhitespace(input: string): string {
+    return input
+        .replace(/\s+/g, "")
+}

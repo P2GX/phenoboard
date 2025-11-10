@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
@@ -23,7 +23,7 @@ import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { ColumnTypeDialogComponent } from './column-type-dialog.component';
-import { sanitizeString } from '../validators/validators';
+import { removeAllWhitespace, sanitizeString } from '../validators/validators';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
 import { MultipleHpoDialogComponent } from './multihpo-dialog-vis-component';
@@ -48,6 +48,7 @@ enum TransformType {
   SexColumn = 'Sex column',
   SplitColumn = "Split column",
   StringSanitize = 'Sanitize (trim/ASCII)',
+  RemoveWhitespace = "Remove all whitespace",
   ToUppercase = 'To Uppercase',
   ToLowercase = 'To Lowercase',
   ExtractNumbers = 'Extract Numbers',
@@ -232,11 +233,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.PatientIdColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.PatientId); },
     [TransformType.GeneSymbolColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.GeneSymbol); },
     [TransformType.VariantColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Variant); },
-    [TransformType.DiseaseColumnType]:(colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Disease); },
+    [TransformType.DiseaseColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Disease); },
     [TransformType.AgeOfOnsetColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.AgeOfOnset); },
     [TransformType.SexColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Sex); },
     [TransformType.DeceasedColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Deceased); },
     [TransformType.IgnoreColumnType]: (colIndex: number) => { this.setColumnType(colIndex, EtlColumnType.Ignore); },
+    [TransformType.RemoveWhitespace]: (colIndex: number) =>  { this.setColumnType(colIndex, EtlColumnType.Raw); }
   };
 
  
@@ -1249,6 +1251,7 @@ transformCategories = {
     label: 'Basic Transforms',
     transforms: [
       TransformType.StringSanitize,
+      TransformType.RemoveWhitespace,
       TransformType.ToUppercase,
       TransformType.ToLowercase,
       TransformType.ExtractNumbers,
@@ -1297,6 +1300,7 @@ transformCategories = {
 getTransformDisplayName(transform: TransformType): string {
   const displayNames: { [key in TransformType]: string } = {
     [TransformType.StringSanitize]: 'Sanitize (trim/ASCII)',
+    [TransformType.RemoveWhitespace]: "Remove all whitespace",
     [TransformType.ToUppercase]: 'To Uppercase',
     [TransformType.ToLowercase]: 'To Lowercase',
     [TransformType.ExtractNumbers]: 'Extract Numbers',
@@ -1346,6 +1350,8 @@ getTransformDisplayName(transform: TransformType): string {
       switch (transform) {
         case TransformType.StringSanitize:
           return sanitizeString(val);
+        case TransformType.RemoveWhitespace:
+          return removeAllWhitespace(val);
         case TransformType.ToUppercase:
           return val.toUpperCase();
         case TransformType.ToLowercase:
