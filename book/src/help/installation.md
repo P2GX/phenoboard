@@ -21,7 +21,11 @@ There are at least two ways of dealing with this. (Of course, do not move the ap
 
 
 **1) xattr**
-- run in Terminal: `xattr -cr /Applications/phenoboard.app`
+- run in Terminal: 
+```bash
+xattr -cr /Applications/phenoboard.app
+```
+
 (to open the Terminal, search for Terminal in Spotlight and then paste the above text into it and press Enter)
 
 **2) System Settings**

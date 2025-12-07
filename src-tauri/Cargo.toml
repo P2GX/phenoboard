@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.5.19"
+version = "0.5.20"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -23,19 +23,19 @@ html-escape = "0.2.13"
 fuzzy-matcher = "0.3"
 ontolius = "0.7.0" 
 reqwest = { version = "0.12.23", features = ["json", "blocking"] }
-rfd = { version = "0.15.4", default-features = false}
+rfd = { version = "0.16.0", default-features = false}
 fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.1.18' }
-ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.4.141' }
+ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.4.142' }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.145"
 toml = "0.9.8"
-tauri = { version = "2.9.3", features = [] }
+tauri = { version = "2.9.4", features = [] }
 tauri-plugin-dialog = "2.4.2"
 tauri-plugin-fs = "2.4.4"
 tauri-plugin-opener = "2.5.2"
 tokio = { version = "1.48.0", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing = "0.1.43"
+tracing-subscriber = "0.3.22"
 regex = "1.11.1"
 deunicode = "1.6.2"
 
