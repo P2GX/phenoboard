@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.5.22"
+version = "0.5.23"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -40,7 +40,7 @@ regex = "1.11.1"
 deunicode = "1.6.2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-rfd = { version = "0.16.0", default-features = false, features = ["xdg-portal"] }
+rfd = { version = "0.16.0", default-features = false, features = ["xdg-portal", "tokio"] }
 
 
 
