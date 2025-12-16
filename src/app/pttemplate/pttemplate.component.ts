@@ -21,7 +21,6 @@ import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent } from '../addvariant/addvariant.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { FormsModule } from '@angular/forms';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 type Option = { label: string; value: string };

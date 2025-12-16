@@ -6,8 +6,6 @@ import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { DiseaseData, newDiseaseData, CohortData, CohortType, GeneTranscriptData } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
-import { DiseaseIdSanitizerDirective } from '../directives/disease-id.directive';
-import { TrimDirective } from '../directives/trim.directive';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
