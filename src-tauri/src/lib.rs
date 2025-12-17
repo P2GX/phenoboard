@@ -102,12 +102,12 @@ fn load_hpo(
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let _ = app.emit("hpoLoading", "loading");
     std::thread::spawn(move || {
-        let mut singleton = phenoboard_arc.lock().unwrap(); 
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
                 let _ = app.emit("loadedHPO", "loading");
                 match ontology_loader::load_ontology(file) {
                     Ok(ontology) => {
+                        let mut singleton = phenoboard_arc.lock().unwrap(); 
                         let hpo_arc = Arc::new(ontology);
                         singleton.set_hpo(hpo_arc);
                     },
@@ -120,7 +120,7 @@ fn load_hpo(
                 let _ = app.emit("failure", "Failed to load HPO");
             }
         };
-        let status = singleton.get_status();
+        let status = phenoboard_arc.lock().unwrap().get_status();
         let _ = app.emit("backend_status", &status);
     });
     Ok(())
