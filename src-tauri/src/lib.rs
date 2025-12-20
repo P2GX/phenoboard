@@ -92,6 +92,31 @@ pub fn run() {
 }
 
 
+/// Converts a `tauri_plugin_fs::FilePath` into a `String` representing the full path.
+///
+/// # Arguments
+///
+/// * `file_path` - The `FilePath` object returned by Tauri's file picker.
+///
+/// # Returns
+///
+/// * `Ok(String)` - The full path as a UTF-8 string (lossily converted if necessary).
+/// * `Err(String)` - An error message if the path is missing.
+///
+/// # Example
+///
+/// ```rust
+/// let full_path = get_hpo_json_full_path_as_str(file_path)?;
+/// println!("Selected file path: {}", full_path);
+/// ```
+fn get_hpo_json_full_path_as_str(file_path: tauri_plugin_fs::FilePath) -> Result<String, String> {
+    let path = file_path
+        .as_path()
+        .ok_or_else(|| "Failed to get path from FilePath".to_string())?;
+
+    Ok(path.to_string_lossy().to_string())
+}
+
 
 /// Load the HPO from hp.json
 #[tauri::command]
@@ -104,18 +129,27 @@ fn load_hpo(
     std::thread::spawn(move || {
         match app.dialog().file().blocking_pick_file() {
             Some(file) => {
-                let _ = app.emit("loadedHPO", "loading");
-                match ontology_loader::load_ontology(file) {
-                    Ok(ontology) => {
-                        let mut singleton = phenoboard_arc.lock().unwrap(); 
-                        let hpo_arc = Arc::new(ontology);
-                        singleton.set_hpo(hpo_arc);
+                match get_hpo_json_full_path_as_str(file) {
+                    Ok(hp_json_path) => {
+                        let _ = app.emit("loadedHPO", "loading");
+                        match ontology_loader::load_ontology(&hp_json_path) {
+                            Ok(ontology) => {
+                                let mut singleton = phenoboard_arc.lock().unwrap(); 
+                                let hpo_arc = Arc::new(ontology);
+                            
+                                singleton.set_hpo(hpo_arc, &hp_json_path);
+                                singleton.initialize_hpo_autocomplete();
+                            },
+                            Err(e) => {
+                                let _ = app.emit("failure", format!("Failed to load HPO: {}", e));
+                            }
+                        }
                     },
                     Err(e) => {
-                        let _ = app.emit("failure", format!("Failed to load HPO: {}", e));
+                        let _ = app.emit("failure", format!("Failed to get HPO path: {e}"));
                     }
                 }
-            },
+            }
             None => {
                 let _ = app.emit("failure", "Failed to load HPO");
             }

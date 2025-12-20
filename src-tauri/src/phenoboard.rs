@@ -42,20 +42,21 @@ impl PhenoboardSingleton {
         }
         let hpo_json = hpo_json_result.unwrap();
         let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-        let ontology_opt: Option<FullCsrOntology> = loader.load_from_path(hpo_json).ok();
+        let ontology_opt: Option<FullCsrOntology> = loader.load_from_path(hpo_json.clone()).ok();
         if let Some(hpo) = ontology_opt {
             let hpo_arc = Arc::new(hpo);
             singleton.ontology = Some(hpo_arc.clone());
             singleton.initialize_hpo_autocomplete();
-            singleton.set_hpo(hpo_arc.clone());
+            singleton.set_hpo(hpo_arc.clone(), &hpo_json);
         }           
         return singleton;
     }
 
 
 
-    pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>) {
+    pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>, hpo_json_path: &str) {
         self.ontology = Some(ontology);
+        self.settings.set_hp_json_path(hpo_json_path);
     }
 
     pub fn get_hpo(&self) -> Option<Arc<FullCsrOntology>> {
@@ -89,7 +90,7 @@ impl PhenoboardSingleton {
     }
 
     /// Set up autocomplete functionality that returns string with form HP:0000123 - Label
-    fn initialize_hpo_autocomplete(&mut self) {
+    pub(crate) fn initialize_hpo_autocomplete(&mut self) {
         // let phenotypic_abnormality: TermId = "HP:0000118".parse().unwrap();
         match &self.ontology {
             Some(hpo) => {
