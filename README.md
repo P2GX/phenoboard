@@ -7,12 +7,22 @@
 
 
 Curation of individuals with Human Phenotype Ontology and GA4GH Phenopacket Schema.
-See the [documention](https://p2gx.github.io/phenoboard/) for a tutorial. Go to the 
-[Releases](https://p2gx.github.io/phenoboard/releases) page for installation files for Macintosh, Windows, and Debian/Ubuntu linux and [here](https://p2gx.github.io/phenoboard/help/installation.html) for instructions on how to install the app.
+See the [documention](https://p2gx.github.io/phenoboard/) for a tutorial.
+
+## 📦 Installation
+
+Get started quickly by downloading the latest release for your platform:
+
+- [**Macintosh**](https://p2gx.github.io/phenoboard/releases)  
+- [**Windows**](https://p2gx.github.io/phenoboard/releases)  
+- [**Debian/Ubuntu Linux**](https://p2gx.github.io/phenoboard/releases)  
+
+> ⚠️ **Warning:** The app is not signed on macOS. Attempting to open it immediately upon download will produce an error. See the [installation instructions](https://p2gx.github.io/phenoboard/help/installation.html#mac) for how to bypass this safely.
 
 
-
+---
 
 <p align="center">
   <img src="book/src/img/phenoboard-screenshot.png" alt="Phenoboard UI" width="300">
 </p>
+
