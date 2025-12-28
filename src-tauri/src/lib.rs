@@ -51,8 +51,6 @@ pub fn run() {
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            validate_all_hgvs_variants,
-            validate_all_structural_variants,
             validate_one_hgvs_variant,
             validate_structural_variant,
             export_ppkt,
@@ -521,17 +519,6 @@ fn add_new_row_to_cohort(
 
 
 #[tauri::command]
-fn validate_all_hgvs_variants(
-    symbol: &str,
-    hgnc: &str,
-    transcript: &str,
-    alleles: HashSet<String>) 
--> Result<HashMap<String, HgvsVariant>, String> {
-    ga4ghphetools::variant::validate_all_hgvs(symbol, hgnc, transcript, &alleles)
-}
-
-
-#[tauri::command]
 fn validate_one_hgvs_variant(
     symbol: &str,
     hgnc: &str,
@@ -546,16 +533,6 @@ fn validate_structural_variant(
     variant_dto: VariantDto) 
 -> Result<StructuralVariant, String> {
     ga4ghphetools::variant::validate_structural_variant(variant_dto)
-}
-
-#[tauri::command]
-fn validate_all_structural_variants(
-    symbol: &str,
-    hgnc: &str,
-    transcript: &str,
-    alleles: HashSet<String>) 
--> Result<HashMap<String, StructuralVariant>, String> {
-    ga4ghphetools::variant::validate_all_sv(symbol, hgnc, transcript, &alleles)
 }
 
 

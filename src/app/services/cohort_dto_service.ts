@@ -14,10 +14,6 @@ import { SourcePmid } from '../models/cohort_description_dto';
  */
 @Injectable({ providedIn: 'root' })
 export class CohortDtoService {
-    
-    
-  
-    
     constructor(private configService: ConfigService){
         console.log('🟡 CohortDtoService instance created');
     }

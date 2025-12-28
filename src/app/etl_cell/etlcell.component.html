@@ -1,0 +1,12 @@
+<div
+  class="etl-cell"
+  [ngClass]="{
+    'raw': status() === 'raw',
+    'transformed': status() === 'transformed',
+    'error': status() === 'error'
+  }"
+  [matTooltip]="error() || current() || cell.original"
+  (contextmenu)="onRightClick($event)"
+>
+  {{ cell.current || cell.original }}
+</div>

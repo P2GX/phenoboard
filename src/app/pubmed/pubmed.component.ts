@@ -106,4 +106,8 @@ export class PubmedComponent implements OnInit {
     this.pmidDto.pmid = value.replace(/\s+/g, '');
   }
 
+  clear(): void {
+    this.availablePmids = [];
+  }
+
 }

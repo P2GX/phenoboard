@@ -1,6 +1,6 @@
 <div class="primary-box">
 <h1 class="h1-primary">External Table Editor</h1>
-  <p class="text-xs">Ingest external tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column. You can save and load the external templates to continue work later. In general, however, these JSON files should not be stored long-term (or checked into GitHub).</p>
+  <p class="text-xs">Ingest external Excel tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column. You can save and load the external templates to continue work later. In general, however, these JSON files should not be stored long-term (or checked into GitHub).</p>
 </div>
 <div class="button-row">
   <button 
@@ -115,16 +115,12 @@
             }"
             (contextmenu)="onRightClickCell($event, rowIndex, colIndex)"
           >
-          <div 
-            class="table-cell" 
-            [matTooltip]="row[colIndex]"
-            matTooltipClass="custom-tooltip"
-            matTooltipPosition="above"
-            matTooltipShowDelay="300"
-          >
-           {{ row[colIndex] }}
-          </div>
-          </td>
+          <etl-cell
+            [cell]="displayRows[rowIndex][colIndex]"
+            [rowIndex]="rowIndex"
+            [colIndex]="colIndex"
+            (edited)="onCellEdited($event)"
+          ></etl-cell>
         }
       
     }
@@ -225,26 +221,29 @@
       </ul>
     </div>
   }
-@if (transformationPanelVisible) {
+  <!--
+@if (transformationPanelVisible && etlDto && contextMenuColIndex != null) {
   <div class="transformation-panel">
     <h3>Transform values in column: {{ contextMenuColHeader }}</h3>
-    <div *ngFor="let val of uniqueValuesToMap" class="transform-row">
-      <label>
-        {{ val }} →
-        <input [(ngModel)]="transformationMap[val]" class="transform-input" />
-      </label>
-    </div>
+      @let cells = etlDto.table.columns[contextMenuColIndex]?.values ?? [];
+      @for (cell of cells; track $index) {
+        <div class="transform-row">
+          <label>
+            {{ cell.original }} →
+            <input 
+              [value]="cell.current" 
+              (input)="cell.current = $any($event.target).value" 
+              class="transform-input" />
+          </label>
+        </div>
+      }
     <button (click)="applyValueTransform()" class="btn-outline-primary">✅ Apply Transformation</button>
-    <button (click)="cancelTransformation()" class="btn-outline-primary">❌ Cancel</button>
-  </div>
-}
+    <button (click)="resetColumnToRaw(contextMenuColIndex)" class="btn-outline-primary">❌ Cancel</button>
 
-@if(editPreviewColumnVisible){
-  <div class="confirm-transform-box">
-    <button (click)="confirmValueTransformation()">✅ Confirm Transformation</button>
-    <button (click)="cancelTransformation()">❌ Cancel</button>
-  </div>
-}
+    </div>
+}-->
+
+
 
 @if(editModalVisible) {
 <div class="edit-modal">
@@ -264,33 +263,6 @@
   <div style="margin-top: 16px; text-align: right;">
     <button (click)="saveManualEdit()">Save</button>
     <button (click)="editModalVisible = false" style="margin-left: 8px;">Cancel</button>
-  </div>
-</div>
-}
-@if (previewModalVisible) {
-<div class="preview-modal">
-  <h3>Preview: {{ previewTransformName }} on Column</h3>
-  <div class="scrollable-table-container">
-    <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-      <thead>
-        <tr>
-          <th style="text-align: left; border-bottom: 1px solid #ccc;">Original</th>
-          <th style="text-align: left; border-bottom: 1px solid #ccc;">Transformed</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (orig of previewOriginal; track i; let i=$index) {
-          <tr>
-            <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ orig }}</td>
-            <td style="padding: 4px; border-bottom: 1px solid #eee;">{{ previewTransformed[i] }}</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-  <div style="text-align: right; margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px;">
-    <button (click)="applyTransformConfirmed()">✅ Apply</button>
-    <button (click)="cancelValueTransformation()">Cancel</button>
   </div>
 </div>
 }

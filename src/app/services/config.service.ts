@@ -153,21 +153,14 @@ export class ConfigService {
     return invoke<void>('submit_autocompleted_hpo_term', { termId: term_id, termLabel: term_label });
   }
 
+  /*
   async validateHgvs(dto: VariantDto, cohort_dto: CohortData): Promise<HgvsVariant> {
     return invoke<HgvsVariant>('validate_hgvs_variant', {dto: dto, cohortDto: cohort_dto})
   }
-
+*/
   async validateSv(dto: VariantDto): Promise<StructuralVariant> {
     return invoke<StructuralVariant>('validate_structural_variant',
       {variantDto: dto});
-  }
-
-  async validateOneSv(symbol: string, hgnc: string, transcript: string, allele: string): Promise<StructuralVariant> {
-    return invoke<StructuralVariant>('validate_one_structural_variant',
-      {symbol: symbol, 
-        hgnc: hgnc,
-        transcript: transcript,
-        allele: allele});
   }
 
   async validateOneHgvs(symbol: string, hgnc: string, transcript: string, allele: string): Promise<HgvsVariant> {
@@ -177,25 +170,6 @@ export class ConfigService {
         transcript: transcript,
         allele: allele});
   }
-
-
-  
-  async validateAllHgvsVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,HgvsVariant>> {
-    return invoke<Record<string,HgvsVariant>>('validate_all_hgvs_variants', {
-        symbol: symbol, 
-        hgnc: hgnc,
-        transcript: transcript,
-        alleles: alleles});
-  }
-
-    async validateAllStructuralVariants(symbol: string, hgnc: string, transcript: string, alleles: string[]): Promise<Record<string,StructuralVariant>> {
-    return invoke<Record<string,StructuralVariant>>('validate_all_structural_variants', {
-        symbol: symbol, 
-        hgnc: hgnc,
-        transcript: transcript,
-        alleles: alleles});
-  }
-
 
 
    async saveCohort(cohort_dto: CohortData): Promise<void> {

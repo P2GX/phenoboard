@@ -1,6 +1,20 @@
+import { WritableSignal } from "@angular/core";
 import { DiseaseData } from "./cohort_dto";
 import { HpoTermDuplet } from "./hpo_term_dto";
 import { HgvsVariant, StructuralVariant } from "./variant_dto";
+
+export enum EtlCellStatus {
+  Raw = "raw",
+  Transformed = "transformed",
+  Error = "error",
+}
+
+export interface EtlCellValue {
+  original: string;
+  current: string;
+  status: EtlCellStatus;
+  error?: string;
+}
 
 // --- EtlColumnType ---
 export enum EtlColumnType {
@@ -60,7 +74,7 @@ export interface ColumnDto {
   id: string,
   transformed: boolean;
   header: EtlColumnHeader;
-  values: string[];
+  values: EtlCellValue[];
 }
 
 export function newRawColumnDto(originalHeaderContents: string, size: number): ColumnDto {
@@ -68,7 +82,7 @@ export function newRawColumnDto(originalHeaderContents: string, size: number): C
     id: crypto.randomUUID(),  
     transformed: false,
     header: newRawEtlColumnHeader(originalHeaderContents),
-    values: new Array<string>(size),
+    values: new Array<EtlCellValue>(size),
   };
 }
 
