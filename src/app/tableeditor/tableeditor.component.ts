@@ -36,6 +36,7 @@ import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
+import { HelpService } from '../services/help.service';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -106,11 +107,13 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     private variantDialog: VariantDialogService,
     private svDialog: SvDialogService,
     private router: Router,
+    private helpService: HelpService
   ) {
     super(templateService, ngZone, cdRef);
     this.pmidForm = this.fb.group({
       pmid: [defaultPmidDto()], 
     });
+    this.helpService.setHelpContext("table-editor");
   }
   Object = Object;
   etlDto: EtlDto | null = null;
