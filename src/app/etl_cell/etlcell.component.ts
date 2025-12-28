@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from "@angular/core";
+import { Component, computed, effect, input, output, signal } from "@angular/core";
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { EtlCellValue } from "../models/etl_dto";
@@ -14,37 +14,43 @@ import { EtlCellEditDialogComponent } from "./etl-cell-edit-dialog.component";
   imports: [CommonModule, MatTooltipModule],
 })
 export class EtlCellComponent {
-  @Input() cell!: EtlCellValue;
-  @Input() rowIndex!: number;
-  @Input() colIndex!: number;
-
-  @Output() edited = new EventEmitter<{ rowIndex: number, colIndex: number, newValue: string }>();
-
+  cell = input.required<EtlCellValue>();
+  rowIndex = input.required<number>();
+  colIndex = input.required<number>();
+  edited = output<{ rowIndex: number, colIndex: number, newValue: string }>();
   // Signals for reactive display
   current = signal('');
   status = signal<EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error>(EtlCellStatus.Raw);
   error = signal<string | undefined>(undefined);
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog) {
+  // Whenever the input cell() changes, it pushes the new data into your local signals.
+    effect(() => {
+      const val = this.cell();
+      this.current.set(val.current || '');
+      this.status.set(val.status);
+      this.error.set(val.error || undefined);
+    }, { allowSignalWrites: true });
+  }
 
   ngOnInit() {
     // Initialize signals from the DTO
-    this.syncSignalsFromDto();
+   // this.syncSignalsFromDto();
   }
 
-  /** Sync signals from the underlying DTO */
+  /** Sync signals from the underlying DTO 
   private syncSignalsFromDto() {
     this.current.set(this.cell.current);
     this.status.set(this.cell.status);
     this.error.set(this.cell.error || undefined);
-  }
+  }*/
 
   /** Apply a transformed value */
   setTransformed(newValue: string) {
     this.current.set(newValue);
     this.status.set(EtlCellStatus.Transformed);
     this.error.set(undefined);
-    this.syncDtoFromSignals();
+    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
@@ -52,7 +58,7 @@ export class EtlCellComponent {
   setError(errorMessage: string) {
     this.status.set(EtlCellStatus.Error);
     this.error.set(errorMessage);
-    this.syncDtoFromSignals();
+    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
@@ -61,22 +67,23 @@ export class EtlCellComponent {
     this.current.set('');
     this.status.set(EtlCellStatus.Raw);
     this.error.set(undefined);
-    this.syncDtoFromSignals();
+    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
-  /** Sync the DTO object from current signals */
+  /** Sync the DTO object from current signals 
   private syncDtoFromSignals() {
+    const originalCell = this.cell();
     this.cell.current = this.current();
     this.cell.status = this.status();
     this.cell.error = this.error();
-  }
+  }*/
 
   /** Emit change to parent component */
   private emitChange() {
     this.edited.emit({
-      rowIndex: this.rowIndex,
-      colIndex: this.colIndex,
+      rowIndex: this.rowIndex(),
+      colIndex: this.colIndex(),
       newValue: this.current(),
     });
   }
@@ -85,7 +92,7 @@ export class EtlCellComponent {
   editManually() {
     const dialogRef = this.dialog.open(EtlCellEditDialogComponent, {
       width: '300px',
-      data: { original: this.cell.original, current: this.current() },
+      data: { current: this.current() },
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -100,4 +107,38 @@ export class EtlCellComponent {
     event.preventDefault();
     this.editManually();
   }
+
+  readonly cellClass = computed(() => {
+    const currentStatus = this.status();
+    switch (currentStatus) {
+      case EtlCellStatus.Raw:
+        return 'cell-raw';
+      case EtlCellStatus.Transformed:
+        return 'cell-transformed';
+      case EtlCellStatus.Error:
+        return 'cell-error';
+      default:
+        return '';
+    }
+  });
+
+  readonly original = computed(() => this.cell().original);
+
+
+  readonly tooltipText = computed(() => {
+    const origVal = this.original();
+    const currentVal = this.current();
+    const errorVal = this.error();
+    if (errorVal) {
+      return `error: ${errorVal}`;
+    }
+    if (currentVal.length == 0) {
+      return `${origVal} (raw)`
+    }
+    else {
+      return  `original: ${origVal}\ntransformed: ${currentVal}`;
+    }
+  });
+
+  
 }

@@ -1,3 +1,21 @@
-.cell-raw { background-color: white; }
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.etl-cell {
+  padding: 8px; /* Control all padding here */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't break width */
+}
+
+/* Move these here so they apply to the div directly */
+.cell-raw { color: #666; background-color: white; }
 .cell-transformed { background-color: lightgreen; }
-.cell-error { background-color: lightcoral; }
+.cell-error { 
+  background-color: lightcoral; 
+  outline: 1px solid #b00020; /* Use outline so it doesn't shift layout */
+  outline-offset: -1px;
+}

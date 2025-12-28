@@ -33,7 +33,7 @@ export class EtlSessionService {
   
 
   /** Attempt to convert a sex/gender column into the required format */
-  parseSexColumn(val: string | null | undefined): string {
+  parseSexColumn(val: string | null | undefined): string | undefined {
     if (val == null || val.trim() === "") {
       return "na";
     }
@@ -45,8 +45,18 @@ export class EtlSessionService {
     } else if (maleSymbols.has(value)) {
       return "M";
     } else {
-      return val;
+      return undefined;
     }
+  }
+
+  parseDeceasedColumn(val: string | null | undefined): string | undefined {
+    if (!val) return undefined;
+    const v = val.toLowerCase();
+    if (v == "yes") { return "yes"; }
+    else if (v == "no") { return "no"; }
+    else if (v == "na") { return "na"}
+    else { return undefined}
+
   }
   
   

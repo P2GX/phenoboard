@@ -79,11 +79,11 @@
       </th>
     }
   </tr>
+  <p>Diplsa row len {{displayRows.length}}</p>
 <!-- ===== DATA ROWS ===== -->
 @for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
   <tr>
     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
-     
         @if (isHpoTextMiningColumn(colIndex)) {
           <!-- HPO Text Mining Cell -->
             <td>
@@ -109,25 +109,18 @@
           </button>
           </td>
         } @else {
-          <!-- Normal Table Cell -->
-           <td
-            [ngClass]="{
-              'edit-mode-narrow': editModeActive
-            }"
-            (contextmenu)="onRightClickCell($event, rowIndex, colIndex)"
-          >
-          <etl-cell
-            [cell]="displayRows[rowIndex][colIndex]"
-            [rowIndex]="rowIndex"
-            [colIndex]="colIndex"
-            (edited)="onCellEdited($event)"
-          ></etl-cell>
-        }
-      
-    }
-  </tr>
+         <td (contextmenu)="onRightClickCell($event, rowIndex, colIndex)" class="table-cell">
+            <etl-cell
+              [cell]="displayRows[rowIndex][colIndex]"
+              [rowIndex]="rowIndex"
+              [colIndex]="colIndex"
+              (edited)="onCellEdited($event)"
+            ></etl-cell>
+          </td>
+      }     
+    } 
+ </tr>
 }
-
 </table>
 <div style="height: 40px;"></div>
 </div>
@@ -162,13 +155,13 @@
     <li class="has-submenu">
   Transform Column ▸
   <ul class="submenu">
-    @for (category of Object.values(transformCategories); track category.label) {
+    @for (category of transformCategories; track category.label) {
       <li class="has-submenu">
         {{ category.label }} ▸
         <ul class="submenu">
-          @for (transform of category.transforms; track transform) {
-            <li (click)="applyNamedTransform(contextMenuColIndex, transform); columnContextMenuVisible = false">
-              {{ getTransformDisplayName(transform) }}
+          @for (t of category.transforms; track t) {
+            <li (click)="applyNamedTransform(contextMenuColIndex, t); columnContextMenuVisible = false">
+              {{ getTransformDisplayName(t) }}
             </li>
           }
         </ul>
