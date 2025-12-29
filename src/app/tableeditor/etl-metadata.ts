@@ -122,6 +122,7 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.VARIANT_COLUMN_TYPE]: EtlColumnType.Variant,
     [TransformType.DISEASE_COLUMN_TYPE]: EtlColumnType.Disease,
     [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: EtlColumnType.AgeOfOnset,
+    [TransformType.ONSET_AGE]: EtlColumnType.AgeOfOnset,
     [TransformType.SEX_COLUMN_TYPE]: EtlColumnType.Sex,
     [TransformType.SEX_COLUMN]: EtlColumnType.Sex,
     [TransformType.DECEASED_COLUMN_TYPE]: EtlColumnType.Deceased,

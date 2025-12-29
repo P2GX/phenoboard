@@ -240,23 +240,28 @@
 
 
 @if(editModalVisible) {
-<div class="edit-modal">
-  <h4><strong>Edit Cell Value</strong>:</h4>
-  <input
-    [(ngModel)]="editingValue"
-    style="
-      width: 100%;
-      margin-top: 10px;
-      padding: 6px 10px;
-      border: 2px solid #007acc;
-      border-radius: 4px;
-      font-size: 14px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    "
-  />
-  <div style="margin-top: 16px; text-align: right;">
-    <button (click)="saveManualEdit()">Save</button>
-    <button (click)="editModalVisible = false" style="margin-left: 8px;">Cancel</button>
+<div class="modal-overlay" (click)="editModalVisible = false">
+  <div class="edit-modal" (click)="$event.stopPropagation()">
+    <header>
+      <mat-icon>edit</mat-icon>
+      <h3>Edit Cell Value</h3>
+    </header>
+    
+    <div class="modal-body">
+      <label for="cell-edit">Current Value:</label>
+      <input
+        id="cell-edit"
+        [(ngModel)]="editingValue"
+        (keyup.enter)="saveManualEdit()"
+        placeholder="Enter new value..."
+        autofocus
+      />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="editModalVisible = false">Cancel</button>
+      <button class="btn-primary" (click)="saveManualEdit()">Save Changes</button>
+    </div>
   </div>
 </div>
 }

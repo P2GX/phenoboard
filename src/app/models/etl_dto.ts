@@ -1,4 +1,3 @@
-import { WritableSignal } from "@angular/core";
 import { DiseaseData } from "./cohort_dto";
 import { HpoTermDuplet } from "./hpo_term_dto";
 import { HgvsVariant, StructuralVariant } from "./variant_dto";
@@ -7,6 +6,7 @@ export enum EtlCellStatus {
   Raw = "raw",
   Transformed = "transformed",
   Error = "error",
+  Ignored = "ignored"
 }
 
 export interface EtlCellValue {

@@ -157,6 +157,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
     [TransformType.DECEASED_COLUMN_TYPE]: (val) => this.etl_service.parseDeceasedColumn(val),
+    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (val) => this.etl_service.validateAgeEntry(val),
+    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (val) => this.etl_service.validateAgeEntry(val),
   };
 
   /* These functions are more involved -- they open dialogs, combine columns, etc. (everything else) 
@@ -1008,18 +1010,15 @@ async applySingleHpoTransform(colIndex: number) {
     if (col) {
       const oldCell = col.values[rowIndex];
       if (!oldCell) return;
-
-      // Update the cell safely
       const newCell: EtlCellValue = {
         ...oldCell,
-        original: oldCell.original,      // keep original
-        current: this.editingValue.trim(),
-        status: TRANSFORMED,
+        original: this.editingValue.trim(), 
+        status: RAW,
         error: undefined,
       };
 
       col.values[rowIndex] = newCell;
-      this.contextMenuCellValue = newCell.current; // update context menu to reflect new cell
+      this.contextMenuCellValue = newCell.current; 
       this.reRenderTableRows();
       this.editModalVisible = false;
     }
@@ -1035,6 +1034,8 @@ readonly transformCategories: TransformCategory[]  = [
       TransformType.FAMILY_ID_COLUMN_TYPE,
       TransformType.SEX_COLUMN,
       TransformType.DECEASED_COLUMN_TYPE,
+      TransformType.AGE_OF_ONSET_COLUMN_TYPE,
+      TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE,
     ]
   },
   {
@@ -1046,7 +1047,6 @@ readonly transformCategories: TransformCategory[]  = [
       TransformType.TO_LOWERCASE,
       TransformType.EXTRACT_NUMBERS,
       TransformType.REPLACE_UNIQUE_VALUES,
-      TransformType.SEX_COLUMN
     ]
   },
   {
@@ -1075,7 +1075,7 @@ readonly transformCategories: TransformCategory[]  = [
    {
     label: "Column operations",
     transforms: [
-        TransformType.SET_COLUMN_TYPE,
+        TransformType.IGNORE_COLUMN_TYPE,
         TransformType.DELETE_COLUMN,
         TransformType.DUPLICATE_COLUMN,
         TransformType.CONSTANT_COLUMN,
@@ -1198,7 +1198,19 @@ private setColumnMetadata(colIndex: number, type: EtlColumnType) {
   this.reRenderTableRows();
 }
 
-
+async ignoreColumn(colIndex: number) {
+  let etlDto = this.etlDto;
+  if (! etlDto) return;
+  const col = etlDto.table.columns[colIndex];
+   col.values = col.values.map(cell => {
+      return { 
+        ...cell, 
+        status: EtlCellStatus.Ignored,
+      };
+    });
+    col.header.columnType = EtlColumnType.Ignore;
+    this.reRenderTableRows();
+}
 
 async runElementwiseEngine(colIndex: number, transform: TransformType, fn: StringTransformFn) {
   let etlDto = this.etlDto;
@@ -1259,6 +1271,9 @@ async applyNamedTransform(colIndex: number | null, transform: TransformType) {
 
   // Interactive / structural transforms (UNCHANGED)
   switch (transform) {
+    case TransformType.IGNORE_COLUMN_TYPE:
+      await this.ignoreColumn(colIndex);
+      return;
     case TransformType.SINGLE_HPO_TERM:
       await this.applySingleHpoTransform(colIndex);
       return;

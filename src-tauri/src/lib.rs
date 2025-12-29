@@ -10,7 +10,7 @@ use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
-use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
+use std::{fs, sync::{Arc, Mutex}, collections::HashMap};
 use tauri_plugin_fs::{init};
 
 

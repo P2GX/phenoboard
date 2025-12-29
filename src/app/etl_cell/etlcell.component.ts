@@ -20,7 +20,7 @@ export class EtlCellComponent {
   edited = output<{ rowIndex: number, colIndex: number, newValue: string }>();
   // Signals for reactive display
   current = signal('');
-  status = signal<EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error>(EtlCellStatus.Raw);
+  status = signal<EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error | EtlCellStatus.Ignored >(EtlCellStatus.Raw);
   error = signal<string | undefined>(undefined);
 
   constructor(private dialog: MatDialog) {
@@ -38,12 +38,6 @@ export class EtlCellComponent {
    // this.syncSignalsFromDto();
   }
 
-  /** Sync signals from the underlying DTO 
-  private syncSignalsFromDto() {
-    this.current.set(this.cell.current);
-    this.status.set(this.cell.status);
-    this.error.set(this.cell.error || undefined);
-  }*/
 
   /** Apply a transformed value */
   setTransformed(newValue: string) {
@@ -70,14 +64,6 @@ export class EtlCellComponent {
     //this.syncDtoFromSignals();
     this.emitChange();
   }
-
-  /** Sync the DTO object from current signals 
-  private syncDtoFromSignals() {
-    const originalCell = this.cell();
-    this.cell.current = this.current();
-    this.cell.status = this.status();
-    this.cell.error = this.error();
-  }*/
 
   /** Emit change to parent component */
   private emitChange() {
@@ -117,6 +103,8 @@ export class EtlCellComponent {
         return 'cell-transformed';
       case EtlCellStatus.Error:
         return 'cell-error';
+      case EtlCellStatus.Ignored:
+        return 'cell-ignored';
       default:
         return '';
     }

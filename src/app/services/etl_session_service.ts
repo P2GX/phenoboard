@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { EtlColumnType, EtlDto } from "../models/etl_dto";
 import { ConfigService } from "./config.service";
+import { AgeInputService } from "./age_service";
 
 
 // 4. ETL Session Service
@@ -11,7 +12,9 @@ import { ConfigService } from "./config.service";
 export class EtlSessionService {
   
 
-  constructor(private configService: ConfigService){
+  constructor(
+    private configService: ConfigService,
+    private ageService: AgeInputService){
       console.log('🟡 EtlSessionService instance created');
   }
 
@@ -49,6 +52,7 @@ export class EtlSessionService {
     }
   }
 
+  /* Attempt to parse a deceased column (yes/no/na) */
   parseDeceasedColumn(val: string | null | undefined): string | undefined {
     if (!val) return undefined;
     const v = val.toLowerCase();
@@ -56,9 +60,15 @@ export class EtlSessionService {
     else if (v == "no") { return "no"; }
     else if (v == "na") { return "na"}
     else { return undefined}
-
   }
   
+  /* check if an entry is valid ISO8601, HPO Term, or Gestational notation. */
+  validateAgeEntry(ageStr: string | null | undefined): string | undefined {
+    if (! ageStr) return undefined;
+    if (ageStr == "na") return "na";
+    if (this.ageService.validateAgeInput(ageStr)) return ageStr;
+    return undefined
+  }
   
   parseAgeToIso8601(ageStr: string | null | undefined): string {
     if (ageStr == null || ageStr == undefined) {
@@ -146,6 +156,9 @@ export class EtlSessionService {
     // Handle edge case where input is 0
     return result === 'P' ? '' : result;
   }
+
+
+
 
   
   private generateId(): string {

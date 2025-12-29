@@ -19,3 +19,8 @@
   outline: 1px solid #b00020; /* Use outline so it doesn't shift layout */
   outline-offset: -1px;
 }
+.cell-ignored {
+  color: #999;
+  background-color: #f5f5f5;
+  font-style: italic;
+}
