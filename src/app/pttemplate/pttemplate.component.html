@@ -263,8 +263,8 @@
           <div class="flex items-center gap-x-1">
             <span 
               class="inline-block w-3 h-3 rounded-full"
-              [ngClass]="isAlleleValidated(geneSymbol) ? 'bg-green-500' : 'bg-red-500'"
-              title="{{ isAlleleValidated(geneSymbol) ? 'Validated' : 'Not validated' }}"
+              [ngClass]="validatedAlleles.has(geneSymbol) ? 'bg-green-500' : 'bg-red-500'"
+              title="validatedAlleles.has(geneSymbol) ? 'Validated' : 'Not validated'"
             ></span>
             <span class="cursor-pointer">
               {{   getShortAlleleDisplay(geneSymbol, row.alleleCountMap[geneSymbol])  }}
@@ -290,18 +290,21 @@
         </div>
         } <!-- for gene -->
     </td>
-    <td>
-      <button mat-icon-button
-              aria-label="Add HGVS"
-              (click)="addAllele(row)">
-        <mat-icon class="small-icon">add</mat-icon>
-        <span class="button-label">HGVS</span>
+      <td class="variant-bar">
+        <button mat-icon-button
+                matTooltip="Add HGVS"
+                (click)="addAllele(row, VariantKind.HGVS)">
+          <mat-icon>add</mat-icon>
         </button>
-      <button mat-icon-button
-              aria-label="Add SV"
-              (click)="openSvEditor(row)">
-        <mat-icon class="small-icon">➕</mat-icon>
-        <span class="button-label">SV</span>
+        <button mat-icon-button
+                matTooltip="Add SV"
+                (click)="addAllele(row, VariantKind.SV)">
+          <mat-icon>extension</mat-icon>
+        </button>
+        <button mat-icon-button
+                matTooltip="Add Intergenic"
+                (click)="addAllele(row, VariantKind.INTERGENIC)">
+          <mat-icon>link</mat-icon>
         </button>
       </td>
     }<!-- isShowAllele -->

@@ -250,3 +250,16 @@ button[mat-icon-button] {
 .allele-toggle-group .mat-pseudo-checkbox {
   display: none !important; /* completely hide checkmark */
 }
+
+.variant-bar {
+  display: flex;
+  gap: 2px;         /* small spacing between buttons */
+  justify-content: start;
+  align-items: center;
+  padding-right: 5px;
+}
+.variant-bar button {
+  width: 18px;      /* make buttons small and uniform */
+  height: 18px;
+  padding: 0;
+}

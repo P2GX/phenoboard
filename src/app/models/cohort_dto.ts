@@ -3,7 +3,7 @@
 */
 
 import { CellValue, HpoTermDuplet } from "./hpo_term_dto";
-import { HgvsVariant, StructuralVariant } from "./variant_dto";
+import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
 export type HpoGroupMap = Map<string, HpoTermDuplet[]>; 
 
@@ -91,6 +91,7 @@ export interface CohortData {
     rows: RowData[],
     hgvsVariants: Record<string, HgvsVariant>;
     structuralVariants: Record<string, StructuralVariant>;
+    intergenicVariants: Record<string, IntergenicHgvsVariant>;
     phetoolsSchemaVersion: string;
     hpoVersion: string;
     cohortAcronym?: string | null;

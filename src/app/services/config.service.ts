@@ -5,7 +5,7 @@ import { PmidDto } from '../models/pmid_dto';
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap } from '../models/cohort_dto';
 import { HpoTermData } from '../models/hpo_term_dto';
-import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 
 
@@ -161,11 +161,18 @@ export class ConfigService {
       {variantDto: dto});
   }
 
-  async validateOneHgvs(symbol: string, hgnc: string, transcript: string, allele: string): Promise<HgvsVariant> {
-    return invoke<HgvsVariant>('validate_one_hgvs_variant',
+  async validateHgvsVariant(symbol: string, hgnc: string, transcript: string, allele: string): Promise<HgvsVariant> {
+    return invoke<HgvsVariant>('validate_hgvs_variant',
       {symbol: symbol, 
         hgnc: hgnc,
         transcript: transcript,
+        allele: allele});
+  }
+
+  async validateIntergenic(symbol: string, hgnc: string, allele: string): Promise<IntergenicHgvsVariant> {
+    return invoke<IntergenicHgvsVariant>('validate_intergenic_variant',
+      {symbol: symbol, 
+        hgnc: hgnc,
         allele: allele});
   }
 

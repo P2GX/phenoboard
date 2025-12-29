@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
-import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { SourcePmid } from '../models/cohort_description_dto';
 
 
@@ -17,25 +17,25 @@ export class CohortDtoService {
     constructor(private configService: ConfigService){
         console.log('🟡 CohortDtoService instance created');
     }
-    private cohortDtoSubject = new BehaviorSubject<CohortData | null>(null);
-    cohortData$ = this.cohortDtoSubject.asObservable();
+    private cohortDataSubject = new BehaviorSubject<CohortData | null>(null);
+    cohortData$ = this.cohortDataSubject.asObservable();
 
     
     setCohortData(template: CohortData) {
-        this.cohortDtoSubject.next(template);
+        this.cohortDataSubject.next(template);
     }
 
     getCohortData(): CohortData | null {
-        const current = this.cohortDtoSubject.getValue();
+        const current = this.cohortDataSubject.getValue();
         return current;
     }
 
     clearCohortData() {
-        this.cohortDtoSubject.next(null);
+        this.cohortDataSubject.next(null);
     }
 
     getDiseaseList(): DiseaseData[] {
-        const templateDto = this.cohortDtoSubject.getValue();
+        const templateDto = this.cohortDataSubject.getValue();
         if (templateDto == null) {
             return [];
         }
@@ -44,7 +44,7 @@ export class CohortDtoService {
     }
 
     getCohortAcronym(): string | null {
-        const cohortData = this.cohortDtoSubject.getValue();
+        const cohortData = this.cohortDataSubject.getValue();
         if (cohortData == null) {
             console.error("Attempt to get acronym but cohort template was null");
             return null;
@@ -58,7 +58,7 @@ export class CohortDtoService {
 
     /** Add an HGVS object that has been validated in the backend */
     addHgvsVariant(hgvs: HgvsVariant) {
-        const current = this.cohortDtoSubject.value;
+        const current = this.cohortDataSubject.value;
         if (!current) {
             alert("No CohortDto available to update");
             return;
@@ -72,12 +72,12 @@ export class CohortDtoService {
                 [key]: hgvs
             }
         };
-        this.cohortDtoSubject.next(updated);
+        this.cohortDataSubject.next(updated);
     }
 
     /** Add an SV object that has been validated in the backend */
     addStructuralVariant(sv: StructuralVariant) {
-        const current = this.cohortDtoSubject.value;
+        const current = this.cohortDataSubject.value;
         if (!current) {
             alert("No CohortDto available to update");
             return;
@@ -90,7 +90,25 @@ export class CohortDtoService {
                 [key]: sv
             }
         };
-        this.cohortDtoSubject.next(updated);
+        this.cohortDataSubject.next(updated);
+    }
+
+    addIntergenicVariant(ig: IntergenicHgvsVariant) {
+        const current = this.cohortDataSubject.value;
+        if (!current) {
+            alert("No CohortData available to update");
+            return;
+        }
+        const key = ig.variantKey;
+        console.error("adding ig var, key=", key);
+        const updated: CohortData = {
+            ...current,
+            intergenicVariants: {
+                ...current.intergenicVariants,
+                [key]: ig
+            }
+        }
+        this.cohortDataSubject.next(updated);
     }
 
     /** Update the disease cohort acronym, e.g., MFS for Marfan syndrome.
@@ -98,7 +116,7 @@ export class CohortDtoService {
      * a legacy excel file (which does not have a field for disease aronym).
      */
     async setCohortAcronym(acronym: string) {
-        const current = this.cohortDtoSubject.value;
+        const current = this.cohortDataSubject.value;
         if (!current) {
             alert("No CohortDto available to update");
             return;
@@ -107,7 +125,7 @@ export class CohortDtoService {
             ...current,
             cohortAcronym: acronym
         };
-        this.cohortDtoSubject.next(updated);
+        this.cohortDataSubject.next(updated);
     }
 
     async saveCohortDto(): Promise<void> {
@@ -166,7 +184,7 @@ export class CohortDtoService {
      * new cohort
      */
     currentCohortContainsData() {
-      const current = this.cohortDtoSubject.getValue();
+      const current = this.cohortDataSubject.getValue();
       if (current == null) {
         return false;
       }

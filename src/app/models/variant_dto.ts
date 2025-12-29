@@ -20,6 +20,7 @@ export type VariantType =
   | "DUP"
   | "SV"
   | "PRECISESV"
+  | "INTERGENICHGVS"
   | "UNKNOWN";
 
   /**
@@ -83,6 +84,19 @@ export interface HgvsVariant {
   variantKey: string;
 }
 
+export interface IntergenicHgvsVariant {
+    assembly: String;
+    chr: String;
+    position: number; // u32 in rust,
+    refAllele: string;
+    altAllele: string;
+    symbol?: string;
+    hgncId?: string;
+    gHgvs: string;
+    geneHgvs?: string;
+    variantKey: string 
+}
+
 
 /** 
  * The kind of structural variant being sent for validation.
@@ -123,6 +137,20 @@ export function displayHgvs(hgvs: HgvsVariant, validated: boolean): VariantDto {
   return vdd;
 }
 
+
+export function displayIntergenic(ig: IntergenicHgvsVariant, validated: boolean): VariantDto {
+  const igvar_dto: VariantDto = {
+    variantString: ig.gHgvs,
+    variantKey: ig.variantKey,
+    transcript: '',
+    hgncId: ig.hgncId || '',
+    geneSymbol: ig.symbol || '',
+    variantType: "INTERGENICHGVS",
+    isValidated: validated,
+    count: 0
+  };
+  return igvar_dto;
+}
 
 export function displaySv(sv: StructuralVariant, validated: boolean): VariantDto {
   const vdd: VariantDto = {

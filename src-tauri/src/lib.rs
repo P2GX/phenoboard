@@ -6,6 +6,7 @@ mod settings;
 mod util;
 
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
+use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
@@ -51,8 +52,9 @@ pub fn run() {
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
-            validate_one_hgvs_variant,
+            validate_hgvs_variant,
             validate_structural_variant,
+            validate_intergenic_variant,
             export_ppkt,
             load_external_excel,
             load_external_template_json,
@@ -520,13 +522,13 @@ fn add_new_row_to_cohort(
 
 
 #[tauri::command]
-fn validate_one_hgvs_variant(
+fn validate_hgvs_variant(
     symbol: &str,
     hgnc: &str,
     transcript: &str,
     allele: &str) 
 -> Result<HgvsVariant, String> {
-    ga4ghphetools::variant::validate_one_hgvs_variant(symbol, hgnc, transcript, allele)
+    ga4ghphetools::variant::validate_hgvs_variant(symbol, hgnc, transcript, allele)
 }
 
 #[tauri::command]
@@ -535,6 +537,16 @@ fn validate_structural_variant(
 -> Result<StructuralVariant, String> {
     ga4ghphetools::variant::validate_structural_variant(variant_dto)
 }
+
+#[tauri::command]
+fn validate_intergenic_variant(
+    symbol: String, 
+    hgnc: String, 
+    allele: String)
+-> Result<IntergenicHgvsVariant, String> {
+    let vsto = VariantDto::hgvs_g(&allele,  &hgnc,  &symbol); 
+    ga4ghphetools::variant::validate_intergenic_variant(vsto)
+  }
 
 
 /// Allow the user to choose an external Excel file (e.g., supplemental table) from which we will create phenopackets

@@ -103,6 +103,18 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
       varDisplayList.push(display);
       validatedKeys.add(vkey);
     });
+    Object.entries(cohort.intergenicVariants).forEach(([vkey, ig]) => {
+      const display: VariantDisplay = {
+        variantString: ig.gHgvs,  
+        variantKey: ig.variantKey,
+        consequence: "intergenic",  
+        variantType: "INTERGENICHGVS",      
+        isValidated: true,       
+        count: rowToKeyMap[vkey] || 0,  
+      };
+      varDisplayList.push(display);
+      validatedKeys.add(vkey);
+    });
     Object.entries(rowToKeyMap).forEach(([vkey, count]) => {
       if (!validatedKeys.has(vkey)) {
         const display: VariantDisplay = {

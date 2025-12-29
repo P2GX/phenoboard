@@ -1,4 +1,4 @@
-@if (structuralMode) {
+@if (isStructural()) {
     <p class="text-xs text-gray-500 mt-2">
         This dialog supports entry of unvalidated (symbolic) structural variant descriptions. 
     </p>
@@ -39,7 +39,7 @@
         </mat-select>
     </mat-form-field>
     <!-- Structural Variant Dropdown (only show for non-HGVS) -->
-     @if (structuralMode) {
+     @if (isStructural()) {
         <mat-form-field appearance="fill" class="w-full md:flex-1">
             <mat-label>Structural Variant Type</mat-label>
             <mat-select [(ngModel)]="selectedStructuralType">
@@ -56,29 +56,14 @@
 
     <div class="mt-6 flex flex-col md:flex-row md:items-center gap-4">
         @if (!validationComplete) {
-            <div class="flex gap-4">
-                @if (! variantValidated) {
-                    @if (structuralMode){
-                      <button
-                            mat-raised-button
-                            color="accent"
-                            (click)="submitSvDto()"
-                            [disabled]="!selectedGene || !selectedStructuralType || isSubmitting"
-                        >Submit SV
-                        </button>
-                    } @else {
-                          <button
-                            mat-raised-button
-                            color="primary"
-                            (click)="submitHgvsDto()"
-                            [disabled]="!selectedGene || isSubmitting"
-                        >
-                            Submit HGVS
-                        </button>
-                    }
-                <button mat-raised-button color="warn" (click)="cancel()">Cancel</button>
-                }
-            </div>
+            <button mat-raised-button
+                    color="accent"
+                    (click)="submit()"
+                    [disabled]="!selectedGene || isSubmitting">
+            {{ getSubmitLabel() }}
+            </button>
+            <button mat-raised-button color="warn" (click)="cancel()">Cancel</button>
+               
         } 
         
         @if(variantValidated) {

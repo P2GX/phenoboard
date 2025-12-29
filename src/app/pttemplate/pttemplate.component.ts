@@ -18,7 +18,7 @@ import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
 import { StructuralVariant, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
-import { AddVariantComponent } from '../addvariant/addvariant.component';
+import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -46,6 +46,7 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit, AfterViewInit {
+[x: string]: any;
 
   constructor(
     private configService: ConfigService, 
@@ -66,6 +67,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
   tableWidth: string = '100%'; 
   Object = Object; // <-- expose global Object to template
+  public readonly VariantKind = VariantKind;
   cohortDto: CohortData | null = null;
 
   selectedCellContents: CellValue | null = null;
@@ -108,6 +110,28 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     { label: 'Focus on this column ±10', value: 'focus-10' },
     { label: 'Show all columns', value: 'focus-reset' }
   ];
+  
+  /** Alleles that have been validated (and will show green). See the method 'rebuildValidatedAlleles' */
+  validatedAlleles = new Set<string>();
+
+  /* Should be called whenever (i) cohort loads; (ii) variants are added/removed; or (iii) DTO is replaced */
+  rebuildValidatedAlleles() {
+    const cohort = this.cohortDto;
+    if (!cohort) {
+      this.validatedAlleles.clear();
+      return;
+    }
+
+    this.validatedAlleles = new Set([
+      ...Object.keys(cohort.hgvsVariants),
+      ...Object.keys(cohort.structuralVariants),
+      ...Object.keys(cohort.intergenicVariants)
+    ]);
+  }
+
+  isAlleleValidatedCached(key: string): boolean {
+    return this.validatedAlleles.has(key);
+  }
 
   contextMenuOptions: Option[] = [];
   showMoiIndex: number | null = null;
@@ -125,6 +149,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       if (!dto) return;
 
       this.cohortDto = dto;
+      this.rebuildValidatedAlleles();
       this.configService.getTopLevelHpoTerms(dto)
         .then(groups => {
           this.hpoGroups = new Map(Object.entries(groups));
@@ -171,6 +196,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   protected override onCohortDtoLoaded(cohortDto: CohortData): void {
     console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
+    this.rebuildValidatedAlleles();
     this.cdRef.detectChanges();
   }
 
@@ -198,7 +224,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       console.log("🏗️ Loading template from backend...");
       try {
         const data = await this.configService.getPhetoolsTemplate();
-        this.cohortService.setCohortData(data); // 🟢 base class reacts here
+        this.cohortService.setCohortData(data); 
+         this.rebuildValidatedAlleles();
       } catch (error) {
         this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
@@ -215,6 +242,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: CohortData) => {
         this.cohortService.setCohortData(data);
+        this.rebuildValidatedAlleles();
   });
   }
 
@@ -235,61 +263,8 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     });
   }
 
-
-
-    
-  /**
-   * Opens a dialog that allows editing or adding alleles
-   */
-  /*
-  openGeneEditor(alleleKey: string | undefined, row: RowData) {
-    const cohort = this.cohortDto;
-    if (!cohort) {
-      this.notificationService.showError("Could not retrieve cohort");
-      return;
-    }
-
-    const gtdata: GeneTranscriptData[] = this.cohortService.getGeneTranscriptDataList();
-    if (gtdata.length === 0) {
-      this.notificationService.showError("Could not retrieve gene/transcript data");
-      return;
-    }
-
-    // Build data for the dialog
-    const geneEditData: GeneEditDialogData = {
-      alleleKey: alleleKey ?? undefined,
-      allelecount: alleleKey ? row.alleleCountMap?.[alleleKey] ?? 0 : 0,
-      gtData: gtdata,
-      cohort: cohort
-    };
-
-    // Open dialog
-    const dialogRef = this.dialog.open(GeneEditComponent, {
-      width: '500px',
-      data: geneEditData
-    });
-
-    // Handle result
-    dialogRef.afterClosed().subscribe((result: any) => {
-      if (!result) return;
-
-      if (result.action === 'update') {
-        row.alleleCountMap[result.alleleKey] = result.count;
-        this.notificationService.showSuccess("Updated allele");
-      } else if (result.action === 'add') {
-        row.alleleCountMap[result.alleleKey] = result.count;
-        this.notificationService.showSuccess("Added allele");
-      } else if (result.action === 'delete') {
-        delete row.alleleCountMap[result.alleleKey];
-        this.notificationService.showSuccess("Deleted allele");
-      }
-    });
-  }
-  */
-
   onAlleleCountChange(geneSymbol: string, row: RowData, newCount: number) {
     if (!geneSymbol || !row) return;
-
     // Ensure alleleCountMap exists
     if (!row.alleleCountMap) {
       row.alleleCountMap = {};
@@ -302,80 +277,43 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     );
   }
 
-  addAllele(row: RowData) {
-     const dialogRef = this.dialog.open(AddVariantComponent, {
-          width: '600px'
-        });
-    
-        dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
-          if (result) {
-            const variantKey = result.variantKey;
-            if (variantKey == null) {
-              this.notificationService.showError("Could not retrieve variantKey");
-              return;
-            }
-            if (! result.isValidated) {
-              this.notificationService.showError("Variant could not be validated");
-              return;
-            }
-            /* If we get here, the variant was validated and added to the cohort. */
-            /* We add it with a count of 1 -- they user may need to adjust */
-  
-            const cohort = this.cohortService.getCohortData();
-            if (cohort) {
-              // Find the matching row in cohort.rows
-              const rowIndex = cohort.rows.findIndex(r => r === row);
-              if (rowIndex >= 0) {
-                row.alleleCountMap[variantKey] = result.count;
-                cohort.rows[rowIndex] = row; // update row reference
-                this.cohortService.setCohortData(cohort); // push back to service
-                this.notificationService.showSuccess(`Allele ${variantKey} added`);
-              }
-            } else {
-              this.notificationService.showError("No cohort available");
-            }
-          } else {
-            console.error("Error in open Allele Dialog")
-          }
-        });
-  }
 
-  async openSvEditor(row: RowData): Promise<void> {
+  async addAllele(row: RowData, varKind: VariantKind) {
+    const dialogRef = this.dialog.open(AddVariantComponent, {
+          width: '600px',
+           data: { kind: varKind }
+        });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) {
+      this.notificationService.showError("Error in open Allele Dialog: Could not retrieve result");
+      return;
+    }
+    const { variantKey, isValidated, count } = result;
+    if (!variantKey) {
+      this.notificationService.showError("Could not retrieve variantKey");
+      return;
+    }
+    if (!isValidated) {
+      this.notificationService.showError("Variant could not be validated");
+      return;
+    }
     const cohort = this.cohortService.getCohortData();
-    if (! cohort) return; 
-    // get first disease
-    if (cohort.diseaseList == null || cohort.diseaseList.length < 1) {
-      this.notificationService.showError("Cannot add SV because disease list not initialized");
+    if (!cohort) {
+      this.notificationService.showError("No cohort available");
       return;
     }
-    if (cohort.diseaseList[0].geneTranscriptList === null || cohort.diseaseList[0].geneTranscriptList.length < 1) {
-      this.notificationService.showError("Cannot add SV because geneTranscriptList not initialized");
+    const rowIndex = cohort.rows.findIndex(r => r === row);
+    if (rowIndex < 0) {
+       this.notificationService.showError("Could not find row");
       return;
     }
-    const gt = cohort.diseaseList[0].geneTranscriptList[0];
-    const chr: string = this.cohortService.getChromosome();
-    const cell_contents = ''; // initialize SV label in dialog 
-    try{
-      const sv: StructuralVariant | null = await this.svDialog.openSvDialog(gt, cell_contents, chr);
-      
-      if (sv) {
-        const vkey = sv.variantKey;
-        if (! vkey) {
-          this.notificationService.showError(`Could not get key from Structural Variant object ${sv}`);
-          return;
-        }
-        // Initialize to 1 if missing, otherwise increment
-        row.alleleCountMap[vkey] = (row.alleleCountMap[vkey] ?? 0)  ;
-        if (!(vkey in cohort.structuralVariants)) {
-          cohort.structuralVariants[vkey] = sv;
-        }
-      }
-    } catch (error) {
-      const errMsg = String(error);
-      this.notificationService.showError(errMsg);
-    }
-  }
+    row.alleleCountMap[variantKey] = count;
+    cohort.rows[rowIndex] = row;  // update row reference
 
+    this.cohortService.setCohortData(cohort);
+     this.rebuildValidatedAlleles();
+    this.notificationService.showSuccess(`Allele ${variantKey} added`);
+  }
 
   get diseaseDescription(): string {
     const cohort = this.cohortService.getCohortData()
@@ -726,22 +664,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         return cohort.diseaseList[0].diseaseLabel;
       }
     }
- /*
-    onMoiChange(mois: ModeOfInheritance[]) {
-      console.log("onMoiChange mois=", mois);
-      const cohort = this.cohortService.getCohortData();
-      if (!cohort) {
-        this.notificationService.showError("Could not set MOI because cohort is not initialized");
-        return;
-      }
-      cohort.diseaseList.forEach(disease => {
-        disease.modeOfInheritanceList = mois;
-      });
-
-      this.notificationService.showSuccess(
-        `Set ${mois.length} modes of inheritance`
-      );
-    }*/
+ 
 
    onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number) {
     const cohort = this.cohortService.getCohortData();
@@ -755,22 +678,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
     newMoiList.forEach(moi => {disease.modeOfInheritanceList.push(moi)});
   }
-
-    isAlleleValidated(alleleKey: string): boolean {
-      const cohort = this.cohortDto;
-      if (cohort == null) {
-        return false;
-      }
-      console.log("alleleKey=", alleleKey);
-      console.log("sv dict=", cohort.structuralVariants);
-      if (alleleKey in cohort.hgvsVariants) {
-        return true;
-      } else if (alleleKey in cohort.structuralVariants) {
-        return true;
-      } else {
-        return false;
-      }
-    }
 
     showAlleleColumn = true;
 

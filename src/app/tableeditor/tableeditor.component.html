@@ -252,6 +252,7 @@
         id="cell-edit"
         [(ngModel)]="editingValue"
         (keyup.enter)="saveManualEdit()"
+        autocapitalize="off"
         placeholder="Enter new value..."
         autofocus
       />
