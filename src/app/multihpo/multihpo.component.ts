@@ -17,12 +17,13 @@ import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.com
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
+import { EtlCellValue } from '../models/etl_dto';
 
 
 /// symbols for not applicable or unknown status
- const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "no", "/", "n.d.",  "unknown","n"]);
+ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown","n"]);
 
-
+/* Component to map columns that contain strings representing one to many HPO terms */
 @Component({
   selector: 'app-multihpo',
   standalone: true,
@@ -56,11 +57,11 @@ export class MultiHpoComponent {
   hpoInputString: string = ''; 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: string[], title: string },
+    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: EtlCellValue[], title: string },
     private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
     this.allHpoTerms = data.terms ?? [];
-    this.uniqueEntries = Array.from(new Set((data.rows ?? []).map(r => (r ?? '').trim()))).filter(r => r !== '');
+    this.uniqueEntries = Array.from(new Set((data.rows ?? []).map(r => (r.original ?? '').trim()))).filter(r => r !== '');
 
     this.hpoMappings = this.uniqueEntries.map(rowText =>
       this.allHpoTerms.map(term => ({
@@ -98,7 +99,7 @@ export class MultiHpoComponent {
 
   save() {
     const mappedRows: HpoMappingRow[] = (this.data.rows ?? []).map(row => {
-      const trimmed = (row ?? '').trim();
+      const trimmed = (row.original ?? '').trim();
       const idx = this.uniqueEntries.indexOf(trimmed);
       if (idx >= 0) {
         // clone so caller can mutate if desired without mutating this dialog state

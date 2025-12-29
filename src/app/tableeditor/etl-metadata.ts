@@ -131,3 +131,12 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: EtlColumnType.AgeAtLastEncounter,
     [TransformType.LAST_ENCOUNTER_AGE]: EtlColumnType.AgeAtLastEncounter,
   };
+
+
+export const TransformPolishingElementsSet: Set<TransformType> = new Set([
+      TransformType.STRING_SANITIZE,
+      TransformType.REMOVE_WHITESPACE,
+      TransformType.TO_UPPERCASE,
+      TransformType.TO_LOWERCASE,
+      TransformType.EXTRACT_NUMBERS,
+]);

@@ -37,7 +37,7 @@ import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.comp
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
-import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap} from './etl-metadata';
+import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap, TransformPolishingElementsSet} from './etl-metadata';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -142,15 +142,16 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   ]
   
 
-  
-
-
-  /* These functions transform contents of columns according to fixed rules. No dialog is opened for the user. */
-  readonly ELEMENTWISE_MAP: Partial<Record<TransformType, StringTransformFn>> = {
+  /* Functions that perform a fixed operation on cells and do NOT expect the column type to change */
+  readonly TIDY_CELL_FN_MAP: Partial<Record<TransformType, StringTransformFn>> = {
     [TransformType.TO_UPPERCASE]: (val) => val.toUpperCase(),
     [TransformType.TO_LOWERCASE]: (val) => val.toLowerCase(),
     [TransformType.REMOVE_WHITESPACE]: (val) => val.replace(/\s+/g, ''),
     [TransformType.STRING_SANITIZE]: (val) => val.trim(), // simplified example
+  }
+
+    /* Functions that perform a fixed operation on cells and DO expect the column type to change */
+  readonly ELEMENTWISE_MAP: Partial<Record<TransformType, StringTransformFn>> = {
     [TransformType.ONSET_AGE]: (val) => this.etl_service.parseAgeToIso8601(val),
     [TransformType.SEX_COLUMN]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.SEX_COLUMN_TYPE]: (val) => this.etl_service.parseSexColumn(val),
@@ -191,10 +192,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   uniqueValuesToMap: string[] = [];
 
   pmidDto: PmidDto = defaultPmidDto();
-
-
-
- 
  
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
@@ -584,11 +581,7 @@ async applySingleHpoTransform(colIndex: number) {
         }
     }
   });
-    
-
   
-
-
   this.reRenderTableRows();
 }
 
@@ -608,7 +601,6 @@ async applySingleHpoTransform(colIndex: number) {
           .map(t => [t.termId, { hpoId: t.termId, hpoLabel: t.label }])
       ).values()
     );
-
     const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
       data: { terms: hpoTerms, rows: col.values, title: col.header.original }
@@ -617,32 +609,40 @@ async applySingleHpoTransform(colIndex: number) {
     const result = await firstValueFrom(dialogRef.afterClosed());
 
     // Apply mapping or mark error
-    col.values.forEach((cell, i) => {
+    col.values = col.values.map((cell, i) => {
       if (!result) {
-        cell.status = ERROR;
-        cell.error = 'User cancelled';
-        // Keep current
-      } else {
-        //const mappingRow = result.hpoMappings[i] || [];
-        const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
-        if (!mappingRow.length) {
-          cell.status = ERROR;
-          cell.error = "No mapping found";
-          return;
+        return {
+          ...cell,
+          status: EtlCellStatus.Error,
+          error: 'User cancelled'
         }
-        const mappedValue = mappingRow
+      }
+      const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
+      // If no mapping row exists, return error
+      if (!mappingRow.length) {
+        return {
+          ...cell,
+          current: '',
+          status: EtlCellStatus.Error,
+          error: 'No mapping found'
+        };
+      }
+      const mappedValue = mappingRow
           .filter(entry => entry.status !== 'na')
           .map(entry => `${entry.term.hpoId}-${entry.status}`)
           .join(";");
-        cell.current = mappedValue;
-        cell.status = TRANSFORMED;
-        cell.error = undefined;
+
+      return {
+        ...cell,
+        current: mappedValue,
+        status: TRANSFORMED,
+        error: undefined
       }
     });
-
     // Save pending header metadata
     col.header.hpoTerms = result?.allHpoTerms ?? [];
     col.header.columnType = EtlColumnType.MultipleHpoTerm;
+    this.reRenderTableRows();
   }
 
 
@@ -1274,16 +1274,45 @@ async runElementwiseEngine(colIndex: number, transform: TransformType, fn: Strin
   this.reRenderTableRows(); 
 }
 
+async runTidyColumn(colIndex: number | null, fn: StringTransformFn) {
+ let etlDto = this.etlDto;
+  if (! etlDto || ! colIndex) return;
+  const col = etlDto.table.columns[colIndex];
+  col.values = col.values.map(cell => {
+      const input = cell.original ?? '';
+      let output: string | undefined = fn(input);
+        if (output) {
+          return {
+            ...cell,
+            current: output,
+            error: ''
+          }
+        } else {
+          return {
+            ...cell,
+            current: '',
+            status: ERROR,
+            error: `Could not map "${input}"`
+          }
+        }
+      });
+      this.reRenderTableRows();
+}
+
 async applyNamedTransform(colIndex: number | null, transform: TransformType) {
   if (colIndex == null || !this.etlDto) return;
 
-  const transformFn = this.ELEMENTWISE_MAP[transform];
+  const transformFn = this.ELEMENTWISE_MAP[transform]; // cell-wise transforms, e.g. Age, Sex, Deceased
   if (transformFn) {
     this.runElementwiseEngine(colIndex, transform, transformFn);
     return;
   }
-
-
+  const tidyFn = this.TIDY_CELL_FN_MAP[transform]; // "tidy" functions such as toLowerCase.
+  if (tidyFn) {
+    this.runTidyColumn(colIndex, tidyFn);
+    return;
+  }
+  
 
   // Interactive / structural transforms (UNCHANGED)
   switch (transform) {
