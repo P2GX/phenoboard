@@ -144,8 +144,8 @@
       <li class="has-submenu">
         Set Column Type ▸
         <ul class="submenu">
-          @for (category of etlTypeKeys; track category) {
-            <li (click)="setColumnType(contextMenuColIndex, category); columnContextMenuVisible = false">
+          @for (category of simpleColumnOperations; track category) {
+            <li (click)="simpleColumnOp(contextMenuColIndex, category); columnContextMenuVisible = false">
               {{ category }}
             </li>
           }
