@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, variant_dto::VariantDto}, hpoa};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, variant_dto::VariantDto}, hpoa};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -558,6 +558,18 @@ impl PhenoboardSingleton {
         cohort_dto: CohortData
     ) -> Result<Vec<VariantDto>, String> {
         ga4ghphetools::variant::analyze_variants(cohort_dto)
+    }
+
+    pub fn process_allele_column(
+        &self,
+        etl: EtlDto,
+        col: usize
+    ) -> Result<EtlDto, String> {
+        match &self.ontology {
+            Some(hpo) =>  ga4ghphetools::etl::process_allele_column(hpo.clone(),etl, col),
+            None => Err("HPO not initialized".to_string()),
+        }
+       
     }
 
 

@@ -30,7 +30,6 @@ export enum TransformType {
   FAMILY_ID_COLUMN_TYPE="FAMILY_ID_COLUMN_TYPE",
   INDIVIDUAL_ID_COLUMN_TYPE="INDIVIDUAL_ID_COLUMN_TYPE",
   GENE_SYMBOL_COLUMN_TYPE="GENE_SYMBOL_COLUMN_TYPE",
-  VARIANT_COLUMN_TYPE="VARIANT_COLUMN_TYPE",
   DISEASE_COLUMN_TYPE="DISEASE_COLUMN_TYPE",
   AGE_OF_ONSET_COLUMN_TYPE="AGE_OF_ONSET_COLUMN_TYPE",
   AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE="AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE",
@@ -46,7 +45,6 @@ export const TransformLabels: Record<TransformType, string> = {
   [TransformType.SEX_COLUMN]: "Sex Column",
   [TransformType.MULTIPLE_HPO_TERM]: 'Multiple HPO Terms...',
   [TransformType.ONSET_AGE]: 'Onset age',
-  [TransformType.LAST_ENCOUNTER_AGE]: 'Last Encounter Age',
   [TransformType.SPLIT_COLUMN]: 'Split Column',
   [TransformType.STRING_SANITIZE]: 'Sanitize (trim/ASCII)',
   [TransformType.REMOVE_WHITESPACE]: 'Remove all whitespace',
@@ -64,17 +62,17 @@ export const TransformLabels: Record<TransformType, string> = {
   [TransformType.CONSTANT_COLUMN]: 'Add constant column to right',
   [TransformType.MERGE_INDIVIDUAL_FAMILY]: 'Merge family/individual columns',
   [TransformType.TOGGLE_TRANSFORMED]: 'Toggle transformed status',
-  [TransformType.RAW_COLUMN_TYPE]: 'Raw',
+  [TransformType.RAW_COLUMN_TYPE]: 'Raw (Reset)',
   [TransformType.FAMILY_ID_COLUMN_TYPE]: 'Family ID',
   [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
   [TransformType.GENE_SYMBOL_COLUMN_TYPE]: 'Gene symbol',
-  [TransformType.VARIANT_COLUMN_TYPE]: 'Variant',
   [TransformType.DISEASE_COLUMN_TYPE]: 'Disease',
   [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: 'Age of onset',
   [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: 'Age at last encounter',
   [TransformType.SEX_COLUMN_TYPE]: 'Sex',
   [TransformType.DECEASED_COLUMN_TYPE]: 'Deceased',
-  [TransformType.IGNORE_COLUMN_TYPE]: 'Ignore'
+  [TransformType.IGNORE_COLUMN_TYPE]: 'Ignore',
+  [TransformType.LAST_ENCOUNTER_AGE]: 'Age at last encounter'
 };
 
 
@@ -119,7 +117,6 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.FAMILY_ID_COLUMN_TYPE]: EtlColumnType.FamilyId,
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: EtlColumnType.PatientId,
     [TransformType.GENE_SYMBOL_COLUMN_TYPE]: EtlColumnType.GeneSymbol,
-    [TransformType.VARIANT_COLUMN_TYPE]: EtlColumnType.Variant,
     [TransformType.DISEASE_COLUMN_TYPE]: EtlColumnType.Disease,
     [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: EtlColumnType.AgeOfOnset,
     [TransformType.ONSET_AGE]: EtlColumnType.AgeOfOnset,
@@ -130,6 +127,7 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.ONSET_AGE_ASSUME_YEARS]: EtlColumnType.AgeOfOnset,
     [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: EtlColumnType.AgeAtLastEncounter,
     [TransformType.LAST_ENCOUNTER_AGE]: EtlColumnType.AgeAtLastEncounter,
+    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: EtlColumnType.AgeAtLastEncounter,
   };
 
 

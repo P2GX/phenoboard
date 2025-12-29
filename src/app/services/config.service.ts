@@ -13,8 +13,6 @@ import { ColumnTableDto, EtlDto } from '../models/etl_dto';
   providedIn: 'root'
 })
 export class ConfigService {
- 
- 
   
   constructor() {}
 
@@ -316,5 +314,12 @@ export class ConfigService {
       return await invoke<void>('save_html_report', {
         cohort: cohortDto
       });
+  }
+
+  async processAlleleColumn(etl_dto: EtlDto, index: number): Promise<EtlDto> {
+    return await invoke<EtlDto>('process_allele_column', {
+      etl: etl_dto,
+      col: index
+    });
   }
 }

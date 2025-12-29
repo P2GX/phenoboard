@@ -131,7 +131,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     TransformType.FAMILY_ID_COLUMN_TYPE,
     TransformType.INDIVIDUAL_ID_COLUMN_TYPE,
     TransformType.GENE_SYMBOL_COLUMN_TYPE,
-    TransformType.VARIANT_COLUMN_TYPE,
     TransformType.DISEASE_COLUMN_TYPE,
     TransformType.AGE_OF_ONSET_COLUMN_TYPE,
     TransformType.SEX_COLUMN_TYPE,
@@ -166,7 +165,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   readonly ACTION_MAP: Partial<Record<TransformType, (colIndex: number) => void>> = {
     // Column Type Setters
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (idx) => this.simpleColumnOp(idx, EtlColumnType.FamilyId),
-    [TransformType.VARIANT_COLUMN_TYPE]: (idx) => this.simpleColumnOp(idx, EtlColumnType.Variant),
+    
   };
 
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
@@ -220,7 +219,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.FamilyId); },
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
     [TransformType.GENE_SYMBOL_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.GeneSymbol); },
-    [TransformType.VARIANT_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Variant); },
     [TransformType.DISEASE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Disease); },
     [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.AgeOfOnset); },
     [TransformType.SEX_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Sex); },
@@ -605,6 +603,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
 
     const result = await firstValueFrom(dialogRef.afterClosed());
+    console.log("MH-result=",result);
 
     // Apply mapping or mark error
     col.values = col.values.map((cell, i) => {
@@ -617,6 +616,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       }
       const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
       // If no mapping row exists, return error
+      console.log("MH in loop, mappingRow=", mappingRow);
       if (!mappingRow.length) {
         return {
           ...cell,
@@ -638,6 +638,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       }
     });
     // Save pending header metadata
+    console.log("about to save result?.allHpoTerms =", result?.allHpoTerms );
+    console.log("MH column.values", col.values);
     col.header.hpoTerms = result?.allHpoTerms ?? [];
     col.header.columnType = EtlColumnType.MultipleHpoTerm;
     this.reRenderTableRows();
@@ -1138,7 +1140,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       [TransformType.FAMILY_ID_COLUMN_TYPE]: 'Family ID',
       [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
       [TransformType.GENE_SYMBOL_COLUMN_TYPE]: 'Gene symbol',
-      [TransformType.VARIANT_COLUMN_TYPE]: 'Variant',
       [TransformType.DISEASE_COLUMN_TYPE]: 'Disease',
       [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: 'Age of onset',
       [TransformType.SEX_COLUMN_TYPE]: 'Sex',
@@ -1226,6 +1227,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return {
         ...cell,
         status: EtlCellStatus.Ignored,
+        error: undefined
       };
     });
     col.header.columnType = EtlColumnType.Ignore;
@@ -1244,7 +1246,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         error: ''
       };
     });
-    col.header.columnType = EtlColumnType.Raw;
+    col.header.columnType = EtlColumnType.Ignore;
     this.reRenderTableRows();
   }
 
@@ -1348,12 +1350,28 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       case TransformType.SPLIT_COLUMN:
         this.splitColumn(colIndex);
         return;
+      case TransformType.DELETE_COLUMN:
+        this.deleteColumn(colIndex);
+        return;
+      case TransformType.CONSTANT_COLUMN:
+        this.addConstantColumn(colIndex);
+        return;
+      case TransformType.MERGE_INDIVIDUAL_FAMILY:
+        this.mergeIndividualAndFamilyColumns();
+        return;
+      case TransformType.ANNOTATE_VARIANTS:
+        this.processVariantColumn(colIndex);
+        return;
 
-      // ... keep the rest
+      case TransformType.ONSET_AGE:
+      case TransformType.LAST_ENCOUNTER_AGE:
+      case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
+      case TransformType.ONSET_AGE_ASSUME_YEARS:
+        this.applyElementwiseTransform(colIndex, transform);
+
+      
     }
 
-    // Element-wise transforms (NEW path)
-    // this.applyElementwiseTransform(colIndex, transform);
   }
 
   applyElementwiseTransform(colIndex: number, transform: TransformType) {
@@ -1380,6 +1398,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
             output = input.toLowerCase();
             break;
           case TransformType.ONSET_AGE:
+            output = this.etl_service.parseAgeToIso8601(input);
+            break;
+          case TransformType.LAST_ENCOUNTER_AGE:
             output = this.etl_service.parseAgeToIso8601(input);
             break;
           case TransformType.SEX_COLUMN:
@@ -1753,6 +1774,25 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
+  async processVariantColumn(index: number) {
+    const etl_dto = this.etlDto;
+    if (! etl_dto) return;
+    console.log("processVariantColumn etl=", etl_dto);
+    try {
+      const processed_etl = await this.configService.processAlleleColumn(etl_dto, index);
+      this.etlDto = processed_etl;
+      this.etl_service.setEtlDto(processed_etl); 
+      console.log("processVariantColumn processed_etl=", processed_etl);
+    } catch (err) {
+      let message = err instanceof Error ? err.message : String(err);
+      message = `Could not process alleles: "${message}"`;
+      this.notificationService.showError(message);
+      console.error("ERROR", message);
+    }
+
+    this.reRenderTableRows();
+  }
+
   /** Add a new column with a constant value in each cell */
   async addConstantColumn(index: number | null): Promise<string[]> {
     if (!this.etlDto) {
@@ -1924,6 +1964,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        console.log("HMINING result=", result);
         const etlDto = this.etlDto;
         if (!etlDto) {
           this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
@@ -1936,10 +1977,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         }
         const jsonized_cell_calue = JSON.stringify(result);
         col.values[rowIndex].current = jsonized_cell_calue;
-        //this.displayRows[rowIndex][colIndex] = jsonized_cell_calue;
-        this.reRenderTableRows();
+        col.values[rowIndex].status = TRANSFORMED;
+        col.values[rowIndex].error = undefined;
       }
     });
+    this.reRenderTableRows();
   }
 
   private getHpoCellData(colIndex: number, rowIndex: number): HpoTermData[] {

@@ -30,7 +30,7 @@ export class EtlCellComponent {
       this.current.set(val.current || '');
       this.status.set(val.status);
       this.error.set(val.error || undefined);
-    }, { allowSignalWrites: true });
+    });
   }
 
   ngOnInit() {

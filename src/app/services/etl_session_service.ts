@@ -70,15 +70,16 @@ export class EtlSessionService {
     return undefined
   }
   
-  parseAgeToIso8601(ageStr: string | null | undefined): string {
+  /* Try to parse a variety of age strings to Iso8601. 
+    If another kind of valid age string is found, keep it (.e., Gestational or ISO) */
+  parseAgeToIso8601(ageStr: string | null | undefined): string | undefined {
     if (ageStr == null || ageStr == undefined) {
-      return 'na';
+      return undefined;
     }
-    const naSymbols = new Set(["na", "","?", "-", "/"]);
-    const neonatalSymbols = new Set(["neonate", "neonatal", "neonatal onset"])
-    if (naSymbols.has(ageStr)) {
-      return 'na';
-    }
+    console.log("parseAgeToIso8601", ageStr);
+    if (this.ageService.validateAgeInput(ageStr)) return ageStr;
+    const neonatalSymbols = new Set(["neonate", "neonatal", "neonatal onset", "newborn", "newborn onset"])
+ 
     if (neonatalSymbols.has(ageStr.toLowerCase())) {
       return "Neonatal onset";
     }
@@ -102,6 +103,8 @@ export class EtlSessionService {
     const yearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
     const monthMatch = /(\d+(?:\.\d+)?)\s*(m|month|months)\b/.exec(lower);
     const dayMatch = /(\d+)\s*(d|day|days)\b/.exec(lower);
+    /* We could not find anything looking like an age string */
+    if (! yearMatch && ! monthMatch && ! dayMatch) return undefined;
 
     const rawYears = yearMatch ? parseFloat(yearMatch[1]) : 0;
     const rawMonths = monthMatch ? parseFloat(monthMatch[1]) : 0;

@@ -59,6 +59,7 @@ pub fn run() {
             save_external_template_json,
             get_biocurator_orcid,
             save_biocurator_orcid,
+            process_allele_column,
             get_variant_analysis,
             get_cohort_data_from_etl_dto,
             merge_cohort_data_from_etl_dto,
@@ -669,6 +670,20 @@ async fn get_variant_analysis(
     let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
     let singleton = phenoboard_arc.lock().unwrap();
     singleton.get_variant_analysis(cohort_dto)
+}
+
+#[tauri::command]
+fn process_allele_column(
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    etl: EtlDto,
+    col: usize
+) -> Result<EtlDto, String> {
+    let phenoboard_arc = Arc::clone(&*singleton);
+    let singleton = phenoboard_arc
+        .lock()
+        .map_err(|_| "Internal state error: mutex poisoned".to_string())?;
+
+    singleton.process_allele_column(etl, col)
 }
 
 /// This command creates a CohortData object from the current EtlDto and should
