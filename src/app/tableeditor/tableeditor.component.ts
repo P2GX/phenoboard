@@ -557,17 +557,39 @@ async applySingleHpoTransform(colIndex: number) {
   );
 
   // Apply mapping or mark cells as error
-  column.values.forEach(cell => {
-    if (!mapping) {
-      cell.status = ERROR;
-      cell.error = "Mapping cancelled";
-    } else {
-      const newValue = mapping.valueToStateMap[cell.original];
-      cell.current = newValue;
-      cell.status = TRANSFORMED;
-      cell.error = undefined;
+  column.values = column.values.map(cell => {
+    if (! mapping) {
+      return {
+            ...cell, 
+            current: '', 
+            status: EtlCellStatus.Error,
+            error: `User cancelled mapping`
+          };
+      } else {
+        const newValue = mapping.valueToStateMap[cell.original];
+        if (newValue) {
+          return { 
+            ...cell, 
+            current: newValue, 
+            status: EtlCellStatus.Transformed,
+            error: undefined
+          };
+        } else {
+          return { 
+            ...cell, 
+            current: '', 
+            status: EtlCellStatus.Error,
+            error: `Could not map ${cell.original}`
+          };
+        }
     }
   });
+    
+
+  
+
+
+  this.reRenderTableRows();
 }
 
 
@@ -1253,13 +1275,7 @@ async runElementwiseEngine(colIndex: number, transform: TransformType, fn: Strin
 }
 
 async applyNamedTransform(colIndex: number | null, transform: TransformType) {
-  
-  //const transform = Object.values(TransformType).find(v => v === transformInput) as TransformType;
-  console.log('Type of transform:', typeof transform);
-  console.log('Values in Map:', Object.keys(TransformToColumnTypeMap));
   if (colIndex == null || !this.etlDto) return;
-  const col = this.etlDto.table.columns[colIndex];
-
 
   const transformFn = this.ELEMENTWISE_MAP[transform];
   if (transformFn) {
