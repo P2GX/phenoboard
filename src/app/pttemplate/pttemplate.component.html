@@ -71,7 +71,7 @@
         </div>
       }
         <div class="text-xs text-gray-500 mt-1">
-            {{ cohort != null && cohort.cohortAcronym != "na" ? 'Acronym: ' + cohort.cohortAcronym : "Acronym not set" }}
+            {{ cohort !== null && cohort.cohortAcronym !== "na" ? 'Acronym: ' + cohort.cohortAcronym : "Acronym not set" }}
         </div>
       
     </div>
@@ -315,10 +315,10 @@
       <td
         class="hpo-col"
         (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row, cell)"
-        [class.observed-cell]="cell.type=='Observed'"
-        [class.excluded-cell]="cell.type=='Excluded'"
-        [class.onset-cell]="cell.type=='OnsetAge'"
-        [class.na-cell]="cell.type=='Na'"
+        [class.observed-cell]="cell.type==='Observed'"
+        [class.excluded-cell]="cell.type==='Excluded'"
+        [class.onset-cell]="cell.type==='OnsetAge'"
+        [class.na-cell]="cell.type==='Na'"
       >
         @switch (cell.type) {
           @case ('Observed') {  ✅ }
@@ -463,7 +463,7 @@
   >
     <ul>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
-          (click)="focusOnRow()">Focus on row</li>
+          (click)="focusOnSingleRow()">Focus on row</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="focusOnPmid()">Focus on PMID: {{ contextRow?.individualData.pmid }}</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"

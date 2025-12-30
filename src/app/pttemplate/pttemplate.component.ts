@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -16,10 +16,8 @@ import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MoiSelector } from "../moiselector/moiselector.component";
-import { StructuralVariant, VariantDto } from '../models/variant_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
-import { SvDialogService } from '../services/svManualEntryDialogService';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
@@ -49,23 +47,23 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 [x: string]: any;
 
   constructor(
-    private configService: ConfigService, 
-    private dialog: MatDialog,
-    public ageService: AgeInputService,
     ngZone: NgZone,
     cohortService: CohortDtoService,
-    private svDialog: SvDialogService,
-    override cdRef: ChangeDetectorRef,
-    private notificationService: NotificationService) {
+    override cdRef: ChangeDetectorRef) {
       super(cohortService, ngZone, cdRef)
     }
+  private configService = inject(ConfigService);
+  private ageService = inject(AgeInputService);
+  private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
+
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
   // References to the HTML elements
   @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;
   @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
   @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
-  tableWidth: string = '100%'; 
+  tableWidth = '100%'; 
   Object = Object; // <-- expose global Object to template
   public readonly VariantKind = VariantKind;
   cohortDto: CohortData | null = null;
@@ -74,12 +72,12 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   successMessage: string | null = null;
 
   /* used for autocomplete widget */
-  hpoInputString: string = '';
+  hpoInputString = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
   /* used for right-click option menu */
-  contextMenuVisible: boolean = false;
-  contextMenuX:number = 0;
-  contextMenuY: number = 0;
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
   /* used for first column only */
   individualContextMenuVisible = false;
   individualMenuX = 0;
@@ -92,10 +90,10 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   pendingRow: RowData | null = null;
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
-  cohortAcronymInput: string = '';
+  cohortAcronymInput = '';
 
   public rowInfoKey: string| null = null;
-  rowInfoVisible: boolean = false;
+  rowInfoVisible = false;
   
   predefinedOptions: Option[] = [
     { label: 'Observed ✅', value: 'observed' },
@@ -115,7 +113,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   validatedAlleles = new Set<string>();
 
   /* Should be called whenever (i) cohort loads; (ii) variants are added/removed; or (iii) DTO is replaced */
-  rebuildValidatedAlleles() {
+  rebuildValidatedAlleles(): void {
     const cohort = this.cohortDto;
     if (!cohort) {
       this.validatedAlleles.clear();
@@ -210,7 +208,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
   }
 
-  toggleMoiSelector(i: number) {
+  toggleMoiSelector(i: number): void {
     this.showMoiIndex = this.showMoiIndex === i ? null : i;
   }
 
@@ -263,7 +261,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     });
   }
 
-  onAlleleCountChange(geneSymbol: string, row: RowData, newCount: number) {
+  onAlleleCountChange(geneSymbol: string, row: RowData, newCount: number): void {
     if (!geneSymbol || !row) return;
     // Ensure alleleCountMap exists
     if (!row.alleleCountMap) {
@@ -278,7 +276,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  async addAllele(row: RowData, varKind: VariantKind) {
+  async addAllele(row: RowData, varKind: VariantKind): Promise<void> {
     const dialogRef = this.dialog.open(AddVariantComponent, {
           width: '600px',
            data: { kind: varKind }
@@ -365,7 +363,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       return;
     }
     try {
-      let sanitized_cohort = await this.configService.sanitizeCohort(cohortDto);
+      const sanitized_cohort = await this.configService.sanitizeCohort(cohortDto);
       this.cohortService.setCohortData(sanitized_cohort);
       console.log(this.deepDiff(sanitized_cohort, cohortDto));
       alert("✅ Cohort successfully sanitized");
@@ -394,7 +392,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
     if (autocompletedTerm) {
       try {
-        let updated_template = await this.configService.addHpoToCohort(autocompletedTerm.hpoId, autocompletedTerm.hpoLabel, template);
+        const updated_template = await this.configService.addHpoToCohort(autocompletedTerm.hpoId, autocompletedTerm.hpoLabel, template);
         this.notificationService.showSuccess(`Successfully added ${autocompletedTerm.hpoLabel} (${autocompletedTerm.hpoId})`);
         this.cohortService.setCohortData(updated_template);
       } catch (err) {
@@ -406,7 +404,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   
   /** Open a context menu after a right-click on an HPO column */
-  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowData: RowData, cell: CellValue) {
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowData: RowData, cell: CellValue): void {
     event.preventDefault();
     this.contextMenuVisible = true;
     this.contextMenuX = event.clientX;
@@ -510,17 +508,17 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   @HostListener('document:click')
-  closeContextMenu() {
+  closeContextMenu(): void {
     this.contextMenuVisible = false;
   }
 
-  async saveCohort() {
+  async saveCohort(): Promise<void> {
     const cohort = this.cohortDto;
     if (cohort == null) {
       this.notificationService.showError("Cannot save null cohort");
       return;
     }
-    let acronym = cohort.cohortAcronym;
+    const acronym = cohort.cohortAcronym;
     if (acronym == null) {
       this.notificationService.showError("Need to specify acronym before saving cohort");
       return;
@@ -537,7 +535,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   
 
-  async exportPpkt() {
+  async exportPpkt(): Promise<void> {
     const cohort_dto = this.cohortDto;
     if (! cohort_dto) {
       this.notificationService.showError("CohortData not initialized");
@@ -584,7 +582,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   showCohortAcronym = false;
   showMoi = false;
 
- async submitCohortAcronym(acronym: string) {
+ async submitCohortAcronym(acronym: string): Promise<void> {
     const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
     console.log("submitCohortAcronym before", cohort_dto);
     if (acronym.trim()) {
@@ -783,12 +781,11 @@ get ageEntries(): string[] {
     event.stopPropagation();
   }
 
-  closeIndividualContextMenu() {
+  closeIndividualContextMenu(): void {
     this.individualContextMenuVisible = false;
   }
 
-  /** Focus on a single row */
-focusOnRow() {
+focusOnSingleRow(): void {
   if (!this.contextRow) return;
   this.filteredRows = [this.contextRow];
   this.closeContextMenu();
@@ -826,7 +823,7 @@ focusOnPmid() {
   this.closeContextMenu();
 }
 
-showAllRows() {
+showAllRows(): void {
   this.filteredRows = [];
   this.individualContextMenuVisible = false;
   this.rowInfoKey = null;
@@ -835,7 +832,7 @@ showAllRows() {
 }
 
 /** Show info like the existing hover popup */
-showInfoForRow(row: RowData | null) {
+showInfoForRow(row: RowData | null): void {
   this.individualContextMenuVisible = false;
   if (! row) {
     this.rowInfoKey = null;
@@ -848,7 +845,7 @@ showInfoForRow(row: RowData | null) {
 }
 
 
-  closeRowInfo() {
+  closeRowInfo(): void {
     this.rowInfoKey = null;
     this.rowInfoVisible = false;
     this.cdRef.detectChanges();
@@ -856,11 +853,11 @@ showInfoForRow(row: RowData | null) {
 
 
   /** Optional: reset filter */
-  resetFilter() {
+  resetFilter(): void {
     this.filteredRows = [];
   }
 
-  getDisplayedRows() {
+  getDisplayedRows(): RowData[] {
     const cohort = this.cohortService.getCohortData();
     if (! cohort) return [];
     if (this.filteredRows.length == 0) {

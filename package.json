@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.5.36",
+  "version": "0.5.38",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -38,14 +38,24 @@
     "@angular-devkit/build-angular": "^20.0.5",
     "@angular-devkit/core": "^20.0.5",
     "@angular-devkit/schematics": "^20.0.5",
+    "@angular-eslint/eslint-plugin-template": "^21.1.0",
+    "@angular-eslint/template-parser": "^21.1.0",
     "@angular/cli": "^20.0.5",
     "@angular/compiler-cli": "^20.0.5",
+    "@eslint/js": "^9.39.2",
     "@nx/angular": "^21.2.2",
     "@nx/workspace": "21.2.2",
     "@schematics/angular": "^20.0.5",
     "@tauri-apps/cli": "^2.3.1",
     "@types/jasmine": "~5.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "angular-eslint": "^20.0.0",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^61.5.0",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -56,6 +66,7 @@
     "postcss": "^8.5.6",
     "sass": "^1.89.1",
     "tailwindcss": "^3.3.5",
-    "typescript": "5.8"
+    "typescript": "5.8",
+    "typescript-eslint": "^8.51.0"
   }
 }

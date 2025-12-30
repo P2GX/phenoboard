@@ -120,7 +120,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   contextMenuCellY = 0;
   contextMenuCellRow: number | null = null;
   contextMenuCellCol: number | null = null;
-  contextMenuCellValue: string | null = null;
+  contextMenuCellValue: EtlCellValue | null = null;
   contextMenuCellType: EtlColumnType | null = null;
 
 
@@ -169,7 +169,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   };
 
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
-  editingValue: string = '';
+  editingValue: EtlCellValue | null = null;
+  editingString: string  = '';
   editModalVisible = false;
 
   // Which column is being previewed
@@ -671,8 +672,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.contextMenuCellVisible = true;
     this.contextMenuCellRow = rowIndex;
     this.contextMenuCellCol = colIndex;
-    const cell = col.values[rowIndex];
-    this.contextMenuCellValue = cell ? cell.current : '';
+    const cell: EtlCellValue = col.values[rowIndex];
+    this.contextMenuCellValue = cell;
     this.contextMenuCellType = header.columnType;
   }
 
@@ -727,12 +728,15 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
   async editCellValueManually() {
+    console.log("editCellValueManually");
     const cell = this.contextMenuCellValue;
+    this.editingValue = cell;
     const colIndex = this.contextMenuCellCol;
     if (!cell || colIndex == null) {
       this.notificationService.showError("Could not edit cell: missing context.");
       return;
     }
+    this.editingString = cell.original;
     let col = this.etlDto?.table.columns[colIndex];
     if (!col) {
       this.notificationService.showError("Could not edit cell because we could not get context menu cell column.");
@@ -1002,7 +1006,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError("context menu row is null");
       return;
     }
-    const aboveValue =
+    const aboveValue: EtlCellValue =
       this.displayColumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1];
     const col = columnTableDto.columns[this.contextMenuCellCol];
     if (col) {
@@ -1016,9 +1020,32 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.editModalVisible = false;
   }
 
+  /* Activated by a right click on a table cell */
+  onCellContextMenu(event: {
+    event: MouseEvent;
+    cell: EtlCellValue;
+    rowIndex: number;
+    colIndex: number;
+  }) {
+    // Position the context menu
+    this.contextMenuCellX = event.event.clientX;
+    this.contextMenuCellY = event.event.clientY;
+    this.contextMenuCellVisible = true;
+
+    this.contextMenuCellRow = event.rowIndex;
+    this.contextMenuCellCol = event.colIndex;
+    this.contextMenuCellValue = event.cell;
+
+    // Determine the type / other data from parent state
+    const header = this.displayHeaders[event.colIndex];
+    this.contextMenuCellType = header.columnType;
+  }
+
 
   /**
-   * Save a manual edit to a table cell
+   * Save a manual edit to a table cell. Note that we assume that any manual
+   * edit is correct and apply the "TRANSFORMED" state. Everything will be Q/C'd
+   * one more time with the conversion to CohortData as well!
    */
   async saveManualEdit(): Promise<void> {
     if (this.etlDto == null) return;
@@ -1032,15 +1059,19 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     if (col) {
       const oldCell = col.values[rowIndex];
       if (!oldCell) return;
+      if (! this.editingValue) {
+        this.notificationService.showError("Could not find edit value");
+        return;
+      }
       const newCell: EtlCellValue = {
         ...oldCell,
-        original: this.editingValue.trim(),
-        status: RAW,
+        current: this.editingString.trim(),
+        status: TRANSFORMED, // assume manual edit is correct 
         error: undefined,
       };
 
       col.values[rowIndex] = newCell;
-      this.contextMenuCellValue = newCell.current;
+      this.contextMenuCellValue = newCell;
       this.reRenderTableRows();
       this.editModalVisible = false;
     }

@@ -108,11 +108,12 @@
           </button>
           </td>
         } @else {
-         <td (contextmenu)="onRightClickCell($event, rowIndex, colIndex)" class="table-cell">
+          <td class="table-cell">
             <etl-cell
               [cell]="displayRows[rowIndex][colIndex]"
               [rowIndex]="rowIndex"
               [colIndex]="colIndex"
+              (contextMenuRequested)="onCellContextMenu($event)"
               (edited)="onCellEdited($event)"
             ></etl-cell>
           </td>
@@ -214,28 +215,6 @@
       </ul>
     </div>
   }
-  <!--
-@if (transformationPanelVisible && etlDto && contextMenuColIndex != null) {
-  <div class="transformation-panel">
-    <h3>Transform values in column: {{ contextMenuColHeader }}</h3>
-      @let cells = etlDto.table.columns[contextMenuColIndex]?.values ?? [];
-      @for (cell of cells; track $index) {
-        <div class="transform-row">
-          <label>
-            {{ cell.original }} →
-            <input 
-              [value]="cell.current" 
-              (input)="cell.current = $any($event.target).value" 
-              class="transform-input" />
-          </label>
-        </div>
-      }
-    <button (click)="applyValueTransform()" class="btn-outline-primary">✅ Apply Transformation</button>
-    <button (click)="resetColumnToRaw(contextMenuColIndex)" class="btn-outline-primary">❌ Cancel</button>
-
-    </div>
-}-->
-
 
 
 @if(editModalVisible) {
@@ -247,10 +226,13 @@
     </header>
     
     <div class="modal-body">
-      <label for="cell-edit">Current Value:</label>
+      <label>
+        <span class="value-badge original">Original: {{ editingValue?.original || "n/a" }}</span>
+        <span class="value-badge transformed">Transformed: {{ editingValue?.current || "n/a" }}</span>
+      </label>
       <input
         id="cell-edit"
-        [(ngModel)]="editingValue"
+        [(ngModel)]="editingString"
         (keyup.enter)="saveManualEdit()"
         autocapitalize="off"
         placeholder="Enter new value..."

@@ -1,7 +1,5 @@
-import { Component } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { filter } from 'rxjs/operators';
 import { HelpService } from '../services/help.service';
 
 @Component({
@@ -10,13 +8,7 @@ import { HelpService } from '../services/help.service';
   styleUrls: ['./footer.component.css']
 })
 export class FooterComponent {
-  helpUrl: string = 'https://p2gx.github.io/phenoboard/';
-
-  constructor(private router: Router, 
-    private helpService: HelpService) {
-  }
-
-  
+  private helpService = inject(HelpService);
 
   async openHelp(): Promise<void> {
     const url = this.helpService.getCurrentUrlValue();   

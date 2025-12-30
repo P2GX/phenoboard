@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, output, signal } from "@angular/core";
+import { Component, computed, effect, EventEmitter, HostListener, input, Output, output, signal } from "@angular/core";
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { EtlCellValue } from "../models/etl_dto";
@@ -36,6 +36,26 @@ export class EtlCellComponent {
   ngOnInit() {
     // Initialize signals from the DTO
    // this.syncSignalsFromDto();
+  }
+
+  @Output() contextMenuRequested = new EventEmitter<{
+    event: MouseEvent;
+    cell: EtlCellValue;
+    rowIndex: number;
+    colIndex: number;
+  }>();
+
+  @HostListener('contextmenu', ['$event'])
+  onRightClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.contextMenuRequested.emit({
+      event,
+      cell: this.cell(),
+      rowIndex: this.rowIndex(),
+      colIndex: this.colIndex()
+    });
   }
 
 
@@ -88,11 +108,6 @@ export class EtlCellComponent {
     });
   }
 
-  /** Right-click handler */
-  onRightClick(event: MouseEvent) {
-    event.preventDefault();
-    this.editManually();
-  }
 
   readonly cellClass = computed(() => {
     const currentStatus = this.status();

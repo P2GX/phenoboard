@@ -1,6 +1,6 @@
 import { DiseaseData } from "./cohort_dto";
 import { HpoTermDuplet } from "./hpo_term_dto";
-import { HgvsVariant, StructuralVariant } from "./variant_dto";
+import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
 export enum EtlCellStatus {
   Raw = "raw",
@@ -99,6 +99,7 @@ export interface EtlDto {
   title: string | null;
   hgvsVariants: Record<string, HgvsVariant>;
   structuralVariants: Record<string, StructuralVariant>;
+  intergenicVariants: Record<string, IntergenicHgvsVariant>;
 }
 
 /**
@@ -114,6 +115,7 @@ export function fromColumnDto(dto: ColumnTableDto): EtlDto {
     title: null,
     hgvsVariants: {} as Record<string, HgvsVariant>,
     structuralVariants: {} as Record<string, StructuralVariant>,
+    intergenicVariants: {} as Record<string, IntergenicHgvsVariant>,
   };
   return etl_dto;
 }
