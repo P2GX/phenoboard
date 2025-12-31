@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IndividualData } from '../models/cohort_dto';
@@ -13,7 +13,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 
 @Component({
-  selector: 'app-individual_edit',
+  selector: 'app-individual-edit',
   standalone: true,
   imports: [
     CommonModule,
@@ -30,22 +30,16 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 })
 export class IndividualEditComponent {
   form: FormGroup;
-
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<IndividualEditComponent>,
-    public ageInputService: AgeInputService,
-    @Inject(MAT_DIALOG_DATA) public data: IndividualData
-  ) {
+  constructor() {
     this.form = this.fb.group({
-      pmid: [data.pmid, Validators.required],
-      title: [data.title, Validators.required],
-      individualId: [data.individualId, Validators.required],
-      comment: [data.comment],
-      ageOfOnset: [data.ageOfOnset, [Validators.required, this.ageInputService.validator()]],
-      ageAtLastEncounter: [data.ageAtLastEncounter, [Validators.required, this.ageInputService.validator()]],
-      deceased: [data.deceased, Validators.required],
-      sex: [data.sex, Validators.required]
+      pmid: [this.data.pmid, Validators.required],
+      title: [this.data.title, Validators.required],
+      individualId: [this.data.individualId, Validators.required],
+      comment: [this.data.comment],
+      ageOfOnset: [this.data.ageOfOnset, [Validators.required, this.ageInputService.validator()]],
+      ageAtLastEncounter: [this.data.ageAtLastEncounter, [Validators.required, this.ageInputService.validator()]],
+      deceased: [this.data.deceased, Validators.required],
+      sex: [this.data.sex, Validators.required]
     });
     this.form.get('individualId')?.valueChanges.subscribe(value => {
       if (value !== value?.trim()) {
@@ -54,13 +48,18 @@ export class IndividualEditComponent {
     });
   }
 
-  save() {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject(MatDialogRef<IndividualEditComponent>);
+  public ageInputService = inject(AgeInputService);
+  public data = inject(MAT_DIALOG_DATA) as IndividualData;
+  
+  save(): void {
     if (this.form.valid) {
       this.dialogRef.close(this.form.value);
     }
   }
 
-  cancel() {
+  cancel(): void {
     this.dialogRef.close(null);
   }
 }

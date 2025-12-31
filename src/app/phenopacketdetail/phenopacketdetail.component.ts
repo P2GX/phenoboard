@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, RowData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
@@ -29,19 +29,17 @@ import { MatButtonModule } from '@angular/material/button';
 ]
 })
 export class PhenopacketDetailComponent implements OnInit {
+  private cohortService = inject(CohortDtoService);
+  private route = inject(ActivatedRoute);
+
   row?: RowData;
   cohort: CohortData|null = null;
-
   observedTerms: HpoTermDuplet[] = [];
   excludedTerms: HpoTermDuplet[] = [];
   diseaseIdToLabel: Map<string, string> = new Map();
-  constructor(
-    private route: ActivatedRoute,
-    private cohortService: CohortDtoService
-  ) {
-  }
+ 
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {

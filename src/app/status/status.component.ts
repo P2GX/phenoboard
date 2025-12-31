@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
@@ -17,11 +17,9 @@ import { SourcePmid } from '../models/cohort_description_dto';
 })
 export class StatusComponent implements OnInit {
 
-  constructor(private configService: ConfigService, 
-    private cohortService: CohortDtoService,
-    private etl_service: EtlSessionService,
-  ) {
-  }
+  private configService = inject(ConfigService);
+  private cohortService = inject(CohortDtoService);
+  private etl_service = inject(EtlSessionService);
   cohortDto$ = this.cohortService.cohortData$;
 
   
@@ -66,12 +64,12 @@ export class StatusComponent implements OnInit {
   }
 
   
-  showAllPmid() {
+  showAllPmid(): void {
     this.pmidList = this.cohortService.getAllPmids();
     this.showPmid = true;
   }
 
-  showAllPpkt() {
+  showAllPpkt(): void {
     this.showPmid = false;
     this.showJson = false;
   }
@@ -89,7 +87,7 @@ extractPmid(raw?: string): string {
   return raw.replace(/^\s*PMID:\s*/i, '').trim();
 }
   
-saveHtmlSummary() {
+saveHtmlSummary(): void {
   const cohort = this.cohortService.getCohortData();
   if (! cohort) {
     alert("Cohort not initialized");

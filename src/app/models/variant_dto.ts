@@ -1,4 +1,4 @@
-import { CohortData, GeneTranscriptData, RowData } from "./cohort_dto";
+import { CohortData, GeneTranscriptData } from "./cohort_dto";
 
 
 
@@ -85,8 +85,8 @@ export interface HgvsVariant {
 }
 
 export interface IntergenicHgvsVariant {
-    assembly: String;
-    chr: String;
+    assembly: string;
+    chr: string;
     position: number; // u32 in rust,
     refAllele: string;
     altAllele: string;

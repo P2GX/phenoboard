@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from "@angular/material/input";
@@ -29,7 +29,6 @@ import { CommonModule } from '@angular/common';
 })
 export class ManualStructuralVariantDialog  {
   form: FormGroup;
-
   svTypeOptions = [
     { value: SvType.DEL, label: 'DEL - Chromosomal Deletion' },
     { value: SvType.INV, label: 'INV - Chromosomal Inversion' },
@@ -37,24 +36,21 @@ export class ManualStructuralVariantDialog  {
     { value: SvType.DUP, label: 'DUP - Chromosomal Duplication' },
     { value: SvType.SV, label: 'SV - Structural Variation (unspecified)' }
   ] as const;
-
-  constructor(
-    private fb: FormBuilder,
-    public dialogRef: MatDialogRef<StructuralVariant>,
-    @Inject(MAT_DIALOG_DATA) public data: Partial<StructuralVariant>
-  ) {
+  constructor() {
     this.form = this.fb.group({
-      label: [ data.label ?? '', Validators.required],
-      geneSymbol: [data.geneSymbol ?? '', Validators.required],
-      transcript: [data.transcript ?? '', Validators.required],
-      hgncId: [data.hgncId ?? '', Validators.required],
-      svType: [data.svType ?? SvType.SV, Validators.required],
-      chromosome: [data.chromosome ?? '', Validators.required],
+      label: [ this.data.label ?? '', Validators.required],
+      geneSymbol: [this.data.geneSymbol ?? '', Validators.required],
+      transcript: [this.data.transcript ?? '', Validators.required],
+      hgncId: [this.data.hgncId ?? '', Validators.required],
+      svType: [this.data.svType ?? SvType.SV, Validators.required],
+      chromosome: [this.data.chromosome ?? '', Validators.required],
     });
   }
 
+  private fb = inject(FormBuilder);
+  public dialogRef = inject(MatDialogRef<StructuralVariant>);
+  public data = inject(MAT_DIALOG_DATA) as Partial<StructuralVariant>;
 
- 
   onCancel(): void {
     this.dialogRef.close(null);
   }
@@ -77,7 +73,7 @@ export class ManualStructuralVariantDialog  {
 /**
  * Provide a key for the variant that we will use for the HashMap
  */
-  private generateVariantKey(symbol: string, svType: SvType, label: string) {
+  private generateVariantKey(symbol: string, svType: SvType, label: string): string {
     const normalize = (val: string): string => val?.trim().replace(/\s+/g, "-") || "-";
     return `${symbol.trim()}_${svType}_${normalize(label)}`;
   }

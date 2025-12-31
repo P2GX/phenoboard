@@ -1,4 +1,4 @@
-import { CellValue, HpoTermData, HpoTermDuplet } from "./hpo_term_dto";
+import { HpoTermDuplet } from "./hpo_term_dto";
 
 /** We use this scheme to transport fenominal hits from the backend to frontend and back again */
 export interface TextAnnotationDto {

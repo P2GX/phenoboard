@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, inject, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
@@ -19,15 +19,12 @@ interface MoiTerm {
   standalone: true,
   imports: [FormsModule],
 })
-export class MoiSelector {
-  constructor(
-    private dialog: MatDialog,
-  ){}
+export class MoiSelector implements OnChanges{
+  private dialog = inject(MatDialog);
 
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
   showMoi = true;
-
   pmidDto: PmidDto = defaultPmidDto();
 
   moiTerms: MoiTerm[] = [
@@ -44,7 +41,7 @@ export class MoiSelector {
   ];
 
   // Watch for changes to pmidDto
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     if (changes['pmidDto'] && changes['pmidDto'].currentValue) {
       this.confirmSelection();
     }
@@ -55,7 +52,7 @@ export class MoiSelector {
     return this.moiTerms.filter(m => m.selected);
   }
 
-  confirmSelection() {
+  confirmSelection(): void {
     const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids.map(m => ({
       hpoId: m.id,
       hpoLabel: m.label,
@@ -65,7 +62,7 @@ export class MoiSelector {
     this.showMoi = false;
   }
 
-  cancelSelection() {
+  cancelSelection(): void {
     this.moiTerms.forEach(m => m.selected = false);
     this.moiTerms.forEach(m => delete m.pmid);
     this.showMoi = false;
@@ -75,8 +72,8 @@ export class MoiSelector {
     return this.selectedMoiWithPmids.length === 0 || this.selectedMoiWithPmids.some(m => !m.pmid);
   }
 
-  
-  onPubmedClosed(event: any, moiIndex: number) {
+  /*
+  onPubmedClosed(event: any, moiIndex: number): void {
     const pmid = event.pmid;
     const moi = this.moiTerms[moiIndex];
       moi.selected = true; 
@@ -92,8 +89,8 @@ export class MoiSelector {
     this.moiChange.emit(moiList);
     this.showMoi = false;
   }
-
-openPubmedDialog(moi: MoiTerm) {
+*/
+openPubmedDialog(moi: MoiTerm): void {
   const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
       data: { pmidDto: null } // optional initial data

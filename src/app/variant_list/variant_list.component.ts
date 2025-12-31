@@ -59,7 +59,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   protected override onCohortDtoLoaded(template: CohortData): void {
       /* no op */
     }
-  override async ngOnInit(): void {
+  override async ngOnInit(): Promise<void> {
     super.ngOnInit();
     this.initVariantDisplay();
     this.helpService.setHelpContext("variant")

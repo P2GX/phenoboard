@@ -37,7 +37,7 @@ export class RepoComponent implements OnInit {
   errorMessage = '';
 
 
-  async fetchRepoQc() {
+  async fetchRepoQc(): Promise<void> {
     this.loading = true;
     this.errorMessage = '';
     try {
