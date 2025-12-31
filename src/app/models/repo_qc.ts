@@ -1,7 +1,15 @@
+
+
+export type RepoErrorType =
+  | 'unexpectedFile'
+  | 'moiMismatch'
+  | 'ppktExportError'
+  | 'noHpoTermError';
+
 export interface QcReport {
   cohortName: string;
   message: string;
-  isOk: boolean;
+  errorType: RepoErrorType;
 }
 
 

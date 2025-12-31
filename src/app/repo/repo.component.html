@@ -42,7 +42,7 @@
             <tr>
               <th>Cohort</th>
               <th>Message</th>
-              <th class="text-center">Status</th>
+              <th class="text-center">Error type</th>
             </tr>
           </thead>
           <tbody>
@@ -50,8 +50,11 @@
               <td class="font-medium text-gray-700">{{ err.cohortName }}</td>
               <td class="text-gray-600 italic">"{{ err.message }}"</td>
               <td class="text-center">
-                <span [class]="err.isOk ? 'status-pill-ok' : 'status-pill-err'">
-                  {{ err.isOk ? 'Success' : 'Failed' }}
+                <span
+                  class="status-pill"
+                  [ngClass]="errorTypeClass(err.errorType)"
+                >
+                  {{ errorTypeLabel(err.errorType) }}
                 </span>
               </td>
             </tr>
