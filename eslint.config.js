@@ -49,5 +49,6 @@ module.exports = tseslint.config(
       // If you need a specific label check, use:
       // "@angular-eslint/template/label-has-associated-control": "warn"
     },
-  }
+  },
+  
 );

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { CommonModule } from '@angular/common';
@@ -30,33 +30,37 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
   constructor(
     ngZone: NgZone, 
-    private configService: ConfigService,
-    private backendStatusService: BackendStatusService,
-    private ageService: AgeInputService,
     override cohortService: CohortDtoService,
-    private pmidService: PmidService,
-    private router: Router,
-    private dialog: MatDialog,
     override cdRef: ChangeDetectorRef,
-    private notificationService: NotificationService) {
+    ) {
       super(cohortService, ngZone, cdRef);
     }
+
+    private configService = inject(ConfigService);
+    private backendStatusService = inject(BackendStatusService);
+    private ageService = inject(AgeInputService);
+    private pmidService = inject(PmidService);
+    private router= inject(Router);
+    private dialog = inject(MatDialog);
+    private notificationService = inject(NotificationService);
+
+
 
   private unlisten: UnlistenFn | null = null;
   statusSubscription?: Subscription;
   status: StatusDto = this.backendStatusService.getStatus();
 
-  ptTemplateLoaded: boolean = false;
-  newFileCreated: boolean = false;
+  ptTemplateLoaded = false;
+  newFileCreated = false;
   hpoMessage: string | null = null;
   updateLabels = false;
 
-  newFilePath: any;
-  loadError: any;
-  NOT_INIT: string = "not initialized";
-  newTemplateMessage: string = this.NOT_INIT;
-  templateFileMessage: string = this.NOT_INIT;
-  jsonTemplateFileMessage: string = this.NOT_INIT;
+  //newFilePath: any;
+  loadError: unknown;
+  NOT_INIT = "not initialized";
+  newTemplateMessage = this.NOT_INIT;
+  templateFileMessage = this.NOT_INIT;
+  jsonTemplateFileMessage = this.NOT_INIT;
   biocuratorOrcid: string | null = this.NOT_INIT;
   pendingHpoVersion: string | null = null;
   pendingHpoNterms: string | null = null;
@@ -65,7 +69,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   isRunning = false;
 
 
-  override async ngOnInit() {
+  override async ngOnInit(): Promise<void> {
     super.ngOnInit();
     const currentOrcid = await this.getCurrentOrcid();
     this.biocuratorOrcid = currentOrcid || "not initialized";
@@ -109,7 +113,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   protected override onCohortDtoMissing(): void {
   }
   
-  async update_gui_variables() {
+  async update_gui_variables(): Promise<void> {
     const status = this.backendStatusService.getStatus();
     this.ngZone.run(() => {
       if (status.hpoLoaded) {
@@ -127,7 +131,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     });
   }
   
-  override ngOnDestroy() {
+  override ngOnDestroy(): void {
     super.ngOnDestroy();
     if (this.unlisten) {
       this.unlisten();
@@ -138,22 +142,22 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
     
 
-  async loadHpo() {
-  
+  async loadHpo(): Promise<void> {
     try {
       await this.configService.loadHPO();
       await this.configService.resetPtTemplate();
       this.clearData();
       this.resetBackend();
-    } catch (error: any) {
-      const msg = error?.message ?? String(error);
-      this.notificationService.showError(`Failed to load HPO: ${msg}`);
+    } catch (error: unknown) {
+      this.notificationService.showError(
+        `Failed to load HPO: ${error instanceof Error ? error.message : error}`
+      );
       this.hpoMessage = "Error calling load_hpo";
     } 
   }
 
   // select an Excel file with a cohort of phenopackets
-  async chooseExistingTemplateFile() {
+  async chooseExistingTemplateFile(): Promise<void> {
     try {
       this.isRunning = true;
       this.templateFileMessage = "loading";
@@ -168,7 +172,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       this.resetBackend();  
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = String(error);
         this.notificationService.showError(errorMessage);
         this.templateFileMessage = errorMessage;
@@ -177,7 +181,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
 
 
   /* After loading HPO, we may create a new template (new cohort) */
-  async createNewPhetoolsTemplate() {
+  async createNewPhetoolsTemplate(): Promise<void> {
     this.cohortService.clearCohortData();
     this.resetBackend();
     await this.configService.resetPtTemplate();
@@ -185,7 +189,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   }
 
 
-  async setBiocuratorOrcid() {
+  async setBiocuratorOrcid(): Promise<void>{
     const currentOrcid = await this.getCurrentOrcid();
     const dialogRef = this.dialog.open(OrcidDialogComponent, {
       width: '400px',
@@ -205,7 +209,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   private async getCurrentOrcid(): Promise<string | undefined> {
     try {
       return await this.configService.getCurrentOrcid();
-    } catch (error) {
+    } catch (error: unknown) {
       const errMessage = 'No existing ORCID found: ${error}';
       this.notificationService.showError(errMessage);
       return undefined;
@@ -216,7 +220,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.configService.saveCurrentOrcid(orcid);
   }
 
-  async chooseJsonTemplateFile() {
+  async chooseJsonTemplateFile(): Promise<void> {
   
     try {
       this.isRunning = true;
@@ -231,20 +235,20 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
       this.resetBackend();
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMessage = String(error);
          this.notificationService.showError(errorMessage);
       }
   }
 
-  openExternalTemplate() {
+  openExternalTemplate(): void {
     this.clearData();
     this.resetBackend();
     this.router.navigate(['/tableeditor']);
   }
 
   /** Clear existing datasets, e.g., when we move to a new template */
-  clearData() {
+  clearData(): void {
     this.backendStatusService.clearStatus();
     this.cohortService.clearCohortData();
     this.pmidService.clearAllPmids();
@@ -254,7 +258,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     this.jsonTemplateFileMessage = this.NOT_INIT;
   }
 
-  resetBackend() {
+  resetBackend(): void {
     this.configService.resetPtTemplate();
     this.ageService.clearSelectedTerms();
   }

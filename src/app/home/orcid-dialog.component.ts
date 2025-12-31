@@ -1,18 +1,17 @@
 // orcid-dialog.component.ts
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
 import { MatIconModule } from "@angular/material/icon";
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonModule } from '@angular/material/button';
 
 export interface OrcidDialogData {
   currentOrcid?: string;
 }
 
+/* Component to allow users to enter their ORCID identifier */
 @Component({
   selector: 'app-orcid-dialog',
   template: `
@@ -76,23 +75,19 @@ export interface OrcidDialogData {
   imports: [MatDialogContent, MatInputModule, MatIconModule, MatDialogModule, ReactiveFormsModule, CommonModule]
 })
 export class OrcidDialogComponent {
-  orcidForm: FormGroup;
-
-  constructor(
-    private fb: FormBuilder,
-    public dialogRef: MatDialogRef<OrcidDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: OrcidDialogData
-  ) {
-    this.orcidForm = this.fb.group({
+    private fb = inject(FormBuilder);
+    private dialogRef = inject(MatDialogRef<OrcidDialogComponent>);
+    public data = inject<OrcidDialogData>(MAT_DIALOG_DATA);
+    orcidForm: FormGroup = this.fb.group({
       orcid: [
-        data?.currentOrcid || '', 
+        this.data?.currentOrcid || '', 
         [
           Validators.required,
           Validators.pattern(/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/)
         ]
       ]
     });
-  }
+  
 
   onCancel(): void {
     this.dialogRef.close();

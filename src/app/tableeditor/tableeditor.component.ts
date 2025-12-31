@@ -1,12 +1,11 @@
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortData, DiseaseData } from '../models/cohort_dto';
+import { CohortData, DiseaseData, RowData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
-import { EtlColumnEditComponent } from '../etl_column_edit/etl_column_edit.component';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
 import { HpoMappingResult } from "../models/hpo_mapping_result";
@@ -17,7 +16,7 @@ import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
-import { HpoMappingRow, HpoStatus, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoStatus, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -26,7 +25,6 @@ import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 import { removeAllWhitespace, sanitizeString } from '../validators/validators';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
-import { MultipleHpoDialogComponent } from './multihpo-dialog-vis-component';
 import { Router } from '@angular/router';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
@@ -37,15 +35,11 @@ import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.comp
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
-import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap, TransformPolishingElementsSet } from './etl-metadata';
+import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from './etl-metadata';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
 export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
-
-
-
-
 
 
 
@@ -62,18 +56,10 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   styleUrls: ['./tableeditor.component.css'],
 })
 export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-  constructor(private configService: ConfigService,
+  constructor(
     templateService: CohortDtoService,
     ngZone: NgZone,
     cdRef: ChangeDetectorRef,
-    private dialog: MatDialog,
-    private etl_service: EtlSessionService,
-    private notificationService: NotificationService,
-    private fb: FormBuilder,
-    private variantDialog: VariantDialogService,
-    private svDialog: SvDialogService,
-    private router: Router,
-    private helpService: HelpService
   ) {
     super(templateService, ngZone, cdRef);
     this.pmidForm = this.fb.group({
@@ -82,6 +68,17 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.helpService.setHelpContext("table-editor");
   }
   Object = Object;
+
+  private configService = inject(ConfigService);
+  private dialog = inject(MatDialog);
+  private etl_service = inject(EtlSessionService);
+  private notificationService = inject(NotificationService);
+  private fb = inject(FormBuilder);
+  private variantDialog = inject(VariantDialogService);
+  private svDialog = inject(SvDialogService);
+  private router = inject(Router);
+  private helpService = inject(HelpService);
+
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
   etlDto: EtlDto | null = null;
@@ -97,7 +94,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /** Strings such as P3Y, Congenital onset, that have been used so far to annotate onsets etc. */
   currentAgeStrings: string[] = [];
 
-  INVISIBLE: number = -1;
+  INVISIBLE = -1;
   contextMenuColHeader: EtlColumnHeader | null = null;
   contextMenuColType: string | null = null;
   columnContextMenuVisible = false;
@@ -113,7 +110,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
-  transformationPanelVisible: boolean = false;
+  transformationPanelVisible = false;
 
   contextMenuCellVisible = false;
   contextMenuCellX = 0;
@@ -170,7 +167,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
   editingValue: EtlCellValue | null = null;
-  editingString: string  = '';
+  editingString  = '';
   editModalVisible = false;
 
   // Which column is being previewed
@@ -179,7 +176,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   previewOriginal: string[] = [];
   previewTransformed: string[] = [];
   // Name of the transform for modal header
-  previewTransformName: string = "";
+  previewTransformName = "";
   // Pending metadata to apply if user confirms
   pendingHeader: EtlColumnHeader | null = null;
   pendingHeaderName: string | null = null;
@@ -208,7 +205,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.ONSET_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ONSET_AGE_ASSUME_YEARS),
     [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS),
     [TransformType.ANNOTATE_VARIANTS]: (colIndex) => { this.annotateVariants(colIndex); },
-    [TransformType.UPDATE_VARIANTS]: (colIndex) => { this.updateVariants(colIndex); },
     [TransformType.SPLIT_COLUMN]: (colIndex) => { this.splitColumn(colIndex); },
     [TransformType.SET_COLUMN_TYPE]: (colIndex) => { this.setColumnTypeDialog(colIndex); },
     [TransformType.DELETE_COLUMN]: (colIndex) => { this.deleteColumn(colIndex); },
@@ -321,7 +317,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /**
    * Transform a column and update each cell.
    */
-  transformColumn(colIndex: number, transformFn: (val: string) => string, validateFn?: (val: string) => boolean) {
+  transformColumn(colIndex: number, transformFn: (val: string) => string, validateFn?: (val: string) => boolean): void {
     if (!this.etlDto) return;
 
     const column = this.etlDto.table.columns[colIndex];
@@ -339,7 +335,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   /* Used for manual cell edits (by right click on a cell), which are assumed to be correct (they will be QC'd by backend) */
-  onCellEdited(event: { rowIndex: number, colIndex: number, newValue: string }) {
+  onCellEdited(event: { rowIndex: number, colIndex: number, newValue: string }): void {
     const cell = this.displayRows[event.rowIndex][event.colIndex];
     this.updateCell(cell, event.newValue, TRANSFORMED);
   }
@@ -368,7 +364,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     y: number,
     menuWidth: number,
     menuHeight: number,
-    padding: number = 10
+    padding = 10
   ): { x: number; y: number } {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -468,27 +464,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-  /* This function, as well as cancelCellEdit, are used by the preview */
-  applyPlannedCellUpdate(cell: EtlCellValue, newValue: string, validationFn?: (val: string) => boolean) {
-    if (!validationFn) validationFn = () => true;
-
-    if (!validationFn(newValue)) {
-      cell.status = ERROR;
-      cell.error = "Invalid value";
-      return;
-    }
-
-    cell.status = TRANSFORMED;
-    cell.error = undefined;
-    cell.current = newValue;
-  }
-
-  cancelCellEdit(cell: EtlCellValue) {
-    cell.current = ""; // or cell.original if you prefer
-    cell.status = RAW;
-    cell.error = undefined;
-  }
-
   /** Use Variant Validator in the backend to annotate each variant string in the column. Upon successful validation, add the variant key
    * to the ETL DTO. If all entries are validated, mark the column green (transformed). 
    */
@@ -501,13 +476,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   }
 
-  updateVariants(colIndex: number | null): string[] {
-    this.notificationService.showError("need to refactor updateVariants");
-    return [];
-  }
 
-
-  async applySingleHpoTransform(colIndex: number) {
+  async applySingleHpoTransform(colIndex: number): Promise<void> {
     if (!this.etlDto) return;
     const column = this.etlDto.table.columns[colIndex];
     const columnTitle = column.header.original || "n/a";
@@ -737,7 +707,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     this.editingString = cell.original;
-    let col = this.etlDto?.table.columns[colIndex];
+    const col = this.etlDto?.table.columns[colIndex];
     if (!col) {
       this.notificationService.showError("Could not edit cell because we could not get context menu cell column.");
       return;
@@ -761,7 +731,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   /**
    * Save the current template data to file
    */
-  async saveExternalTemplateJson() {
+  async saveExternalTemplateJson(): Promise<void> {
     this.errorMessage = null;
     const etlDto = this.etlDto;
     if (etlDto == null) {
@@ -797,7 +767,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * Load a template data from file (usually this means we previously 
    * saved an intermediate result and now want to continue work)
    */
-  async loadExternalTemplateJson() {
+  async loadExternalTemplateJson(): Promise<void> {
     this.errorMessage = null;
     try {
       const table = await this.configService.loadJsonExternalTemplate();
@@ -847,7 +817,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @param index 
    * @returns 
    */
-  deleteColumn(index: number | null) {
+  deleteColumn(index: number | null): void {
     if (index === null || this.etlDto == null) return;
     const uniqueValues: string[] = this.getUniqueValues(index);
     const columnName = this.etlDto.table.columns[index].header.original || `Column ${index}`;
@@ -868,7 +838,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
   }
 
-  duplicateColumn(index: number | null) {
+  duplicateColumn(index: number | null): void {
     const etlDto = this.etlDto;
     if (!etlDto || index === null) return;
 
@@ -908,7 +878,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
 
   /** Split a column into two according to a token such as "/" or ":" */
-  splitColumn(index: number | null) {
+  splitColumn(index: number | null): void {
     const etlDto = this.etlDto;
     if (!etlDto || index === null) return;
 
@@ -1122,7 +1092,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       label: "Alleles/variants",
       transforms: [
         TransformType.ANNOTATE_VARIANTS,
-        TransformType.UPDATE_VARIANTS
       ]
     },
     {
@@ -1160,7 +1129,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       [TransformType.SINGLE_HPO_TERM]: 'Single HPO Term',
       [TransformType.MULTIPLE_HPO_TERM]: 'Multiple HPO Terms',
       [TransformType.ANNOTATE_VARIANTS]: 'Annotate variants',
-      [TransformType.UPDATE_VARIANTS]: 'Update alleles to variant keys if possible',
       [TransformType.SET_COLUMN_TYPE]: 'Set column type',
       [TransformType.DELETE_COLUMN]: 'Delete column',
       [TransformType.DUPLICATE_COLUMN]: 'Duplicate column',
@@ -1242,7 +1210,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** Change the column header type and refresh. */
   private setColumnMetadata(colIndex: number, type: EtlColumnType) {
-    let etlDto = this.etlDto;
+    const etlDto = this.etlDto;
     if (!etlDto) return;
     const col = etlDto.table.columns[colIndex];
     col.header.columnType = type;
@@ -1251,7 +1219,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   async ignoreColumn(colIndex: number) {
-    let etlDto = this.etlDto;
+    const etlDto = this.etlDto;
     if (!etlDto) return;
     const col = etlDto.table.columns[colIndex];
     col.values = col.values.map(cell => {
@@ -1265,8 +1233,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.reRenderTableRows();
   }
 
-  async resetColumn(colIndex: number) {
-    let etlDto = this.etlDto;
+  async resetColumn(colIndex: number): Promise<void> {
+    const etlDto = this.etlDto;
     if (!etlDto) return;
     const col = etlDto.table.columns[colIndex];
     col.values = col.values.map(cell => {
@@ -1281,8 +1249,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.reRenderTableRows();
   }
 
-  async runElementwiseEngine(colIndex: number, transform: TransformType, fn: StringTransformFn) {
-    let etlDto = this.etlDto;
+  async runElementwiseEngine(colIndex: number, transform: TransformType, fn: StringTransformFn): Promise<void> {
+    const etlDto = this.etlDto;
     if (!etlDto) return;
     const col = etlDto.table.columns[colIndex];
     const newColumnType = TransformToColumnTypeMap[transform];
@@ -1322,12 +1290,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   async runTidyColumn(colIndex: number | null, fn: StringTransformFn) {
-    let etlDto = this.etlDto;
+    const etlDto = this.etlDto;
     if (!etlDto || !colIndex) return;
     const col = etlDto.table.columns[colIndex];
     col.values = col.values.map(cell => {
       const input = cell.original ?? '';
-      let output: string | undefined = fn(input);
+      const output: string | undefined = fn(input);
       if (output) {
         return {
           ...cell,
@@ -1346,7 +1314,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.reRenderTableRows();
   }
 
-  async applyNamedTransform(colIndex: number | null, transform: TransformType) {
+  async applyNamedTransform(colIndex: number | null, transform: TransformType): Promise<void> {
     if (colIndex == null || !this.etlDto) return;
 
     const transformFn = this.ELEMENTWISE_MAP[transform]; // cell-wise transforms, e.g. Age, Sex, Deceased
@@ -1369,15 +1337,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       case TransformType.SINGLE_HPO_TERM:
         await this.applySingleHpoTransform(colIndex);
         return;
-
       case TransformType.MULTIPLE_HPO_TERM:
         await this.processMultipleHpoColumn(colIndex);
         return;
-
-      case TransformType.DELETE_COLUMN:
-        this.deleteColumn(colIndex);
-        return;
-
       case TransformType.SPLIT_COLUMN:
         this.splitColumn(colIndex);
         return;
@@ -1405,7 +1367,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   }
 
-  applyElementwiseTransform(colIndex: number, transform: TransformType) {
+  applyElementwiseTransform(colIndex: number, transform: TransformType): void {
     console.log(`applyElementwiseTransform col=${colIndex} transform = ${transform}`)
     if (!this.etlDto) return;
     const col = this.etlDto.table.columns[colIndex];
@@ -1463,7 +1425,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         };
       }
     });
-
 
     const newType = TransformToColumnTypeMap[transform] ?? undefined;
     console.log("setting header transform", transform, " new type", newType)
@@ -1655,7 +1616,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.resetColumnToRaw(colIndex);
   }
   /** Reset column to RAW and trigger cell signals if needed */
-  resetColumnToRaw(colIndex: number | null) {
+  resetColumnToRaw(colIndex: number | null): void {
     if (colIndex == null || !this.etlDto) return;
     const column = this.etlDto.table.columns[colIndex];
     column.values.forEach(cell => {
@@ -1685,7 +1646,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   /** Allows the user to manually set the column type */
-  async simpleColumnOp(colIndex: number | null, coltype: string) {
+  async simpleColumnOp(colIndex: number | null, coltype: string): Promise<void> {
     if (colIndex == null || !this.etlDto || colIndex < 0) {
       this.notificationService.showError("Invalid column index");
       return;
@@ -1697,7 +1658,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-  async setColumnTypeDialog(colIndex: number) {
+  async setColumnTypeDialog(colIndex: number): Promise<void> {
     console.log("setColumnTypeDialog coli=", colIndex);
     const etlDto = this.etlDto;
     if (etlDto == null) {
@@ -1721,7 +1682,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-  importCohortDiseaseData() {
+  importCohortDiseaseData(): void {
     const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
@@ -1745,13 +1706,13 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   /** Indexing for rows in template forloops. row identity is its index */
-  trackRow(index: number, row: any): number {
+  trackRow(index: number, cell: unknown): number {
     return index;
   }
 
 
   /** Add the PMID to the ETL DTO; open a modal dialog with our PMID widget */
-  openPubmedDialog() {
+  openPubmedDialog(): void {
     const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
       data: { pmidDto: null } // optional initial data
@@ -1774,7 +1735,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
      * current CohortData object, then initialize it. If there is an error in the ETL data, do nothing
      * except for showing the error.
      */
-  async addToCohortData() {
+  async addToCohortData(): Promise<void> {
     const etl_dto = this.etlDto;
     if (etl_dto == null) {
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
@@ -1797,15 +1758,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         this.cohortService.setCohortData(cohort_dto_new);
         this.router.navigate(['/pttemplate']);
       }
-    } catch (err: any) {
-      console.error("Error creating CohortData:", err);
+    } catch (err: unknown) {
       this.notificationService.showError(
-        `Could not create CohortData: ${err?.message ?? err}`
+        `Could not create CohortData: ${err instanceof Error ? err.message : err}`
       );
     }
   }
 
-  async processVariantColumn(index: number) {
+  async processVariantColumn(index: number): Promise<void> {
     const etl_dto = this.etlDto;
     if (! etl_dto) return;
     console.log("processVariantColumn etl=", etl_dto);
@@ -1893,7 +1853,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           return;
         }
         etlDto.hgvsVariants[vkey] = hgvs;
-        let col = etlDto.table.columns[colIndex];
+        const col = etlDto.table.columns[colIndex];
         col.values[rowIndex].current = vkey;
         this.reRenderTableRows();
       }
@@ -1937,7 +1897,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           return;
         }
         etlDto.structuralVariants[vkey] = sv;
-        let col = etlDto.table.columns[colIndex];
+        const col = etlDto.table.columns[colIndex];
         col.values[rowIndex].current = vkey;
         this.reRenderTableRows();
       }
@@ -1985,7 +1945,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       .join('\n');
   }
 
-  openHpoMiningDialog(colIndex: number, rowIndex: number) {
+  openHpoMiningDialog(colIndex: number, rowIndex: number): void {
 
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
       width: '1200px',
@@ -2027,7 +1987,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-  clearHpoMining(colIndex: number, rowIndex: number) {
+  clearHpoMining(colIndex: number, rowIndex: number): void {
     this.displayRows[rowIndex][colIndex].current = "";
   }
 
