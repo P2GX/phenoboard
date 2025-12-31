@@ -203,7 +203,7 @@
   </thead>
     <tbody>
       @for (row of getDisplayedRows(); track getRowKey(row);  let rowIndex = $index) {
-      <tr >
+      <tr [class.bg-red-50]="!hasObservedHpo(row)">
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column"
           (contextmenu)="onIndividualRightClick($event, row)"
@@ -470,6 +470,8 @@
           (click)="showAllRows()">Show all rows</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="showInfoForRow(contextRow)">Show info</li>
+      <li class="px-3 py-1 cursor-pointer border border-red-500 rounded"
+          (click)="deleteRow(contextRow)">Delete row</li>
     </ul>
   </div>
 }

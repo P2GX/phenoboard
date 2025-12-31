@@ -44,7 +44,6 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent extends TemplateBaseComponent implements OnInit, AfterViewInit {
-[x: string]: any;
 
   constructor(
     ngZone: NgZone,
@@ -875,4 +874,26 @@ showInfoForRow(row: RowData | null): void {
   getIndividualKey(individual: IndividualData): string {
     return `${individual.pmid || 'NA'}-${individual.individualId || 'NA'}`;
   }
+
+  hasObservedHpo(row: RowData): boolean {
+    if (!row?.hpoData || row.hpoData.length === 0) {
+      return false;
+    }
+    return row.hpoData.some(cell => cell.type !== 'Excluded' && cell.type !== "Na");
+  }
+
+  deleteRow(row: RowData | null): void {
+    this.individualContextMenuVisible = false;
+    if (! row) return;
+    const currentCohort = this.cohortService.getCohortData();
+    if (!currentCohort) return;
+    console.log("Deleting row", row);
+    const updatedRows = currentCohort.rows.filter(r => r !== row);
+    const updatedCohort = {
+      ...currentCohort,
+      rows: updatedRows
+    };
+    this.cohortService.setCohortData(updatedCohort);
+  }
+
 }

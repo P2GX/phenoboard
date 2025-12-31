@@ -1,6 +1,5 @@
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConfigService } from '../services/config.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,12 +7,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { StructuralVariant, VariantDto, VariantType } from '../models/variant_dto';
+import { StructuralVariant, VariantType } from '../models/variant_dto';
 import { CohortData } from '../models/cohort_dto';
 import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { NotificationService } from '../services/notification.service';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { GeneTranscriptData } from '../models/cohort_dto';
+import { HelpService } from '../services/help.service';
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
@@ -43,12 +43,14 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
 
   constructor(
     override cohortService: CohortDtoService,
-    private notificationService: NotificationService,
-    private svDialog: SvDialogService,
     ngZone: NgZone, 
     override cdRef: ChangeDetectorRef) {
       super(cohortService, ngZone, cdRef)
     }
+
+  private helpService = inject(HelpService);
+  private notificationService = inject(NotificationService);
+  private svDialog = inject(SvDialogService);
 
   errorMessage: string | null = null;
 
@@ -57,19 +59,20 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   protected override onCohortDtoLoaded(template: CohortData): void {
       /* no op */
     }
-  override async ngOnInit() {
+  override async ngOnInit(): void {
     super.ngOnInit();
     this.initVariantDisplay();
+    this.helpService.setHelpContext("variant")
   }
 
 
-  initVariantDisplay() {
+  initVariantDisplay(): void {
     const cohort = this.cohortService.getCohortData();
     if (! cohort) {
       this.notificationService.showError("Cohort nit initialized");
       return;
     }
-    let varDisplayList: VariantDisplay[] = [];
+    const varDisplayList: VariantDisplay[] = [];
     const rowToKeyMap: { [key: string]: number } = {};
     const validatedKeys = new Set<string>();
     cohort.rows.forEach((row) => {
@@ -131,15 +134,15 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
   this.variantDisplayList = varDisplayList;
   }
 
-  override ngOnDestroy() {
+  override ngOnDestroy(): void {
     super.ngOnDestroy();
   }
 
   /** The user clicks on the button to validate a single variant. We therefore send the variant to the back end, where the resulting
    * validated variant is added back to the CohortDto. If successful, we update the cohort Dto in the backend and update it in our service
    */
-  deleteVariant(varDto: VariantDisplay) {
-    let cohort = this.cohortService.getCohortData();
+  deleteVariant(varDto: VariantDisplay): void {
+    const cohort = this.cohortService.getCohortData();
     if (! cohort) {
       this.notificationService.showError("Cohort not initialized");
       return;
@@ -175,7 +178,7 @@ export class VariantListComponent extends TemplateBaseComponent implements OnIni
     this.cdRef.detectChanges();
   }
 
-  async editSv(variant: VariantDisplay) {
+  async editSv(variant: VariantDisplay): Promise<void> {
     if ( variant.variantType === "HGVS") {
       this.notificationService.showError("Cannot apply structural variant editing to HGVS");
       return;
