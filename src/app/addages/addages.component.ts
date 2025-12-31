@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
@@ -13,11 +13,10 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogActions, MatDialogModule } from
   styleUrl: './addages.component.css'
 })
 export class AddagesComponent implements OnInit {
-  constructor(
-    public ageService: AgeInputService,
-    public dialogRef: MatDialogRef<AddagesComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any){ }
-
+  
+  private ageService = inject(AgeInputService);
+  private dialogRef = inject(MatDialogRef<AddagesComponent>);
+  data = inject(MAT_DIALOG_DATA) as any;
 
   ageInput = ''; //new FormControl('');
   isoPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?$/;  // ISO8601 partial matcher
@@ -46,13 +45,17 @@ export class AddagesComponent implements OnInit {
     }
   }
 
+  get onsetTerms(): string[] {
+    return this.ageService.onsetTerms;
+  }
+
   removeAge(index: number): void {
     this.entries.splice(index, 1);
     this.ageEntries.emit(this.entries);
     this.ageService.addSelectedTerms(this.entries);
   }
 
-  handleAgeList($event: string[]) {
+  handleAgeList($event: string[]): void {
     throw new Error('Method not implemented.');
   }
 

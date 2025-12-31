@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
@@ -29,14 +29,14 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
 
 
   constructor(
-    private configService: ConfigService,
-    private notificationService: NotificationService,
     ngZone: NgZone, 
     templateService: CohortDtoService,
-    private dialog: MatDialog,
     cdRef: ChangeDetectorRef) {
       super(templateService, ngZone, cdRef);
-  }
+  } 
+  private configService = inject(ConfigService);
+  private notificationService = inject(NotificationService);
+  private dialog= inject(MatDialog);
 
   /* after the user submits data, we hide everything else and display a message */
   showSuccessMessage = false;
@@ -48,7 +48,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
   diseaseA: DiseaseData | null = null;
   diseaseB: DiseaseData | null = null;
   thisCohortType: CohortType | null = null;
-  jsonData: string = '';
+  jsonData = '';
   errorMessage: string | null = null;
 
   pendingCohort: CohortData | null = null;
@@ -70,14 +70,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
       // When we open the page, the template will still be missing
     }
 
-
-
-
- 
-
-
-
- async melded() {
+ async melded(): Promise<void> {
   this.mendelianTemplate = false;
   this.meldedTemplate = true;
   this.digenicTemplate = false;
@@ -101,7 +94,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
     this.createTemplate({ diseaseA: first_disease, diseaseB: second_disease }, 'melded');
   }
 
-  async digenic() {
+  async digenic(): Promise<void> {
     this.mendelianTemplate = false;
     this.meldedTemplate = false;
     this.digenicTemplate = true;
@@ -118,7 +111,7 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-async mendelian() {
+async mendelian(): Promise<void> {
   this.mendelianTemplate = true;
   this.meldedTemplate = false;
   this.digenicTemplate = false;
@@ -136,7 +129,7 @@ async mendelian() {
     this.createTemplate(result, 'mendelian');
 }
 
-private async createTemplate(data: any, ctype: CohortType) {
+private async createTemplate(data: any, ctype: CohortType): Promise<void> {
   if (ctype == "mendelian") {  
     try {
         const diseaseData: DiseaseData = newDiseaseData(
@@ -148,7 +141,6 @@ private async createTemplate(data: any, ctype: CohortType) {
           ctype,
           data.cohortAcronym
         );
-        this
         this.pendingCohort = template;
         this.thisCohortType = "mendelian";
       } catch (error) {
@@ -191,14 +183,14 @@ private async createTemplate(data: any, ctype: CohortType) {
     }
   } 
 
-  resetCohort() {
+  resetCohort(): void {
     this.mendelianTemplate = false;
     this.meldedTemplate = false;
     this.digenicTemplate = false;
     this.cohortService.clearCohortData();
   }
 
-  onConfirm() {
+  onConfirm(): void {
     const cohort = this.pendingCohort;
     if (! cohort) {
       this.notificationService.showError("CohortData not initialized");

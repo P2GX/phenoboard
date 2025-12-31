@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -52,17 +52,14 @@ type ValidatorFn = () => Promise<void>;
   templateUrl: './addvariant.component.html',
   styleUrl: './addvariant.component.css'
 })
-export class AddVariantComponent {
-
+export class AddVariantComponent implements OnInit{
   kind!: VariantKind; 
 
-  constructor(
-    private configService: ConfigService, 
-    private cohortService: CohortDtoService,
-    private dialogRef: MatDialogRef<AddVariantComponent, VariantDto | null>,
-    @Inject(MAT_DIALOG_DATA) public data: { kind: VariantKind }
-  ){}
-  
+  private configService = inject(ConfigService); 
+  private cohortService= inject(CohortDtoService);
+  private dialogRef= inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
+  data = inject(MAT_DIALOG_DATA) as { kind: VariantKind };
+
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
     if (this.geneOptions && this.geneOptions.length === 1) {
@@ -101,11 +98,11 @@ export class AddVariantComponent {
   }
 
 
-  variant_string: string = '';
-  isBiallelic: boolean = false;
+  variant_string = '';
+  isBiallelic = false;
 
   errorMessage: string | null = null;
-  variantValidated: boolean = false;
+  variantValidated = false;
 
   structuralTypes: StructuralType[] = [
     {'label':'deletion', 'id':'DEL'},
@@ -119,7 +116,7 @@ export class AddVariantComponent {
   selectedGene: GeneTranscriptData | null = null;
   selectedStructuralType: StructuralType | null = null;
 
-  validationMessage: string = '';
+  validationMessage = '';
   isSubmitting = false;
   validationComplete = false;
 
@@ -198,7 +195,7 @@ export class AddVariantComponent {
     return;
   }
 
-  async submit() {
+  async submit(): Promise<void> {
     if (! this.kind) return;
     await this.validators[this.kind]();
   }
@@ -250,11 +247,13 @@ export class AddVariantComponent {
       });
   }
 
-  openHgvs($event: MouseEvent) {
+  openHgvs($event: MouseEvent): void {
+    $event.preventDefault();
     const url = "https://hgvs-nomenclature.org/"
     openUrl(url)
   }
-  openVariantValidator($event: MouseEvent) {
+  openVariantValidator($event: MouseEvent): void {
+    $event.preventDefault();
     const url = "https://variantvalidator.org/";
     openUrl(url);
   }
@@ -262,18 +261,18 @@ export class AddVariantComponent {
   /**
    * Open a URL in the (external) system browser
   */
-  async openLink(url: string) {
+  async openLink(url: string): Promise<void> {
     await openUrl(url);
   }
 
   /**
    * Close the dialog without changing state
   */
-  cancel() {
+  cancel(): void {
     this.dialogRef.close();
   }
 
-  getSubmitLabel() {
+  getSubmitLabel(): string {
     if (this.isHgvs()) return 'Submit HGVS';
     if (this.isStructural()) return 'Submit SV';
     if (this.isIntergenic()) return 'Submit Intergenic';
@@ -284,7 +283,7 @@ export class AddVariantComponent {
    * Emits the validated variant to the parent component so it can be added
    * to the current phenopacket row object.
    */
-  addVariantToPpkt() {
+  addVariantToPpkt(): void{
     if (! this.variantValidated) {
       alert("Could not add variant");
       return;

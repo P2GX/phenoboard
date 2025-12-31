@@ -82,7 +82,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   individualContextMenuVisible = false;
   individualMenuX = 0;
   individualMenuY = 0;
-  contextRow: any | null = null;
+  contextRow: RowData | null = null;
   filteredRows: RowData[] = [];
   
   pendingHpoColumnIndex: number | null = null;
@@ -245,7 +245,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  openIndividualEditor(individual: IndividualData) {
+  openIndividualEditor(individual: IndividualData): void {
     this.individualContextMenuVisible = false;
     const dialogRef = this.dialog.open(IndividualEditComponent, {
       width: '500px',
@@ -339,8 +339,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
 
-  async validateCohort() {
-    console.log("validate")
+  async validateCohort(): Promise<void> {
     if (! this.cohortDto) {
       alert("Cohort DTO not initialized");
       return;
@@ -348,15 +347,14 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     try {
       await this.configService.validateCohort(this.cohortDto);
       alert("✅ Cohort successfully validated");
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Validation failed:\n' + JSON.stringify(err));
     }
   }
 
   /** Remove ontological conflicts and redundancies */
-  async sanitizeCohort() {
-    console.log("validate")
+  async sanitizeCohort(): Promise<void> {
     const cohortDto = this.cohortDto;
     if (! cohortDto) {
       alert("Cohort DTO not initialized");
@@ -367,13 +365,11 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       this.cohortService.setCohortData(sanitized_cohort);
       console.log(this.deepDiff(sanitized_cohort, cohortDto));
       alert("✅ Cohort successfully sanitized");
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Sanitization failed:\n' + JSON.stringify(err));
     }
   }
-
-
 
   submitSelectedHpo = async () => {
     if (this.selectedHpoTerm == null) {
@@ -381,7 +377,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       return;
     }
     await this.addHpoTermToCohort(this.selectedHpoTerm);
-    
   };
 
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {
@@ -550,7 +545,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   /** Export the aggregate file for use in phenotype.hpoa (part of a small file) */
-    async exportHpoa() {
+    async exportHpoa(): Promise<void> {
       if (! this.cohortDto) {
         this.notificationService.showError("Cohort DTO not initialized");
         return;
@@ -569,7 +564,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
     /* Keep track of which cell is hovered over. The key is something like `${category}-${rowIndex}-${itemIndex}` */
     hoverState: Record<string, boolean> = {};
-    setHover(category: string, rowIndex: number, itemIndex: number, hovered: boolean) {
+    setHover(category: string, rowIndex: number, itemIndex: number, hovered: boolean): void {
       this.hoverState[`${category}-${rowIndex}-${itemIndex}`] = hovered;
     }
     isHovered(category: string, rowIndex: number, itemIndex: number): boolean {
@@ -664,7 +659,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
  
 
-   onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number) {
+   onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number): void {
     const cohort = this.cohortService.getCohortData();
     if (! cohort) {
       return;
@@ -679,7 +674,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
     showAlleleColumn = true;
 
-    toggleVariantColumn() {
+    toggleVariantColumn(): void {
       this.showAlleleColumn = !this.showAlleleColumn;
     }
 
@@ -723,8 +718,7 @@ get ageEntries(): string[] {
   return this.ageService.getSelectedTerms();
 }
 
-  async recordBiocuration() {
-    
+  async recordBiocuration(): Promise<void> {
     const orcid = await this.configService.getCurrentOrcid();
     if (! orcid) {
       this.notificationService.showError("Could not retrieve ORCID id");
@@ -772,7 +766,7 @@ get ageEntries(): string[] {
   }
 
   /* right click on first column can focus on row or PMIDs */
-  onIndividualRightClick(event: MouseEvent, row: any) {
+  onIndividualRightClick(event: MouseEvent, row: RowData): void {
     event.preventDefault();
     this.contextRow = row;
     this.individualMenuX = event.clientX;
@@ -811,7 +805,7 @@ updateFilteredRows(): void {
 }
 
 /** Focus on all rows with the same PMID */
-focusOnPmid() {
+focusOnPmid(): void {
   if (!this.contextRow) return;
   const cohort = this.cohortService.getCohortData();
   if (! cohort) return;

@@ -3,7 +3,7 @@
 <mat-dialog-content>
   <div class="primary-box flex flex-col justify-between">
     <datalist id="hpoOptions">
-      @for (term of this.ageService.onsetTerms; track term) {
+      @for (term of onsetTerms; track term) {
         <option [value]="term"></option>
       }
     </datalist>

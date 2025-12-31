@@ -359,8 +359,8 @@
 <div class="flex items-center gap-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
   <!-- HPO Autocomplete -->
   <div class="flex flex-col ">
-    <label class="text-xs font-medium text-gray-600 mb-1">Add HPO Term</label>
     <app-hpoautocomplete
+      aria-label="Add HPO Term"
       [inputString]="hpoInputString"
       (selected)="selectedHpoTerm = $event"
       [onSubmit]="submitSelectedHpo"
@@ -465,7 +465,7 @@
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="focusOnSingleRow()">Focus on row</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
-          (click)="focusOnPmid()">Focus on PMID: {{ contextRow?.individualData.pmid }}</li>
+          (click)="focusOnPmid()">Focus on PMID: {{ contextRow?.individualData?.pmid }}</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="showAllRows()">Show all rows</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
