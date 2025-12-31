@@ -9,7 +9,8 @@ export class HelpService {
     'start': 'start',
     'addcase': 'case',
     'cohort-editor': 'cohort-editor',
-    'table-editor': 'table-editor'
+    'table-editor': 'table-editor',
+    'repo': 'repo'
   };
   
   private readonly  BASE_HELP_URL = 'https://p2gx.github.io/phenoboard/help/';

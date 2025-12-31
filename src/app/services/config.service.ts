@@ -7,12 +7,14 @@ import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap } from
 import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
+import { RepoQc } from '../models/repo_qc';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
+
   
   constructor() {}
 
@@ -328,5 +330,9 @@ export class ConfigService {
       etl: etl_dto,
       col: index
     });
+  }
+
+  async fetchRepoQc(): Promise<RepoQc> {
+    return await invoke<RepoQc>('fetch_repo_qc');
   }
 }

@@ -11,7 +11,7 @@ use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, o
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, variant_dto::VariantDto}, hpoa};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -408,6 +408,14 @@ impl PhenoboardSingleton {
             Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort_dto, out_dir, orcid, hpo.clone()),
             None => Err("Cannot export phenopackets because HPO not initialized".to_string()),
         }
+    }
+
+    pub fn get_repo_qc(&self) -> Result<RepoQc, String> {
+        let out_dir = match self.get_phenopackets_output_dir() {
+            Ok(dir) => dir,
+            Err(e) =>  { return Err(e);},
+        };
+        ga4ghphetools::repo::get_repo_qc(&out_dir)
     }
 
     /// Exports the HPOA (Human Phenotype Ontology Annotations) for a given cohort.

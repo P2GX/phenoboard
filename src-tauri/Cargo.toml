@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.5.40"
+version = "0.5.42"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -22,10 +22,10 @@ dirs = "6.0"
 html-escape = "0.2.13"
 fuzzy-matcher = "0.3"
 ontolius = "0.7.1" 
-reqwest = { version = "0.12.28", features = ["json", "blocking"] }
+reqwest = { version = "0.13.1", features = ["json", "blocking"] }
 rfd = { version = "0.16.0", default-features = false}
 fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.1.18' }
-ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.5.2' }
+ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.5.4' }
 #ga4ghphetools = { path = "../../ga4ghphetools" }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.148"

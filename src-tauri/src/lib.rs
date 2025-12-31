@@ -5,13 +5,13 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{qc_report::QcReport, repo_qc::RepoQc}};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
-use tauri_plugin_dialog::DialogExt;
-use std::{fs, sync::{Arc, Mutex}, collections::HashMap};
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
+use std::{collections::HashMap, fs, path::PathBuf, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -66,7 +66,8 @@ pub fn run() {
             get_cohort_data_from_etl_dto,
             merge_cohort_data_from_etl_dto,
             get_hpo_terms_by_toplevel,
-            save_html_report
+            save_html_report,
+            fetch_repo_qc
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -814,4 +815,16 @@ async fn save_html_report(
     })
     .await
     .map_err(|e| format!("Task join error: {}", e))?
+}
+
+
+
+#[tauri::command]
+fn fetch_repo_qc( 
+    app_handle: AppHandle,  
+    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>) 
+ -> Result<RepoQc, String> {
+    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let singleton = singleton_arc.lock().unwrap();
+    singleton.get_repo_qc()
 }

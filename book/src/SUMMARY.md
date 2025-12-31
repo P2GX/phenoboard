@@ -14,6 +14,7 @@
     - [Add case](help/case.md)
     - [Cohort editor](help/cohort-editor.md)
     - [Table editor](help/table-editor.md)
+    - [Repo Q/C](repo/repo.md)
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
     - [Practical tips](developers/practical.md)

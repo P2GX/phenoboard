@@ -19,7 +19,7 @@ export class HpoHeaderComponent {
   @Output() mappingConfirmed = new EventEmitter<HpoMappingResult>();
   @Output() cancelled = new EventEmitter<void>();
 
-  confirm() {
+  confirm(): void {
     this.mappingConfirmed.emit({
       hpoLabel: this.hpoLabel,
       hpoId: this.hpoId,
@@ -27,7 +27,7 @@ export class HpoHeaderComponent {
     });
   }
 
-  cancel() {
+  cancel(): void {
     this.cancelled.emit();
   }
 }

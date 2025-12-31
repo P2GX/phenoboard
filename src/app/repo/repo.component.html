@@ -1,1 +1,63 @@
-<h1>Repository QC</h1>
+<div class="qc-container p-6">
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Repository QC Report</h1>
+    <p class="text-gray-600">Fetch and analyze phenopacket consistency across cohorts.</p>
+  </header>
+
+  <button (click)="fetchRepoQc()" [disabled]="loading" class="btn-action">
+    <span *ngIf="loading" class="loader"></span>
+    {{ loading ? 'Analyzing...' : 'Fetch Repo QC' }}
+  </button>
+
+  @if (errorMessage) {
+    <div class="error-banner mt-4">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (repoQc) {
+    <div class="mt-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card">
+          <span class="stat-label">Repository Path</span>
+          <span class="stat-value truncate" [title]="repoQc.repoPath">{{ repoQc.repoPath }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Cohorts</span>
+          <span class="stat-value">{{ repoQc.cohortCount }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Phenopackets</span>
+          <span class="stat-value">{{ repoQc.phenopacketCount }}</span>
+        </div>
+        <div class="stat-card border-l-4 border-red-500">
+          <span class="stat-label">Total Errors</span>
+          <span class="stat-value text-red-600">{{ repoQc.errors.length }}</span>
+        </div>
+      </div>
+
+      <div class="table-wrapper shadow-sm">
+        <table class="qc-table">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th>Message</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of repoQc.errors">
+              <td class="font-medium text-gray-700">{{ err.cohortName }}</td>
+              <td class="text-gray-600 italic">"{{ err.message }}"</td>
+              <td class="text-center">
+                <span [class]="err.isOk ? 'status-pill-ok' : 'status-pill-err'">
+                  {{ err.isOk ? 'Success' : 'Failed' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

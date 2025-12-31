@@ -17,6 +17,7 @@ export class NavbarComponent {
     { label: 'Table Editor', path: '/tableeditor' },
     { label: 'Patient Template', path: '/pttemplate' },
     { label: 'Variants', path: '/variant_list' },
+    { label: 'Repo', path: '/repo' },
     { label: 'Help', path: '/help' },
   ];
 
