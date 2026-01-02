@@ -13,7 +13,7 @@ import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dt
 import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { AddVariantComponent } from "../addvariant/addvariant.component";
+import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
 import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { DemographDto } from '../models/demograph_dto';
@@ -22,6 +22,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from './confirmdialog.component';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -51,6 +52,7 @@ export class AddcaseComponent {
  
   cohortDto$ = this.cohortService.cohortData$;
   pmidDto: PmidDto = defaultPmidDto();
+  public VariantKind = VariantKind;
 
 
   pastedText: string = '';
@@ -269,11 +271,11 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
 
-  openVariantEditor(structural: boolean) {
-    console.log("openVariantEditor structural=", structural);
+
+  openVariantEditor(varKind: VariantKind) {
     const dialogRef = this.dialog.open(AddVariantComponent, {
       data: {
-        isSv: structural
+        kind: varKind
       },
         width: '600px'
       });
@@ -290,9 +292,9 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
             this.notificationService.showError("Variant could not be validated");
             return;
           }
-          /* If we get here, the variant was validated and added to the cohort. */
-          /* We add it with a count of 1 -- they user may need to adjust */
-          const dto: VariantDto = {
+      let dto: VariantDto;
+       if (varKind == VariantKind.HGVS) {
+          dto = {
             variantString: result.variantString,
             variantKey: result.variantKey,
             transcript: result.transcript,
@@ -302,6 +304,32 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
             isValidated: false,
             count: alleleCount
           };
+        } else if (varKind == VariantKind.SV) {
+            dto = {
+              variantString: result.variantString,
+              variantKey: result.variantKey,
+              transcript: result.transcript,
+              hgncId: result.hgncId,
+              geneSymbol: result.geneSymbol,
+              variantType: 'SV',
+              isValidated: false,
+              count: alleleCount
+            };
+        } else if (varKind == VariantKind.INTERGENIC) {
+          dto = {
+              variantString: result.variantString,
+              variantKey: result.variantKey,
+              transcript: '',
+              hgncId: result.hgncId,
+              geneSymbol: result.geneSymbol,
+              variantType: 'INTERGENICHGVS',
+              isValidated: false,
+              count: alleleCount
+            };
+        } else {
+          this.notificationService.showError(`Could not identifiy variant kind ${varKind}`);
+          return;
+        }
           this.alleles.push(dto);
           if (alleleCount == 2) {
             this.alleles.push(dto);
@@ -311,7 +339,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         }
       });
     }
-
 
 
   removeAllele(allele: any) {
