@@ -954,13 +954,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
   }
 
-   /** Use Variant Validator in the backend to annotate each variant string in the column. Upon successful validation, add the variant key
-   * to the ETL DTO. If all entries are validated, mark the column green (transformed). 
+   /** Use Variant Validator in the backend to annotate each variant string in the column. 
+    * Upon successful validation, add the variant key to the ETL DTO.  
    */
-  async annotateVariants(colIndex: number | null): Promise<void> {
+  async annotateVariants(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (dto == null) return;
-    this.notificationService.showError("need to refactor annotateVariants");
+    const new_dto = await this.configService.processAlleleColumn(dto, colIndex);
+    this.etl_service.setEtlDto(new_dto);
   }
 
 
@@ -1404,7 +1405,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.runTidyColumn(colIndex, tidyFn);
       return;
     }
-    // Interactive / structural transforms (UNCHANGED)
+    // Interactive / structural transforms
     switch (transform) {
       case TransformType.IGNORE_COLUMN_TYPE:
         await this.ignoreColumn(colIndex);
@@ -1432,6 +1433,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
       case TransformType.ONSET_AGE_ASSUME_YEARS:
         this.applyElementwiseTransform(colIndex, transform);
+        break;
+      case TransformType.ANNOTATE_VARIANTS:
+        this.annotateVariants(colIndex);
+        break;
+      default:
+        this.notificationService.showError(`Did not recognize transformation type "${transform}"`)
 
     }
 
