@@ -72,7 +72,6 @@ export function newRawEtlColumnHeader(originalColumnHeader: string): EtlColumnHe
 
 export interface ColumnDto {
   id: string,
-  transformed: boolean;
   header: EtlColumnHeader;
   values: EtlCellValue[];
 }
@@ -80,7 +79,6 @@ export interface ColumnDto {
 export function newRawColumnDto(originalHeaderContents: string, size: number): ColumnDto {
   return {
     id: crypto.randomUUID(),  
-    transformed: false,
     header: newRawEtlColumnHeader(originalHeaderContents),
     values: new Array<EtlCellValue>(size),
   };

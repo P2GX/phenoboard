@@ -109,7 +109,6 @@ impl PhenoboardSingleton {
             },
             None => { eprintln!("Could not init HPO - should never happen")},
         }
-        println!("initialize_hpo_autocomplete - got {} terms", self.hpo_auto_complete.len());
     }
 
     pub fn hp_json_path(&self) -> Result<String, String> {

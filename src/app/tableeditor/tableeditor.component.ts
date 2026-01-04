@@ -948,7 +948,26 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @returns true iff column is transformed
    */
   isTransformedColumn(index: number): boolean {
-    return !!this.etlDto?.table.columns[index]?.transformed;
+    const column = this.etlDto?.table.columns[index];
+    if (!column?.values?.length) {
+      return false;
+    }
+
+    return column.values.every(
+      cell => cell.status === EtlCellStatus.Transformed
+    );
+  }
+
+
+
+  getColumnClass(colIndex: number): string {
+    if (this.isTransformedColumn(colIndex)) {
+      return 'transformed-column';
+    } else if (colIndex === this.visibleColIndex) {
+      return 'visible-column';
+    } else {
+      return 'normal-column';
+    }
   }
 
 
@@ -1214,7 +1233,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     if (!etlDto) return;
     const col = etlDto.table.columns[colIndex];
     col.header.columnType = type;
-    col.transformed = true;
     this.reRenderTableRows();
   }
 
@@ -1284,7 +1302,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         return { ...cell, status: EtlCellStatus.Error, error: String(e) };
       }
     });
-    col.transformed = true;
     col.header.columnType = newColumnType;
     this.reRenderTableRows();
   }
@@ -1399,6 +1416,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           case TransformType.SEX_COLUMN:
             output = this.etl_service.parseSexColumn(input);
             break;
+          case TransformType.ONSET_AGE_ASSUME_YEARS:
+          case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
+            output = this.etl_service.parseDecimalYearsToIso8601(input);
+            break;
         }
         console.log("output", output)
         // Return a NEW object copy (Spread operator)
@@ -1428,7 +1449,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     const newType = TransformToColumnTypeMap[transform] ?? undefined;
     console.log("setting header transform", transform, " new type", newType)
-    col.transformed = true;
     if (newType) {
       col.header.columnType = newType;
     }
@@ -1461,7 +1481,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         cell.error = undefined;
       });
 
-      indCol.transformed = true;
       indCol.header.columnType = EtlColumnType.PatientId;
 
       // Move to first column if needed
@@ -1531,7 +1550,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     // Update column metadata
     col.header.columnType = EtlColumnType.SingleHpoTerm;
     col.header.current = `${mapping.hpoLabel} - ${mapping.hpoId}`;
-    col.transformed = true;
   }
 
   /** parse a string like Strabismus[HP:0000486;original: Strabismus] from the single HPO term header */
@@ -1608,7 +1626,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     // Column metadata
     column.header.current = `${hpoTerm.hpoLabel} (${hpoTerm.hpoId})`;
-    column.transformed = true;
   }
 
   /** TODO -- REMOVE/REFACOTR*/
@@ -1624,21 +1641,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       cell.status = RAW;
       cell.error = undefined;
     });
-    column.transformed = false;
     column.header.columnType = EtlColumnType.Raw;
   }
 
 
-
-  getColumnClass(colIndex: number): string {
-    if (this.isTransformedColumn(colIndex)) {
-      return 'transformed-column';
-    } else if (colIndex === this.visibleColIndex) {
-      return 'visible-column';
-    } else {
-      return 'normal-column';
-    }
-  }
 
   /* The column types (e.g., individual, HPO,...) have different colors. Default is white. */
   getColumnColor(type: EtlColumnType): string {
@@ -1741,26 +1747,31 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
-
+    console.log("0-addToCohortData-top")
     try {
       const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
+      console.log("A cohort_dto_new=", cohort_dto_new.hgvsVariants);
       if (this.cohortService.currentCohortContainsData()) {
         const cohort_previous = this.cohortService.getCohortData();
         if (cohort_previous === null) {
           this.notificationService.showError("Cohort data not retrieved");
           return;
         }
+        console.log("B cohort_previous=", cohort_previous.hgvsVariants);
         const merged_cohort = await this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
         this.cohortService.setCohortData(merged_cohort);
+        console.log("C merged_cohort=", merged_cohort.hgvsVariants);
         this.router.navigate(['/pttemplate']);
       } else {
         console.log("Setting to new cohort: ", cohort_dto_new);
+        console.log("D cohort_dto_new=", cohort_dto_new.hgvsVariants);
+
         this.cohortService.setCohortData(cohort_dto_new);
         this.router.navigate(['/pttemplate']);
       }
     } catch (err: unknown) {
       this.notificationService.showError(
-        `Could not create CohortData: ${err instanceof Error ? err.message : err}`
+        `addToCohortData-error-Could not create CohortData: ${err instanceof Error ? err.message : err}`
       );
     }
   }
@@ -1809,9 +1820,15 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     const { columnName, constantValue } = result;
     const rowCount = Math.max(...this.etlDto.table.columns.map(col => col.values.length));
+    // A convenience function to create an EtlCellValue with the same string val
+    const makeCell = (value: string): EtlCellValue => ({
+      original: value,
+      current: '',
+      status: EtlCellStatus.Raw,
+    });
+    // Each cell of the column now gets its own copy of this EtlCellValue
+    const newValues = Array.from({ length: rowCount }, () => makeCell(constantValue));
 
-    // Preview values
-    const newValues = Array(rowCount).fill(constantValue);
     const header = {
       original: columnName.trim(),
       current: columnName.trim(),
@@ -1819,7 +1836,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     };
     const column: ColumnDto = {
       id: crypto.randomUUID(),
-      transformed: false,
       header: header,
       values: newValues
     };

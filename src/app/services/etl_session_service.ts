@@ -156,6 +156,7 @@ export class EtlSessionService {
     if (months > 0) {
       result += `${months}M`;
     }
+    console.log("YEAR, input=", input, " result=", result);
     // Handle edge case where input is 0
     return result === 'P' ? '' : result;
   }

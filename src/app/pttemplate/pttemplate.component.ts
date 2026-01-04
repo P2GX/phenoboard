@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -260,17 +260,21 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     });
   }
 
-  onAlleleCountChange(geneSymbol: string, row: RowData, newCount: number): void {
-    if (!geneSymbol || !row) return;
+  onAlleleCountChange(alleleString: string, row: RowData, newCount: number): void {
+    if (!alleleString || !row) return;
     // Ensure alleleCountMap exists
     if (!row.alleleCountMap) {
       row.alleleCountMap = {};
     }
-
-    row.alleleCountMap[geneSymbol] = newCount;
+    console.log("onAlleleCountChange", row.alleleCountMap);
+    if (newCount === 0) {
+      delete row.alleleCountMap[alleleString];
+    } else {
+      row.alleleCountMap[alleleString] = newCount;
+    }
 
     this.notificationService.showSuccess(
-      `Set ${geneSymbol} allele count to ${newCount}`
+      `Set ${alleleString} allele count to ${newCount}`
     );
   }
 
