@@ -1,8 +1,10 @@
-import { Injectable } from "@angular/core";
+import { computed, Injectable, signal } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { EtlColumnType, EtlDto } from "../models/etl_dto";
+import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from "../models/etl_dto";
 import { ConfigService } from "./config.service";
 import { AgeInputService } from "./age_service";
+import { DiseaseData } from "../models/cohort_dto";
+import { PmidDto } from "../models/pmid_dto";
 
 
 // 4. ETL Session Service
@@ -10,6 +12,10 @@ import { AgeInputService } from "./age_service";
   providedIn: 'root'
 })
 export class EtlSessionService {
+   // Root signal for ETL DTO
+  private _etlDto = signal<EtlDto | null>(null);
+  // expose as computed for read-only access
+  public etlDto = computed(() => this._etlDto());
   
 
   constructor(
@@ -18,21 +24,89 @@ export class EtlSessionService {
       console.log('🟡 EtlSessionService instance created');
   }
 
-  private etlDtoSubject = new BehaviorSubject<EtlDto | null>(null);
-  etlDto$ = this.etlDtoSubject.asObservable();
+ // private etlDtoSubject = new BehaviorSubject<EtlDto | null>(null);
+  //etlDto$ = this.etlDtoSubject.asObservable();
 
   setEtlDto(dto: EtlDto) {
-    this.etlDtoSubject.next(dto);
-  }
-  
-  getEtlDto(): EtlDto | null {
-    const current = this.etlDtoSubject.getValue();
-    return current;
+        this._etlDto.set(dto);
   }
 
+   // Optional computed signal for derived UI state
+   // If a column is transformed, then we are finished with each and every cell
+    transformedColumns = computed(() => {
+      const dto = this._etlDto();
+      if (!dto) return [];
+      return dto.table.columns.map(col =>
+        col.values.length > 0 &&
+        col.values.every(v => v.status === EtlCellStatus.Transformed)
+      );
+    });
+
   clearEtlDto() {
-    this.etlDtoSubject.next(null);
+     this._etlDto.set(null);
   }
+
+  columns = computed(() => this._etlDto()?.table.columns || []);
+
+  updateColumns(newColumns: ColumnDto[]): void {
+    const dto = this._etlDto();
+    if (! dto) return;
+    const new_dto: EtlDto = {
+      ...dto,
+      table: {
+        ...dto.table,
+        columns: newColumns
+      }
+    };
+    this.setEtlDto(new_dto);
+  }
+
+  setDisease(disease: DiseaseData): void {
+    const dto = this._etlDto();
+    if (!dto) return;
+
+    this.setEtlDto({
+      ...dto,
+      disease
+    });
+  }
+
+  setPmidData(pmidDto: PmidDto): void {
+    const dto = this._etlDto();
+    if (!dto) return;
+    this.setEtlDto({
+      ...dto,
+      pmid: pmidDto.pmid,
+      title: pmidDto.title
+    })
+  }
+
+  /**
+   * Update a single cell in the ETL table.
+   * @param colIndex - index of the column
+   * @param rowIndex - index of the row
+   * @param updater - function that receives the current EtlCellValue and returns a new one
+   */
+  updateCell(colIndex: number, rowIndex: number, updater: (cell: EtlCellValue) => EtlCellValue): void {
+    const dto = this._etlDto();
+    if (!dto) return;
+
+    const newColumns = dto.table.columns.map((col, cIdx) => {
+      if (cIdx !== colIndex) return col;
+
+      const newValues = col.values.map((cell, rIdx) => {
+        if (rIdx !== rowIndex) return cell;
+        return updater(cell);
+      });
+
+      return { ...col, values: newValues };
+    });
+
+    this.updateColumns(newColumns);
+  }
+
+ 
+   
   
 
   /** Attempt to convert a sex/gender column into the required format */
@@ -156,7 +230,6 @@ export class EtlSessionService {
     if (months > 0) {
       result += `${months}M`;
     }
-    console.log("YEAR, input=", input, " result=", result);
     // Handle edge case where input is 0
     return result === 'P' ? '' : result;
   }
