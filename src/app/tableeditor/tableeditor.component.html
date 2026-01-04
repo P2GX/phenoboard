@@ -6,13 +6,13 @@
 <div class="button-row">
   <button 
     class="btn-outline-primary"
-    (click)="loadExcelColumnBased()">
+    (click)="loadExcel(false)">
     Load Excel File (Columns)
   </button>
 
   <button 
     class="btn-outline-primary"
-    (click)="loadExcelRowBased()">
+    (click)="loadExcel(true)">
     Load Excel File (Rows)
   </button>
 
@@ -45,44 +45,44 @@
     </div>
   </div>
 }
-@if (!etlDto?.table) {
+@if (!this.etl_service.etlDto) {
   <div>
     <p>No table loaded yet.</p>
   </div>
 }
 
-@if(etlDto) {
+@if(this.etl_service.etlDto()) {
 <div class="pt-table-container">
 <table class="pt-table">
    <!-- ===== HEADER ROW ===== -->
-  <tr class="header-row">
-    @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
-      @let col = etlDto.table.columns[colIndex];
-      <th 
-        [ngClass]="getColumnClass(colIndex)"
-        [ngStyle]="{ 'background-color': getColumnColor(col.header.columnType) }"
-        (contextmenu)="onRightClickHeader($event, colIndex)">
-        <span [matTooltip]="col.header.current || ''">
-          {{ col.header.original }}
-        </span>
-      </th>
-    }
-  </tr>
+  <tr>
+    @for(col of this.etl_service.columns(); track $index; let i = $index){
+    <th [ngClass]="
+          etl_service.transformedColumns()[i]
+            ? 'transformed-column'
+            : i === visibleColIndex
+              ? 'visible-column'
+              : 'normal-column'
+        "
+        (contextmenu)="onRightClickHeader($event, i)">
+      {{ col.header.original }}
+    </th>
+}
+</tr>
 
   <!-- ===== TYPE ROW ===== -->
   <tr class="type-row">
-     @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
-        @let col = etlDto.table.columns[colIndex];
-      <th [ngClass]="getColumnClass(colIndex)"
-        (contextmenu)="onRightClickHeader($event, colIndex)">
+    @for (col of columnsToRender(); track trackColumn($index, col); let colIndex = $index) {
+       <th [ngClass]="getColumnClass(colIndex)"
+          (contextmenu)="onRightClickHeader($event, colIndex)">
         {{ col.header.columnType }}
       </th>
     }
   </tr>
 <!-- ===== DATA ROWS ===== -->
-@for (row of displayRows; track trackRow($index, row); let rowIndex = $index) {
+@for (row of displayRows(); track trackRow($index, row); let rowIndex = $index) {
   <tr>
-    @for (colIndex of getVisibleColumns(); track etlDto.table.columns[colIndex].id) {
+    @for (col of columnsToRender(); track trackColumn($index, col); let colIndex = $index) {
         @if (isHpoTextMiningColumn(colIndex)) {
           <!-- HPO Text Mining Cell -->
             <td>
@@ -110,7 +110,7 @@
         } @else {
           <td class="table-cell">
             <etl-cell
-              [cell]="displayRows[rowIndex][colIndex]"
+              [cell]="row[colIndex]"
               [rowIndex]="rowIndex"
               [colIndex]="colIndex"
               (contextMenuRequested)="onCellContextMenu($event)"
@@ -218,8 +218,8 @@
 
 
 @if(editModalVisible) {
-<div class="modal-overlay" (click)="editModalVisible = false">
-  <div class="edit-modal" (click)="$event.stopPropagation()">
+<div class="modal-overlay" (mousedown)="editModalVisible = false">
+  <div class="edit-modal" (mousedown)="$event.stopPropagation()">
     <header>
       <mat-icon>edit</mat-icon>
       <h3>Edit Cell Value</h3>
@@ -234,9 +234,11 @@
         id="cell-edit"
         [(ngModel)]="editingString"
         (keyup.enter)="saveManualEdit()"
-        autocapitalize="off"
         placeholder="Enter new value..."
         autofocus
+        autocapitalize="none"
+        spellcheck="false"
+        autocomplete="off"
       />
     </div>
 

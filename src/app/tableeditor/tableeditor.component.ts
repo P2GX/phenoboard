@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, HostListener, inject,NgZone, OnDestroy, OnInit, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
@@ -21,7 +21,6 @@ import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
-import { ColumnTypeDialogComponent } from './column-type-dialog.component';
 import { removeAllWhitespace, sanitizeString } from '../validators/validators';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
@@ -71,7 +70,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   private configService = inject(ConfigService);
   private dialog = inject(MatDialog);
-  private etl_service = inject(EtlSessionService);
+  public etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private fb = inject(FormBuilder);
   private variantDialog = inject(VariantDialogService);
@@ -81,10 +80,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
-  etlDto: EtlDto | null = null;
-  displayColumns: ColumnDto[] = [];
-  displayHeaders: EtlColumnHeader[] = [];
-  displayRows: EtlCellValue[][] = [];
 
   pmidForm: FormGroup;
 
@@ -186,8 +181,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   transformationMap: { [original: string]: string } = {};
   uniqueValuesToMap: string[] = [];
 
-  pmidDto: PmidDto = defaultPmidDto();
-
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
 
@@ -204,14 +197,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.REPLACE_UNIQUE_VALUES]: (colIndex: number) => { this.editUniqueValuesInColumn(colIndex); },
     [TransformType.ONSET_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ONSET_AGE_ASSUME_YEARS),
     [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS),
-    [TransformType.ANNOTATE_VARIANTS]: (colIndex) => { this.annotateVariants(colIndex); },
     [TransformType.SPLIT_COLUMN]: (colIndex) => { this.splitColumn(colIndex); },
-    [TransformType.SET_COLUMN_TYPE]: (colIndex) => { this.setColumnTypeDialog(colIndex); },
     [TransformType.DELETE_COLUMN]: (colIndex) => { this.deleteColumn(colIndex); },
     [TransformType.DUPLICATE_COLUMN]: (colIndex) => { this.duplicateColumn(colIndex); },
     [TransformType.CONSTANT_COLUMN]: (colIndex) => { this.addConstantColumn(colIndex); },
     [TransformType.MERGE_INDIVIDUAL_FAMILY]: (colIndex) => { this.mergeIndividualAndFamilyColumns(); },
-    [TransformType.TOGGLE_TRANSFORMED]: (colIndex) => { this.toggleTransformed(colIndex); },
     [TransformType.RAW_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.FamilyId); },
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
@@ -223,13 +213,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.IGNORE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Ignore); },
     [TransformType.REMOVE_WHITESPACE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
     [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.AgeAtLastEncounter); },
+    [TransformType.ANNOTATE_VARIANTS]: (colIndex: number) => { this.annotateVariants(colIndex); }
+
   };
 
 
 
   override ngOnInit(): void {
     super.ngOnInit();
-    this.etl_service.etlDto$.subscribe(dto => { this.etlDto = dto });
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
     });
@@ -251,33 +242,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   override ngOnDestroy(): void {
     super.ngOnDestroy();
   }
-
-  async loadExcelColumnBased() {
+ 
+  /* Load an external Excel file (e.g., supplemental table from a publication). 
+   * We support column (individuals incolumns) or row (individuals iun rows) and normalize such that the 
+   * individuals are in rows. */
+  async loadExcel(rowBased: boolean = false) {
     this.errorMessage = null;
     try {
-      const table: ColumnTableDto | null = await this.configService.loadExternalExcel();
+      const table: ColumnTableDto | null = rowBased
+        ? await this.configService.loadExternalExcelRowBased()
+        : await this.configService.loadExternalExcel();
+
       if (!table) {
         this.notificationService.showError("Could not retrieve external table");
         return;
       }
-      this.etlDto = fromColumnDto(table);
-      this.reRenderTableRows();
-    } catch (error) {
-      this.errorMessage = String(error);
-      this.notificationService.showError(this.errorMessage);
-    }
-  }
-
-  async loadExcelRowBased() {
-    this.errorMessage = null;
-    try {
-      const table = await this.configService.loadExternalExcelRowBased();
-      if (!table) {
-        this.notificationService.showError("Could not retrieve external table");
-        return;
-      }
-      this.etlDto = fromColumnDto(table);
-      this.reRenderTableRows();
+      const dto = fromColumnDto(table);
+      this.etl_service.setEtlDto(dto);
     } catch (error) {
       this.errorMessage = String(error);
       this.notificationService.showError("Could not retrieve external table");
@@ -285,19 +266,31 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-  reRenderTableRows(): void {
-    if (!this.etlDto) return;
-
-    const columns = this.etlDto.table.columns;
+  
+  // Row-oriented data for template iteration
+  displayRows: Signal<EtlCellValue[][]> = computed(() => {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return [];
+    const columns = dto.table.columns;
+    if (columns.length === 0) return [];
     const rowCount = Math.max(...columns.map(c => c.values.length));
-
-    this.displayRows = Array.from({ length: rowCount }, (_, i) =>
+    return Array.from({ length: rowCount }, (_, i) =>
       columns.map(c => c.values[i] ?? { original: '', current: '', status: RAW })
     );
+  });
 
-    this.displayColumns = columns;
-    this.displayHeaders = columns.map(c => c.header);
-  }
+  // Column list for template headers
+  displayColumns: Signal<ColumnDto[]> = computed(() => {
+    const dto = this.etl_service.etlDto();
+    return dto?.table.columns ?? [];
+  });
+
+  // Column headers for template headers (tooltips, labels)
+  displayHeaders: Signal<EtlColumnHeader[]> = computed(() => {
+    const dto = this.etl_service.etlDto();
+    return dto?.table.columns.map(c => c.header) ?? [];
+  });
+
 
   /**
    * Update a single EtlCellValue.
@@ -314,29 +307,71 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     cell.error = error;
   }
 
+
   /**
-   * Transform a column and update each cell.
+   * Updates a single column in the ETL DTO immutably.
+   *
+   * This method creates a new array of cells for the specified column by applying
+   * `updateCellFn` to each cell. It then replaces the column in a new columns array
+   * and sets a new DTO in the `EtlSessionService` signal. This ensures that all
+   * reactivity mechanisms (signals/computed properties) are triggered without
+   * mutating the original DTO or cells.
+   *
+   * @param colIndex - The zero-based index of the column to update.
+   * @param updateCellFn - A function that receives an `EtlCellValue` and returns
+   *   a new `EtlCellValue`. Use this function to transform or validate each cell.
+   *
+   * @example
+   * // Transform all cells in column 2 to uppercase:
+   * updateColumn(2, cell => ({ ...cell, current: cell.current.toUpperCase() }));
+   *
+   * @example
+   * // Mark cells as error if empty
+   * updateColumn(0, cell => ({
+   *   ...cell,
+   *   status: cell.current ? EtlCellStatus.Transformed : EtlCellStatus.Error
+   * }));
    */
-  transformColumn(colIndex: number, transformFn: (val: string) => string, validateFn?: (val: string) => boolean): void {
-    if (!this.etlDto) return;
+  private updateColumn(
+    colIndex: number,
+    updateCellFn: (cell: EtlCellValue) => EtlCellValue
+  ): void {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
 
-    const column = this.etlDto.table.columns[colIndex];
+    const column = dto.table.columns[colIndex];
+    const newValues = column.values.map(updateCellFn);
+    const newColumns = [...dto.table.columns];
+    newColumns[colIndex] = { ...column, values: newValues };
+    this.etl_service.updateColumns(newColumns);
+  }
 
-    column.values.forEach(cell => {
+  
+
+
+  /**
+   * Transform a column and update each cell. Note that we update the column
+   * immutably to trigger the signal
+   */
+  transformColumn(
+    colIndex: number, 
+    transformFn: (val: string) => string, validateFn?: (val: string) => boolean): void {
+      this.updateColumn(colIndex, cell => {
       const newValue = transformFn(cell.original);
-      if (validateFn && !validateFn(newValue)) {
-        this.updateCell(cell, cell.current, ERROR, 'Invalid value');
-      } else {
-        this.updateCell(cell, newValue, TRANSFORMED);
-      }
+      const isValid = validateFn ? validateFn(newValue) : true;
+      return {
+        ...cell,
+        current: isValid ? newValue : cell.current,
+        status: isValid ? EtlCellStatus.Transformed : EtlCellStatus.Error,
+        errorMessage: isValid ? undefined : 'Invalid value'
+      };
     });
-
-    column.transformed = true;
   }
 
   /* Used for manual cell edits (by right click on a cell), which are assumed to be correct (they will be QC'd by backend) */
   onCellEdited(event: { rowIndex: number, colIndex: number, newValue: string }): void {
-    const cell = this.displayRows[event.rowIndex][event.colIndex];
+    const rows = this.displayRows(); 
+    const cell = rows[event.rowIndex][event.colIndex];
     this.updateCell(cell, event.newValue, TRANSFORMED);
   }
 
@@ -382,14 +417,38 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     return { x, y };
   }
 
+  visibleColumnsComputed = computed(() => {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return [];
+    // Use your existing logic to determine visible column indices
+    if (!this.editModeActive) {
+      return dto.table.columns.map((_, i) => i); // all columns
+    }
+    const indices = [0]; // always show first
+    if (this.visibleColIndex >= 0) indices.push(this.visibleColIndex);
+    if (this.transformedColIndex >= 0) indices.push(this.transformedColIndex);
+    return indices;
+  });
+
+  columnsToRender = computed(() => {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return [];
+    return this.visibleColumnsComputed().map(i => dto.table.columns[i]).filter(Boolean);
+  });
+
+  trackColumn = (index: number, col: ColumnDto) => {
+    return col.id; // if your columns have an `id` field
+  };
+
 
   /** This method is called if the user right clicks on the header (first row) */
   onRightClickHeader(event: MouseEvent, colIndex: number): void {
+    console.log("onRightClickHeader c=", colIndex);
     event.preventDefault();
-    console.log('right-clicked header index', colIndex);
     this.contextMenuColIndex = colIndex;
-    this.contextMenuColHeader = this.displayHeaders[colIndex] ?? null;
-    this.contextMenuColType = this.displayHeaders[colIndex]?.columnType ?? null;
+    const headers = this.displayHeaders();  
+    this.contextMenuColHeader = headers[colIndex] ?? null;
+    this.contextMenuColType = headers[colIndex]?.columnType ?? null;
     const menuDims = { width: 350, height: 400 };
     const adjusted = this.adjustMenuPosition(event.clientX, event.clientY, menuDims.width, menuDims.height);
     this.columnContextMenuX = adjusted.x;
@@ -413,15 +472,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     return Array.from(new Set(column.map(v => v.original.trim()).filter(Boolean)));
   }
 
+  /* get the unique strings values from the column. 
+   * The values will go into transformationPanelVisible */
   editUniqueValuesInColumn(index: number): void {
-    if (!this.etlDto) {
-      this.notificationService.showError("No table loaded");
-      return;
-    }
-
-    const column = this.etlDto.table.columns[index];
-    const header = this.displayHeaders[index];
-
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const column = dto.table.columns[index];
+    const headers = this.displayHeaders();
+    const header = headers[index];
     if (!column || !header) {
       this.notificationService.showError(`Invalid column/header at index ${index}`);
       return;
@@ -439,13 +497,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   getUniqueValues(colIndex: number): string[] {
-    if (!this.etlDto) return [];
-    const column = this.etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (! dto) return [];
+    const column = dto.table.columns[colIndex];
     if (!column) return [];
     return this.extractUniqueValues(column.values);
   }
-
-
 
 
   /**
@@ -455,31 +512,18 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @param index - index of the column to be edited
    */
   startEditColumn(index: number) {
-    if (this.etlDto == null) {
-      return;
-    }
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
     this.editModeActive = true;
     this.visibleColIndex = index;
-    this.reRenderTableRows(); // Rebuild the table display
   }
 
-
-  /** Use Variant Validator in the backend to annotate each variant string in the column. Upon successful validation, add the variant key
-   * to the ETL DTO. If all entries are validated, mark the column green (transformed). 
-   */
-  async annotateVariants(colIndex: number | null): Promise<void> {
-    const etlDto = this.etlDto;
-    if (etlDto == null) {
-      return;
-    }
-    this.notificationService.showError("need to refactor annotateVariants");
-
-  }
 
 
   async applySingleHpoTransform(colIndex: number): Promise<void> {
-    if (!this.etlDto) return;
-    const column = this.etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const column = dto.table.columns[colIndex];
     const columnTitle = column.header.original || "n/a";
 
     // Get the best HPO match
@@ -519,43 +563,45 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         },
       }).afterClosed()
     );
+    this.updateColumnWithMap(colIndex, mapping);
+  }
 
-    // Apply mapping or mark cells as error
-    column.values = column.values.map(cell => {
+  /**
+   * Updates a column by applying a value mapping to each cell.
+   *
+   * If the mapping is null, all cells are marked as error.
+   * If a value cannot be mapped, the cell is marked as error.
+   * Otherwise, the cell is updated with the mapped value and status Transformed.
+   *
+   * @param colIndex - The zero-based index of the column to update.
+   * @param mapping - The HPO mapping result (value-to-state map). If null, all cells are errors.
+   */
+  private updateColumnWithMap(
+    colIndex: number,
+    mapping: HpoMappingResult | undefined
+  ): void {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+
+    this.updateColumn(colIndex, cell => {
       if (!mapping) {
-        return {
-          ...cell,
-          current: '',
-          status: EtlCellStatus.Error,
-          error: `User cancelled mapping`
-        };
+        return { ...cell, current: '', status: EtlCellStatus.Error, errorMessage: 'User cancelled mapping' };
+      }
+      const newValue = mapping.valueToStateMap[cell.original];
+      if (newValue) {
+        return { ...cell, current: newValue, status: EtlCellStatus.Transformed, errorMessage: undefined };
       } else {
-        const newValue = mapping.valueToStateMap[cell.original];
-        if (newValue) {
-          return {
-            ...cell,
-            current: newValue,
-            status: EtlCellStatus.Transformed,
-            error: undefined
-          };
-        } else {
-          return {
-            ...cell,
-            current: '',
-            status: EtlCellStatus.Error,
-            error: `Could not map ${cell.original}`
-          };
-        }
+        return { ...cell, current: '', status: EtlCellStatus.Error, errorMessage: `Could not map ${cell.original}` };
       }
     });
-
-    this.reRenderTableRows();
   }
 
 
+
   async processMultipleHpoColumn(colIndex: number): Promise<void> {
-    if (!this.etlDto) return;
-    const col = this.etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const col = dto.table.columns[colIndex];
     if (!col) return;
 
     const originalEntries = col.values.map(v => v.original);
@@ -613,7 +659,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     console.log("MH column.values", col.values);
     col.header.hpoTerms = result?.allHpoTerms ?? [];
     col.header.columnType = EtlColumnType.MultipleHpoTerm;
-    this.reRenderTableRows();
   }
 
 
@@ -624,19 +669,18 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    */
   onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
     event.preventDefault();
-    if (this.etlDto == null) {
-      return;
-    }
-    const columnTableDto = this.etlDto.table;
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const columnTableDto = dto.table;
 
     if (!columnTableDto.columns[colIndex]) return;
-    if (!this.displayHeaders[colIndex]) {
+    const headers = this.displayHeaders();
+    if (! headers[colIndex]) {
       this.notificationService.showError(`Null header for index ${colIndex}`);
       return;
     }
-    const header = this.displayHeaders[colIndex];
-
-    const col = this.etlDto.table.columns[colIndex];
+    const header = headers[colIndex];
+    const col = columnTableDto.columns[colIndex];
     this.contextMenuCellX = event.clientX;
     this.contextMenuCellY = event.clientY;
     this.contextMenuCellVisible = true;
@@ -647,25 +691,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.contextMenuCellType = header.columnType;
   }
 
-  deleteRowAtI(etl: EtlDto, i: number): EtlDto {
-    const newColumns = etl.table.columns.map(col => ({
+  deleteRowAtI(i: number): void {
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const newColumns = dto.table.columns.map(col => ({
       ...col,
       values: [
         ...col.values.slice(0, i),
         ...col.values.slice(i + 1)
       ]
     }));
-    return {
-      ...etl,
-      table: {
-        ...etl.table,
-        columns: newColumns
-      }
-    };
+    this.etl_service.updateColumns(newColumns);
   }
 
   async deleteRow() {
-    const etlDto = this.etlDto;
+    const etlDto = this.etl_service.etlDto();
     if (!etlDto) return;
 
     const rowIndex = this.contextMenuCellRow;
@@ -683,8 +723,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.etlDto = this.deleteRowAtI(etlDto, rowIndex);
-        // this.reRenderTableRows(); // maybe not needed with signals
+        this.deleteRowAtI(rowIndex);
       } else {
         this.notificationService.showError("Did not delete row");
       }
@@ -698,7 +737,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
   async editCellValueManually() {
-    console.log("editCellValueManually");
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
     const cell = this.contextMenuCellValue;
     this.editingValue = cell;
     const colIndex = this.contextMenuCellCol;
@@ -707,7 +747,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     this.editingString = cell.original;
-    const col = this.etlDto?.table.columns[colIndex];
+    const col = dto.table.columns[colIndex];
     if (!col) {
       this.notificationService.showError("Could not edit cell because we could not get context menu cell column.");
       return;
@@ -733,8 +773,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    */
   async saveExternalTemplateJson(): Promise<void> {
     this.errorMessage = null;
-    const etlDto = this.etlDto;
-    if (etlDto == null) {
+    const etlDto = this.etl_service.etlDto();
+    if (! etlDto) {
       this.notificationService.showError("Could not save JSON because data table is not initialized");
       return;
     }
@@ -770,16 +810,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   async loadExternalTemplateJson(): Promise<void> {
     this.errorMessage = null;
     try {
-      const table = await this.configService.loadJsonExternalTemplate();
-      if (table == null) {
+      const dto: EtlDto = await this.configService.loadJsonExternalTemplate();
+      if (dto == null) {
         this.notificationService.showError("Could not retrieve external template json");
         return;
       }
-      this.ngZone.run(() => {
-        this.etlDto = table;
-        this.reRenderTableRows();
-      });
-
+      this.etl_service.setEtlDto(dto);
     } catch (error) {
       this.errorMessage = String(error);
     }
@@ -793,23 +829,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * 
    * @returns array of column indices to display
    */
-  getVisibleColumns(): number[] {
-    if (this.etlDto == null) {
+  visibleColumns = computed(() => {
+    const dto = this.etl_service.etlDto();
+    if (!dto) {
       this.notificationService.showError("Attempt to focus on columns with null ETL table");
       return [];
     }
     if (!this.editModeActive) {
-      const n_columns = this.etlDto.table.columns.length;
-      return Array.from({ length: n_columns }, (_, i) => i); // Show all columns normally
+      return dto.table.columns.map((_, i) => i); // show all
     }
 
-    const indices = [0]; // Always show first column
+    const indices = [0]; // always show first column
 
     if (this.visibleColIndex >= 0) indices.push(this.visibleColIndex);
     if (this.transformedColIndex >= 0) indices.push(this.transformedColIndex);
 
     return indices;
-  }
+  });
 
 
   /**
@@ -818,9 +854,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @returns 
    */
   deleteColumn(index: number | null): void {
-    if (index === null || this.etlDto == null) return;
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    if (index === null) return;
     const uniqueValues: string[] = this.getUniqueValues(index);
-    const columnName = this.etlDto.table.columns[index].header.original || `Column ${index}`;
+    const columnName = dto.table.columns[index].header.original || `Column ${index}`;
     const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
       width: '500px',
       data: {
@@ -829,24 +867,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       }
     });
     dialogRef.afterClosed().subscribe(result => {
-      if (result === true && this.etlDto != null) {
+      if (result === true) {
         // User confirmed deletion
-        this.etlDto.table.columns.splice(index, 1);
-        this.reRenderTableRows();
+        const newColumns = dto.table.columns.filter((_, i) => i !== index);
+        this.etl_service.updateColumns(newColumns);
       }
-      // If result is false or undefined, do nothing (cancelled)
+      // If result is false or undefined, do nothing (probably, user cancelled)
     });
   }
 
   duplicateColumn(index: number | null): void {
-    const etlDto = this.etlDto;
-    if (!etlDto || index === null) return;
+    const dto = this.etl_service.etlDto();
+    if (!dto || index === null) return;
 
-    const originalColumn = etlDto.table.columns[index];
+    const originalColumn = dto.table.columns[index];
     if (!originalColumn) return;
-
-    console.log("Duplicating column", index, "with contents", originalColumn.values);
-
     // Deep clone the column
     const clonedColumn: ColumnDto = {
       ...JSON.parse(JSON.stringify(originalColumn)),
@@ -856,33 +891,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         original: `B. ${originalColumn.header.original}`
       }
     };
-
     // Create a new columns array with the cloned column inserted
     const newColumns = [
-      ...etlDto.table.columns.slice(0, index + 1),
+      ...dto.table.columns.slice(0, index + 1),
       clonedColumn,
-      ...etlDto.table.columns.slice(index + 1)
+      ...dto.table.columns.slice(index + 1)
     ];
-
-    // Immutable update to trigger Angular change detection
-    this.etlDto = {
-      ...etlDto,
-      table: {
-        ...etlDto.table,
-        columns: newColumns
-      }
-    };
-
-    this.reRenderTableRows();
+    this.etl_service.updateColumns(newColumns);
   }
 
 
   /** Split a column into two according to a token such as "/" or ":" */
   splitColumn(index: number | null): void {
-    const etlDto = this.etlDto;
-    if (!etlDto || index === null) return;
-
-    const columns = etlDto.table.columns;
+    const dto = this.etl_service.etlDto();
+    if (!dto || index === null) return;
+    const columns = dto.table.columns;
     const originalColumn = columns[index];
     if (!originalColumn) return;
 
@@ -927,17 +950,18 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       // update columns array
       columns.splice(index + 1, 0, columnB);
       columns[index] = columnA;
-
-      this.etlDto = {
-        ...etlDto,
-        table: {
-          ...etlDto.table,
-          columns: [...columns],
-        }
-      };
-
-      this.reRenderTableRows();
+      this.etl_service.updateColumns(columns);
     });
+  }
+
+   /** Use Variant Validator in the backend to annotate each variant string in the column. 
+    * Upon successful validation, add the variant key to the ETL DTO.  
+   */
+  async annotateVariants(colIndex: number): Promise<void> {
+    const dto = this.etl_service.etlDto();
+    if (dto == null) return;
+    const new_dto = await this.configService.processAlleleColumn(dto, colIndex);
+    this.etl_service.setEtlDto(new_dto);
   }
 
 
@@ -948,7 +972,9 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @returns true iff column is transformed
    */
   isTransformedColumn(index: number): boolean {
-    const column = this.etlDto?.table.columns[index];
+    const dto = this.etl_service.etlDto();
+    if (! dto) return false;
+    const column = dto.table.columns[index];
     if (!column?.values?.length) {
       return false;
     }
@@ -970,22 +996,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-
-
+  /* Is there a row above the current one and if so is the column value valid? */
   hasValueAbove(): boolean {
+    const dcolumns = this.displayColumns();
     return (
       this.contextMenuCellRow !== null &&
       this.contextMenuCellRow > 0 &&
       this.contextMenuCellCol !== null &&
-      this.displayColumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1] !== undefined
+      dcolumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1] !== undefined
     );
   }
 
 
   /* Copy the value from the cell right above this one */
   useValueFromAbove() {
-    if (this.etlDto == null) return;
-    const columnTableDto = this.etlDto.table;
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const columnTableDto = dto.table;
     if (!this.hasValueAbove()) return;
     if (this.contextMenuCellCol == null) {
       this.notificationService.showError("context menu column is null");
@@ -995,15 +1022,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError("context menu row is null");
       return;
     }
-    const aboveValue: EtlCellValue =
-      this.displayColumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1];
+    const dcolumns = this.displayColumns();
+    const aboveValue: EtlCellValue = dcolumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1];
     const col = columnTableDto.columns[this.contextMenuCellCol];
     if (col) {
       const rowIndex = this.contextMenuCellRow;
       if (rowIndex >= 0 && rowIndex < col.values.length) {
         col.values[rowIndex] = aboveValue;
         this.contextMenuCellValue = this.editingValue;
-        this.reRenderTableRows();
       }
     }
     this.editModalVisible = false;
@@ -1026,7 +1052,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     this.contextMenuCellValue = event.cell;
 
     // Determine the type / other data from parent state
-    const header = this.displayHeaders[event.colIndex];
+    const headers = this.displayHeaders();
+    const header = headers[event.colIndex];
     this.contextMenuCellType = header.columnType;
   }
 
@@ -1037,14 +1064,15 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * one more time with the conversion to CohortData as well!
    */
   async saveManualEdit(): Promise<void> {
-    if (this.etlDto == null) return;
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
     const colIndex = this.contextMenuCellCol;
     const rowIndex = this.contextMenuCellRow;
     if (colIndex == null || rowIndex == null) {
       this.notificationService.showError("Could not save value: missing row or column index");
       return;
     }
-    const col = this.etlDto.table.columns[colIndex];
+    const col = dto.table.columns[colIndex];
     if (col) {
       const oldCell = col.values[rowIndex];
       if (!oldCell) return;
@@ -1052,16 +1080,23 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         this.notificationService.showError("Could not find edit value");
         return;
       }
-      const newCell: EtlCellValue = {
-        ...oldCell,
-        current: this.editingString.trim(),
-        status: TRANSFORMED, // assume manual edit is correct 
-        error: undefined,
-      };
+    const newColumns = dto.table.columns.map((col, i) => {
+    if (i !== colIndex) return col; // leave other columns unchanged
 
-      col.values[rowIndex] = newCell;
-      this.contextMenuCellValue = newCell;
-      this.reRenderTableRows();
+    // Update the specific cell immutably
+    const newValues = col.values.map((cell, j) => {
+          if (j !== rowIndex) return cell;
+          return {
+            ...cell,
+            current: this.editingString.trim(),
+            status: TRANSFORMED, // assume manual edit is correct
+            errorMessage: undefined
+          };
+        });
+        return { ...col, values: newValues };
+      });
+      this.etl_service.updateColumns(newColumns);
+      this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
       this.editModalVisible = false;
     }
   }
@@ -1121,7 +1156,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         TransformType.DUPLICATE_COLUMN,
         TransformType.CONSTANT_COLUMN,
         TransformType.MERGE_INDIVIDUAL_FAMILY,
-        TransformType.TOGGLE_TRANSFORMED,
         TransformType.SPLIT_COLUMN,
       ]
     }
@@ -1147,13 +1181,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       [TransformType.SPLIT_COLUMN]: 'Split Column',
       [TransformType.SINGLE_HPO_TERM]: 'Single HPO Term',
       [TransformType.MULTIPLE_HPO_TERM]: 'Multiple HPO Terms',
-      [TransformType.ANNOTATE_VARIANTS]: 'Annotate variants',
-      [TransformType.SET_COLUMN_TYPE]: 'Set column type',
       [TransformType.DELETE_COLUMN]: 'Delete column',
       [TransformType.DUPLICATE_COLUMN]: 'Duplicate column',
       [TransformType.CONSTANT_COLUMN]: 'Add constant column',
       [TransformType.MERGE_INDIVIDUAL_FAMILY]: 'Merge individual and family columns',
-      [TransformType.TOGGLE_TRANSFORMED]: 'Toggle transformed status',
       [TransformType.RAW_COLUMN_TYPE]: 'Raw',
       [TransformType.FAMILY_ID_COLUMN_TYPE]: 'Family ID',
       [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
@@ -1163,24 +1194,20 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       [TransformType.SEX_COLUMN_TYPE]: 'Sex',
       [TransformType.DECEASED_COLUMN_TYPE]: 'Deceased',
       [TransformType.IGNORE_COLUMN_TYPE]: 'Ignore',
-      [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: 'Age at last encounter'
+      [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: 'Age at last encounter',
+      [TransformType.ANNOTATE_VARIANTS]: 'Annotate variants'
     };
     return displayNames[transform] || transform;
   }
 
   /** Transform a single column in-place using signals */
   transformColumnElementwise(colIndex: number, transform: TransformType) {
-    console.log("transformColumnElementwise")
-    if (!this.etlDto) {
-      this.notificationService.showError("Attempt to transform column with null ETL DTO");
-      return;
-    }
-    const col = this.etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const col = dto.table.columns[colIndex];
     if (!col || !col.values) return;
-
     col.values.forEach(cell => {
       const original = cell.original ?? '';
-
       let transformed: string | undefined;
       switch (transform) {
         case TransformType.STRING_SANITIZE:
@@ -1229,48 +1256,66 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** Change the column header type and refresh. */
   private setColumnMetadata(colIndex: number, type: EtlColumnType) {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
-    const col = etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const col = dto.table.columns[colIndex];
     col.header.columnType = type;
-    this.reRenderTableRows();
   }
 
   async ignoreColumn(colIndex: number) {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
-    const col = etlDto.table.columns[colIndex];
-    col.values = col.values.map(cell => {
-      return {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      const newValues = col.values.map(cell => ({
         ...cell,
         status: EtlCellStatus.Ignored,
-        error: undefined
+        errorMessage: undefined
+      }));
+      const newHeader = {
+        ...col.header,
+        columnType: EtlColumnType.Ignore
+      };
+      return {
+        ...col,
+        values: newValues,
+        header: newHeader
       };
     });
-    col.header.columnType = EtlColumnType.Ignore;
-    this.reRenderTableRows();
+    this.etl_service.updateColumns(newColumns);
   }
 
   async resetColumn(colIndex: number): Promise<void> {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
-    const col = etlDto.table.columns[colIndex];
-    col.values = col.values.map(cell => {
-      return {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      const newValues = col.values.map(cell => ({
         ...cell,
-        current: '',
         status: EtlCellStatus.Raw,
-        error: ''
+        current: '',
+        error: undefined
+      }));
+      const newHeader = {
+        ...col.header,
+        columnType: EtlColumnType.Raw
+      };
+      return {
+        ...col,
+        values: newValues,
+        header: newHeader
       };
     });
-    col.header.columnType = EtlColumnType.Ignore;
-    this.reRenderTableRows();
+    this.etl_service.updateColumns(newColumns);
   }
 
+  /* change a single element. We use this, for instance, after manually editing the 
+   * value of one cell. We change both the original value (not current), because we expect that
+   * the use will need to re-run the actual transform to confirm (and this would start
+   * from original!). */
   async runElementwiseEngine(colIndex: number, transform: TransformType, fn: StringTransformFn): Promise<void> {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
-    const col = etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
     const newColumnType = TransformToColumnTypeMap[transform];
 
     if (newColumnType) {
@@ -1279,60 +1324,76 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError(`Could not identify column type for ${transform}. Aborting operation.`);
       return;
     }
-    // We map to a NEW array of NEW cell objects to activate change detection
-    col.values = col.values.map(cell => {
-      try {
-        const result = fn(cell.original ?? '');
-        if (!result) {
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+
+      // Transform each cell
+      const newValues = col.values.map(cell => {
+        try {
+          const result = fn(cell.original ?? '');
+          if (!result) {
+            return {
+              ...cell,
+              current: '',
+              status: EtlCellStatus.Error,
+              errorMessage: `Could not map ${cell.original}`
+            };
+          } else {
+            return {
+              ...cell,
+              original: result,
+              current: result,
+              status: EtlCellStatus.Transformed,
+              errorMessage: undefined
+            };
+          }
+        } catch (e) {
           return {
             ...cell,
-            current: '',
             status: EtlCellStatus.Error,
-            error: `Could not map ${cell.original}`
+            errorMessage: String(e)
           };
+        }
+      });
+      const newHeader = { ...col.header, columnType: newColumnType };
+      return { ...col, values: newValues, header: newHeader };
+    });
+    this.etl_service.updateColumns(newColumns);
+  }
+
+  /* USed for operations such as ASCII-sanitization, UPPER-CASE, and trim */
+  async runTidyColumn(colIndex: number | null, fn: StringTransformFn) {
+    const dto = this.etl_service.etlDto();
+    if (!dto || !colIndex) return;
+    const col = dto.table.columns[colIndex];
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      const newValues = col.values.map(cell => {
+        const input = cell.original ?? '';
+        const output: string | undefined = fn(input);
+        if (output) {
+          return {
+            ...cell,
+            current: output,
+            error: ''
+          }
         } else {
           return {
             ...cell,
-            current: result,
-            status: EtlCellStatus.Transformed,
-            error: undefined
-          };
+            current: '',
+            status: ERROR,
+            error: `Could not map "${input}"`
+          }
         }
-      } catch (e) {
-        return { ...cell, status: EtlCellStatus.Error, error: String(e) };
-      }
+      });
+      return { ...col, values: newValues };
     });
-    col.header.columnType = newColumnType;
-    this.reRenderTableRows();
-  }
-
-  async runTidyColumn(colIndex: number | null, fn: StringTransformFn) {
-    const etlDto = this.etlDto;
-    if (!etlDto || !colIndex) return;
-    const col = etlDto.table.columns[colIndex];
-    col.values = col.values.map(cell => {
-      const input = cell.original ?? '';
-      const output: string | undefined = fn(input);
-      if (output) {
-        return {
-          ...cell,
-          current: output,
-          error: ''
-        }
-      } else {
-        return {
-          ...cell,
-          current: '',
-          status: ERROR,
-          error: `Could not map "${input}"`
-        }
-      }
-    });
-    this.reRenderTableRows();
+    this.etl_service.updateColumns(newColumns);
   }
 
   async applyNamedTransform(colIndex: number | null, transform: TransformType): Promise<void> {
-    if (colIndex == null || !this.etlDto) return;
+    const dto = this.etl_service.etlDto();
+    if (colIndex == null || !dto) return;
 
     const transformFn = this.ELEMENTWISE_MAP[transform]; // cell-wise transforms, e.g. Age, Sex, Deceased
     if (transformFn) {
@@ -1344,9 +1405,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.runTidyColumn(colIndex, tidyFn);
       return;
     }
-
-
-    // Interactive / structural transforms (UNCHANGED)
+    // Interactive / structural transforms
     switch (transform) {
       case TransformType.IGNORE_COLUMN_TYPE:
         await this.ignoreColumn(colIndex);
@@ -1369,102 +1428,110 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       case TransformType.MERGE_INDIVIDUAL_FAMILY:
         this.mergeIndividualAndFamilyColumns();
         return;
-      case TransformType.ANNOTATE_VARIANTS:
-        this.processVariantColumn(colIndex);
-        return;
-
       case TransformType.ONSET_AGE:
       case TransformType.LAST_ENCOUNTER_AGE:
       case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
       case TransformType.ONSET_AGE_ASSUME_YEARS:
         this.applyElementwiseTransform(colIndex, transform);
+        break;
+      case TransformType.ANNOTATE_VARIANTS:
+        this.annotateVariants(colIndex);
+        break;
+      default:
+        this.notificationService.showError(`Did not recognize transformation type "${transform}"`)
 
-      
     }
 
   }
 
   applyElementwiseTransform(colIndex: number, transform: TransformType): void {
-    console.log(`applyElementwiseTransform col=${colIndex} transform = ${transform}`)
-    if (!this.etlDto) return;
-    const col = this.etlDto.table.columns[colIndex];
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    const col = dto.table.columns[colIndex];
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      const newValues = col.values.map(cell => {
+        try {
+          const input = cell.original ?? '';
+          let output: string | undefined = input;
 
-    col.values = col.values.map(cell => {
-      try {
-        const input = cell.original ?? '';
-        let output: string | undefined = input;
-
-        switch (transform) {
-          case TransformType.STRING_SANITIZE:
-            output = sanitizeString(input);
-            break;
-          case TransformType.REMOVE_WHITESPACE:
-            output = removeAllWhitespace(input);
-            break;
-          case TransformType.TO_UPPERCASE:
-            output = input.toUpperCase();
-            break;
-          case TransformType.TO_LOWERCASE:
-            output = input.toLowerCase();
-            break;
-          case TransformType.ONSET_AGE:
-            output = this.etl_service.parseAgeToIso8601(input);
-            break;
-          case TransformType.LAST_ENCOUNTER_AGE:
-            output = this.etl_service.parseAgeToIso8601(input);
-            break;
-          case TransformType.SEX_COLUMN:
-            output = this.etl_service.parseSexColumn(input);
-            break;
-          case TransformType.ONSET_AGE_ASSUME_YEARS:
-          case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-            output = this.etl_service.parseDecimalYearsToIso8601(input);
-            break;
-        }
-        console.log("output", output)
-        // Return a NEW object copy (Spread operator)
-        if (output) {
+          switch (transform) {
+            case TransformType.STRING_SANITIZE:
+              output = sanitizeString(input);
+              break;
+            case TransformType.REMOVE_WHITESPACE:
+              output = removeAllWhitespace(input);
+              break;
+            case TransformType.TO_UPPERCASE:
+              output = input.toUpperCase();
+              break;
+            case TransformType.TO_LOWERCASE:
+              output = input.toLowerCase();
+              break;
+            case TransformType.ONSET_AGE:
+              output = this.etl_service.parseAgeToIso8601(input);
+              break;
+            case TransformType.LAST_ENCOUNTER_AGE:
+              output = this.etl_service.parseAgeToIso8601(input);
+              break;
+            case TransformType.SEX_COLUMN:
+              output = this.etl_service.parseSexColumn(input);
+              break;
+            case TransformType.ONSET_AGE_ASSUME_YEARS:
+            case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
+              output = this.etl_service.parseDecimalYearsToIso8601(input);
+              break;
+          }
+          console.log("output", output)
+          // Return a NEW object copy (Spread operator)
+          if (output) {
+            return {
+              ...cell,
+              current: output,
+              status: TRANSFORMED,
+              error: undefined
+            };
+          } else {
+            return {
+              ...cell,
+              current: '',
+              status: ERROR,
+              error: `Could not map "${input}"`
+            };
+          }
+        } catch (e) {
           return {
             ...cell,
-            current: output,
-            status: TRANSFORMED,
-            error: undefined
-          };
-        } else {
-          return {
-            ...cell,
-            current: '',
             status: ERROR,
-            error: `Could not map "${input}"`
+            error: String(e)
           };
         }
-      } catch (e) {
-        return {
-          ...cell,
-          status: ERROR,
-          error: String(e)
-        };
-      }
+      });
+      const newType = TransformToColumnTypeMap[transform] ?? undefined;
+        console.log("setting header transform", transform, " new type", newType)
+        if (newType) {
+          col.header.columnType = newType;
+        }
+      return { ...col, values: newValues };
     });
-
-    const newType = TransformToColumnTypeMap[transform] ?? undefined;
-    console.log("setting header transform", transform, " new type", newType)
-    if (newType) {
-      col.header.columnType = newType;
-    }
-    this.reRenderTableRows();
+    this.etl_service.updateColumns(newColumns);
   }
 
   async mergeIndividualAndFamilyColumns(): Promise<void> {
-    if (!this.etlDto) return;
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
 
     try {
-      const columns = this.etlDto.table.columns;
       const famIdx = await this.getEtlColumnIndex(EtlColumnType.FamilyId);
       const indIdx = await this.getEtlColumnIndex(EtlColumnType.PatientId);
-
-      const famCol = columns[famIdx];
-      const indCol = columns[indIdx];
+      if (famIdx < 0 || indIdx < 0) {
+        this.notificationService.showError(
+          "Could not locate FamilyId or PatientId column"
+        );
+        return;
+      }
+      const famCol = dto.table.columns[famIdx];
+      const indCol = dto.table.columns[indIdx];
 
       if (famCol.values.length !== indCol.values.length) {
         this.notificationService.showError(
@@ -1473,21 +1540,47 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         return;
       }
 
-      indCol.values.forEach((cell, i) => {
-        const fam = famCol.values[i]?.original ?? '';
-        const ind = cell.original ?? '';
-        cell.current = `${fam} ${ind}`.trim();
-        cell.status = TRANSFORMED;
-        cell.error = undefined;
-      });
+      const mergedIndColumn = {
+        ...indCol,
+        header: {
+          ...indCol.header,
+          columnType: EtlColumnType.PatientId
+        },
+        values: indCol.values.map((cell, i) => {
+          const fam = famCol.values[i]?.original ?? '';
+          const ind = cell.original ?? '';
+          const merged = `${fam} ${ind}`.trim();
 
-      indCol.header.columnType = EtlColumnType.PatientId;
+          return {
+            ...cell,
+            current: merged,
+            status: EtlCellStatus.Transformed,
+            errorMessage: undefined
+          };
+        })
+      };
 
-      // Move to first column if needed
-      if (indIdx !== 0) {
-        const [col] = columns.splice(indIdx, 1);
-        columns.unshift(col);
+      // Remove FamilyId column and replace PatientId column
+      let newColumns = dto.table.columns
+        .filter((_, i) => i !== famIdx)
+        .map((col, i) =>
+          i === (indIdx > famIdx ? indIdx - 1 : indIdx)
+            ? mergedIndColumn
+            : col
+        );
+
+      // Move merged PatientId column to first position
+      const mergedIdx = newColumns.findIndex(
+        c => c.header.columnType === EtlColumnType.PatientId
+      );
+
+      if (mergedIdx > 0) {
+        const [col] = newColumns.splice(mergedIdx, 1);
+        newColumns.unshift(col);
       }
+
+      // Commit update
+      this.etl_service.updateColumns(newColumns);
 
     } catch (e) {
       this.notificationService.showError(
@@ -1502,12 +1595,13 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * @returns 
    */
   async getEtlColumnIndex(columnType: EtlColumnType): Promise<number> {
-    if (!this.etlDto) {
+    const dto = this.etl_service.etlDto();
+    if (!dto) {
       this.notificationService.showError("Could not apply transform because external table was null");
       throw new Error("Missing table");
     }
 
-    const indices = this.etlDto.table.columns
+    const indices = dto.table.columns
       .map((col, index) => ({ col, index }))
       .filter(entry => entry.col.header.columnType === columnType);
 
@@ -1524,32 +1618,48 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** Apply a mapping for a column with a single HPO term */
   applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
-    if (!this.etlDto) {
+    const dto = this.etl_service.etlDto();
+    if (!dto) {
       this.notificationService.showError(
         "Attempting to apply HPO mapping with null ETL table"
       );
       return;
     }
-    const col = this.etlDto.table.columns[colIndex];
-    col.values.forEach(cell => {
-      const key = (cell.original ?? '').trim();
-      const mapped = mapping.valueToStateMap[key];
-
-      if (mapped === undefined) {
-        // No mapping → error, keep original
-        cell.current = cell.original ?? '';
-        cell.status = ERROR;
-        cell.error = `No mapping for value "${key}"`;
-      } else {
-        cell.current = mapped;
-        cell.status = TRANSFORMED;
-        cell.error = undefined;
-      }
+    const col = dto.table.columns[colIndex];
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col;
+      const newValues = col.values.map(cell => {
+        const key = (cell.original ?? '').trim();
+        const mapped = mapping.valueToStateMap[key];
+        if (mapped === undefined) {
+          // No mapping → error, keep original
+          return {
+            ...cell,
+            current: cell.original ?? '',
+            status: EtlCellStatus.Error,
+            errorMessage: `No mapping for value "${key}"`
+          };
+        } else {
+          return {
+            ...cell,
+            current: mapped,
+            status: EtlCellStatus.Transformed,
+            errorMessage: undefined
+          };
+        }
+      });
+      const newHeader = {
+        ...col.header,
+        columnType: EtlColumnType.SingleHpoTerm,
+        current: `${mapping.hpoLabel} - ${mapping.hpoId}`
+      };
+      return {
+        ...col,
+        values: newValues,
+        header: newHeader
+      };
     });
-
-    // Update column metadata
-    col.header.columnType = EtlColumnType.SingleHpoTerm;
-    col.header.current = `${mapping.hpoLabel} - ${mapping.hpoId}`;
+    this.etl_service.updateColumns(newColumns);
   }
 
   /** parse a string like Strabismus[HP:0000486;original: Strabismus] from the single HPO term header */
@@ -1575,11 +1685,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   async processHpoColumn(colIndex: number | null): Promise<void> {
-    if (colIndex == null || !this.etlDto || colIndex < 0) {
+    const dto = this.etl_service.etlDto();
+    if (colIndex == null || !dto || colIndex < 0) {
       this.notificationService.showError("Invalid column index");
       return;
     }
-    const column = this.etlDto.table.columns[colIndex];
+    const column = dto.table.columns[colIndex];
     let hpoTerm: HpoTermDuplet;
     try {
       hpoTerm = this.getSingleHpoTerm(column.header);
@@ -1601,47 +1712,35 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
 
     const mapping: HpoMappingResult | undefined = await firstValueFrom(dialogRef.afterClosed());
-
-    if (!mapping) {
-      column.values.forEach(cell => {
-        cell.status = ERROR;
-        cell.error = "HPO mapping cancelled";
-        cell.current = cell.original;
-      });
-      return;
-    }
-
-    column.values.forEach(cell => {
-      const mapped = mapping.valueToStateMap[cell.original.trim()];
-      if (mapped === undefined) {
-        cell.status = ERROR;
-        cell.error = `No HPO mapping for value: ${cell.original}`;
-        cell.current = cell.original;
-      } else {
-        cell.current = mapped;
-        cell.status = TRANSFORMED;
-        cell.error = undefined;
-      }
-    });
-
-    // Column metadata
-    column.header.current = `${hpoTerm.hpoLabel} (${hpoTerm.hpoId})`;
+    this.updateColumnWithMap(colIndex, mapping);
+    console.log("consider more code to update title of column");
   }
 
-  /** TODO -- REMOVE/REFACOTR*/
-  toggleTransformed(colIndex: number | null): void {
-    this.resetColumnToRaw(colIndex);
-  }
+
   /** Reset column to RAW and trigger cell signals if needed */
   resetColumnToRaw(colIndex: number | null): void {
-    if (colIndex == null || !this.etlDto) return;
-    const column = this.etlDto.table.columns[colIndex];
-    column.values.forEach(cell => {
-      cell.current = '';
-      cell.status = RAW;
-      cell.error = undefined;
+    const dto = this.etl_service.etlDto();
+    if (colIndex == null || !dto) return;
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col;
+      const newValues = col.values.map(cell => ({
+        ...cell,
+        current: '',
+        status: EtlCellStatus.Raw,
+        errorMessage: undefined
+      }));
+      const newHeader = {
+        ...col.header,
+        columnType: EtlColumnType.Raw,
+        current: col.header.original // optional: reset display label
+      };
+      return {
+        ...col,
+        values: newValues,
+        header: newHeader
+      };
     });
-    column.header.columnType = EtlColumnType.Raw;
+    this.etl_service.updateColumns(newColumns);
   }
 
 
@@ -1653,7 +1752,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** Allows the user to manually set the column type */
   async simpleColumnOp(colIndex: number | null, coltype: string): Promise<void> {
-    if (colIndex == null || !this.etlDto || colIndex < 0) {
+    const dto = this.etl_service.etlDto();
+    if (colIndex == null || !dto || colIndex < 0) {
       this.notificationService.showError("Invalid column index");
       return;
     }
@@ -1664,31 +1764,10 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
-  async setColumnTypeDialog(colIndex: number): Promise<void> {
-    console.log("setColumnTypeDialog coli=", colIndex);
-    const etlDto = this.etlDto;
-    if (etlDto == null) {
-      return;
-    }
-    const currentType = etlDto.table.columns[colIndex].header.columnType;
-    const dialogRef = this.dialog.open(ColumnTypeDialogComponent, {
-      width: '400px',
-      data: {
-        etlTypes: this.etlTypes,
-        currentType
-      }
-    });
-    const selectedType = await firstValueFrom(
-      dialogRef.afterClosed()
-    );
-    if (selectedType) {
-      etlDto.table.columns[colIndex].header.columnType = selectedType;
-      this.contextMenuCellVisible = false;
-      this.reRenderTableRows();
-    }
-  }
 
   importCohortDiseaseData(): void {
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
     const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
@@ -1702,12 +1781,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
       return;
     }
-    if (this.etlDto == null) {
-      this.notificationService.showError(`External ETL was null`);
-      return;
-    }
     const diseaseData = cohort.diseaseList[0];
-    this.etlDto.disease = diseaseData;
+    this.etl_service.setDisease(diseaseData);
     this.notificationService.showSuccess("Imported cohort data");
   }
 
@@ -1719,19 +1794,16 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
   /** Add the PMID to the ETL DTO; open a modal dialog with our PMID widget */
   openPubmedDialog(): void {
+    const dto = this.etl_service.etlDto();
     const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
       data: { pmidDto: null } // optional initial data
     });
 
     dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-      if (result && this.etlDto) {
-
-        console.log('User chose', result);
-        this.pmidDto = result;
-        this.etlDto.pmid = this.pmidDto.pmid;
-        this.etlDto.title = this.pmidDto.title;
-
+      if (result && dto ) {
+        const pmidDto = result;
+        this.etl_service.setPmidData(pmidDto);
       } else {
         console.log('User cancelled');
       }
@@ -1742,14 +1814,13 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
      * except for showing the error.
      */
   async addToCohortData(): Promise<void> {
-    const etl_dto = this.etlDto;
-    if (etl_dto == null) {
+    const dto = this.etl_service.etlDto();
+    if (dto == null) {
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
-    console.log("0-addToCohortData-top")
     try {
-      const cohort_dto_new = await this.configService.transformToCohortData(etl_dto);
+      const cohort_dto_new = await this.configService.transformToCohortData(dto);
       console.log("A cohort_dto_new=", cohort_dto_new.hgvsVariants);
       if (this.cohortService.currentCohortContainsData()) {
         const cohort_previous = this.cohortService.getCohortData();
@@ -1777,12 +1848,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   async processVariantColumn(index: number): Promise<void> {
-    const etl_dto = this.etlDto;
-    if (! etl_dto) return;
-    console.log("processVariantColumn etl=", etl_dto);
+    const dto = this.etl_service.etlDto();
+    if (! dto) return;
+    console.log("processVariantColumn etl=", dto);
     try {
-      const processed_etl = await this.configService.processAlleleColumn(etl_dto, index);
-      this.etlDto = processed_etl;
+      const processed_etl = await this.configService.processAlleleColumn(dto, index);
       this.etl_service.setEtlDto(processed_etl); 
       console.log("processVariantColumn processed_etl=", processed_etl);
     } catch (err) {
@@ -1791,19 +1861,18 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       this.notificationService.showError(message);
       console.error("ERROR", message);
     }
-
-    this.reRenderTableRows();
   }
 
   /** Add a new column with a constant value in each cell */
-  async addConstantColumn(index: number | null): Promise<string[]> {
-    if (!this.etlDto) {
+  async addConstantColumn(index: number | null): Promise<void> {
+    const dto = this.etl_service.etlDto();
+    if (!dto) {
       this.notificationService.showError("Cannot add column - no table loaded");
-      return [];
+      return;
     }
     if (index === null) {
       this.notificationService.showError("Cannot add column - no index");
-      return [];
+      return;
     }
 
     const dialogRef = this.dialog.open(AddConstantColumnDialogComponent, {
@@ -1815,11 +1884,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
     if (!result || !result.columnName?.trim()) {
       this.notificationService.showError("Constant column creation cancelled or invalid");
-      return [];
+      return;
     }
 
     const { columnName, constantValue } = result;
-    const rowCount = Math.max(...this.etlDto.table.columns.map(col => col.values.length));
+    const rowCount = Math.max(...dto.table.columns.map(col => col.values.length));
     // A convenience function to create an EtlCellValue with the same string val
     const makeCell = (value: string): EtlCellValue => ({
       original: value,
@@ -1828,28 +1897,28 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
     // Each cell of the column now gets its own copy of this EtlCellValue
     const newValues = Array.from({ length: rowCount }, () => makeCell(constantValue));
-
-    const header = {
-      original: columnName.trim(),
-      current: columnName.trim(),
-      columnType: EtlColumnType.Raw,
-    };
-    const column: ColumnDto = {
-      id: crypto.randomUUID(),
-      header: header,
-      values: newValues
-    };
-    this.etlDto.table.columns.splice(index + 1, 0, column);
-    this.reRenderTableRows();
-
-    return [];
+    const newColumn: ColumnDto = {
+        id: crypto.randomUUID(),
+        header: {
+          original: columnName.trim(),
+          current: columnName.trim(),
+          columnType: EtlColumnType.Raw
+        },
+        values: newValues
+      };
+      const newColumns = [
+        ...dto.table.columns.slice(0, index + 1),
+        newColumn,
+        ...dto.table.columns.slice(index + 1)
+      ];
+    this.etl_service.updateColumns(newColumns);
   }
 
 
 
   async openHgvsEditor(): Promise<void> {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
     const colIndex = this.contextMenuCellCol;
     if (colIndex === null) {
       this.notificationService.showError("context menu column is null");
@@ -1868,21 +1937,48 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           this.notificationService.showError(`Could not get key from HGVS object ${hgvs}`);
           return;
         }
-        etlDto.hgvsVariants[vkey] = hgvs;
-        const col = etlDto.table.columns[colIndex];
-        col.values[rowIndex].current = vkey;
-        this.reRenderTableRows();
+        const newHgvsVariants = {
+          ...dto.hgvsVariants,
+          [vkey]: hgvs
+        };
+        const newColumns = dto.table.columns.map((col, cIdx) => {
+          if (cIdx !== colIndex) return col;
+          const newValues = col.values.map((cell, rIdx) => {
+            if (rIdx !== rowIndex) return cell;
+
+            return {
+              ...cell,
+              current: vkey,
+              status: EtlCellStatus.Transformed, // optional: mark as transformed
+              errorMessage: undefined
+            };
+          });
+
+          return {
+              ...col,
+              values: newValues
+            };
+          });
+
+          this.etl_service.setEtlDto({
+            ...dto,
+            hgvsVariants: newHgvsVariants,
+            table: {
+              ...dto.table,
+              columns: newColumns
+            }
+          });
+        }
+      } catch (error) {
+        const errMsg = String(error);
+        this.notificationService.showError(errMsg);
       }
-    } catch (error) {
-      const errMsg = String(error);
-      this.notificationService.showError(errMsg);
     }
-  }
 
 
   async openSvEditor(): Promise<void> {
-    const etlDto = this.etlDto;
-    if (!etlDto) return;
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
     const colIndex = this.contextMenuCellCol;
     if (colIndex === null) {
       this.notificationService.showError("context menu column is null");
@@ -1892,8 +1988,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     if (rowIndex == null) {
       return;
     }
-    const cell_contents = etlDto.table.columns[colIndex].values[rowIndex];
-    const diseaseData = etlDto.disease;
+    const cell_contents = dto.table.columns[colIndex].values[rowIndex];
+    const diseaseData = dto.disease;
     if (diseaseData == null) {
       this.notificationService.showError("Disease data not initialized");
       return;
@@ -1912,22 +2008,49 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
           this.notificationService.showError(`Could not get key from Structural Variant object ${sv}`);
           return;
         }
-        etlDto.structuralVariants[vkey] = sv;
-        const col = etlDto.table.columns[colIndex];
-        col.values[rowIndex].current = vkey;
-        this.reRenderTableRows();
+        const newStructuralVariants = {
+          ...dto.structuralVariants,
+          [vkey]: sv
+        };
+          const newColumns = dto.table.columns.map((col, cIdx) => {
+          if (cIdx !== colIndex) return col;
+          const newValues = col.values.map((cell, rIdx) => {
+            if (rIdx !== rowIndex) return cell;
+            return {
+              ...cell,
+              current: vkey,
+              status: EtlCellStatus.Transformed, // optional: mark as transformed
+              errorMessage: undefined
+            };
+          });
+
+          return {
+              ...col,
+              values: newValues
+            };
+          });
+
+          this.etl_service.setEtlDto({
+            ...dto,
+            structuralVariants: newStructuralVariants,
+            table: {
+              ...dto.table,
+              columns: newColumns
+            }
+          });
+        }
+      } catch (error) {
+        const errMsg = String(error);
+        this.notificationService.showError(errMsg);
       }
-    } catch (error) {
-      const errMsg = String(error);
-      this.notificationService.showError(errMsg);
-    }
   }
 
   isHpoTextMiningColumn(colIndex: number): boolean {
-    if (this.etlDto === null) {
+    const dto = this.etl_service.etlDto();
+    if (! dto) {
       return false;
     }
-    const column = this.etlDto.table.columns[colIndex];
+    const column = dto.table.columns[colIndex];
     if (!column) {
       return false;
     }
@@ -1962,7 +2085,11 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
   openHpoMiningDialog(colIndex: number, rowIndex: number): void {
-
+    const dto = this.etl_service.etlDto();
+    if (! dto) {
+        this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
+        return;
+    };
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
       width: '1200px',
       height: '900px',
@@ -1972,12 +2099,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log("HMINING result=", result);
-        const etlDto = this.etlDto;
-        if (!etlDto) {
-          this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
-          return;
-        }
-        const col = etlDto.table.columns[colIndex];
+        
+        const col = dto.table.columns[colIndex];
         if (!col) {
           this.notificationService.showError("Could not add mining results because column not defined");
           return;
@@ -1988,11 +2111,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         col.values[rowIndex].error = undefined;
       }
     });
-    this.reRenderTableRows();
+    
   }
 
   private getHpoCellData(colIndex: number, rowIndex: number): HpoTermData[] {
-    const cell = this.displayRows[rowIndex][colIndex].current;
+    const drows = this.displayRows();
+    const cell = drows[rowIndex][colIndex].current;
     if (!cell) return [];
     if (Array.isArray(cell)) return cell;
     try {
@@ -2003,14 +2127,21 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
   }
 
+  /* Clear HPO textmining and rest state to pristine */
   clearHpoMining(colIndex: number, rowIndex: number): void {
-    this.displayRows[rowIndex][colIndex].current = "";
+    this.etl_service.updateCell(colIndex, rowIndex, cell => ({
+      ...cell,
+      current: '',
+      status: EtlCellStatus.Raw,    
+      errorMessage: undefined  
+    }));
   }
 
   // Compute the current column values for the transformation panel
   get currentColumnCells(): EtlCellValue[] {
-    if (!this.etlDto || this.contextMenuColIndex == null) return [];
-    return this.etlDto.table.columns[this.contextMenuColIndex].values;
+    const dto = this.etl_service.etlDto();
+    if (!dto|| this.contextMenuColIndex == null) return [];
+    return dto.table.columns[this.contextMenuColIndex].values;
   }
 
 

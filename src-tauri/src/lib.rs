@@ -5,13 +5,13 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{qc_report::QcReport, repo_qc::RepoQc}};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::repo_qc::RepoQc};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
-use std::{collections::HashMap, fs, path::PathBuf, sync::{Arc, Mutex}};
+use tauri_plugin_dialog::{DialogExt};
+use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
