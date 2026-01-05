@@ -597,7 +597,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-
+  /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
   async processMultipleHpoColumn(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (!dto) return;
@@ -620,45 +620,47 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     });
 
     const result = await firstValueFrom(dialogRef.afterClosed());
-    console.log("MH-result=",result);
 
-    // Apply mapping or mark error
-    col.values = col.values.map((cell, i) => {
-      if (!result) {
-        return {
-          ...cell,
-          status: EtlCellStatus.Error,
-          error: 'User cancelled'
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      const newValues = col.values = col.values.map((cell, i) => {
+        if (!result) {
+          return {
+            ...cell,
+            status: EtlCellStatus.Error,
+            error: 'User cancelled'
+          }
         }
-      }
-      const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
-      // If no mapping row exists, return error
-      console.log("MH in loop, mappingRow=", mappingRow);
-      if (!mappingRow.length) {
+        const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
+        // If no mapping row exists, return empty - this is not an error, some upstream files are like this.
+        if (!mappingRow.length) {
+          return {
+            ...cell,
+            current: '',
+            status: EtlCellStatus.Transformed,
+            error: undefined
+          };
+        }
+        const mappedValue = mappingRow
+          .filter(entry => entry.status !== 'na')
+          .map(entry => `${entry.term.hpoId}-${entry.status}`)
+          .join(";");
+
         return {
           ...cell,
-          current: '',
-          status: EtlCellStatus.Error,
-          error: 'No mapping found'
-        };
-      }
-      const mappedValue = mappingRow
-        .filter(entry => entry.status !== 'na')
-        .map(entry => `${entry.term.hpoId}-${entry.status}`)
-        .join(";");
-
-      return {
-        ...cell,
-        current: mappedValue,
-        status: TRANSFORMED,
-        error: undefined
-      }
+          current: mappedValue,
+          status: TRANSFORMED,
+          error: undefined
+        }
+      });
+      col.header.hpoTerms = result?.allHpoTerms ?? [];
+      col.header.columnType = EtlColumnType.MultipleHpoTerm;
+      return col;
     });
-    // Save pending header metadata
-    console.log("about to save result?.allHpoTerms =", result?.allHpoTerms );
-    console.log("MH column.values", col.values);
-    col.header.hpoTerms = result?.allHpoTerms ?? [];
-    col.header.columnType = EtlColumnType.MultipleHpoTerm;
+    this.etl_service.updateColumns(newColumns);
+
+    
+    
   }
 
 
