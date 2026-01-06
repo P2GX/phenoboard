@@ -1,5 +1,4 @@
 import { inject, Injectable, signal, WritableSignal  } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
@@ -96,7 +95,7 @@ export class CohortDtoService {
     }
 
     addIntergenicVariant(ig: IntergenicHgvsVariant) {
-        const current = this.getCohortData());
+        const current = this.getCohortData();
         if (!current) {
             alert("No CohortData available to update");
             return;

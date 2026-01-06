@@ -1,8 +1,7 @@
-import { ChangeDetectorRef, Component, computed, effect, HostListener, inject,NgZone, OnDestroy, OnInit, Signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, HostListener, inject,NgZone, OnDestroy, OnInit, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, DiseaseData, RowData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
@@ -54,13 +53,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.css'],
 })
-export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-  constructor(
-    templateService: CohortDtoService,
-    ngZone: NgZone,
-    cdRef: ChangeDetectorRef,
-  ) {
-    super(templateService, ngZone, cdRef);
+export class TableEditorComponent implements OnInit, OnDestroy {
+  constructor() {
     this.pmidForm = this.fb.group({
       pmid: [defaultPmidDto()],
     });
@@ -77,6 +71,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   private svDialog = inject(SvDialogService);
   private router = inject(Router);
   private helpService = inject(HelpService);
+  private cohortService = inject(CohortDtoService);
 
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
@@ -219,16 +214,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
 
 
-  override ngOnInit(): void {
-    super.ngOnInit();
+   ngOnInit(): void {
+  
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
     });
   }
 
-  protected override onCohortDtoLoaded(template: CohortData): void {
-    // no-op
-  }
+ 
 
 
   /** Reset if user clicks outside of defined elements. */
@@ -239,8 +232,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
+   ngOnDestroy(): void {
   }
  
   /* Load an external Excel file (e.g., supplemental table from a publication). 

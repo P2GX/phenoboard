@@ -1,16 +1,14 @@
-@let cohort = cohortDto;
+@let cohort = cohortData();
 
 <div class="p-6 bg-gray-50">
   @if (cohort) {
     <div class="text-sm text-gray-700 space-y-2">
-      <h2 class="text-xl font-semibold text-gray-800">
-        <strong>{{ cohort.cohortType }}</strong> cohort  </h2>
         <ul>@for (disease of cohort.diseaseList; track disease.diseaseId; let i = $index) {
           <li> <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" 
               target="_blank" class="text-blue-600 underline">
-              {{ disease.diseaseLabel }} ({{ disease.diseaseId }})
+            <h2 class="text-xl font-semibold text-gray-800"> <strong> {{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
             </a>
-            {{ disease.diseaseLabel }}
+           
             @if (disease.geneTranscriptList.length){
               (
                 @for (gene  of disease.geneTranscriptList; track gene; let j =$index) {
@@ -174,7 +172,7 @@
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
           @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
-            @if (visibleColumns.includes(i)) {
+            @if (visibleColumns.includes(i)) { <!-- -->
               <th
                 class="rotate-header hpo-col hpo-col-th"
                 (mouseenter)="setHover('hpoHeader', 0, $index, true)"
@@ -263,11 +261,11 @@
           <div class="flex items-center gap-x-1">
             <span 
               class="inline-block w-3 h-3 rounded-full"
-              [ngClass]="validatedAlleles.has(alleleString) ? 'bg-green-500' : 'bg-red-500'"
-              title="validatedAlleles.has(geneSymbol) ? 'Validated' : 'Not validated'"
+              [ngClass]="validatedAlleles().has(alleleString) ? 'bg-green-500' : 'bg-red-500'"
+              title="validatedAlleles().has(alleleString) ? 'Validated' : 'Not validated'"
             ></span>
             <span class="cursor-pointer">
-              {{   getShortAlleleDisplay(alleleString, row.alleleCountMap[alleleString])  }}
+              {{   shortAlleleDisplayByKey().get(alleleString)  }}
             </span>
           </div>
 
@@ -311,7 +309,7 @@
 
     <!-- The values of the HPO columns-->
     @for (cell of row.hpoData; track $index; let hpoIndex = $index) {
-      @if(visibleColumns.includes(hpoIndex)) {
+      @if(getVisibleColumns().includes(hpoIndex)) {
       <td
         class="hpo-col"
         (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row, cell)"

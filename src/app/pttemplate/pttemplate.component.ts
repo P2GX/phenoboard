@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -49,7 +49,6 @@ export class PtTemplateComponent  {
         this.hpoGroupKeys = [];
         return;
       }
-      this.rebuildValidatedAlleles();
       this.configService.getTopLevelHpoTerms(cohortDto)
         .then(groups => {
           this.hpoGroups = new Map(Object.entries(groups));
@@ -63,8 +62,9 @@ export class PtTemplateComponent  {
     });
   }
   
-
   public cohortService = inject(CohortDtoService);
+  cohortData = this.cohortService.cohortData; 
+
   private cdRef = inject(ChangeDetectorRef);
 
   private configService = inject(ConfigService);
@@ -98,7 +98,7 @@ export class PtTemplateComponent  {
   individualMenuX = 0;
   individualMenuY = 0;
   contextRow: RowData | null = null;
-  filteredRows: RowData[] = [];
+  filteredRows = signal<RowData[]>([]);
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
@@ -124,26 +124,19 @@ export class PtTemplateComponent  {
     { label: 'Show all columns', value: 'focus-reset' }
   ];
   
-  /** Alleles that have been validated (and will show green). See the method 'rebuildValidatedAlleles' */
-  validatedAlleles = new Set<string>();
-
-  /* Should be called whenever (i) cohort loads; (ii) variants are added/removed; or (iii) DTO is replaced */
-  rebuildValidatedAlleles(): void {
-    const cohort = this.cohortDto;
-    if (!cohort) {
-      this.validatedAlleles.clear();
-      return;
-    }
-
-    this.validatedAlleles = new Set([
-      ...Object.keys(cohort.hgvsVariants),
-      ...Object.keys(cohort.structuralVariants),
-      ...Object.keys(cohort.intergenicVariants)
+  /** Alleles that have been validated (and will show green). */
+  validatedAlleles = computed<Set<string>>(() => {
+    const cohort = this.cohortService.getCohortData(); // read the signal
+    if (!cohort) return new Set<string>();
+    return new Set<string>([
+      ...Object.keys(cohort.hgvsVariants ?? {}),
+      ...Object.keys(cohort.structuralVariants ?? {}),
+      ...Object.keys(cohort.intergenicVariants ?? {})
     ]);
-  }
+  });
 
   isAlleleValidatedCached(key: string): boolean {
-    return this.validatedAlleles.has(key);
+    return this.validatedAlleles().has(key);
   }
 
   contextMenuOptions: Option[] = [];
@@ -175,7 +168,7 @@ export class PtTemplateComponent  {
     } else {
       return '';
     }
-  };
+  });
 
 
   moiList = computed(() => {
@@ -201,7 +194,6 @@ export class PtTemplateComponent  {
       try {
         const data = await this.configService.getPhetoolsTemplate();
         this.cohortService.setCohortData(data); 
-         this.rebuildValidatedAlleles();
       } catch (error) {
         this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
@@ -218,7 +210,6 @@ export class PtTemplateComponent  {
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: CohortData) => {
         this.cohortService.setCohortData(data);
-        this.rebuildValidatedAlleles();
   });
   }
 
@@ -291,7 +282,6 @@ export class PtTemplateComponent  {
     cohort.rows[rowIndex] = row;  // update row reference
 
     this.cohortService.setCohortData(cohort);
-     this.rebuildValidatedAlleles();
     this.notificationService.showSuccess(`Allele ${variantKey} added`);
   }
 
@@ -563,14 +553,10 @@ export class PtTemplateComponent  {
   showMoi = false;
 
  async submitCohortAcronym(acronym: string): Promise<void> {
-    const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
-    console.log("submitCohortAcronym before", cohort_dto);
     if (acronym.trim()) {
       this.cohortService.setCohortAcronym(acronym.trim());
       this.showCohortAcronym = false;
     }
-    const cohort_dto2: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
-    console.log("submitCohortAcronym afteter", cohort_dto2);
   }
 
   cancelCohortAcronym() {
@@ -613,10 +599,9 @@ export class PtTemplateComponent  {
       return [allele, symbol, transcript, allelecount, key];
     }
 
-    getShortAlleleDisplay(key: string, count: number): string {
+  getShortAlleleDisplay(key: string, count: number): string {
       const cohort = this.cohortService.getCohortData();
       let label = key;
-      const allelecount = count.toString();
       if (cohort != null) {
         const hgvs = cohort.hgvsVariants[key];
           const sv = cohort.structuralVariants[key];
@@ -629,6 +614,25 @@ export class PtTemplateComponent  {
       
       return label;
     }
+
+
+  shortAlleleDisplayByKey = computed(() => {
+    const cohort = this.cohortService.cohortData();
+    if (!cohort || cohort.diseaseList.length === 0) {
+      return new Map<string, string>();
+    }
+    const map = new Map<string, string>();
+    for (const [key, hgvs] of Object.entries(cohort.hgvsVariants)) {
+      map.set(key, hgvs.hgvs);
+    }
+    for (const [key, sv] of Object.entries(cohort.structuralVariants)) {
+      map.set(key, sv.label);
+    }
+    for (const [key, ig] of Object.entries(cohort.intergenicVariants ?? {})) {
+      map.set(key, ig.gHgvs ?? key);
+    }
+    return map;
+  });
 
 
    diseaseLabelById = computed(() => {
@@ -724,7 +728,7 @@ get ageEntries(): string[] {
     if (cohort.rows.length < 1) return [];
     const row1 = cohort.rows[0];
     const n_cols = row1.hpoData.length;
-  
+    console.log("getVisibleColumns", n_cols);
     
     // if we have fewer than 20 columns, show all
     if (n_cols <= 20 || !this.selectedTopLevelHpo) {
@@ -765,27 +769,34 @@ get ageEntries(): string[] {
 
 focusOnSingleRow(): void {
   if (!this.contextRow) return;
-  this.filteredRows = [this.contextRow];
+  this.filteredRows.set([this.contextRow]);
   this.closeContextMenu();
   this.individualContextMenuVisible = false;
 }
 
+
+ filteredKeys = computed(() => {
+    const frows=  this.filteredRows().map(row => this.getIndividualKey(row.individualData));
+    return new Set(frows);
+ });
+/* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
+  * the following logic to make sure we show it in the GUI. */
 /* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
   * the following logic to make sure we show it in the GUI. */
 updateFilteredRows(): void {
   const cohort = this.cohortService.getCohortData();
   if (!cohort) return;
   if (!this.filteredRows?.length) {
-    this.filteredRows = [];
+    this.filteredRows.set([]);
     return;
   }
   const filteredKeys = new Set(
-    this.filteredRows.map(row => this.getIndividualKey(row.individualData))
+    this.filteredRows().map(row => this.getIndividualKey(row.individualData))
   );
 
-  this.filteredRows = cohort.rows.filter(r =>
+  this.filteredRows.set(cohort.rows.filter(r =>
     filteredKeys.has(this.getIndividualKey(r.individualData))
-  );
+  ));
 }
 
 /** Focus on all rows with the same PMID */
@@ -794,15 +805,15 @@ focusOnPmid(): void {
   const cohort = this.cohortService.getCohortData();
   if (! cohort) return;
   const pmid = this.contextRow.individualData.pmid;
-  this.filteredRows = cohort.rows.filter(
+  this.filteredRows.set(cohort.rows.filter(
     r => r.individualData.pmid === pmid
-  );
+  ));
    this.individualContextMenuVisible = false;
   this.closeContextMenu();
 }
 
 showAllRows(): void {
-  this.filteredRows = [];
+  this.filteredRows.set([]);
   this.individualContextMenuVisible = false;
   this.rowInfoKey = null;
   this.rowInfoVisible = true;
@@ -832,7 +843,7 @@ showInfoForRow(row: RowData | null): void {
 
   /** Optional: reset filter */
   resetFilter(): void {
-    this.filteredRows = [];
+    this.filteredRows.set([]);
   }
 
   getDisplayedRows(): RowData[] {
@@ -841,7 +852,7 @@ showInfoForRow(row: RowData | null): void {
     if (this.filteredRows.length == 0) {
       return cohort.rows;
     } else {
-      return this.filteredRows;
+      return this.filteredRows();
     }
   }
 
