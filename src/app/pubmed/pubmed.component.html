@@ -8,7 +8,7 @@
       (change)="onPmidSelection($event)"
       class="form-control">
       <option value="">-- New PMID --</option>
-      @for (pmid of availablePmids; track pmid) {
+      @for (pmid of availablePmids(); track pmid) {
         <option [value]="pmid.pmid">
           {{ pmid.pmid }} - {{ pmid.title }}
         </option>
@@ -22,13 +22,13 @@
     <div class="input-group">
       <input 
         id="pmid-input"
-        [(ngModel)]="pmidDto.pmid"
+        [(ngModel)]="pmidDto().pmid"
          (ngModelChange)="onPmidChange($event)"
         placeholder="Enter PMID"
         class="form-control">
       <button 
         (click)="retrieve_pmid_title()" 
-        [disabled]="!pmidDto.pmid.trim()"
+        [disabled]="!pmidDto().pmid.trim()"
         class="btn btn-primary">
         Retrieve Title
       </button>
@@ -40,7 +40,7 @@
     <label for="title-input">Title:</label>
     <textarea
       id="title-input"
-      [(ngModel)]="pmidDto.title"
+      [(ngModel)]="pmidDto().title"
       placeholder="Enter title (auto or manual)"
       class="form-control title-textarea"
       rows="2"
@@ -48,16 +48,16 @@
   </div>
 
   <!-- Retrieved Title Display -->
-  @if (pmidDto.title) {
+  @if (pmidDto().title) {
     <div class="form-group">
       <label>Retrieved:</label>
       <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
         <div style="flex: 1;">
           <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
-            {{ pmidDto.title }}
+            {{ pmidDto().title }}
           </div>
           <div class="text-xs" style="color: #666;">
-            {{ pmidDto.pmid }}
+            {{ pmidDto().pmid }}
           </div>
         </div>
       </div>
@@ -65,9 +65,9 @@
   }
   
   <!-- Error Message -->
-  @if (pmidDto.hasError) {
+  @if (pmidDto().hasError) {
     <div class="error-message">
-      {{ pmidDto.errorMessage }}
+      {{ pmidDto().errorMessage }}
     </div>
   }
   

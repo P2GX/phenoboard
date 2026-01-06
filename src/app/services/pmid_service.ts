@@ -1,54 +1,54 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { PmidDto } from '../models/pmid_dto';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PmidService {
-  private pmidsSubject = new BehaviorSubject<PmidDto[]>([]);
-  public pmids$: Observable<PmidDto[]> = this.pmidsSubject.asObservable();
+  private _pmids: WritableSignal<PmidDto[]> = signal<PmidDto[]>([]);
+  constructor() {}
 
-  constructor() {
+  /** Read-only access for components */
+  get pmids(): PmidDto[] {
+    return this._pmids();
+  }
+  
+  /** Expose signal directly */
+  get pmidsSignal(): WritableSignal<PmidDto[]> {
+    return this._pmids;
   }
 
-  getPmids(): PmidDto[] {
-    return this.pmidsSubject.value;
-  }
-
+  /** Add a new PMID if it doesn't exist */
   addPmid(pmid: PmidDto): void {
-    const currentPmids = this.pmidsSubject.value;
-    
-    // Check if PMID already exists
-    const exists = currentPmids.some(p => p.pmid === pmid.pmid);
-    if (!exists) {
-      const updatedPmids = [...currentPmids, pmid];
-      this.pmidsSubject.next(updatedPmids);
-    }
+    this._pmids.update(current => {
+      if (current.some(p => p.pmid === pmid.pmid)) return current;
+      return [...current, pmid];
+    });
   }
 
+  /** Update an existing PMID */
   updatePmid(pmid: PmidDto): void {
-    const currentPmids = this.pmidsSubject.value;
-    const index = currentPmids.findIndex(p => p.pmid === pmid.pmid);
-    
-    if (index !== -1) {
-      const updatedPmids = [...currentPmids];
-      updatedPmids[index] = pmid;
-      this.pmidsSubject.next(updatedPmids);
-    }
+    this._pmids.update(current => {
+      const index = current.findIndex(p => p.pmid === pmid.pmid);
+      if (index === -1) return current;
+      const updated = [...current];
+      updated[index] = pmid;
+      return updated;
+    });
   }
 
-  removePmid(pmid: string): void {
-    const currentPmids = this.pmidsSubject.value;
-    const updatedPmids = currentPmids.filter(p => p.pmid !== pmid);
-    this.pmidsSubject.next(updatedPmids);
+  /** Remove a PMID by its number */
+  removePmid(pmidNumber: string): void {
+    this._pmids.update(current => current.filter(p => p.pmid !== pmidNumber));
   }
 
+   /** Get a PMID by number (read-only) */
   getPmidByNumber(pmidNumber: string): PmidDto | undefined {
-    return this.pmidsSubject.value.find(p => p.pmid === pmidNumber);
+    return this._pmids().find(p => p.pmid === pmidNumber);
   }
 
+  /** Clear all PMIDs */
   clearAllPmids(): void {
-    this.pmidsSubject.next([]);
+    this._pmids.set([]);
   }
 }

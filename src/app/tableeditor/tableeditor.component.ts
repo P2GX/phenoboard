@@ -207,12 +207,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
     [TransformType.GENE_SYMBOL_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.GeneSymbol); },
     [TransformType.DISEASE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Disease); },
-    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.AgeOfOnset); },
+    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (colIndex: number) => { this.transformColumnElementwise(colIndex, TransformType.AGE_OF_ONSET_COLUMN_TYPE); },
     [TransformType.SEX_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Sex); },
     [TransformType.DECEASED_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Deceased); },
     [TransformType.IGNORE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Ignore); },
     [TransformType.REMOVE_WHITESPACE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
-    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.AgeAtLastEncounter); },
+    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (colIndex: number) => { this.transformColumnElementwise(colIndex, TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE); },
     [TransformType.ANNOTATE_VARIANTS]: (colIndex: number) => { this.annotateVariants(colIndex); }
 
   };
@@ -1075,7 +1075,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return;
     }
     const col = dto.table.columns[colIndex];
-    if (col) {
+    if (! col) return;
       const oldCell = col.values[rowIndex];
       if (!oldCell) return;
       if (! this.editingValue) {
@@ -1083,24 +1083,26 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
         return;
       }
     const newColumns = dto.table.columns.map((col, i) => {
-    if (i !== colIndex) return col; // leave other columns unchanged
-
-    // Update the specific cell immutably
-    const newValues = col.values.map((cell, j) => {
-          if (j !== rowIndex) return cell;
-          return {
-            ...cell,
-            current: this.editingString.trim(),
-            status: TRANSFORMED, // assume manual edit is correct
-            errorMessage: undefined
-          };
+      if (i !== colIndex) return col; // leave other columns unchanged
+      // Update the specific cell immutably
+      const newValues = col.values.map((cell, j) => {
+            if (j !== rowIndex) return cell;
+            return {
+              ...cell,
+              original: this.editingString.trim(),
+              current: this.editingString.trim(),
+              status: TRANSFORMED, // assume manual edit is correct
+              errorMessage: undefined
+            };
+          });
+          return { ...col, values: newValues };
         });
-        return { ...col, values: newValues };
-      });
-      this.etl_service.updateColumns(newColumns);
+    
       this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
       this.editModalVisible = false;
-    }
+      this.etl_service.updateColumns(newColumns);
+    
+    
   }
 
 
@@ -1208,6 +1210,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     if (! dto) return;
     const col = dto.table.columns[colIndex];
     if (!col || !col.values) return;
+    const newColumnns = 
+
     col.values.forEach(cell => {
       const original = cell.original ?? '';
       let transformed: string | undefined;
@@ -1439,82 +1443,100 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       case TransformType.ANNOTATE_VARIANTS:
         this.annotateVariants(colIndex);
         break;
+      case TransformType.DUPLICATE_COLUMN:
+        this.duplicateColumn(colIndex);
+        break;
       default:
         this.notificationService.showError(`Did not recognize transformation type "${transform}"`)
 
     }
-
   }
 
+  getNewCellValue(cell: EtlCellValue, transform: TransformType): EtlCellValue  {
+    const input = cell.original ?? '';
+    let output: string | undefined = input;
+    switch (transform) {
+      case TransformType.STRING_SANITIZE:
+        output = sanitizeString(input);
+        break;
+      case TransformType.REMOVE_WHITESPACE:
+        output = removeAllWhitespace(input);
+        break;
+      case TransformType.TO_UPPERCASE:
+        output = input.toUpperCase();
+        break;
+      case TransformType.TO_LOWERCASE:
+        output = input.toLowerCase();
+        break;
+      case TransformType.ONSET_AGE:
+        output = this.etl_service.parseAgeToIso8601(input);
+        break;
+      case TransformType.LAST_ENCOUNTER_AGE:
+        output = this.etl_service.parseAgeToIso8601(input);
+        break;
+      case TransformType.SEX_COLUMN:
+        output = this.etl_service.parseSexColumn(input);
+        break;
+      case TransformType.ONSET_AGE_ASSUME_YEARS:
+      case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
+        output = this.etl_service.parseDecimalYearsToIso8601(input);
+        break;
+    }
+    if (output) {
+      return {
+        ...cell,
+        current: output,
+        status: TRANSFORMED,
+        error: undefined
+      };
+    } else {
+      return {
+        ...cell,
+        current: '',
+        status: ERROR,
+        error: `Could not map "${input}"`
+      };
+    }
+  }
+
+  /* these are "deterministic transforms such as Age, Sex, IndividualId" */
   applyElementwiseTransform(colIndex: number, transform: TransformType): void {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
-    const col = dto.table.columns[colIndex];
     const newColumns = dto.table.columns.map((col, i) => {
       if (i !== colIndex) return col; // leave other columns unchanged
-      const newValues = col.values.map(cell => {
-        try {
-          const input = cell.original ?? '';
-          let output: string | undefined = input;
-
-          switch (transform) {
-            case TransformType.STRING_SANITIZE:
-              output = sanitizeString(input);
-              break;
-            case TransformType.REMOVE_WHITESPACE:
-              output = removeAllWhitespace(input);
-              break;
-            case TransformType.TO_UPPERCASE:
-              output = input.toUpperCase();
-              break;
-            case TransformType.TO_LOWERCASE:
-              output = input.toLowerCase();
-              break;
-            case TransformType.ONSET_AGE:
-              output = this.etl_service.parseAgeToIso8601(input);
-              break;
-            case TransformType.LAST_ENCOUNTER_AGE:
-              output = this.etl_service.parseAgeToIso8601(input);
-              break;
-            case TransformType.SEX_COLUMN:
-              output = this.etl_service.parseSexColumn(input);
-              break;
-            case TransformType.ONSET_AGE_ASSUME_YEARS:
-            case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-              output = this.etl_service.parseDecimalYearsToIso8601(input);
-              break;
-          }
-          console.log("output", output)
-          // Return a NEW object copy (Spread operator)
-          if (output) {
-            return {
-              ...cell,
-              current: output,
-              status: TRANSFORMED,
-              error: undefined
-            };
-          } else {
-            return {
-              ...cell,
-              current: '',
-              status: ERROR,
-              error: `Could not map "${input}"`
-            };
-          }
-        } catch (e) {
-          return {
-            ...cell,
-            status: ERROR,
-            error: String(e)
+      const newValues = col.values.map(cell => this.getNewCellValue(cell, transform));
+      switch (transform) {
+        case TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE:
+        case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
+        case TransformType.LAST_ENCOUNTER_AGE:
+          const newHeader = {
+            ...col.header,
+            columnType: EtlColumnType.AgeAtLastEncounter
           };
-        }
-      });
-      const newType = TransformToColumnTypeMap[transform] ?? undefined;
-        console.log("setting header transform", transform, " new type", newType)
-        if (newType) {
-          col.header.columnType = newType;
-        }
-      return { ...col, values: newValues };
+          return {
+            ...col,
+            header: newHeader,
+            values: newValues
+           };
+        case TransformType.AGE_OF_ONSET_COLUMN_TYPE:
+        case TransformType.ONSET_AGE:
+        case TransformType.ONSET_AGE_ASSUME_YEARS:
+          const newHeader2 = {
+            ...col.header,
+            columnType: EtlColumnType.AgeOfOnset
+          };
+          return {
+            ...col,
+            header: newHeader2,
+            values: newValues
+           };
+        default:
+          return {
+            ...col,
+            values: newValues
+           };
+      }
     });
     this.etl_service.updateColumns(newColumns);
   }
@@ -1627,7 +1649,6 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       );
       return;
     }
-    const col = dto.table.columns[colIndex];
     const newColumns = dto.table.columns.map((col, i) => {
       if (i !== colIndex) return col;
       const newValues = col.values.map(cell => {
