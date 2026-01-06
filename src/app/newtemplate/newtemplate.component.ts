@@ -25,15 +25,9 @@ import { NotificationService } from '../services/notification.service';
   templateUrl: './newtemplate.component.html',
   styleUrls: ['./newtemplate.component.scss'],
 })
-export class NewTemplateComponent extends TemplateBaseComponent implements OnInit, OnDestroy  {
+export class NewTemplateComponent  {
 
-
-  constructor(
-    ngZone: NgZone, 
-    templateService: CohortDtoService,
-    cdRef: ChangeDetectorRef) {
-      super(templateService, ngZone, cdRef);
-  } 
+  private cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
   private notificationService = inject(NotificationService);
   private dialog= inject(MatDialog);
@@ -52,23 +46,6 @@ export class NewTemplateComponent extends TemplateBaseComponent implements OnIni
   errorMessage: string | null = null;
 
   pendingCohort: CohortData | null = null;
-
-  override ngOnInit(): void {
-    super.ngOnInit();
-  }
-
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-  }
-  
-  protected override onCohortDtoLoaded(template: CohortData): void {
-    console.log("✅ Template loaded into HomeComponent:", template);
-    this.cdRef.detectChanges();
-  }
-  
-    protected override onCohortDtoMissing(): void {
-      // When we open the page, the template will still be missing
-    }
 
  async melded(): Promise<void> {
   this.mendelianTemplate = false;
