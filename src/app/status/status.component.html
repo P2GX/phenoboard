@@ -1,55 +1,60 @@
-@let cohort = (cohortDto$ | async);
 
-<div class="primary-divider">
-  <h1 class="h1-primary">Status</h1>
-    @if (cohort && diseaseList) {
-    <h3>Template type: {{cohort.cohortType}}</h3>
-    @for (disease of cohort.diseaseList; track disease; let i= $index) {
-        @if (mendelianDiseaseOmimUrl; as omimUrl) {
-          <p>
-            {{ disease.diseaseLabel }}
-            <a [href]="omimUrl" target="_blank" rel="noopener" 
-              class="status-anchor">
-              {{ disease.diseaseId }}
-            </a>
-        } @else {
-          <!-- i.e., for some reason we cannot create the URL-->
-          <p> 
-            Disease:
-            {{ disease.diseaseLabel }}
-            ({{ disease.diseaseId }})
-          </p>
-        }
+@let cohort = cohortData();
+@if (cohort) {
+  <div class="primary-divider"> 
+    <h1 class="h1-primary">Status</h1>
+      @if (cohortData() && diseaseList) {
+      <h3>Template type: {{ cohort.cohortType}}</h3>
+      @for (disease of cohort.diseaseList; track disease; let i= $index) {
+          @if (mendelianDiseaseOmimUrl; as omimUrl) {
+            <p>
+              {{ disease.diseaseLabel }}
+              <a [href]="omimUrl" target="_blank" rel="noopener" 
+                class="status-anchor">
+                {{ disease.diseaseId }}
+              </a>
+            </p>
+          } @else {
+            <!-- i.e., for some reason we cannot create the URL-->
+            <p> 
+              Disease:
+              {{ disease.diseaseLabel }}
+              ({{ disease.diseaseId }})
+            </p>
+          }
           @for (gene of disease.geneTranscriptList; track gene; let gi=$index) {
-             @if (hgncGeneUrl; as hgncUrl) {
+            @if (hgncGeneUrl; as hgncUrl) {
               <a [href]="hgncUrl" target="_blank" rel="noopener" class="status-anchor">{{ gene.geneSymbol }} </a>
-                  ({{ gene.transcript }})
-              } @else {
-                <p>
-                  {{ gene.geneSymbol }}
-                  (HGNC: {{ gene.hgncId }};
-                  {{ gene.transcript }})
-                </p>
-              } 
+              ({{ gene.transcript }})
+            } @else {
+              <p>
+                {{ gene.geneSymbol }}
+                (HGNC: {{ gene.hgncId }};
+                {{ gene.transcript }})
+              </p>
+            } 
           }
       }
-<p>Cohort statistics</p>
-<ul>
-  <li>{{ cohort?.rows?.length }} phenopackets</li>
-   <li>{{ cohort?.hpoHeaders?.length}} HPO terms used for annotation</li>
-</ul>
-<div style="margin-top: 16px; text-align: right;">
-    <button (click)="showJson = true" class="btn-outline-primary">Show Cohort JSON</button>
-    <button (click)="showJson = false" class="btn-outline-primary" style="margin-left: 8px;">Hide JSON</button>
-    <button (click)="showAllPmid()" class="btn-outline-primary" style="margin-left: 8px;">Show all PMIDs</button>
-    <button (click)="showAllPpkt()" class="btn-outline-primary" style="margin-left: 8px;">Show all phenopackets</button>
-</div>
-<div style="margin-top: 16px; text-align: right;">
-    <button (click)="saveHtmlSummary()" class="btn-outline-primary">Save HTML summary</button>
-    
-</div>
-
-} @else {
+}
+  
+@if (cohort) {
+  <p>Cohort statistics</p>
+  <ul>
+    <li>{{ cohort?.rows?.length }} phenopackets</li>
+    <li>{{ cohort?.hpoHeaders?.length}} HPO terms used for annotation</li>
+  </ul>
+  <div style="margin-top: 16px; text-align: right;">
+      <button (click)="showJson = true" class="btn-outline-primary">Show Cohort JSON</button>
+      <button (click)="showJson = false" class="btn-outline-primary" style="margin-left: 8px;">Hide JSON</button>
+      <button (click)="showAllPmid()" class="btn-outline-primary" style="margin-left: 8px;">Show all PMIDs</button>
+      <button (click)="showAllPpkt()" class="btn-outline-primary" style="margin-left: 8px;">Show all phenopackets</button>
+  </div>
+  <div style="margin-top: 16px; text-align: right;">
+      <button (click)="saveHtmlSummary()" class="btn-outline-primary">Save HTML summary</button>
+      
+  </div>
+}
+@else {
     <p><span>❌</span>Cohort not loaded.</p>
 }
 
