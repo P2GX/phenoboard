@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { Component, computed, EventEmitter, inject, OnChanges, Output, signal, SimpleChanges, WritableSignal } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
@@ -24,10 +24,9 @@ export class MoiSelector implements OnChanges{
 
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
-  showMoi = true;
-  pmidDto: PmidDto = defaultPmidDto();
-
-  moiTerms: MoiTerm[] = [
+  showMoi: WritableSignal<boolean> = signal(true);
+  pmidDto: WritableSignal<PmidDto> = signal(defaultPmidDto());
+  moiTerms: WritableSignal<MoiTerm[]> = signal([
     { id: 'HP:0000006', label: 'Autosomal dominant inheritance', selected: false },
     { id: 'HP:0000007', label: 'Autosomal recessive inheritance', selected: false },
     { id: 'HP:0001417', label: 'X-linked inheritance', selected: false },
@@ -38,7 +37,7 @@ export class MoiSelector implements OnChanges{
     { id: 'HP:0001450', label: 'Y-linked inheritance', selected: false },
     { id: 'HP:0034340', label: 'Pseudoautosomal dominant inheritance', selected: false },
     { id: 'HP:0034341', label: 'Pseudoautosomal recessive inheritance', selected: false },
-  ];
+  ]);
 
   // Watch for changes to pmidDto
   ngOnChanges(changes: SimpleChanges): void {
@@ -48,48 +47,34 @@ export class MoiSelector implements OnChanges{
   }
 
 
-  get selectedMoiWithPmids(): MoiTerm[] {
-    return this.moiTerms.filter(m => m.selected);
-  }
+  selectedMoiWithPmids = computed(() =>
+    this.moiTerms().filter(m => m.selected)
+  );
+  
 
   confirmSelection(): void {
-    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids.map(m => ({
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map(m => ({
       hpoId: m.id,
       hpoLabel: m.label,
       citation: m.pmid!   // `!` safe because confirmDisabled prevents empty pmid
     }));
     this.moiChange.emit(moiList);
-    this.showMoi = false;
+    this.showMoi.set(false);
   }
 
   cancelSelection(): void {
-    this.moiTerms.forEach(m => m.selected = false);
-    this.moiTerms.forEach(m => delete m.pmid);
-    this.showMoi = false;
+    this.moiTerms.update(current =>
+      current.map(m => ({ ...m, selected: false, pmid: undefined }))
+    );
+    this.showMoi.set(false);
   }
 
   get confirmDisabled(): boolean {
-    return this.selectedMoiWithPmids.length === 0 || this.selectedMoiWithPmids.some(m => !m.pmid);
+    const selected = this.selectedMoiWithPmids();
+    return selected.length === 0 || selected.some(m => !m.pmid);
   }
 
-  /*
-  onPubmedClosed(event: any, moiIndex: number): void {
-    const pmid = event.pmid;
-    const moi = this.moiTerms[moiIndex];
-      moi.selected = true; 
-      if (event && event.pmid) {
-        moi.pmid = pmid; // Set the PMID for this specific MOI
-      }
-    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids.map(m => ({
-      hpoId: m.id,
-      hpoLabel: m.label,
-      citation: m.pmid!   // `!` safe because confirmDisabled prevents empty pmid
-    }));
-    console.log(moiList);
-    this.moiChange.emit(moiList);
-    this.showMoi = false;
-  }
-*/
+
 openPubmedDialog(moi: MoiTerm): void {
   const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
@@ -99,9 +84,12 @@ openPubmedDialog(moi: MoiTerm): void {
     dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
       if (result) {
         console.log('User chose', result);
-        this.pmidDto = result;
-        moi.pmid = result.pmid;
-        moi.selected = true;
+        this.pmidDto.set(result);
+        this.moiTerms.update(current =>
+          current.map(m =>
+            m.id === moi.id ? { ...m, selected: true, pmid: result.pmid } : m
+          )
+        );
       } else {
         console.log('User cancelled');
       }
