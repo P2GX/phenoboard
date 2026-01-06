@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -11,7 +11,6 @@ import { IndividualEditComponent } from '../individual_edit/individual_edit.comp
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
@@ -22,8 +21,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 type Option = { label: string; value: string };
-
-
 
 @Component({
   selector: 'app-pttemplate',
@@ -43,14 +40,33 @@ type Option = { label: string; value: string };
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
-export class PtTemplateComponent extends TemplateBaseComponent implements OnInit, AfterViewInit {
+export class PtTemplateComponent  {
+  constructor() {
+    /* at start and every time cohort changes */
+     effect(() => {
+      const cohortDto = this.cohortService.cohortData();
+      if (!cohortDto) {
+        this.hpoGroupKeys = [];
+        return;
+      }
+      this.rebuildValidatedAlleles();
+      this.configService.getTopLevelHpoTerms(cohortDto)
+        .then(groups => {
+          this.hpoGroups = new Map(Object.entries(groups));
+          this.hpoGroupKeys = Array.from(this.hpoGroups.keys());
+          this.visibleColumns = [];
+        })
+        .catch(err => {
+          console.error('Error fetching HPO groups:', err);
+          this.hpoGroupKeys = [];
+        });
+    });
+  }
+  
 
-  constructor(
-    ngZone: NgZone,
-    cohortService: CohortDtoService,
-    override cdRef: ChangeDetectorRef) {
-      super(cohortService, ngZone, cdRef)
-    }
+  public cohortService = inject(CohortDtoService);
+  private cdRef = inject(ChangeDetectorRef);
+
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
@@ -140,33 +156,9 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     hpoGroupKeys: string[] = [];
     visibleColumns: number[] = [];
 
-  override ngOnInit(): void {
-    super.ngOnInit();
-    this.cohortService.cohortData$.subscribe(dto => {
-      if (!dto) return;
-
-      this.cohortDto = dto;
-      this.rebuildValidatedAlleles();
-      this.configService.getTopLevelHpoTerms(dto)
-        .then(groups => {
-          this.hpoGroups = new Map(Object.entries(groups));
-          this.hpoGroupKeys = Array.from(this.hpoGroups.keys());
-          this.visibleColumns = this.getVisibleColumns();
-        })
-        .catch(err => {
-          console.error('Error fetching HPO groups:', err);
-          this.hpoGroupKeys = [];
-        });
-    });
-    document.addEventListener('click', this.onClickAnywhere.bind(this));
-    document.addEventListener('click', this.closeIndividualContextMenu.bind(this), { once: true });
-    this.contextMenuOptions = [...this.predefinedOptions];
-    this.cohortAcronymInput = this.getSuggestedAcronym();
-  }
-  
   /** Get suggest cohort acronym for melded only (others should be blank because the user
    * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
-  getSuggestedAcronym(): string {
+  suggestedAcronym = computed(() : string  => {
     const cohort = this.cohortService.getCohortData();
     if (! cohort) return '';
     if (cohort.cohortType === 'melded') {
@@ -177,35 +169,22 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         )
         .filter(Boolean) // remove null/undefined just in case
         .sort((a: string, b: string) => a.localeCompare(b)); // alphabetic sort
-
       return symbols.join('-');
     }  else if (cohort.cohortAcronym != null) {
       return cohort.cohortAcronym;
     } else {
       return '';
     }
-  }
+  };
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
-  }
 
-  protected override onCohortDtoLoaded(cohortDto: CohortData): void {
-    console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
-    this.rebuildValidatedAlleles();
-    this.cdRef.detectChanges();
-  }
+  moiList = computed(() => {
+    const dto = this.cohortService.cohortData();
+    if (! dto ) return [];
+    return dto.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
+  });
 
-  protected override onCohortDtoMissing(): void {
-    console.warn("⚠️ Template is missing in PtTemplateComponent");
-  }
-
-  get moiList(): ModeOfInheritance[] {
-    const cohort = this.cohortService.getCohortData();
-    if (!cohort) return [];
-    return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
-  }
+ 
 
   toggleMoiSelector(i: number): void {
     this.showMoiIndex = this.showMoiIndex === i ? null : i;
@@ -332,14 +311,17 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     return diseaseStrings.join(" and ");
   }
 
-  get numVariants(): number {
-    const cohort = this.cohortService.getCohortData()
+
+  numVariants = computed((): number => {
+    const cohort = this.cohortService.getCohortData();
     if (! cohort ) {
       return 0;
     } else {
       return Object.keys(cohort.hgvsVariants).length + Object.keys(cohort.structuralVariants).length
     }
-  }
+  });
+
+ 
 
 
   async validateCohort(): Promise<void> {
@@ -648,18 +630,17 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       return label;
     }
 
-    getDiseaseLabel(diseaseId: string): string {
-      const cohort = this.cohortDto;
-      if (cohort == null || cohort.diseaseList.length == 0) {
-        return "n/a";
-      }
-      if (cohort.diseaseList.length > 1) {
-        const disease = cohort.diseaseList.find(d => d.diseaseId === diseaseId)?.diseaseLabel;
-        return disease || "n/a";
-      } else {
-        return cohort.diseaseList[0].diseaseLabel;
-      }
+
+   diseaseLabelById = computed(() => {
+    const cohort = this.cohortService.cohortData();
+    if (!cohort || cohort.diseaseList.length === 0) {
+      return new Map<string, string>();
+    } else {
+      return new Map(
+        cohort.diseaseList.map(d => [d.diseaseId, d.diseaseLabel])
+      );
     }
+   }); 
  
 
    onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number): void {

@@ -3,7 +3,7 @@
 @if (cohort) {
   <div class="primary-divider"> 
     <h1 class="h1-primary">Status</h1>
-      @if (cohortData() && diseaseList) {
+      @if (diseaseList) {
       <h3>Template type: {{ cohort.cohortType}}</h3>
       @for (disease of cohort.diseaseList; track disease; let i= $index) {
           @if (mendelianDiseaseOmimUrl; as omimUrl) {
@@ -35,9 +35,8 @@
             } 
           }
       }
-}
-  
-@if (cohort) {
+    }
+  </div>
   <p>Cohort statistics</p>
   <ul>
     <li>{{ cohort?.rows?.length }} phenopackets</li>
