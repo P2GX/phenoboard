@@ -14,6 +14,7 @@ import { RepoQc } from '../models/repo_qc';
   providedIn: 'root'
 })
 export class ConfigService {
+ 
 
   
   constructor() {}
@@ -334,5 +335,9 @@ export class ConfigService {
 
   async fetchRepoQc(): Promise<RepoQc> {
     return await invoke<RepoQc>('fetch_repo_qc');
+  }
+
+  async sortCohortByrows(dto: CohortData) {
+    return await invoke<CohortData>('sort_cohort_by_rows', {dto: dto});
   }
 }

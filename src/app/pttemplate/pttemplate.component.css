@@ -263,3 +263,22 @@ button[mat-icon-button] {
   height: 18px;
   padding: 0;
 }
+
+.gene-links a {
+  color: #2563eb;            /* blue-600 */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.gene-links a:hover {
+  text-decoration: underline;
+}
+
+.gene-links a:visited {
+  color: #1e40af;            /* slightly darker blue */
+}
+
+.gene-links a:focus {
+  outline: 2px solid #93c5fd; /* accessible focus ring */
+  outline-offset: 2px;
+}

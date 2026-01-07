@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
@@ -42,30 +42,30 @@ interface Option { label: string; value: string };
 })
 export class PtTemplateComponent  {
 
+
   /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
   hpoGroups = signal<Map<string, HpoTermDuplet[]>>(new Map());
   hpoGroupKeys = computed<string[]>(() => Array.from(this.hpoGroups().keys()));
   constructor() {
-  effect(() => {
-    const cohortDto = this.cohortService.cohortData();
-    if (cohortDto) {
+    effect(() => {
+      const cohortDto = this.cohortService.cohortData();
       if (cohortDto) {
-        this.configService.getTopLevelHpoTerms(cohortDto).then(groupsObj => {
-          // Convert the plain object to a Map
-          this.hpoGroups.set(new Map(Object.entries(groupsObj)));
-        });
-      } else {
-        this.hpoGroups.set(new Map());
+        if (cohortDto) {
+          this.configService.getTopLevelHpoTerms(cohortDto).then(groupsObj => {
+            // Convert the plain object to a Map
+            this.hpoGroups.set(new Map(Object.entries(groupsObj)));
+          });
+        } else {
+          this.hpoGroups.set(new Map());
+        }
       }
-    }
-  });
-}
+    });
+  }
   
   public cohortService = inject(CohortDtoService);
   cohortData = this.cohortService.cohortData; 
 
   private cdRef = inject(ChangeDetectorRef);
-
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
@@ -80,8 +80,6 @@ export class PtTemplateComponent  {
   tableWidth = '100%'; 
   Object = Object; // <-- expose global Object to template
   public readonly VariantKind = VariantKind;
-  cohortDto: CohortData | null = null;
-
   selectedCellContents: CellValue | null = null;
   successMessage: string | null = null;
 
@@ -97,7 +95,30 @@ export class PtTemplateComponent  {
   individualMenuX = 0;
   individualMenuY = 0;
   contextRow: RowData | null = null;
-  filteredRows = signal<RowData[]>([]);
+
+  // the following determine which rows are shown in the GUI
+  
+  filterMode = signal<'all' | 'single' | 'pmid'>('all');
+  focusedRow = signal<RowData | null>(null);
+  focusedPmid = signal<string | null>(null);
+  filteredRows = computed(() => {
+    const cohort = this.cohortService.getCohortData();
+    if (!cohort) return [];
+    const mode = this.filterMode();
+    const allRows = cohort.rows;
+    switch (mode) {
+      case 'single':
+        const row = this.focusedRow();
+        return row ? [row] : allRows;
+      case 'pmid':
+        const pmid = this.focusedPmid();
+        return pmid ? allRows.filter(r => r.individualData.pmid === pmid) : allRows;
+      case 'all':
+      default:
+        return allRows;
+    }
+  });
+
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
@@ -307,12 +328,13 @@ export class PtTemplateComponent  {
 
 
   async validateCohort(): Promise<void> {
-    if (! this.cohortDto) {
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) {
       alert("Cohort DTO not initialized");
       return;
     }
     try {
-      await this.configService.validateCohort(this.cohortDto);
+      await this.configService.validateCohort(cohortData);
       alert("✅ Cohort successfully validated");
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
@@ -322,16 +344,16 @@ export class PtTemplateComponent  {
 
   /** Remove ontological conflicts and redundancies */
   async sanitizeCohort(): Promise<void> {
-    const cohortDto = this.cohortDto;
-    if (! cohortDto) {
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) {
       alert("Cohort DTO not initialized");
       return;
     }
     try {
-      const sanitized_cohort = await this.configService.sanitizeCohort(cohortDto);
+      const sanitized_cohort = await this.configService.sanitizeCohort(cohortData);
       this.cohortService.setCohortData(sanitized_cohort);
-      console.log(this.deepDiff(sanitized_cohort, cohortDto));
-      alert("✅ Cohort successfully sanitized");
+      const cdiff = this.deepDiff(sanitized_cohort, cohortData);
+      alert(`✅ Cohort successfully sanitized ${cdiff}`);
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Sanitization failed:\n' + JSON.stringify(err));
@@ -445,7 +467,7 @@ export class PtTemplateComponent  {
       }
     } else if (this.selectedCellContents) {
       this.focusedHpoIndex = null;
-      const currentDto = this.cohortDto; //this.cohortService.getCohortDto();
+      const currentDto = this.cohortService.getCohortData();
       if (! currentDto) {
         this.notificationService.showError("Cohort object is null (should never happen, please report to developers).");
         return;
@@ -453,9 +475,7 @@ export class PtTemplateComponent  {
       console.log(currentDto)
       const cellValue: CellValue = getCellValue(option);
       const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingRow, this.pendingHpoColumnIndex, cellValue);
-      this.cohortDto = updatedCohort;
       this.cohortService.setCohortData(updatedCohort);
-      this.updateFilteredRows();
     }  
       
     
@@ -475,7 +495,7 @@ export class PtTemplateComponent  {
   }
 
   async saveCohort(): Promise<void> {
-    const cohort = this.cohortDto;
+    const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Cannot save null cohort");
       return;
@@ -498,7 +518,7 @@ export class PtTemplateComponent  {
   
 
   async exportPpkt(): Promise<void> {
-    const cohort_dto = this.cohortDto;
+    const cohort_dto = this.cohortService.getCohortData();
     if (! cohort_dto) {
       this.notificationService.showError("CohortData not initialized");
       return;
@@ -513,14 +533,13 @@ export class PtTemplateComponent  {
 
   /** Export the aggregate file for use in phenotype.hpoa (part of a small file) */
     async exportHpoa(): Promise<void> {
-      if (! this.cohortDto) {
+      const cohortDto = this.cohortService.getCohortData();
+      if (! cohortDto) {
         this.notificationService.showError("Cohort DTO not initialized");
         return;
       }
-      const cohort_dto = this.cohortDto;
-      console.log("exportHpoa", cohort_dto);
       try {
-        const message = await this.configService.exportHpoa(cohort_dto);
+        const message = await this.configService.exportHpoa(cohortDto);
         this.notificationService.showSuccess(message);
       } catch (err) {
         this.notificationService.showError(String(err));
@@ -590,23 +609,6 @@ export class PtTemplateComponent  {
       }
       return [allele, symbol, transcript, allelecount, key];
     }
-
-    /*
-  getShortAlleleDisplay(key: string, count: number): string {
-      const cohort = this.cohortService.getCohortData();
-      let label = key;
-      if (cohort != null) {
-        const hgvs = cohort.hgvsVariants[key];
-          const sv = cohort.structuralVariants[key];
-          if ( hgvs) {
-            label = hgvs.hgvs;
-          } else if (sv) {
-            label = sv.label;
-          }
-      }
-      
-      return label;
-    }*/
 
 
   shortAlleleDisplayByKey = computed(() => {
@@ -731,19 +733,14 @@ visibleColumns = computed<number[]>(() => {
   if (cohort.rows.length < 1) return [];
   
   const row1 = cohort.rows[0];
-  const n_cols = row1.hpoData.length;
-  console.log("getVisibleColumns", n_cols);
-  
+  const n_cols = row1.hpoData.length;  
   const selectedHpo = this.selectedTopLevelHpo();
-  
   // if we have fewer than 20 columns, show all
   if (n_cols <= 20 || !selectedHpo) {
     return Array.from({ length: n_cols }, (_, i) => i);
   }
-
   const allowedTerms = this.hpoGroups().get(selectedHpo) ?? [];
   const allowedIds = allowedTerms.map(term => term.hpoId);
-
   // Return indices of headers whose HPO ID is allowed
   return cohort.hpoHeaders
     .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
@@ -765,58 +762,47 @@ visibleColumns = computed<number[]>(() => {
     this.individualContextMenuVisible = false;
   }
 
-focusOnSingleRow(): void {
-  if (!this.contextRow) return;
-  this.filteredRows.set([this.contextRow]);
-  this.closeContextMenu();
-  this.individualContextMenuVisible = false;
-}
+
+  // Just show the row that the user clicks on
+  focusOnSingleRow(): void {
+    if (!this.contextRow) return;
+    this.focusedRow.set(this.contextRow);
+    this.filterMode.set('single');
+    this.closeContextMenu();
+    this.individualContextMenuVisible = false;
+  }
+  /** Focus on all rows with the same PMID */
+  focusOnPmid(): void {
+    const crow = this.contextRow;
+    if (! crow) {
+      this.notificationService.showError("Could not focus on PMID because context row not found");
+      this.showAllRows();
+      return;
+    }
+    const pmid = crow.individualData.pmid
+    this.focusedPmid.set(pmid);
+    this.filterMode.set('pmid');
+    this.individualContextMenuVisible = false;
+  }
+
+  showAllRows(): void {
+    this.filterMode.set('all');
+    this.focusedPmid.set('');
+    this.individualContextMenuVisible = false;
+  }
+ 
+
+
 
 
  filteredKeys = computed(() => {
     const frows=  this.filteredRows().map(row => this.getIndividualKey(row.individualData));
     return new Set(frows);
  });
-/* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
-  * the following logic to make sure we show it in the GUI. */
-/* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
-  * the following logic to make sure we show it in the GUI. */
-updateFilteredRows(): void {
-  const cohort = this.cohortService.getCohortData();
-  if (!cohort) return;
-  if (!this.filteredRows?.length) {
-    this.filteredRows.set([]);
-    return;
-  }
-  const filteredKeys = new Set(
-    this.filteredRows().map(row => this.getIndividualKey(row.individualData))
-  );
 
-  this.filteredRows.set(cohort.rows.filter(r =>
-    filteredKeys.has(this.getIndividualKey(r.individualData))
-  ));
-}
 
-/** Focus on all rows with the same PMID */
-focusOnPmid(): void {
-  if (!this.contextRow) return;
-  const cohort = this.cohortService.getCohortData();
-  if (! cohort) return;
-  const pmid = this.contextRow.individualData.pmid;
-  this.filteredRows.set(cohort.rows.filter(
-    r => r.individualData.pmid === pmid
-  ));
-   this.individualContextMenuVisible = false;
-  this.closeContextMenu();
-}
 
-showAllRows(): void {
-  this.filteredRows.set([]);
-  this.individualContextMenuVisible = false;
-  this.rowInfoKey = null;
-  this.rowInfoVisible = true;
-  this.closeRowInfo();
-}
+
 
 /** Show info like the existing hover popup */
 showInfoForRow(row: RowData | null): void {
@@ -839,20 +825,6 @@ showInfoForRow(row: RowData | null): void {
   }
 
 
-  /** Optional: reset filter */
-  resetFilter(): void {
-    this.filteredRows.set([]);
-  }
-
-  getDisplayedRows(): RowData[] {
-    const cohort = this.cohortService.getCohortData();
-    if (! cohort) return [];
-    if (this.filteredRows.length == 0) {
-      return cohort.rows;
-    } else {
-      return this.filteredRows();
-    }
-  }
 
   getAlleleKeys(map: Record<string, unknown>): string[] {
     return Object.keys(map);
@@ -888,6 +860,28 @@ showInfoForRow(row: RowData | null): void {
       rows: updatedRows
     };
     this.cohortService.setCohortData(updatedCohort);
+  }
+
+  /* Get Links for display with summary of cohort */
+  getGeneLinks(disease: DiseaseData): {symbol: string, hgncUrl: string, transcript: string, ncbiUrl: string}[] {
+    if (!disease?.geneTranscriptList?.length) {
+      return [];
+    }
+
+    return disease.geneTranscriptList.map((gene:  GeneTranscriptData) => ({
+      symbol: gene.geneSymbol,
+      transcript: gene.transcript,
+      hgncUrl: `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${gene.hgncId}`,
+      ncbiUrl: `https://www.ncbi.nlm.nih.gov/nuccore/${gene.transcript}`
+    }));
+  }
+
+  async sortCohortRows() {
+    const dto = this.cohortService.getCohortData();
+    if (! dto) return;
+    const sorted_dto = await this.configService.sortCohortByrows(dto);
+    this.cohortService.setCohortData(sorted_dto);
+  
   }
 
 }

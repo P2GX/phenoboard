@@ -8,15 +8,22 @@
               target="_blank" class="text-blue-600 underline">
             <h2 class="text-xl font-semibold text-gray-800"> <strong> {{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
             </a>
-           
-            @if (disease.geneTranscriptList.length){
-              (
-                @for (gene  of disease.geneTranscriptList; track gene; let j =$index) {
-                <i>{{ gene.geneSymbol }}</i
-                >{{ j < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
+            @if (disease.geneTranscriptList.length) {
+              <span class="gene-links">
+                (
+                @for (gene of getGeneLinks(disease); let i = $index; track gene.symbol) {
+                  <i>{{ gene.symbol }}</i>
+                  [
+                    <a [href]="gene.hgncUrl" target="_blank" rel="noopener">HGNC</a> |
+                    <a [href]="gene.ncbiUrl" target="_blank" rel="noopener">NCBI</a>
+                  ]
+                  {{ i < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
                 }
-              )
-            }</li>
+                )
+              </span>
+            }
+
+            </li>
         }
         </ul>
       <p>
@@ -197,7 +204,7 @@
   </tr>
   </thead>
     <tbody>
-      @for (row of getDisplayedRows(); track getRowKey(row);  let rowIndex = $index) {
+      @for (row of filteredRows(); track getRowKey(row);  let rowIndex = $index) {
       <tr [class.bg-red-50]="!hasObservedHpo(row)">
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column"
@@ -423,6 +430,16 @@
       class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
     >
       Export Hpoa
+    </button>
+     <button 
+      (click)="sortCohortRows()" 
+      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
+      matTooltip="Sort the cohort rows (oldest to newest)"
+      matTooltipPosition="above"   
+      matTooltipShowDelay="50" 
+      matTooltipHideDelay="200"    
+    >
+      Sort rows
     </button>
   </div>
 </div>
