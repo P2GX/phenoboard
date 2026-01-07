@@ -45,7 +45,7 @@
     </div>
   </div>
 }
-@if (!this.etl_service.etlDto) {
+@if (!this.etl_service.etlDto()) {
   <div>
     <p>No table loaded yet.</p>
   </div>
@@ -178,9 +178,14 @@
         [style.left.px]="contextMenuCellX"
         (click)="contextMenuCellVisible = false"
     >
-      <div style="padding: 5px 0; font-weight: bold;">
-        Value: "{{ contextMenuCellValue }}"<br />
-        Type: {{ contextMenuCellType }}
+    <div style="padding: 8px; font-size: 13px; line-height: 1.5;">
+      
+      <div><strong>Original:</strong> {{ contextMenuCellValue?.original }}</div>
+      <div><strong>Current:</strong> {{ contextMenuCellValue?.current }}</div>
+      <div style="border-bottom: 1px solid #ccc; margin-bottom: 5px; padding-bottom: 5px;">
+        <strong>Status:</strong> {{ getStatusSymbol(contextMenuCellValue) }} 
+        <span style="text-transform: capitalize;">{{ contextMenuCellValue?.status }}</span>
+      </div>
       </div>
       <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
         <li

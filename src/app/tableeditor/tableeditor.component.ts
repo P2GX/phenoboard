@@ -94,6 +94,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   visibleColIndex: number = this.INVISIBLE;
   transformedColIndex: number = this.INVISIBLE;
   contextMenuColIndex: number | null = null;
+  contextMenuRowIndex: number | null = null;
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
   simpleColumnOperations = [EtlColumnType.Ignore, EtlColumnType.Raw]
@@ -1006,26 +1007,46 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   useValueFromAbove() {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
-    const columnTableDto = dto.table;
-    if (!this.hasValueAbove()) return;
-    if (this.contextMenuCellCol == null) {
-      this.notificationService.showError("context menu column is null");
+    const cell = this.contextMenuCellValue;
+    this.editingValue = cell;
+    const colIndex = this.contextMenuCellCol;
+    const rowIndex = this.contextMenuCellRow;
+    if (! colIndex || ! rowIndex) {
+      const emsg = `Index information incomplete: col: ${colIndex} - row: ${rowIndex}`
+      this.notificationService.showError(emsg);
       return;
     }
-    if (this.contextMenuCellRow == null) {
-      this.notificationService.showError("context menu row is null");
+    if (!cell) {
+      this.notificationService.showError("Could not edit cell: missing context.");
+      return;
+    }
+    if (!this.hasValueAbove()) return;
+    if (this.contextMenuCellCol == null) {
+      this.notificationService.showError("contextMenuCellCol is null");
       return;
     }
     const dcolumns = this.displayColumns();
-    const aboveValue: EtlCellValue = dcolumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1];
-    const col = columnTableDto.columns[this.contextMenuCellCol];
-    if (col) {
-      const rowIndex = this.contextMenuCellRow;
-      if (rowIndex >= 0 && rowIndex < col.values.length) {
-        col.values[rowIndex] = aboveValue;
-        this.contextMenuCellValue = this.editingValue;
-      }
-    }
+    const aboveCell: EtlCellValue = dcolumns[colIndex].values[rowIndex - 1];
+    const aboveVal = aboveCell.current;
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      // Update the specific cell immutably
+      const newValues = col.values.map((cell, j) => {
+            if (j !== rowIndex) return cell;
+            return {
+              ...cell,
+              original: aboveVal,
+              current: aboveVal,
+              status: TRANSFORMED, // assume manual edit is correct
+              errorMessage: undefined
+            };
+          });
+          return { ...col, values: newValues };
+        });
+    
+    this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
+    this.editModalVisible = false;
+    this.etl_service.updateColumns(newColumns);
     this.editModalVisible = false;
   }
 
@@ -2157,6 +2178,19 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     const dto = this.etl_service.etlDto();
     if (!dto|| this.contextMenuColIndex == null) return [];
     return dto.table.columns[this.contextMenuColIndex].values;
+  }
+
+  // show the status of an ETL Cell
+  getStatusSymbol(val: EtlCellValue | null): string {
+    if (! val)  return '❓';
+    const status = val.status; 
+    switch (status) {
+      case EtlCellStatus.Raw:         return '⚪';
+      case EtlCellStatus.Transformed: return '✨';
+      case EtlCellStatus.Error:       return '❌';
+      case EtlCellStatus.Ignored:     return '🚫';
+      default:                        return '❓';
+    }
   }
 
 
