@@ -5,7 +5,7 @@
 import { CellValue, HpoTermDuplet } from "./hpo_term_dto";
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
-export type HpoGroupMap = Map<string, HpoTermDuplet[]>; 
+export type HpoGroupMap = Record<string, HpoTermDuplet[]>; 
 
 export interface IndividualData {
     pmid: string;

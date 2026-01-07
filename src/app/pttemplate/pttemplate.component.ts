@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, HpoGroupMap } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
@@ -20,7 +20,7 @@ import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.compo
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-type Option = { label: string; value: string };
+interface Option { label: string; value: string };
 
 @Component({
   selector: 'app-pttemplate',
@@ -41,26 +41,25 @@ type Option = { label: string; value: string };
   styleUrls: ['./pttemplate.component.css'],
 })
 export class PtTemplateComponent  {
+
+  /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
+  hpoGroups = signal<Map<string, HpoTermDuplet[]>>(new Map());
+  hpoGroupKeys = computed<string[]>(() => Array.from(this.hpoGroups().keys()));
   constructor() {
-    /* at start and every time cohort changes */
-     effect(() => {
-      const cohortDto = this.cohortService.cohortData();
-      if (!cohortDto) {
-        this.hpoGroupKeys = [];
-        return;
-      }
-      this.configService.getTopLevelHpoTerms(cohortDto)
-        .then(groups => {
-          this.hpoGroups = new Map(Object.entries(groups));
-          this.hpoGroupKeys = Array.from(this.hpoGroups.keys());
-          this.visibleColumns = [];
-        })
-        .catch(err => {
-          console.error('Error fetching HPO groups:', err);
-          this.hpoGroupKeys = [];
+  effect(() => {
+    const cohortDto = this.cohortService.cohortData();
+    if (cohortDto) {
+      if (cohortDto) {
+        this.configService.getTopLevelHpoTerms(cohortDto).then(groupsObj => {
+          // Convert the plain object to a Map
+          this.hpoGroups.set(new Map(Object.entries(groupsObj)));
         });
-    });
-  }
+      } else {
+        this.hpoGroups.set(new Map());
+      }
+    }
+  });
+}
   
   public cohortService = inject(CohortDtoService);
   cohortData = this.cohortService.cohortData; 
@@ -142,12 +141,10 @@ export class PtTemplateComponent  {
   contextMenuOptions: Option[] = [];
   showMoiIndex: number | null = null;
 
-    /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
-    selectedTopLevelHpo: string | null = null;
-    /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
-    hpoGroups: HpoGroupMap = new Map<string, HpoTermDuplet[]>();
-    hpoGroupKeys: string[] = [];
-    visibleColumns: number[] = [];
+  /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
+  selectedTopLevelHpo = signal<string | null>(null);
+    
+    
 
   /** Get suggest cohort acronym for melded only (others should be blank because the user
    * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
@@ -201,11 +198,6 @@ export class PtTemplateComponent  {
       console.log("✅ Template already loaded");
     }
   }
-
-  ngAfterViewInit(): void {
-    this.cdRef.detectChanges(); 
-  }
-
 
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: CohortData) => {
@@ -346,7 +338,7 @@ export class PtTemplateComponent  {
     }
   }
 
-  submitSelectedHpo = async () => {
+  submitSelectedHpo = async (): Promise<void> => {
     if (this.selectedHpoTerm == null) {
       this.notificationService.showError("No HPO term selected");
       return;
@@ -559,7 +551,7 @@ export class PtTemplateComponent  {
     }
   }
 
-  cancelCohortAcronym() {
+  cancelCohortAcronym(): void {
     this.showCohortAcronym = false;
   }
 
@@ -599,6 +591,7 @@ export class PtTemplateComponent  {
       return [allele, symbol, transcript, allelecount, key];
     }
 
+    /*
   getShortAlleleDisplay(key: string, count: number): string {
       const cohort = this.cohortService.getCohortData();
       let label = key;
@@ -613,7 +606,7 @@ export class PtTemplateComponent  {
       }
       
       return label;
-    }
+    }*/
 
 
   shortAlleleDisplayByKey = computed(() => {
@@ -668,25 +661,34 @@ export class PtTemplateComponent  {
 
    
 
-  /** for debugging. Puts the differences between to structures, can be output to console. */
-  deepDiff(a: any, b: any, path: string[] = []): string[] {
+  /** 
+   * Debug helper: returns human-readable differences between two values.
+   */
+  deepDiff(a: unknown, b: unknown, path: string[] = []): string[] {
     const diffs: string[] = [];
-
-    const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-
-    for (const key of keys) {
-      const newPath = [...path, key];
-      const aVal = a?.[key];
-      const bVal = b?.[key];
-
-      if (aVal && bVal && typeof aVal === "object" && typeof bVal === "object") {
-        diffs.push(...this.deepDiff(aVal, bVal, newPath));
-      } else if (aVal !== bVal) {
-        diffs.push(`${newPath.join(".")}: ${aVal} → ${bVal}`);
+    // Case 1: both are non-null objects → recurse
+    if (this.isRecord(a) && this.isRecord(b)) {
+      const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+      for (const key of keys) {
+        diffs.push(
+          ...this.deepDiff(a[key], b[key], [...path, key])
+        );
       }
+      return diffs;
     }
-  return diffs;
-}
+    // Case 2: values differ (primitive or mismatched types)
+    if (a !== b) {
+      diffs.push(`${path.join(".")}: ${String(a)} → ${String(b)}`);
+    }
+
+    return diffs;
+  }
+  /* HELPER FOR ABOVE FUNCTION */
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+  }
+
+
 
   
 openAgeDialog(): void {
@@ -722,36 +724,32 @@ get ageEntries(): string[] {
   }
 
   /** Calculate the columns we show if the user chooses to filter to a top-level term */
-  getVisibleColumns(): number[] {
-    const cohort = this.cohortService.getCohortData();
-    if (! cohort) return [];
-    if (cohort.rows.length < 1) return [];
-    const row1 = cohort.rows[0];
-    const n_cols = row1.hpoData.length;
-    console.log("getVisibleColumns", n_cols);
-    
-    // if we have fewer than 20 columns, show all
-    if (n_cols <= 20 || !this.selectedTopLevelHpo) {
-      return Array.from({ length: n_cols }, (_, i) => i);
-    }
-
-    const allowedTerms = this.hpoGroups.get(this.selectedTopLevelHpo) ?? [];
-    const allowedIds = allowedTerms.map(term => term.hpoId);
-
-    // Return indices of headers whose HPO ID is allowed
-    return cohort.hpoHeaders
-      .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
-      .filter(i => i !== -1);
+  /** Calculate the columns we show if the user chooses to filter to a top-level term */
+visibleColumns = computed<number[]>(() => {
+  const cohort = this.cohortService.getCohortData();
+  if (!cohort) return [];
+  if (cohort.rows.length < 1) return [];
+  
+  const row1 = cohort.rows[0];
+  const n_cols = row1.hpoData.length;
+  console.log("getVisibleColumns", n_cols);
+  
+  const selectedHpo = this.selectedTopLevelHpo();
+  
+  // if we have fewer than 20 columns, show all
+  if (n_cols <= 20 || !selectedHpo) {
+    return Array.from({ length: n_cols }, (_, i) => i);
   }
 
-  private filterChangeTimeout: any;
+  const allowedTerms = this.hpoGroups().get(selectedHpo) ?? [];
+  const allowedIds = allowedTerms.map(term => term.hpoId);
 
-  onHpoFilterChange(): void {
-    clearTimeout(this.filterChangeTimeout);
-    this.filterChangeTimeout = setTimeout(() => {
-      this.visibleColumns = this.getVisibleColumns();
-    }, 200); // adjust delay as needed (ms)
-  }
+  // Return indices of headers whose HPO ID is allowed
+  return cohort.hpoHeaders
+    .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
+    .filter(i => i !== -1);
+});
+
 
   /* right click on first column can focus on row or PMIDs */
   onIndividualRightClick(event: MouseEvent, row: RowData): void {
@@ -856,7 +854,7 @@ showInfoForRow(row: RowData | null): void {
     }
   }
 
-  getAlleleKeys(map: Record<string, any>): string[] {
+  getAlleleKeys(map: Record<string, unknown>): string[] {
     return Object.keys(map);
   }
 
