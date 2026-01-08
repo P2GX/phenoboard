@@ -9,6 +9,7 @@ import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
+import { EtlSessionService } from '../services/etl_session_service';
 
 
 
@@ -28,6 +29,7 @@ export class NewTemplateComponent  {
 
   private cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
+  private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private dialog= inject(MatDialog);
 
@@ -106,6 +108,7 @@ async mendelian(): Promise<void> {
 }
 
 private async createTemplate(data: any, ctype: CohortType): Promise<void> {
+  this.etl_service.clearEtlDto();
   if (ctype == "mendelian") {  
     try {
         const diseaseData: DiseaseData = newDiseaseData(

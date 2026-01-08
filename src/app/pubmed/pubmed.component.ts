@@ -15,6 +15,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 })
 export class PubmedComponent {
 
+
   private configService = inject(ConfigService);
   private pmidService = inject(PmidService);
   public dialogRef = inject(MatDialogRef<PubmedComponent>);
@@ -42,6 +43,7 @@ export class PubmedComponent {
     if (selected) {
       this.pmidDto.set(selected);// = { ...selected };
       this.selectedPmid.set(selectedPmidNumber);
+      this.pmidService.addPmid(this.pmidDto());
     }
   }
 
@@ -96,7 +98,7 @@ export class PubmedComponent {
     }));
   }
 
-  clear(): void {
+  clearPmids(): void {
     this.availablePmids.set([]);
   }
 
