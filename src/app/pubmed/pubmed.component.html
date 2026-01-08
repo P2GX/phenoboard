@@ -57,12 +57,13 @@
 
   <!-- Dialog Actions -->
   <div class="dialog-actions flex items-center gap-2">
-    <button (click)="cancel()" class="btn btn-outline">
-      Cancel
-    </button>
-
+    
     <button (click)="accept()" [disabled]="!isReady()" class="btn btn-primary">
       Accept
+    </button>
+
+    <button (click)="cancel()" class="btn btn-outline">
+      Cancel
     </button>
 
     <button (click)="clearPmids()" class="btn btn-outline ml-auto">
