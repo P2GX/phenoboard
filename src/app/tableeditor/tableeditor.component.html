@@ -173,9 +173,10 @@
 </div>
 }
   @if (contextMenuCellVisible) {
+    <!-- activate by OnCellContextMenu -->
     <div class="context-menu-visible"
-        [style.top.px]="contextMenuCellY" 
-        [style.left.px]="contextMenuCellX"
+        [style.top.px]="contextMenuPosition?.y" 
+        [style.left.px]="contextMenuPosition?.x"
         (click)="contextMenuCellVisible = false"
     >
     <div style="padding: 8px; font-size: 13px; line-height: 1.5;">
@@ -224,7 +225,10 @@
 
 @if(editModalVisible) {
 <div class="modal-overlay" (mousedown)="editModalVisible = false">
-  <div class="edit-modal" (mousedown)="$event.stopPropagation()">
+  <div class="edit-modal" 
+    [style.top.px]="editModalPosition?.y"
+    [style.left.px]="editModalPosition?.x"
+  (mousedown)="$event.stopPropagation()">
     <header>
       <mat-icon>edit</mat-icon>
       <h3>Edit Cell Value</h3>

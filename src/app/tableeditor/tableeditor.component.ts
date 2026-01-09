@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, computed, HostListener, inject,NgZone, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortData, DiseaseData, RowData } from '../models/cohort_dto';
+import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
@@ -39,7 +39,11 @@ export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
 export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 
-
+/* Used to hold the context menu x and y position */
+interface OverlayPosition {
+  x: number;
+  y: number;
+}
 
 /**
  * Component for editing external Excel tables (e.g., supplemental files). The external tables are assumed to have lines or columns
@@ -104,8 +108,13 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   transformationPanelVisible = false;
 
   contextMenuCellVisible = false;
-  contextMenuCellX = 0;
-  contextMenuCellY = 0;
+  contextMenuPosition: OverlayPosition | null = null;
+  contextMenuAnchor?: HTMLElement;
+
+  editModalPosition: OverlayPosition | null = null;
+
+
+
   contextMenuCellRow: number | null = null;
   contextMenuCellCol: number | null = null;
   contextMenuCellValue: EtlCellValue | null = null;
@@ -651,40 +660,8 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       return col;
     });
     this.etl_service.updateColumns(newColumns);
-
-    
-    
   }
 
-
-
-
-  /** This methods sets up some context variables as sets contextMenuCellVisible to true, which opens up a list of options
-   * (1) editCellValueManually (2) useValueFromAbove, and (3) openVariantEditor, (4) delete row
-   */
-  onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
-    event.preventDefault();
-    const dto = this.etl_service.etlDto();
-    if (! dto) return;
-    const columnTableDto = dto.table;
-
-    if (!columnTableDto.columns[colIndex]) return;
-    const headers = this.displayHeaders();
-    if (! headers[colIndex]) {
-      this.notificationService.showError(`Null header for index ${colIndex}`);
-      return;
-    }
-    const header = headers[colIndex];
-    const col = columnTableDto.columns[colIndex];
-    this.contextMenuCellX = event.clientX;
-    this.contextMenuCellY = event.clientY;
-    this.contextMenuCellVisible = true;
-    this.contextMenuCellRow = rowIndex;
-    this.contextMenuCellCol = colIndex;
-    const cell: EtlCellValue = col.values[rowIndex];
-    this.contextMenuCellValue = cell;
-    this.contextMenuCellType = header.columnType;
-  }
 
   deleteRowAtI(i: number): void {
     const dto = this.etl_service.etlDto();
@@ -732,8 +709,24 @@ export class TableEditorComponent implements OnInit, OnDestroy {
    * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
   async editCellValueManually() {
+    this.contextMenuCellVisible = false;
+    if (! this.contextMenuAnchor) return;
     const dto = this.etl_service.etlDto();
     if (! dto) return;
+    const rect = this.contextMenuAnchor.getBoundingClientRect();
+    const modalHeight = 300;
+    const margin = 8;
+
+    let top = rect.top + window.scrollY;
+    let left = rect.left + window.scrollX;
+    // Flip above if needed
+    if (top + modalHeight > window.scrollY + window.innerHeight) {
+      top = rect.bottom + window.scrollY - modalHeight - margin;
+    }
+
+  this.editModalPosition = { top, left };
+  this.editModalVisible = true;
+
     const cell = this.contextMenuCellValue;
     this.editingValue = cell;
     const colIndex = this.contextMenuCellCol;
@@ -749,7 +742,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     }
 
     this.editModalVisible = true;
-    this.contextMenuCellVisible = false;
+   
   }
 
 
@@ -1058,8 +1051,12 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     colIndex: number;
   }) {
     // Position the context menu
-    this.contextMenuCellX = event.event.clientX;
-    this.contextMenuCellY = event.event.clientY;
+    this.contextMenuPosition = {
+      x: event.event.clientX + window.scrollX,
+      y: event.event.clientY + window.scrollY
+    };
+    const mouseEvent = event.event;
+    this.contextMenuAnchor = mouseEvent.currentTarget as HTMLElement;
     this.contextMenuCellVisible = true;
 
     this.contextMenuCellRow = event.rowIndex;
