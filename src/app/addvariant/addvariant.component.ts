@@ -136,8 +136,9 @@ export class AddVariantComponent implements OnInit{
       this.errorMessage = null;
     } else if (this.variant_string.startsWith("NC_")) {
       this.errorMessage = null;
+    } else if (this.variant_string.startsWith("g.")) {
+      this.errorMessage = "Intergenic variants should be formatted as chromosome accession (e.g., NC_000019.10), semicolon, genomic HGVS";
     } else {
-      this.kind = VariantKind.SV;
       this.errorMessage = null;
     }
   }
@@ -205,15 +206,15 @@ export class AddVariantComponent implements OnInit{
       return this.fail('Please enter a valid variant and select a gene.');
     }
     console.log("submitIntergenicDto=", this.variant_string);
-    const cohortDto = this.cohortService.getCohortData();
-    if (! cohortDto) {
-      return this.fail("Attempt to validate HGVS with null cohortDto");
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) {
+      return this.fail("Attempt to validate intergenic HGVS with null cohortData");
     }
     this.errorMessage = null;
     this.configService.validateIntergenic(this.selectedGene.geneSymbol, this.selectedGene.hgncId, this.variant_string).then((ig) => {
         this.currentIntergenicVariant = ig;
         this.variantValidated = true;
-        cohortDto.intergenicVariants[ig.variantKey] = ig;
+        cohortData.intergenicVariants[ig.variantKey] = ig;
         console.log("Intergenic variant key", ig.variantKey);
         console.log("ig=", ig);
       })
