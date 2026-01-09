@@ -16,8 +16,13 @@
     <div class="flex flex-col md:flex-row gap-4">
         <mat-form-field appearance="fill" class="w-full md:flex-1">
             <mat-label>Variant</mat-label>
-            <input matInput [(ngModel)]="variant_string" (input)="onVariantInput()" 
-                   [disabled]="variantValidated" autocomplete="off" />
+            <input matInput [(ngModel)]="variant_string" 
+                    (input)="onVariantInput()" 
+                    [disabled]="variantValidated" 
+                    autofocus
+                    autocapitalize="none"
+                    spellcheck="false"
+                    autocomplete="off" />
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full md:flex-1">

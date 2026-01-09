@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, computed, effect, HostListener, inject,NgZone, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortData, DiseaseData, RowData } from '../models/cohort_dto';
+import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
@@ -40,7 +39,11 @@ export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
 export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 
-
+/* Used to hold the context menu x and y position */
+interface OverlayPosition {
+  x: number;
+  y: number;
+}
 
 /**
  * Component for editing external Excel tables (e.g., supplemental files). The external tables are assumed to have lines or columns
@@ -54,13 +57,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.css'],
 })
-export class TableEditorComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
-  constructor(
-    templateService: CohortDtoService,
-    ngZone: NgZone,
-    cdRef: ChangeDetectorRef,
-  ) {
-    super(templateService, ngZone, cdRef);
+export class TableEditorComponent implements OnInit, OnDestroy {
+  constructor() {
     this.pmidForm = this.fb.group({
       pmid: [defaultPmidDto()],
     });
@@ -77,6 +75,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   private svDialog = inject(SvDialogService);
   private router = inject(Router);
   private helpService = inject(HelpService);
+  private cohortService = inject(CohortDtoService);
 
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
@@ -99,6 +98,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   visibleColIndex: number = this.INVISIBLE;
   transformedColIndex: number = this.INVISIBLE;
   contextMenuColIndex: number | null = null;
+  contextMenuRowIndex: number | null = null;
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
   simpleColumnOperations = [EtlColumnType.Ignore, EtlColumnType.Raw]
@@ -108,8 +108,13 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   transformationPanelVisible = false;
 
   contextMenuCellVisible = false;
-  contextMenuCellX = 0;
-  contextMenuCellY = 0;
+  contextMenuPosition: OverlayPosition | null = null;
+  contextMenuAnchor?: HTMLElement;
+
+  editModalPosition: OverlayPosition | null = null;
+
+
+
   contextMenuCellRow: number | null = null;
   contextMenuCellCol: number | null = null;
   contextMenuCellValue: EtlCellValue | null = null;
@@ -219,16 +224,14 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
 
 
 
-  override ngOnInit(): void {
-    super.ngOnInit();
+   ngOnInit(): void {
+  
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
     });
   }
 
-  protected override onCohortDtoLoaded(template: CohortData): void {
-    // no-op
-  }
+ 
 
 
   /** Reset if user clicks outside of defined elements. */
@@ -239,8 +242,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   }
 
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
+   ngOnDestroy(): void {
   }
  
   /* Load an external Excel file (e.g., supplemental table from a publication). 
@@ -658,40 +660,8 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
       return col;
     });
     this.etl_service.updateColumns(newColumns);
-
-    
-    
   }
 
-
-
-
-  /** This methods sets up some context variables as sets contextMenuCellVisible to true, which opens up a list of options
-   * (1) editCellValueManually (2) useValueFromAbove, and (3) openVariantEditor, (4) delete row
-   */
-  onRightClickCell(event: MouseEvent, rowIndex: number, colIndex: number): void {
-    event.preventDefault();
-    const dto = this.etl_service.etlDto();
-    if (! dto) return;
-    const columnTableDto = dto.table;
-
-    if (!columnTableDto.columns[colIndex]) return;
-    const headers = this.displayHeaders();
-    if (! headers[colIndex]) {
-      this.notificationService.showError(`Null header for index ${colIndex}`);
-      return;
-    }
-    const header = headers[colIndex];
-    const col = columnTableDto.columns[colIndex];
-    this.contextMenuCellX = event.clientX;
-    this.contextMenuCellY = event.clientY;
-    this.contextMenuCellVisible = true;
-    this.contextMenuCellRow = rowIndex;
-    this.contextMenuCellCol = colIndex;
-    const cell: EtlCellValue = col.values[rowIndex];
-    this.contextMenuCellValue = cell;
-    this.contextMenuCellType = header.columnType;
-  }
 
   deleteRowAtI(i: number): void {
     const dto = this.etl_service.etlDto();
@@ -739,8 +709,24 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
    * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
   async editCellValueManually() {
+    this.contextMenuCellVisible = false;
+    if (! this.contextMenuAnchor) return;
     const dto = this.etl_service.etlDto();
     if (! dto) return;
+    const rect = this.contextMenuAnchor.getBoundingClientRect();
+    const modalHeight = 300;
+    const margin = 8;
+
+    let top = rect.top + window.scrollY;
+    let left = rect.left + window.scrollX;
+    // Flip above if needed
+    if (top + modalHeight > window.scrollY + window.innerHeight) {
+      top = rect.bottom + window.scrollY - modalHeight - margin;
+    }
+
+  this.editModalPosition = { top, left };
+  this.editModalVisible = true;
+
     const cell = this.contextMenuCellValue;
     this.editingValue = cell;
     const colIndex = this.contextMenuCellCol;
@@ -756,7 +742,7 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     }
 
     this.editModalVisible = true;
-    this.contextMenuCellVisible = false;
+   
   }
 
 
@@ -1014,26 +1000,46 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
   useValueFromAbove() {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
-    const columnTableDto = dto.table;
-    if (!this.hasValueAbove()) return;
-    if (this.contextMenuCellCol == null) {
-      this.notificationService.showError("context menu column is null");
+    const cell = this.contextMenuCellValue;
+    this.editingValue = cell;
+    const colIndex = this.contextMenuCellCol;
+    const rowIndex = this.contextMenuCellRow;
+    if (! colIndex || ! rowIndex) {
+      const emsg = `Index information incomplete: col: ${colIndex} - row: ${rowIndex}`
+      this.notificationService.showError(emsg);
       return;
     }
-    if (this.contextMenuCellRow == null) {
-      this.notificationService.showError("context menu row is null");
+    if (!cell) {
+      this.notificationService.showError("Could not edit cell: missing context.");
+      return;
+    }
+    if (!this.hasValueAbove()) return;
+    if (this.contextMenuCellCol == null) {
+      this.notificationService.showError("contextMenuCellCol is null");
       return;
     }
     const dcolumns = this.displayColumns();
-    const aboveValue: EtlCellValue = dcolumns[this.contextMenuCellCol].values[this.contextMenuCellRow - 1];
-    const col = columnTableDto.columns[this.contextMenuCellCol];
-    if (col) {
-      const rowIndex = this.contextMenuCellRow;
-      if (rowIndex >= 0 && rowIndex < col.values.length) {
-        col.values[rowIndex] = aboveValue;
-        this.contextMenuCellValue = this.editingValue;
-      }
-    }
+    const aboveCell: EtlCellValue = dcolumns[colIndex].values[rowIndex - 1];
+    const aboveVal = aboveCell.current;
+    const newColumns = dto.table.columns.map((col, i) => {
+      if (i !== colIndex) return col; // leave other columns unchanged
+      // Update the specific cell immutably
+      const newValues = col.values.map((cell, j) => {
+            if (j !== rowIndex) return cell;
+            return {
+              ...cell,
+              original: aboveVal,
+              current: aboveVal,
+              status: TRANSFORMED, // assume manual edit is correct
+              errorMessage: undefined
+            };
+          });
+          return { ...col, values: newValues };
+        });
+    
+    this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
+    this.editModalVisible = false;
+    this.etl_service.updateColumns(newColumns);
     this.editModalVisible = false;
   }
 
@@ -1045,8 +1051,12 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     colIndex: number;
   }) {
     // Position the context menu
-    this.contextMenuCellX = event.event.clientX;
-    this.contextMenuCellY = event.event.clientY;
+    this.contextMenuPosition = {
+      x: event.event.clientX + window.scrollX,
+      y: event.event.clientY + window.scrollY
+    };
+    const mouseEvent = event.event;
+    this.contextMenuAnchor = mouseEvent.currentTarget as HTMLElement;
     this.contextMenuCellVisible = true;
 
     this.contextMenuCellRow = event.rowIndex;
@@ -2165,6 +2175,19 @@ export class TableEditorComponent extends TemplateBaseComponent implements OnIni
     const dto = this.etl_service.etlDto();
     if (!dto|| this.contextMenuColIndex == null) return [];
     return dto.table.columns[this.contextMenuColIndex].values;
+  }
+
+  // show the status of an ETL Cell
+  getStatusSymbol(val: EtlCellValue | null): string {
+    if (! val)  return '❓';
+    const status = val.status; 
+    switch (status) {
+      case EtlCellStatus.Raw:         return '⚪';
+      case EtlCellStatus.Transformed: return '✨';
+      case EtlCellStatus.Error:       return '❌';
+      case EtlCellStatus.Ignored:     return '🚫';
+      default:                        return '❓';
+    }
   }
 
 

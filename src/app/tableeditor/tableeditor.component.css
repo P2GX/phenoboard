@@ -822,3 +822,8 @@ button {
   background: #fff3e0;
   color: #e65100;
 }
+
+.edit-modal {
+  position: absolute;
+  z-index: 1100;
+}

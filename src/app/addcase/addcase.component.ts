@@ -50,7 +50,6 @@ export class AddcaseComponent {
   ) {}
   @Input() annotations: TextAnnotationDto[] = [];
  
-  cohortDto$ = this.cohortService.cohortData$;
   pmidDto: PmidDto = defaultPmidDto();
   public VariantKind = VariantKind;
 
@@ -105,14 +104,6 @@ export class AddcaseComponent {
         this.ngZone.run(() => this.handleBackendStatus(event.payload));
       })
     );
-    // 
-    this.cohortService.cohortData$.subscribe(template => {
-      if (template) {
-        this.tableData = template;
-      } else {
-        this.tableData = null;
-      }
-    });
   }
 
   

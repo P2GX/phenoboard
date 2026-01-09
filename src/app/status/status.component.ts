@@ -20,8 +20,9 @@ export class StatusComponent implements OnInit {
   private configService = inject(ConfigService);
   private cohortService = inject(CohortDtoService);
   private etl_service = inject(EtlSessionService);
-  cohortDto$ = this.cohortService.cohortData$;
 
+
+  cohortData = this.cohortService.cohortData; 
   
   diseaseList!: DiseaseData[];
   pmidList: SourcePmid[] = [];

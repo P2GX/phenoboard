@@ -45,7 +45,7 @@
     </div>
   </div>
 }
-@if (!this.etl_service.etlDto) {
+@if (!this.etl_service.etlDto()) {
   <div>
     <p>No table loaded yet.</p>
   </div>
@@ -173,14 +173,20 @@
 </div>
 }
   @if (contextMenuCellVisible) {
+    <!-- activate by OnCellContextMenu -->
     <div class="context-menu-visible"
-        [style.top.px]="contextMenuCellY" 
-        [style.left.px]="contextMenuCellX"
+        [style.top.px]="contextMenuPosition?.y" 
+        [style.left.px]="contextMenuPosition?.x"
         (click)="contextMenuCellVisible = false"
     >
-      <div style="padding: 5px 0; font-weight: bold;">
-        Value: "{{ contextMenuCellValue }}"<br />
-        Type: {{ contextMenuCellType }}
+    <div style="padding: 8px; font-size: 13px; line-height: 1.5;">
+      
+      <div><strong>Original:</strong> {{ contextMenuCellValue?.original }}</div>
+      <div><strong>Current:</strong> {{ contextMenuCellValue?.current }}</div>
+      <div style="border-bottom: 1px solid #ccc; margin-bottom: 5px; padding-bottom: 5px;">
+        <strong>Status:</strong> {{ getStatusSymbol(contextMenuCellValue) }} 
+        <span style="text-transform: capitalize;">{{ contextMenuCellValue?.status }}</span>
+      </div>
       </div>
       <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
         <li
@@ -219,7 +225,10 @@
 
 @if(editModalVisible) {
 <div class="modal-overlay" (mousedown)="editModalVisible = false">
-  <div class="edit-modal" (mousedown)="$event.stopPropagation()">
+  <div class="edit-modal" 
+    [style.top.px]="editModalPosition?.y"
+    [style.left.px]="editModalPosition?.x"
+  (mousedown)="$event.stopPropagation()">
     <header>
       <mat-icon>edit</mat-icon>
       <h3>Edit Cell Value</h3>

@@ -1,4 +1,4 @@
-import { Component,  inject,  signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 })
 export class PubmedComponent {
 
+
   private configService = inject(ConfigService);
   private pmidService = inject(PmidService);
   public dialogRef = inject(MatDialogRef<PubmedComponent>);
@@ -23,14 +24,14 @@ export class PubmedComponent {
 
   data = inject<PmidDto>(MAT_DIALOG_DATA, { optional: true });
   pmidDto: WritableSignal<PmidDto> = signal<PmidDto>(this.data ?? defaultPmidDto());
-  availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal; 
+  availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal;
   selectedPmid = signal<string>('');
 
 
   onPmidSelection(event: Event): void {
     const target = event.target as HTMLSelectElement;
     const selectedPmidNumber = target.value;
-    
+
     if (selectedPmidNumber === '') {
       // "New PMID" selected - clear the form
       this.pmidDto.set(defaultPmidDto());
@@ -42,12 +43,13 @@ export class PubmedComponent {
     if (selected) {
       this.pmidDto.set(selected);// = { ...selected };
       this.selectedPmid.set(selectedPmidNumber);
+      this.pmidService.addPmid(this.pmidDto());
     }
   }
 
-  async retrieve_pmid_title() {
+  async retrieve_pmid_title(): Promise<void> {
     if (!this.pmidDto().pmid?.trim()) return;
-    
+
     const input = this.pmidDto().pmid.trim();
     try {
       const result: PmidDto = await this.configService.retrieve_pmid_title(input);
@@ -74,12 +76,12 @@ export class PubmedComponent {
   // Dialog methods
   accept(): void {
     console.log('Accept clicked with:', this.pmidDto());
-    
+
     // Save to service if it's a valid PMID
     if (this.isReady()) {
       this.pmidService.addPmid(this.pmidDto());
     }
-    
+
     this.dialogRef.close(this.pmidDto());
   }
 
@@ -96,7 +98,7 @@ export class PubmedComponent {
     }));
   }
 
-  clear(): void {
+  clearPmids(): void {
     this.availablePmids.set([]);
   }
 

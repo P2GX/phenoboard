@@ -1,17 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, HpoGroupMap } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
@@ -21,9 +20,7 @@ import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.compo
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-type Option = { label: string; value: string };
-
-
+interface Option { label: string; value: string };
 
 @Component({
   selector: 'app-pttemplate',
@@ -43,14 +40,32 @@ type Option = { label: string; value: string };
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
 })
-export class PtTemplateComponent extends TemplateBaseComponent implements OnInit, AfterViewInit {
+export class PtTemplateComponent  {
 
-  constructor(
-    ngZone: NgZone,
-    cohortService: CohortDtoService,
-    override cdRef: ChangeDetectorRef) {
-      super(cohortService, ngZone, cdRef)
-    }
+
+  /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
+  hpoGroups = signal<Map<string, HpoTermDuplet[]>>(new Map());
+  hpoGroupKeys = computed<string[]>(() => Array.from(this.hpoGroups().keys()));
+  constructor() {
+    effect(() => {
+      const cohortDto = this.cohortService.cohortData();
+      if (cohortDto) {
+        if (cohortDto) {
+          this.configService.getTopLevelHpoTerms(cohortDto).then(groupsObj => {
+            // Convert the plain object to a Map
+            this.hpoGroups.set(new Map(Object.entries(groupsObj)));
+          });
+        } else {
+          this.hpoGroups.set(new Map());
+        }
+      }
+    });
+  }
+  
+  public cohortService = inject(CohortDtoService);
+  cohortData = this.cohortService.cohortData; 
+
+  private cdRef = inject(ChangeDetectorRef);
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
@@ -65,8 +80,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   tableWidth = '100%'; 
   Object = Object; // <-- expose global Object to template
   public readonly VariantKind = VariantKind;
-  cohortDto: CohortData | null = null;
-
   selectedCellContents: CellValue | null = null;
   successMessage: string | null = null;
 
@@ -82,7 +95,30 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   individualMenuX = 0;
   individualMenuY = 0;
   contextRow: RowData | null = null;
-  filteredRows: RowData[] = [];
+
+  // the following determine which rows are shown in the GUI
+  
+  filterMode = signal<'all' | 'single' | 'pmid'>('all');
+  focusedRow = signal<RowData | null>(null);
+  focusedPmid = signal<string | null>(null);
+  filteredRows = computed(() => {
+    const cohort = this.cohortService.getCohortData();
+    if (!cohort) return [];
+    const mode = this.filterMode();
+    const allRows = cohort.rows;
+    switch (mode) {
+      case 'single':
+        const row = this.focusedRow();
+        return row ? [row] : allRows;
+      case 'pmid':
+        const pmid = this.focusedPmid();
+        return pmid ? allRows.filter(r => r.individualData.pmid === pmid) : allRows;
+      case 'all':
+      default:
+        return allRows;
+    }
+  });
+
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
@@ -108,65 +144,32 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     { label: 'Show all columns', value: 'focus-reset' }
   ];
   
-  /** Alleles that have been validated (and will show green). See the method 'rebuildValidatedAlleles' */
-  validatedAlleles = new Set<string>();
-
-  /* Should be called whenever (i) cohort loads; (ii) variants are added/removed; or (iii) DTO is replaced */
-  rebuildValidatedAlleles(): void {
-    const cohort = this.cohortDto;
-    if (!cohort) {
-      this.validatedAlleles.clear();
-      return;
-    }
-
-    this.validatedAlleles = new Set([
-      ...Object.keys(cohort.hgvsVariants),
-      ...Object.keys(cohort.structuralVariants),
-      ...Object.keys(cohort.intergenicVariants)
+  /** Alleles that have been validated (and will show green). */
+  validatedAlleles = computed<Set<string>>(() => {
+    const cohort = this.cohortService.getCohortData(); // read the signal
+    if (!cohort) return new Set<string>();
+    return new Set<string>([
+      ...Object.keys(cohort.hgvsVariants ?? {}),
+      ...Object.keys(cohort.structuralVariants ?? {}),
+      ...Object.keys(cohort.intergenicVariants ?? {})
     ]);
-  }
+  });
 
   isAlleleValidatedCached(key: string): boolean {
-    return this.validatedAlleles.has(key);
+    return this.validatedAlleles().has(key);
   }
 
   contextMenuOptions: Option[] = [];
   showMoiIndex: number | null = null;
 
-    /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
-    selectedTopLevelHpo: string | null = null;
-    /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
-    hpoGroups: HpoGroupMap = new Map<string, HpoTermDuplet[]>();
-    hpoGroupKeys: string[] = [];
-    visibleColumns: number[] = [];
+  /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
+  selectedTopLevelHpo = signal<string | null>(null);
+    
+    
 
-  override ngOnInit(): void {
-    super.ngOnInit();
-    this.cohortService.cohortData$.subscribe(dto => {
-      if (!dto) return;
-
-      this.cohortDto = dto;
-      this.rebuildValidatedAlleles();
-      this.configService.getTopLevelHpoTerms(dto)
-        .then(groups => {
-          this.hpoGroups = new Map(Object.entries(groups));
-          this.hpoGroupKeys = Array.from(this.hpoGroups.keys());
-          this.visibleColumns = this.getVisibleColumns();
-        })
-        .catch(err => {
-          console.error('Error fetching HPO groups:', err);
-          this.hpoGroupKeys = [];
-        });
-    });
-    document.addEventListener('click', this.onClickAnywhere.bind(this));
-    document.addEventListener('click', this.closeIndividualContextMenu.bind(this), { once: true });
-    this.contextMenuOptions = [...this.predefinedOptions];
-    this.cohortAcronymInput = this.getSuggestedAcronym();
-  }
-  
   /** Get suggest cohort acronym for melded only (others should be blank because the user
    * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
-  getSuggestedAcronym(): string {
+  suggestedAcronym = computed(() : string  => {
     const cohort = this.cohortService.getCohortData();
     if (! cohort) return '';
     if (cohort.cohortType === 'melded') {
@@ -177,35 +180,22 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
         )
         .filter(Boolean) // remove null/undefined just in case
         .sort((a: string, b: string) => a.localeCompare(b)); // alphabetic sort
-
       return symbols.join('-');
     }  else if (cohort.cohortAcronym != null) {
       return cohort.cohortAcronym;
     } else {
       return '';
     }
-  }
+  });
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    document.removeEventListener('click', this.onClickAnywhere.bind(this)); 
-  }
 
-  protected override onCohortDtoLoaded(cohortDto: CohortData): void {
-    console.log("✅ Template loaded into PtTemplateComponent:", cohortDto);
-    this.rebuildValidatedAlleles();
-    this.cdRef.detectChanges();
-  }
+  moiList = computed(() => {
+    const dto = this.cohortService.cohortData();
+    if (! dto ) return [];
+    return dto.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
+  });
 
-  protected override onCohortDtoMissing(): void {
-    console.warn("⚠️ Template is missing in PtTemplateComponent");
-  }
-
-  get moiList(): ModeOfInheritance[] {
-    const cohort = this.cohortService.getCohortData();
-    if (!cohort) return [];
-    return cohort.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
-  }
+ 
 
   toggleMoiSelector(i: number): void {
     this.showMoiIndex = this.showMoiIndex === i ? null : i;
@@ -222,7 +212,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       try {
         const data = await this.configService.getPhetoolsTemplate();
         this.cohortService.setCohortData(data); 
-         this.rebuildValidatedAlleles();
       } catch (error) {
         this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
@@ -231,15 +220,9 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     }
   }
 
-  ngAfterViewInit(): void {
-    this.cdRef.detectChanges(); 
-  }
-
-
   async loadTemplateFromBackend(): Promise<void> {
     this.configService.getPhetoolsTemplate().then((data: CohortData) => {
         this.cohortService.setCohortData(data);
-        this.rebuildValidatedAlleles();
   });
   }
 
@@ -312,7 +295,6 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     cohort.rows[rowIndex] = row;  // update row reference
 
     this.cohortService.setCohortData(cohort);
-     this.rebuildValidatedAlleles();
     this.notificationService.showSuccess(`Allele ${variantKey} added`);
   }
 
@@ -332,23 +314,27 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
     return diseaseStrings.join(" and ");
   }
 
-  get numVariants(): number {
-    const cohort = this.cohortService.getCohortData()
+
+  numVariants = computed((): number => {
+    const cohort = this.cohortService.getCohortData();
     if (! cohort ) {
       return 0;
     } else {
       return Object.keys(cohort.hgvsVariants).length + Object.keys(cohort.structuralVariants).length
     }
-  }
+  });
+
+ 
 
 
   async validateCohort(): Promise<void> {
-    if (! this.cohortDto) {
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) {
       alert("Cohort DTO not initialized");
       return;
     }
     try {
-      await this.configService.validateCohort(this.cohortDto);
+      await this.configService.validateCohort(cohortData);
       alert("✅ Cohort successfully validated");
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
@@ -358,23 +344,23 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   /** Remove ontological conflicts and redundancies */
   async sanitizeCohort(): Promise<void> {
-    const cohortDto = this.cohortDto;
-    if (! cohortDto) {
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) {
       alert("Cohort DTO not initialized");
       return;
     }
     try {
-      const sanitized_cohort = await this.configService.sanitizeCohort(cohortDto);
+      const sanitized_cohort = await this.configService.sanitizeCohort(cohortData);
       this.cohortService.setCohortData(sanitized_cohort);
-      console.log(this.deepDiff(sanitized_cohort, cohortDto));
-      alert("✅ Cohort successfully sanitized");
+      const cdiff = this.deepDiff(sanitized_cohort, cohortData);
+      alert(`✅ Cohort successfully sanitized ${cdiff}`);
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Sanitization failed:\n' + JSON.stringify(err));
     }
   }
 
-  submitSelectedHpo = async () => {
+  submitSelectedHpo = async (): Promise<void> => {
     if (this.selectedHpoTerm == null) {
       this.notificationService.showError("No HPO term selected");
       return;
@@ -481,7 +467,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       }
     } else if (this.selectedCellContents) {
       this.focusedHpoIndex = null;
-      const currentDto = this.cohortDto; //this.cohortService.getCohortDto();
+      const currentDto = this.cohortService.getCohortData();
       if (! currentDto) {
         this.notificationService.showError("Cohort object is null (should never happen, please report to developers).");
         return;
@@ -489,9 +475,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       console.log(currentDto)
       const cellValue: CellValue = getCellValue(option);
       const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingRow, this.pendingHpoColumnIndex, cellValue);
-      this.cohortDto = updatedCohort;
       this.cohortService.setCohortData(updatedCohort);
-      this.updateFilteredRows();
     }  
       
     
@@ -511,7 +495,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   }
 
   async saveCohort(): Promise<void> {
-    const cohort = this.cohortDto;
+    const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Cannot save null cohort");
       return;
@@ -534,7 +518,7 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   
 
   async exportPpkt(): Promise<void> {
-    const cohort_dto = this.cohortDto;
+    const cohort_dto = this.cohortService.getCohortData();
     if (! cohort_dto) {
       this.notificationService.showError("CohortData not initialized");
       return;
@@ -549,14 +533,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
   /** Export the aggregate file for use in phenotype.hpoa (part of a small file) */
     async exportHpoa(): Promise<void> {
-      if (! this.cohortDto) {
+      const cohortDto = this.cohortService.getCohortData();
+      if (! cohortDto) {
         this.notificationService.showError("Cohort DTO not initialized");
         return;
       }
-      const cohort_dto = this.cohortDto;
-      console.log("exportHpoa", cohort_dto);
       try {
-        const message = await this.configService.exportHpoa(cohort_dto);
+        const message = await this.configService.exportHpoa(cohortDto);
         this.notificationService.showSuccess(message);
       } catch (err) {
         this.notificationService.showError(String(err));
@@ -581,17 +564,13 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
   showMoi = false;
 
  async submitCohortAcronym(acronym: string): Promise<void> {
-    const cohort_dto: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
-    console.log("submitCohortAcronym before", cohort_dto);
     if (acronym.trim()) {
       this.cohortService.setCohortAcronym(acronym.trim());
       this.showCohortAcronym = false;
     }
-    const cohort_dto2: CohortData | null = await firstValueFrom(this.cohortService.cohortData$); // make sure we get the very latest version
-    console.log("submitCohortAcronym afteter", cohort_dto2);
   }
 
-  cancelCohortAcronym() {
+  cancelCohortAcronym(): void {
     this.showCohortAcronym = false;
   }
 
@@ -631,35 +610,36 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
       return [allele, symbol, transcript, allelecount, key];
     }
 
-    getShortAlleleDisplay(key: string, count: number): string {
-      const cohort = this.cohortService.getCohortData();
-      let label = key;
-      const allelecount = count.toString();
-      if (cohort != null) {
-        const hgvs = cohort.hgvsVariants[key];
-          const sv = cohort.structuralVariants[key];
-          if ( hgvs) {
-            label = hgvs.hgvs;
-          } else if (sv) {
-            label = sv.label;
-          }
-      }
-      
-      return label;
-    }
 
-    getDiseaseLabel(diseaseId: string): string {
-      const cohort = this.cohortDto;
-      if (cohort == null || cohort.diseaseList.length == 0) {
-        return "n/a";
-      }
-      if (cohort.diseaseList.length > 1) {
-        const disease = cohort.diseaseList.find(d => d.diseaseId === diseaseId)?.diseaseLabel;
-        return disease || "n/a";
-      } else {
-        return cohort.diseaseList[0].diseaseLabel;
-      }
+  shortAlleleDisplayByKey = computed(() => {
+    const cohort = this.cohortService.cohortData();
+    if (!cohort || cohort.diseaseList.length === 0) {
+      return new Map<string, string>();
     }
+    const map = new Map<string, string>();
+    for (const [key, hgvs] of Object.entries(cohort.hgvsVariants)) {
+      map.set(key, hgvs.hgvs);
+    }
+    for (const [key, sv] of Object.entries(cohort.structuralVariants)) {
+      map.set(key, sv.label);
+    }
+    for (const [key, ig] of Object.entries(cohort.intergenicVariants ?? {})) {
+      map.set(key, ig.gHgvs ?? key);
+    }
+    return map;
+  });
+
+
+   diseaseLabelById = computed(() => {
+    const cohort = this.cohortService.cohortData();
+    if (!cohort || cohort.diseaseList.length === 0) {
+      return new Map<string, string>();
+    } else {
+      return new Map(
+        cohort.diseaseList.map(d => [d.diseaseId, d.diseaseLabel])
+      );
+    }
+   }); 
  
 
    onMoiChange(newMoiList: ModeOfInheritance[], diseaseIndex: number): void {
@@ -683,25 +663,34 @@ export class PtTemplateComponent extends TemplateBaseComponent implements OnInit
 
    
 
-  /** for debugging. Puts the differences between to structures, can be output to console. */
-  deepDiff(a: any, b: any, path: string[] = []): string[] {
+  /** 
+   * Debug helper: returns human-readable differences between two values.
+   */
+  deepDiff(a: unknown, b: unknown, path: string[] = []): string[] {
     const diffs: string[] = [];
-
-    const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-
-    for (const key of keys) {
-      const newPath = [...path, key];
-      const aVal = a?.[key];
-      const bVal = b?.[key];
-
-      if (aVal && bVal && typeof aVal === "object" && typeof bVal === "object") {
-        diffs.push(...this.deepDiff(aVal, bVal, newPath));
-      } else if (aVal !== bVal) {
-        diffs.push(`${newPath.join(".")}: ${aVal} → ${bVal}`);
+    // Case 1: both are non-null objects → recurse
+    if (this.isRecord(a) && this.isRecord(b)) {
+      const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+      for (const key of keys) {
+        diffs.push(
+          ...this.deepDiff(a[key], b[key], [...path, key])
+        );
       }
+      return diffs;
     }
-  return diffs;
-}
+    // Case 2: values differ (primitive or mismatched types)
+    if (a !== b) {
+      diffs.push(`${path.join(".")}: ${String(a)} → ${String(b)}`);
+    }
+
+    return diffs;
+  }
+  /* HELPER FOR ABOVE FUNCTION */
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+  }
+
+
 
   
 openAgeDialog(): void {
@@ -737,36 +726,27 @@ get ageEntries(): string[] {
   }
 
   /** Calculate the columns we show if the user chooses to filter to a top-level term */
-  getVisibleColumns(): number[] {
-    const cohort = this.cohortService.getCohortData();
-    if (! cohort) return [];
-    if (cohort.rows.length < 1) return [];
-    const row1 = cohort.rows[0];
-    const n_cols = row1.hpoData.length;
+  /** Calculate the columns we show if the user chooses to filter to a top-level term */
+visibleColumns = computed<number[]>(() => {
+  const cohort = this.cohortService.getCohortData();
+  if (!cohort) return [];
+  if (cohort.rows.length < 1) return [];
   
-    
-    // if we have fewer than 20 columns, show all
-    if (n_cols <= 20 || !this.selectedTopLevelHpo) {
-      return Array.from({ length: n_cols }, (_, i) => i);
-    }
-
-    const allowedTerms = this.hpoGroups.get(this.selectedTopLevelHpo) ?? [];
-    const allowedIds = allowedTerms.map(term => term.hpoId);
-
-    // Return indices of headers whose HPO ID is allowed
-    return cohort.hpoHeaders
-      .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
-      .filter(i => i !== -1);
+  const row1 = cohort.rows[0];
+  const n_cols = row1.hpoData.length;  
+  const selectedHpo = this.selectedTopLevelHpo();
+  // if we have fewer than 20 columns, show all
+  if (n_cols <= 20 || !selectedHpo) {
+    return Array.from({ length: n_cols }, (_, i) => i);
   }
+  const allowedTerms = this.hpoGroups().get(selectedHpo) ?? [];
+  const allowedIds = allowedTerms.map(term => term.hpoId);
+  // Return indices of headers whose HPO ID is allowed
+  return cohort.hpoHeaders
+    .map((header, i) => (allowedIds.includes(header.hpoId) ? i : -1))
+    .filter(i => i !== -1);
+});
 
-  private filterChangeTimeout: any;
-
-  onHpoFilterChange(): void {
-    clearTimeout(this.filterChangeTimeout);
-    this.filterChangeTimeout = setTimeout(() => {
-      this.visibleColumns = this.getVisibleColumns();
-    }, 200); // adjust delay as needed (ms)
-  }
 
   /* right click on first column can focus on row or PMIDs */
   onIndividualRightClick(event: MouseEvent, row: RowData): void {
@@ -782,51 +762,47 @@ get ageEntries(): string[] {
     this.individualContextMenuVisible = false;
   }
 
-focusOnSingleRow(): void {
-  if (!this.contextRow) return;
-  this.filteredRows = [this.contextRow];
-  this.closeContextMenu();
-  this.individualContextMenuVisible = false;
-}
 
-/* If we make a change on a row while we are focussing on just that row (or a few rows), we need 
-  * the following logic to make sure we show it in the GUI. */
-updateFilteredRows(): void {
-  const cohort = this.cohortService.getCohortData();
-  if (!cohort) return;
-  if (!this.filteredRows?.length) {
-    this.filteredRows = [];
-    return;
+  // Just show the row that the user clicks on
+  focusOnSingleRow(): void {
+    if (!this.contextRow) return;
+    this.focusedRow.set(this.contextRow);
+    this.filterMode.set('single');
+    this.closeContextMenu();
+    this.individualContextMenuVisible = false;
   }
-  const filteredKeys = new Set(
-    this.filteredRows.map(row => this.getIndividualKey(row.individualData))
-  );
+  /** Focus on all rows with the same PMID */
+  focusOnPmid(): void {
+    const crow = this.contextRow;
+    if (! crow) {
+      this.notificationService.showError("Could not focus on PMID because context row not found");
+      this.showAllRows();
+      return;
+    }
+    const pmid = crow.individualData.pmid
+    this.focusedPmid.set(pmid);
+    this.filterMode.set('pmid');
+    this.individualContextMenuVisible = false;
+  }
 
-  this.filteredRows = cohort.rows.filter(r =>
-    filteredKeys.has(this.getIndividualKey(r.individualData))
-  );
-}
+  showAllRows(): void {
+    this.filterMode.set('all');
+    this.focusedPmid.set('');
+    this.individualContextMenuVisible = false;
+  }
+ 
 
-/** Focus on all rows with the same PMID */
-focusOnPmid(): void {
-  if (!this.contextRow) return;
-  const cohort = this.cohortService.getCohortData();
-  if (! cohort) return;
-  const pmid = this.contextRow.individualData.pmid;
-  this.filteredRows = cohort.rows.filter(
-    r => r.individualData.pmid === pmid
-  );
-   this.individualContextMenuVisible = false;
-  this.closeContextMenu();
-}
 
-showAllRows(): void {
-  this.filteredRows = [];
-  this.individualContextMenuVisible = false;
-  this.rowInfoKey = null;
-  this.rowInfoVisible = true;
-  this.closeRowInfo();
-}
+
+
+ filteredKeys = computed(() => {
+    const frows=  this.filteredRows().map(row => this.getIndividualKey(row.individualData));
+    return new Set(frows);
+ });
+
+
+
+
 
 /** Show info like the existing hover popup */
 showInfoForRow(row: RowData | null): void {
@@ -849,22 +825,8 @@ showInfoForRow(row: RowData | null): void {
   }
 
 
-  /** Optional: reset filter */
-  resetFilter(): void {
-    this.filteredRows = [];
-  }
 
-  getDisplayedRows(): RowData[] {
-    const cohort = this.cohortService.getCohortData();
-    if (! cohort) return [];
-    if (this.filteredRows.length == 0) {
-      return cohort.rows;
-    } else {
-      return this.filteredRows;
-    }
-  }
-
-  getAlleleKeys(map: Record<string, any>): string[] {
+  getAlleleKeys(map: Record<string, unknown>): string[] {
     return Object.keys(map);
   }
 
@@ -898,6 +860,28 @@ showInfoForRow(row: RowData | null): void {
       rows: updatedRows
     };
     this.cohortService.setCohortData(updatedCohort);
+  }
+
+  /* Get Links for display with summary of cohort */
+  getGeneLinks(disease: DiseaseData): {symbol: string, hgncUrl: string, transcript: string, ncbiUrl: string}[] {
+    if (!disease?.geneTranscriptList?.length) {
+      return [];
+    }
+
+    return disease.geneTranscriptList.map((gene:  GeneTranscriptData) => ({
+      symbol: gene.geneSymbol,
+      transcript: gene.transcript,
+      hgncUrl: `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${gene.hgncId}`,
+      ncbiUrl: `https://www.ncbi.nlm.nih.gov/nuccore/${gene.transcript}`
+    }));
+  }
+
+  async sortCohortRows() {
+    const dto = this.cohortService.getCohortData();
+    if (! dto) return;
+    const sorted_dto = await this.configService.sortCohortByrows(dto);
+    this.cohortService.setCohortData(sorted_dto);
+  
   }
 
 }

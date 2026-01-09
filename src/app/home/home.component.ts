@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { CommonModule } from '@angular/common';
@@ -6,8 +6,6 @@ import { StatusDto } from '../models/status_dto';
 import { BackendStatusService } from '../services/backend_status_service'
 import { Subscription } from 'rxjs';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
-import { CohortData } from '../models/cohort_dto';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
@@ -25,26 +23,19 @@ import { PmidService } from '../services/pmid_service';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
 
 
-  constructor(
-    ngZone: NgZone, 
-    override cohortService: CohortDtoService,
-    override cdRef: ChangeDetectorRef,
-    ) {
-      super(cohortService, ngZone, cdRef);
-    }
-
-    private configService = inject(ConfigService);
-    private backendStatusService = inject(BackendStatusService);
-    private ageService = inject(AgeInputService);
-    private pmidService = inject(PmidService);
-    private router= inject(Router);
-    private dialog = inject(MatDialog);
-    private notificationService = inject(NotificationService);
-
-
+  constructor() {}
+  cohortService= inject(CohortDtoService);
+  private configService = inject(ConfigService);
+  private backendStatusService = inject(BackendStatusService);
+  private ageService = inject(AgeInputService);
+  private pmidService = inject(PmidService);
+  private router= inject(Router);
+  private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
+  private ngZone = inject(NgZone);
 
   private unlisten: UnlistenFn | null = null;
   statusSubscription?: Subscription;
@@ -55,7 +46,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   hpoMessage: string | null = null;
   updateLabels = false;
 
-  //newFilePath: any;
   loadError: unknown;
   NOT_INIT = "not initialized";
   newTemplateMessage = this.NOT_INIT;
@@ -69,8 +59,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
   isRunning = false;
 
 
-  override async ngOnInit(): Promise<void> {
-    super.ngOnInit();
+   async ngOnInit(): Promise<void> {
     const currentOrcid = await this.getCurrentOrcid();
     this.biocuratorOrcid = currentOrcid || "not initialized";
     this.unlisten = await listen('backend_status', (event) => {
@@ -104,14 +93,7 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     
   }
 
- 
 
-  protected override onCohortDtoLoaded(template: CohortData): void {
-    this.cdRef.detectChanges();
-  }
-
-  protected override onCohortDtoMissing(): void {
-  }
   
   async update_gui_variables(): Promise<void> {
     const status = this.backendStatusService.getStatus();
@@ -131,14 +113,6 @@ export class HomeComponent extends TemplateBaseComponent implements OnInit, OnDe
     });
   }
   
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    if (this.unlisten) {
-      this.unlisten();
-      this.unlisten = null;
-    }
-    this.statusSubscription?.unsubscribe();
-  }
 
     
 

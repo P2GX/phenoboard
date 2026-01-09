@@ -49,6 +49,7 @@ pub fn run() {
             validate_template,
             sanitize_cohort_data,
             save_cohort_data,
+            sort_cohort_by_rows,
             export_hpoa,
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
@@ -468,6 +469,13 @@ fn save_cohort_data(
     let singleton = singleton_arc.lock().unwrap();
     singleton.save_template_json(cohort_dto)
 }
+
+#[tauri::command]
+fn sort_cohort_by_rows(dto: CohortData) 
+-> CohortData {
+    ga4ghphetools::factory::sort_rows(&dto)
+}
+
 
 #[tauri::command]
 fn export_ppkt(

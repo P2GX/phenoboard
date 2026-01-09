@@ -1,8 +1,7 @@
-import { ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { TemplateBaseComponent } from '../templatebase/templatebase.component';
 import { DiseaseData, newDiseaseData, CohortData, CohortType, GeneTranscriptData } from '../models/cohort_dto';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ConfigService } from '../services/config.service';
@@ -10,6 +9,7 @@ import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
+import { EtlSessionService } from '../services/etl_session_service';
 
 
 
@@ -29,6 +29,7 @@ export class NewTemplateComponent  {
 
   private cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
+  private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private dialog= inject(MatDialog);
 
@@ -107,6 +108,7 @@ async mendelian(): Promise<void> {
 }
 
 private async createTemplate(data: any, ctype: CohortType): Promise<void> {
+  this.etl_service.clearEtlDto();
   if (ctype == "mendelian") {  
     try {
         const diseaseData: DiseaseData = newDiseaseData(

@@ -13,6 +13,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogActions, MatDialogModule } from
   styleUrl: './addages.component.css'
 })
 export class AddagesComponent implements OnInit {
+
   
   private ageService = inject(AgeInputService);
   private dialogRef = inject(MatDialogRef<AddagesComponent>);
@@ -55,10 +56,6 @@ export class AddagesComponent implements OnInit {
     this.ageService.addSelectedTerms(this.entries);
   }
 
-  handleAgeList($event: string[]): void {
-    throw new Error('Method not implemented.');
-  }
-
   getEntries(): string[] {
     return this.entries;
   }
@@ -74,5 +71,9 @@ export class AddagesComponent implements OnInit {
   onSave(): void {
     // return some value
     this.dialogRef.close(this.entries);
+  }
+
+  clearAges(): void {
+    this.ageService.clearSelectedTerms();
   }
 }
