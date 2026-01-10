@@ -368,18 +368,18 @@
   font-weight: 600;
 }
 .edit-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute;
+  overflow: visible;
   background: white;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 16px 64px rgba(0, 0, 0, 0.2);
   border: 1px solid #e2e8f0;
+  font-size: 13px;
   z-index: 1003;
   min-width: 400px;
 }
+
 
 .edit-modal h4 {
   margin-top: 0;

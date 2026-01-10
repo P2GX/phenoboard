@@ -724,7 +724,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       top = rect.bottom + window.scrollY - modalHeight - margin;
     }
 
-  this.editModalPosition = { top, left };
+  this.editModalPosition = { x:left, y: top };
   this.editModalVisible = true;
 
     const cell = this.contextMenuCellValue;
@@ -1043,6 +1043,45 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     this.editModalVisible = false;
   }
 
+
+  /* Get positions for the context menu */
+  private calculateContextMenuPosition(
+    anchor: HTMLElement,
+    menuWidth = 260,
+    menuHeight = 240,
+    margin = 6
+  ): OverlayPosition {
+    const rect = anchor.getBoundingClientRect();
+
+    const viewportTop = window.scrollY;
+    const viewportBottom = viewportTop + window.innerHeight;
+    const viewportLeft = window.scrollX;
+    const viewportRight = viewportLeft + window.innerWidth;
+
+    // Default: below, left-aligned to cell
+    let top = rect.bottom + window.scrollY + margin;
+    let left = rect.left + window.scrollX;
+
+    // Flip vertically if overflowing bottom
+    if (top + menuHeight > viewportBottom) {
+      top = rect.top + window.scrollY - menuHeight - margin;
+    }
+
+    // Clamp vertically
+    if (top < viewportTop + margin) {
+      top = viewportTop + margin;
+    }
+
+    // Clamp horizontally
+    if (left + menuWidth > viewportRight) {
+      left = viewportRight - menuWidth - margin;
+    }
+    if (left < viewportLeft + margin) {
+      left = viewportLeft + margin;
+    }
+
+    return { y:top, x: left };
+  }
   /* Activated by a right click on a table cell */
   onCellContextMenu(event: {
     event: MouseEvent;
@@ -1050,14 +1089,12 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     rowIndex: number;
     colIndex: number;
   }) {
-    // Position the context menu
-    this.contextMenuPosition = {
-      x: event.event.clientX + window.scrollX,
-      y: event.event.clientY + window.scrollY
-    };
+   
     const mouseEvent = event.event;
     this.contextMenuAnchor = mouseEvent.currentTarget as HTMLElement;
     this.contextMenuCellVisible = true;
+     // Position the context menu
+    this.contextMenuPosition = this.calculateContextMenuPosition(this.contextMenuAnchor);
 
     this.contextMenuCellRow = event.rowIndex;
     this.contextMenuCellCol = event.colIndex;
