@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from "../models/cohort_dto";
 import { defaultPmidDto, PmidDto } from "../models/pmid_dto";
 import { MatDialog } from "@angular/material/dialog";
+import { firstValueFrom } from "rxjs";
+import { PmidService } from "../services/pmid_service";
 
 
 interface MoiTerm {
@@ -21,6 +23,7 @@ interface MoiTerm {
 })
 export class MoiSelector implements OnChanges{
   private dialog = inject(MatDialog);
+  private pmidService = inject(PmidService);
 
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
 
@@ -74,26 +77,25 @@ export class MoiSelector implements OnChanges{
     return selected.length === 0 || selected.some(m => !m.pmid);
   }
 
+  private async selectPmid(): Promise<PmidDto | null> {
+      const dialogRef = this.dialog.open(PubmedComponent, {
+        width: '600px',
+        data: { pmidDto: this.pmidDto() }
+      });
+  
+      return firstValueFrom(dialogRef.afterClosed());
+    }
 
-openPubmedDialog(moi: MoiTerm): void {
-  const dialogRef = this.dialog.open(PubmedComponent, {
-      width: '600px',
-      data: { pmidDto: null } // optional initial data
-    });
-
-    dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-      if (result) {
-        console.log('User chose', result);
-        this.pmidDto.set(result);
-        this.moiTerms.update(current =>
+   async openPubmedDialog(moi: MoiTerm): Promise<void> {
+    const result: PmidDto | null = await this.selectPmid();
+    if (!result) return;
+    this.pmidService.addPmid(result);
+    this.pmidDto.set(result);
+    this.moiTerms.update(current =>
           current.map(m =>
             m.id === moi.id ? { ...m, selected: true, pmid: result.pmid } : m
           )
         );
-      } else {
-        console.log('User cancelled');
-      }
-    });
   }
 
 

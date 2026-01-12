@@ -1,4 +1,4 @@
-import { Component, Input, NgZone } from '@angular/core';
+import { Component, inject, Input, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule} from '@angular/forms';
 import { ConfigService } from '../services/config.service';
@@ -16,12 +16,13 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
 import { VariantDto } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
-import { DemographDto } from '../models/demograph_dto';
+import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from './confirmdialog.component';
+import { signal, computed, effect } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -39,20 +40,25 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './addcase.component.css'
 })
 export class AddcaseComponent {
-  constructor(
-    private ngZone: NgZone,
-    private configService: ConfigService,
-    public ageService: AgeInputService,
-    private cohortService: CohortDtoService,
-    private dialog: MatDialog,
-    private router: Router,
-    private notificationService: NotificationService,
-  ) {}
+  constructor() {}
   @Input() annotations: TextAnnotationDto[] = [];
- 
-  pmidDto: PmidDto = defaultPmidDto();
-  public VariantKind = VariantKind;
+  private configService = inject(ConfigService);
+  public ageService = inject(AgeInputService);
+  private cohortService = inject(CohortDtoService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
+  private ngZone = inject(NgZone);
 
+
+  readonly pmidDto = signal<PmidDto>(defaultPmidDto());
+  readonly demographData = signal<DemographDto>(defaultDemographDto());
+  readonly hpoAnnotations = signal<HpoTermData[]>([]);
+  readonly alleles = signal<VariantDto[]>([]);
+  readonly backendStatus = signal<StatusDto>(defaultStatusDto());
+
+  public VariantKind = VariantKind;
+    
 
   pastedText: string = '';
   showTextArea: boolean = true;
@@ -64,13 +70,10 @@ export class AddcaseComponent {
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
 
-  showTwoStepHpoButton: boolean = true;
-  hpoAnnotations: HpoTermData[] = [];
-
-  alleles: VariantDto[] = [];
-
-  tableData: CohortData | null = null;
-  demographData: DemographDto | null = null;
+  /* Once we have annotations from the first step, show the second step! */
+  readonly showTwoStepHpoButton = computed(
+    () => this.hpoAnnotations().length === 0
+  );
  
 
   selectionRange: Range | null = null;
@@ -119,41 +122,38 @@ export class AddcaseComponent {
    * for one new case.
    */
   async submitNewRow(): Promise<void> {
-    if (this.pmidDto == null) {
+    const pmid = this.pmidDto();
+    const demo = this.demographData();
+    const hpoAnn = this.hpoAnnotations();
+    const allelesArr = this.alleles();
+    if (!pmid.pmid) {
       this.notificationService.showError("Cannot submit new row without PMID");
       return;
     }
-    let pmid_dto = this.pmidDto;
-    if (this.demographData == null) {
+    if (!demo) {
       this.notificationService.showError("Cannot submit row unless demographic information is initialized");
       return;
     }
     // combine PMID and Demographic data DTOs to create an individual
     const individual_dto: IndividualData = {
-      pmid: pmid_dto.pmid,
-      title: pmid_dto.title,
-      individualId: this.demographData.individualId,
-      comment: this.demographData.comment,
-      ageOfOnset: this.demographData.ageOfOnset,
-      ageAtLastEncounter: this.demographData.ageAtLastEncounter,
-      deceased: this.demographData.deceased,
-      sex: this.demographData.sex
+      pmid: pmid.pmid,
+      title: pmid.title,
+      individualId: demo.individualId,
+      comment: demo.comment,
+      ageOfOnset: demo.ageOfOnset,
+      ageAtLastEncounter: demo.ageAtLastEncounter,
+      deceased: demo.deceased,
+      sex: demo.sex
     };
-    const hpoAnnotations: HpoTermData[] = this.hpoAnnotations;
-    let allele_keys: string[] = [];
-    console.log("submitNewRow, this.alleles=", this.alleles);
-    this.alleles.forEach(allele => {
-      if (allele.variantKey) allele_keys.push(allele.variantKey)
-    });
-  console.log("submitNewRow, allele_keys=", allele_keys);
+    const allele_keys: string[] = allelesArr
+      .filter(a => a.variantKey)
+      .map(a => a.variantKey!);
     const cohort_dto = this.cohortService.getCohortData();
-    //console.log("add case, cohort=", cohort_dto);
-    console.log("Add case allele keys=", allele_keys);
     if (cohort_dto != null) {
       try {
         const updated_dto: CohortData = await this.configService.addNewRowToCohort(
             individual_dto, 
-            hpoAnnotations, 
+            hpoAnn, 
             allele_keys,
             cohort_dto);
         this.cohortService.setCohortData(updated_dto);
@@ -261,8 +261,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     annotation.onsetString = newValue;
   }
 
-
-
   openVariantEditor(varKind: VariantKind) {
     const dialogRef = this.dialog.open(AddVariantComponent, {
       data: {
@@ -321,9 +319,9 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
           this.notificationService.showError(`Could not identifiy variant kind ${varKind}`);
           return;
         }
-          this.alleles.push(dto);
+          this.alleles.update(a => [...a, dto]);
           if (alleleCount == 2) {
-            this.alleles.push(dto);
+            this.alleles.update(a => [...a, dto]);
           }
         } else {
           console.error("Error in open Allele Dialog")
@@ -333,7 +331,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
 
   removeAllele(allele: any) {
-    this.alleles = this.alleles.filter(a => a !== allele);
+    this.alleles.update(list => list.filter(a => a !== allele));
   }
 
 
@@ -342,10 +340,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       this.notificationService.showError("allele 1 was null, cannot create GeneVariant bundle");
       return null; // need at least allele1 to move forward
     }
-    const allele1 = this.alleles[0];
+    const allele1 = this.alleles()[0];
     let allele2_string = "na";
     if (this.alleles.length == 2) {
-      allele2_string = this.alleles[1].variantString
+      allele2_string = this.alleles()[1].variantString
     }
     return  {
       hgncId: allele1.hgncId,
@@ -359,83 +357,89 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   
   resetAllInputVars() {
     this.resetWindow();
-    this.alleles = [];
+    this.alleles.set([]);
     this.annotations = [];
-    this.hpoAnnotations = [];
-    this.selectedAnnotation = null;
+    this.hpoAnnotations.set([]);
+    this.demographData.set(defaultDemographDto());
+    this.pmidDto.set(defaultPmidDto());
+    this.backendStatus.set(defaultStatusDto());
+    
+    /*this.selectedAnnotation = null;
     this.selectionRange = null;
     this.errorString = null;
     this.hasError = false;
-    this.backend_status = defaultStatusDto();
+    */
+  }
+
+ private async selectPmid(): Promise<PmidDto | null> {
+    const dialogRef = this.dialog.open(PubmedComponent, {
+      width: '600px',
+      data: { pmidDto: this.pmidDto() }
+    });
+
+    return firstValueFrom(dialogRef.afterClosed());
+  }
+
+  private async confirmDuplicatePmid(pmid: string): Promise<boolean> {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Duplicate PMID',
+        message: `${pmid} is already in the database. Continue anyway?`,
+        confirmText: 'Continue',
+        cancelText: 'Cancel'
+      }
+    });
+
+    return firstValueFrom(ref.afterClosed());
+  }
+
+  async openPubmedDialog(): Promise<void> {
+    const result = await this.selectPmid();
+    if (!result) return;
+
+    const pmid = result.pmid;
+
+    if (this.cohortService.pmidExists(pmid)) {
+      const confirmed = await this.confirmDuplicatePmid(pmid);
+
+      if (!confirmed) {
+        this.notificationService.showWarning('Cancelled adding duplicate PMID.');
+        this.pmidDto.set(defaultPmidDto());
+        return;
+      }
+
+      this.notificationService.showWarning(`Continuing with duplicate PMID ${pmid}`);
+    }
+
+    this.pmidDto.set(result);
   }
 
 
-openPubmedDialog() {
-  const dialogRef = this.dialog.open(PubmedComponent, {
-    width: '600px',
-    data: { pmidDto: null } // optional initial data
-  });
+  resetPmidDto() {
+    this.pmidDto.set(defaultPmidDto());
+  }
 
-  dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-    if (result) {
-      const pmid = result.pmid;
-      if (this.cohortService.pmidExists(pmid)) {
-        // 🟡 Ask user to confirm before continuing
-        const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-          width: '400px',
-          data: {
-            title: 'Duplicate PMID',
-            message: `${pmid} is already in the database. Do you want to continue anyway?`,
-            confirmText: 'Continue',
-            cancelText: 'Cancel'
-          }
-        });
+  openHpoTwoStepDialog() {
+    console.log("openHpoTwoStepDialog")
+    const dialogRef = this.dialog.open(HpoTwostepComponent, {
+      width: '1200px',
+      height: '900px',
+      disableClose: true,
+    });
 
-        confirmRef.afterClosed().subscribe((confirmed: boolean) => {
-          if (confirmed) {
-            // user explicitly confirmed, proceed
-            this.notificationService.showWarning(`Continuing with duplicate PMID ${pmid}`);
-            this.pmidDto = result;
-          } else {
-            this.notificationService.showWarning('Cancelled adding duplicate PMID.');
-            this.pmidDto = defaultPmidDto();
-          }
-        });
-        } else {
-          // Normal behavior if not duplicate
-          this.pmidDto = result;
-        }
-      } else {
-        this.notificationService.showError('Could not retrieve PMID');
+    dialogRef.afterClosed().subscribe((result: HpoTermData[] | undefined) => {
+      if (result) {
+        console.log('Final annotations:', result);
+        this.hpoAnnotations.set(result);
+        
       }
     });
   }
 
-    resetPmidDto() {
-      this.pmidDto = defaultPmidDto();
-    }
-
-    openHpoTwoStepDialog() {
-      console.log("openHpoTwoStepDialog")
-      const dialogRef = this.dialog.open(HpoTwostepComponent, {
-        width: '1200px',
-        height: '900px',
-        disableClose: true,
-      });
-
-      dialogRef.afterClosed().subscribe((result: HpoTermData[] | undefined) => {
-        if (result) {
-          console.log('Final annotations:', result);
-          this.hpoAnnotations = result;
-          this.showTwoStepHpoButton = false;
-        }
-      });
-    }
-
-    resetAnnotations() {
-      this.hpoAnnotations = [];
-      this.showTwoStepHpoButton = true;
-    }
+  resetAnnotations() {
+    this.hpoAnnotations.set([]);
+  }
 
   openAgeDialog(): void {
     const dialogRef = this.dialog.open(AddagesComponent, {
@@ -453,11 +457,11 @@ openPubmedDialog() {
   openAddDemoDialog() {
     const dialogRef = this.dialog.open(AdddemoComponent, {
       width: '1000px',
-      data: { ageStrings: this.ageService.getSelectedTerms(), demoDto: this.demographData }
+      data: { ageStrings: this.ageService.getSelectedTerms(), demoDto: this.demographData() }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.demographData = result.dto;
+        this.demographData.set(result.dto);
         this.showAgeEntryArea = !result.hideDemo;
       } else {
         this.notificationService.showError("Could not get demographic data");
@@ -465,12 +469,12 @@ openPubmedDialog() {
     });
   }
 
-  get ageEntries(): string[] {
-    return this.ageService.getSelectedTerms();
-  }
+  readonly ageEntries = computed(
+    () => this.ageService.getSelectedTerms()
+  );
 
   get demographicSummary(): string {
-    const value = this.demographData;
+    const value = this.demographData();
     if (value === null) {
       return "not initialized";
     }
@@ -484,13 +488,13 @@ openPubmedDialog() {
   }
 
   /** Do we have all of the information needed to submit a row? */
-  canSubmitRow(): boolean {
-    return !!(
-      this.pmidDto?.pmid &&
-      this.demographData &&
-      this.hpoAnnotations?.length > 0 &&
-      this.alleles?.length > 0
-    );
-  }
+  readonly canSubmitRow = computed(() =>
+    !!(
+      this.pmidDto().pmid &&
+      this.demographData() &&
+      this.hpoAnnotations().length > 0 &&
+      this.alleles().length > 0
+    )
+  );
 
 }

@@ -6,7 +6,7 @@
   class="flex items-center gap-4 p-3 border rounded"
   style="border-color: #e9ecef; margin-bottom:10px;"
 >
-  @if (!pmidDto || !pmidDto.title) {
+  @if (!pmidDto() || !pmidDto().title) {
     <!-- Show lookup button when no successful result -->
     <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
   } @else {
@@ -15,10 +15,10 @@
       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div style="flex: 1;">
           <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
-            {{ pmidDto.title }}
+            {{ pmidDto().title }}
           </div>
           <div class="text-xs" style="color: #666;">
-            {{ pmidDto.pmid }}
+            {{ pmidDto().pmid }}
           </div>
         </div>
         <button 
@@ -41,7 +41,7 @@
     Add/Edit Age Entries
   </button>
   <div class="flex flex-wrap gap-2 text-xs text-gray-600">
-    @for (entry of ageEntries; track entry; let i = $index) {
+    @for (entry of ageEntries(); track entry; let i = $index) {
       <span class="bg-gray-100 px-2 py-1 rounded">{{ entry }}</span>
     }
   </div>
@@ -65,7 +65,7 @@
 <div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
   <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">HPO Annotations</h3>
 
-  @if (showTwoStepHpoButton) {
+  @if (showTwoStepHpoButton()) {
     <button 
       type="button"
       (click)="openHpoTwoStepDialog()"
@@ -75,7 +75,7 @@
   } @else {
     <div class="flex items-center justify-between p-2 border rounded bg-gray-50">
       <div class="flex flex-wrap gap-1 text-sm text-gray-500">
-        @for (annot of hpoAnnotations; track annot) {
+        @for (annot of hpoAnnotations(); track annot) {
           <span>
             {{ annot.termDuplet.hpoLabel }}: {{ annot.entry }}
           </span>
@@ -113,7 +113,7 @@
 
   <!-- List of alleles -->
   <ul class="mt-3 space-y-2">
-    @for (allele of alleles; track allele) {
+    @for (allele of alleles(); track allele) {
       <li class="flex items-center justify-between text-sm bg-gray-50 px-3 py-2 rounded-md border">
         <div class="flex items-center gap-2 text-gray-700">
           <span 

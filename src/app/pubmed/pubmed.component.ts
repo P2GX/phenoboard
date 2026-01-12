@@ -1,4 +1,4 @@
-import { Component, inject, signal, WritableSignal } from '@angular/core';
+import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +25,7 @@ export class PubmedComponent {
   data = inject<PmidDto>(MAT_DIALOG_DATA, { optional: true });
   pmidDto: WritableSignal<PmidDto> = signal<PmidDto>(this.data ?? defaultPmidDto());
   availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal;
-  selectedPmid = signal<string>('');
+  selectedPmid = computed(() => this.pmidDto().pmid);
 
 
   onPmidSelection(event: Event): void {
@@ -35,14 +35,12 @@ export class PubmedComponent {
     if (selectedPmidNumber === '') {
       // "New PMID" selected - clear the form
       this.pmidDto.set(defaultPmidDto());
-      this.selectedPmid.set('');
       return;
     }
 
     const selected = this.pmidService.getPmidByNumber(selectedPmidNumber);
     if (selected) {
       this.pmidDto.set(selected);
-      this.selectedPmid.set(selectedPmidNumber);
       this.pmidService.addPmid(this.pmidDto());
     }
   }
@@ -69,9 +67,15 @@ export class PubmedComponent {
     }
   }
 
-  isReady(): boolean {
-    return this.pmidDto().pmid.length > 0 && this.pmidDto().title.length > 0;
-  }
+  readonly isRetrieveDisabled = computed(() => {
+    const pmid = this.pmidDto().pmid;
+    return !pmid || pmid.trim() === '';
+  });
+
+  readonly isReady = computed(() =>
+    !!this.pmidDto().pmid && !!this.pmidDto().title
+  );
+
 
   // accept a new PMID
   accept(): void {
