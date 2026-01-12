@@ -41,7 +41,7 @@ export class PubmedComponent {
 
     const selected = this.pmidService.getPmidByNumber(selectedPmidNumber);
     if (selected) {
-      this.pmidDto.set(selected);// = { ...selected };
+      this.pmidDto.set(selected);
       this.selectedPmid.set(selectedPmidNumber);
       this.pmidService.addPmid(this.pmidDto());
     }
@@ -73,20 +73,15 @@ export class PubmedComponent {
     return this.pmidDto().pmid.length > 0 && this.pmidDto().title.length > 0;
   }
 
-  // Dialog methods
+  // accept a new PMID
   accept(): void {
-    console.log('Accept clicked with:', this.pmidDto());
-
-    // Save to service if it's a valid PMID
     if (this.isReady()) {
       this.pmidService.addPmid(this.pmidDto());
     }
-
     this.dialogRef.close(this.pmidDto());
   }
 
   cancel(): void {
-    console.log('Cancel clicked');
     this.dialogRef.close(null);
   }
 

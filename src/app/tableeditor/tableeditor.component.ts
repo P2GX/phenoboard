@@ -82,8 +82,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
   pmidForm: FormGroup;
 
-  pmid: string | null = null;
-  title: string | null = null;
+ 
   diseaseData: DiseaseData | null = null;
   /** Strings such as P3Y, Congenital onset, that have been used so far to annotate onsets etc. */
   currentAgeStrings: string[] = [];
@@ -105,7 +104,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
-  transformationPanelVisible = false;
 
   contextMenuCellVisible = false;
   contextMenuPosition: OverlayPosition | null = null;
@@ -495,7 +493,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     this.contextMenuColHeader = header;
     this.contextMenuColType = header.columnType;
     this.uniqueValuesToMap = unique;
-    this.transformationPanelVisible = true;
   }
 
   getUniqueValues(colIndex: number): string[] {
@@ -1889,24 +1886,24 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
       return;
     }
-    try {
+    const cohort_previous = this.cohortService.getCohortData();
+    if (! cohort_previous) {
+      this.notificationService.showError("No Cohort data available");
+      return;
+    }
+
+    try { 
       const cohort_dto_new = await this.configService.transformToCohortData(dto);
-      console.log("A cohort_dto_new=", cohort_dto_new.hgvsVariants);
-      if (this.cohortService.currentCohortContainsData()) {
-        const cohort_previous = this.cohortService.getCohortData();
-        if (cohort_previous === null) {
-          this.notificationService.showError("Cohort data not retrieved");
-          return;
-        }
-        console.log("B cohort_previous=", cohort_previous.hgvsVariants);
+      // i.e., the previous cohort has patient data
+      if (cohort_previous.rows.length > 0) {
         const merged_cohort = await this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
         this.cohortService.setCohortData(merged_cohort);
-        console.log("C merged_cohort=", merged_cohort.hgvsVariants);
         this.router.navigate(['/pttemplate']);
       } else {
-        console.log("Setting to new cohort: ", cohort_dto_new);
-        console.log("D cohort_dto_new=", cohort_dto_new.hgvsVariants);
-
+        // If we are creating a new cohort, the previous cohort will be empty (zero rows)
+        // but it should still contain the cohort acronym
+        const acronym = cohort_previous.cohortAcronym ?? '';
+        cohort_dto_new.cohortAcronym = acronym;
         this.cohortService.setCohortData(cohort_dto_new);
         this.router.navigate(['/pttemplate']);
       }

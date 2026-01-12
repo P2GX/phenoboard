@@ -78,7 +78,7 @@ export class PtTemplateComponent  {
   @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
   @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
   tableWidth = '100%'; 
-  Object = Object; // <-- expose global Object to template
+  Object = Object; // expose global Object to template
   public readonly VariantKind = VariantKind;
   selectedCellContents: CellValue | null = null;
   successMessage: string | null = null;
