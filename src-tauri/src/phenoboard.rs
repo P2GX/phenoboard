@@ -56,7 +56,7 @@ impl PhenoboardSingleton {
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>, hpo_json_path: &str) {
         self.ontology = Some(ontology);
-        self.settings.set_hp_json_path(hpo_json_path);
+        let _ = self.settings.set_hp_json_path(hpo_json_path);
     }
 
     pub fn get_hpo(&self) -> Option<Arc<FullCsrOntology>> {
