@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -23,10 +23,13 @@ export enum VariantKind {
   SV = 'SV',
   INTERGENIC = 'INTERGENIC'
 }
-// Define the shape of the data you pass in
+
+
 export interface AddVariantDialogData {
+  rowId: string;
   kind: VariantKind;
 }
+
 
 export interface VariantAcceptedEvent {
   variant: string;
@@ -50,7 +53,8 @@ type ValidatorFn = () => Promise<void>;
       MatCardModule,MatCheckboxModule, MatInputModule, MatFormFieldModule, 
       MatOption, MatSelectModule],
   templateUrl: './addvariant.component.html',
-  styleUrl: './addvariant.component.css'
+  styleUrl: './addvariant.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddVariantComponent implements OnInit{
   kind!: VariantKind; 
@@ -58,7 +62,13 @@ export class AddVariantComponent implements OnInit{
   private configService = inject(ConfigService); 
   private cohortService= inject(CohortDtoService);
   private dialogRef= inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
-  data = inject(MAT_DIALOG_DATA) as { kind: VariantKind };
+  readonly data = inject<AddVariantDialogData>(MAT_DIALOG_DATA);
+  constructor() {
+    this.kind = this.data.kind;
+    const row = this.cohortService.getRowById(this.data.rowId);
+  }
+  
+  
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
@@ -66,7 +76,7 @@ export class AddVariantComponent implements OnInit{
         // Set the selectedGene model property to the only entry in the list
         this.selectedGene = this.geneOptions[0];
     }
-    this.kind = this.data.kind;
+    
   }
 
   

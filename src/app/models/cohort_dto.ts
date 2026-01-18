@@ -18,6 +18,10 @@ export interface IndividualData {
     sex: string;
 }
 
+export function getRowId(individual: IndividualData): string {
+    return `${individual.pmid}-${individual.individualId}`
+}
+
 
 
 export interface GeneVariantData {

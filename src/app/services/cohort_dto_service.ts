@@ -1,5 +1,5 @@
-import { inject, Injectable, signal, WritableSignal  } from '@angular/core';
-import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent } from '../models/cohort_dto';
+import { computed, inject, Injectable, signal, WritableSignal  } from '@angular/core';
+import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent, getRowId } from '../models/cohort_dto';
 import { ConfigService } from './config.service';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { SourcePmid } from '../models/cohort_description_dto';
@@ -29,6 +29,19 @@ export class CohortDtoService {
 
     getCohortData(): CohortData | null {
         return this._cohortData();
+    }
+
+    private readonly rowMap = computed(() => {
+        const cohort = this.cohortData();
+        if (!cohort) return new Map<string, RowData>();
+
+        return new Map(
+            cohort.rows.map(r => [getRowId(r.individualData), r])
+        );
+    });
+
+    getRowById(rowId: string): RowData | undefined {
+        return this.rowMap().get(rowId);
     }
 
     clearCohortData() {
@@ -110,6 +123,18 @@ export class CohortDtoService {
             }
         }
         this.setCohortData(updated);
+    }
+
+    /* addHgvsVariant etc add the complete variant to the maps. Here, we add the variant
+     * key to the row of the individual with the allele */
+    addAlleleToRow(rowId: string, variantKey: string, count: number ): boolean {
+        const cohort = this.cohortData();
+        if (!cohort) return false;
+        const row = cohort.rows.find(r => getRowId(r.individualData) === rowId);
+        if (!row) return false;
+        row.alleleCountMap[variantKey] = count;
+        this.setCohortData({ ...cohort });
+        return true;
     }
 
     /** Update the disease cohort acronym, e.g., MFS for Marfan syndrome.

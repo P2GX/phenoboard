@@ -1,10 +1,10 @@
-import { ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData, getRowId } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddagesComponent } from "../addages/addages.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
@@ -41,6 +41,7 @@ interface Option { label: string; value: string };
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PtTemplateComponent  {
 
@@ -82,7 +83,6 @@ export class PtTemplateComponent  {
   tableWidth = '100%'; 
   Object = Object; // expose global Object to template
   public readonly VariantKind = VariantKind;
-  selectedCellContents: CellValue | null = null;
   successMessage: string | null = null;
 
   /* used for autocomplete widget */
@@ -96,13 +96,22 @@ export class PtTemplateComponent  {
   individualContextMenuVisible = false;
   individualMenuX = 0;
   individualMenuY = 0;
-  contextRow: RowData | null = null;
+
+  contextRowId: string | null = null;
+
+  // Tracks currently hovered HPO header
+  hoveredHpoHeader: number | null = null;
+  // corresponds to the + sighn for adding a new allele on a row
+  openAddAlleleRowId: string | null = null;
+
+
 
   // the following determine which rows are shown in the GUI
   
   filterMode = signal<'all' | 'single' | 'pmid'>('all');
   focusedRow = signal<RowData | null>(null);
   focusedPmid = signal<string | null>(null);
+  /* Extract the filtered rows from our model after any change. */
   filteredRows = computed(() => {
     const cohort = this.cohortService.getCohortData();
     if (!cohort) return [];
@@ -121,10 +130,69 @@ export class PtTemplateComponent  {
     }
   });
 
+  rowMapById = computed(() => {
+    const map = new Map<string, RowData>();
+    for (const row of this.filteredRows()) {
+      map.set(getRowId(row.individualData), row);
+    }
+    return map;
+  });
+
+  /* Create a view model. The data obsejects are computed once upon change of filteredRows, 
+    not for each change detection cycle in the GUI. */
+  readonly tableVM = computed(() => {
+    const rows = this.filteredRows();
+    const alleleDisplayMap = this.shortAlleleDisplayByKey();
+    const validatedSet = this.validatedAlleles();
+    return rows.map(row => {
+      const alleles = Object.entries(row.alleleCountMap).map(([key, count]) => ({
+        key,
+        count,
+        shortDisplay: alleleDisplayMap.get(key),
+        validated: validatedSet.has(key),
+      }));
+      const hpoCells = row.hpoData.map(cell => ({
+          type: cell.type,
+          displayValue: this.getCellDisplay(cell),
+          cssClass: this.getCellClass(cell)
+        }));
+     return {
+      id: getRowId(row.individualData),
+      individualId: row.individualData.individualId,
+      pmid: row.individualData.pmid,
+      title: row.individualData.title,
+      comment: row.individualData.comment,
+      ageOfOnset: row.individualData.ageOfOnset,
+      ageAtLastEncounter: row.individualData.ageAtLastEncounter,
+      deceased: row.individualData.deceased,
+      sex: row.individualData.sex,
+      hasObservedHpo: row.hpoData.some(c => c.type === 'Observed'),
+      alleleCountMap: { ...row.alleleCountMap }, 
+      alleles: alleles,
+      hpoCells: hpoCells,
+      };
+    });
+  });
+
+  getCellDisplay(cell: any): string {
+    if (cell.type === 'Observed') return '✅';
+    if (cell.type === 'Excluded') return '❌';
+    if (cell.type === 'Na') return 'n/a';
+    return cell.data || 'Unknown';
+  }
+
+  getCellClass(cell: any): string {
+    return `cell-${cell.type.toLowerCase()}`; // e.g., 'cell-observed'
+  }
+
   
   pendingHpoColumnIndex: number | null = null;
   pendingHpoRowIndex: number | null = null;
-  pendingRow: RowData | null = null;
+ 
+  pendingRowId: string | null = null;
+  selectedCellContents: CellValue | null = null;
+
+
   focusedHpoIndex: number | null = null;
   hpoFocusRange = 0; // number of columns to each side
   cohortAcronymInput = '';
@@ -229,23 +297,31 @@ export class PtTemplateComponent  {
   }
 
 
-  openIndividualEditor(individual: IndividualData): void {
+  openIndividualEditor(rowId: string): void {
     this.individualContextMenuVisible = false;
+    const row = this.rowMapById().get(rowId);
+    if (!row) return; 
+    const individualCopy = { ...row.individualData };
+
+
+   
     const dialogRef = this.dialog.open(IndividualEditComponent, {
       width: '500px',
       panelClass: 'edit-dialog',// Ensures above the current dialog
-      data: { ...individual }, // pass a copy
+      data: individualCopy, // pass a copy
     });
     dialogRef.afterClosed().subscribe((result: IndividualData | null) => {
       if (result) {
         // Apply changes back to the original
-        Object.assign(individual, result);
-        // Optional: trigger change detection or save to backend
+        Object.assign(row.individualData, result);
       }
     });
   }
 
-  onAlleleCountChange(alleleString: string, row: RowData, newCount: number): void {
+  onAlleleCountChange(alleleString: string, rowId: string, newCount: number): void {
+    const row = this.rowMapById().get(rowId);
+    if (!row) return; 
+    
     if (!alleleString || !row) return;
     // Ensure alleleCountMap exists
     if (!row.alleleCountMap) {
@@ -264,7 +340,19 @@ export class PtTemplateComponent  {
   }
 
 
-  async addAllele(row: RowData, varKind: VariantKind): Promise<void> {
+  hoveredCell: { rowId: string; alleleKey: string } | null = null;
+
+  onMouseEnter(rowId: string, alleleKey: string) {
+    this.hoveredCell = { rowId, alleleKey };
+  }
+
+  onMouseLeave() {
+    this.hoveredCell = null;
+  }
+
+  async addAllele(rowId: string, varKind: VariantKind): Promise<void> {
+    const row = this.rowMapById().get(rowId);
+    if (!row) return; 
     const dialogRef = this.dialog.open(AddVariantComponent, {
           width: '600px',
            data: { kind: varKind }
@@ -283,20 +371,15 @@ export class PtTemplateComponent  {
       this.notificationService.showError("Variant could not be validated");
       return;
     }
-    const cohort = this.cohortService.getCohortData();
-    if (!cohort) {
-      this.notificationService.showError("No cohort available");
+    const ok = this.cohortService.addAlleleToRow(
+      rowId,
+      result.variantKey,
+      result.count
+    );
+    if (!ok) {
+      this.notificationService.showError("Failed to add allele");
       return;
     }
-    const rowIndex = cohort.rows.findIndex(r => r === row);
-    if (rowIndex < 0) {
-       this.notificationService.showError("Could not find row");
-      return;
-    }
-    row.alleleCountMap[variantKey] = count;
-    cohort.rows[rowIndex] = row;  // update row reference
-
-    this.cohortService.setCohortData(cohort);
     this.notificationService.showSuccess(`Allele ${variantKey} added`);
   }
 
@@ -390,14 +473,15 @@ export class PtTemplateComponent  {
 
   
   /** Open a context menu after a right-click on an HPO column */
-  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowData: RowData, cell: CellValue): void {
+  onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowId: string, cell: CellValue): void {
     event.preventDefault();
     this.contextMenuVisible = true;
     this.contextMenuX = event.clientX;
     this.contextMenuY = event.clientY;
     this.pendingHpoColumnIndex = hpoColumnIndex;
     this.pendingHpoRowIndex = hpoRowIndex;
-    this.pendingRow = rowData;
+    this.pendingRowId = rowId;
+    this.selectedCellContents = cell;
     console.log("pending c&r=", this.pendingHpoColumnIndex, this.pendingHpoRowIndex)
     this.selectedCellContents = cell;
     this.contextMenuOptions = [
@@ -483,7 +567,7 @@ export class PtTemplateComponent  {
     
     this.pendingHpoColumnIndex = null;
     this.pendingHpoRowIndex = null;
-    this.pendingRow = null;
+    this.pendingRowId = null;
     this.contextMenuVisible = false;
   }
 
@@ -576,11 +660,6 @@ export class PtTemplateComponent  {
     this.showCohortAcronym = false;
   }
 
-  /* Create an OMIM URL from a string such as OMIM:654123 */
-  getOmimId(diseaseId: string): string {
-    const parts = diseaseId.split(":");
-    return `${parts.length > 1 ? parts[1] : diseaseId}`;
-  }
 
     // Convert the map into entries
     getAlleleEntries(row: RowData): [string, number][] {
@@ -750,14 +829,33 @@ visibleColumns = computed<number[]>(() => {
 });
 
 
+visibleColumnMask = computed<Uint8Array>(() => {
+  const cohort = this.cohortService.getCohortData();
+  if (!cohort) return new Uint8Array();
+
+  const n = cohort.hpoHeaders.length;
+  const mask = new Uint8Array(n);
+
+  for (const i of this.visibleColumns()) {
+    mask[i] = 1;
+  }
+  return mask;
+});
+
   /* right click on first column can focus on row or PMIDs */
-  onIndividualRightClick(event: MouseEvent, row: RowData): void {
+  onIndividualRightClick(event: MouseEvent, rowId: string): void {
     event.preventDefault();
-    this.contextRow = row;
+    this.contextRowId = rowId; 
     this.individualMenuX = event.clientX;
     this.individualMenuY = event.clientY;
     this.individualContextMenuVisible = true;
     event.stopPropagation();
+  }
+
+
+  get pendingRow(): RowData | null {
+    if (!this.pendingRowId) return null;
+    return this.rowMapById().get(this.pendingRowId) ?? null;
   }
 
   closeIndividualContextMenu(): void {
@@ -767,21 +865,23 @@ visibleColumns = computed<number[]>(() => {
 
   // Just show the row that the user clicks on
   focusOnSingleRow(): void {
-    if (!this.contextRow) return;
-    this.focusedRow.set(this.contextRow);
+    if (!this.contextRowId) return;
+    const row = this.rowMapById().get(this.contextRowId);
+    if (! row) return;
+    this.focusedRow.set(row);
     this.filterMode.set('single');
     this.closeContextMenu();
     this.individualContextMenuVisible = false;
   }
+
+  get contextRowPmid(): string | null {
+    if (!this.contextRowId) return null;
+    const row = this.rowMapById().get(this.contextRowId);
+    return row?.individualData.pmid ?? null;
+  }
   /** Focus on all rows with the same PMID */
-  focusOnPmid(): void {
-    const crow = this.contextRow;
-    if (! crow) {
-      this.notificationService.showError("Could not focus on PMID because context row not found");
-      this.showAllRows();
-      return;
-    }
-    const pmid = crow.individualData.pmid
+  focusOnPmid(pmid: string | null): void {
+    if (! pmid) return;
     this.focusedPmid.set(pmid);
     this.filterMode.set('pmid');
     this.individualContextMenuVisible = false;
@@ -806,18 +906,20 @@ visibleColumns = computed<number[]>(() => {
 
 
 
-/** Show info like the existing hover popup */
-showInfoForRow(row: RowData | null): void {
-  this.individualContextMenuVisible = false;
-  if (! row) {
-    this.rowInfoKey = null;
-    this.notificationService.showError("Cannot retrieve context row"); 
-    return;
+  /** Show info like the existing hover popup */
+  showInfoForRow(rowId: string | null): void {
+    this.individualContextMenuVisible = false;
+    if (! rowId) return;
+    const row = this.rowMapById().get(rowId);
+    if (! row) {
+      this.rowInfoKey = null;
+      this.notificationService.showError("Cannot retrieve context row"); 
+      return;
+    }
+    this.rowInfoKey = this.getRowKey(row);
+    this.rowInfoVisible = true;
+    this.cdRef.detectChanges();
   }
-  this.rowInfoKey = this.getRowKey(row);
-  this.rowInfoVisible = true;
-  this.cdRef.detectChanges();
-}
 
 
   closeRowInfo(): void {
@@ -850,18 +952,22 @@ showInfoForRow(row: RowData | null): void {
     return row.hpoData.some(cell => cell.type !== 'Excluded' && cell.type !== "Na");
   }
 
-  deleteRow(row: RowData | null): void {
+  deleteRow(rowId: string | null): void {
+    if (!rowId) return;
+
     this.individualContextMenuVisible = false;
-    if (! row) return;
+
     const currentCohort = this.cohortService.getCohortData();
     if (!currentCohort) return;
-    console.log("Deleting row", row);
-    const updatedRows = currentCohort.rows.filter(r => r !== row);
-    const updatedCohort = {
+
+    const updatedRows = currentCohort.rows.filter(
+      r => getRowId(r.individualData) !== rowId
+    );
+
+    this.cohortService.setCohortData({
       ...currentCohort,
       rows: updatedRows
-    };
-    this.cohortService.setCohortData(updatedCohort);
+    });
   }
 
   /* Get Links for display with summary of cohort */
@@ -885,5 +991,34 @@ showInfoForRow(row: RowData | null): void {
     this.cohortService.setCohortData(sorted_dto);
   
   }
+
+  onHeaderMouseEnter(index: number) {
+    this.hoveredHpoHeader = index;
+  }
+
+  onHeaderMouseLeave() {
+    this.hoveredHpoHeader = null;
+  }
+
+  // Helper to check if a header is hovered
+  isHeaderHovered(index: number): boolean {
+    return this.hoveredHpoHeader === index;
+  }
+
+  toggleAddAllelePopover(rowId: string, event: MouseEvent) {
+  event.stopPropagation(); // prevents the table row click from firing
+  this.openAddAlleleRowId = this.openAddAlleleRowId === rowId ? null : rowId;
+}
+
+// Close after selecting an option
+closeAddAllelePopover() {
+  this.openAddAlleleRowId = null;
+}
+
+// Optional: click anywhere else closes popover
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: Event) {
+  this.openAddAlleleRowId = null;
+}
 
 }

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dto';
 
+/* Display a summary of the salient characteristics of the Cohort */
 @Component({
   selector: 'app-cohort-summary',
   templateUrl: './cohortsummary.component.html',

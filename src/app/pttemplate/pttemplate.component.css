@@ -282,3 +282,30 @@ button[mat-icon-button] {
   outline: 2px solid #93c5fd; /* accessible focus ring */
   outline-offset: 2px;
 }
+
+.allele-cell.hovered .allele-content {
+  background-color: #f0f0f0;
+}
+
+.allele-tile {
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  background-color: #ffffff;
+  transition: all 120ms ease-in-out;
+}
+
+.allele-tile:hover {
+  background-color: #f3f4f6; /* gray-100 */
+  border-color: #6366f1;     /* indigo-500 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.allele-tile:active {
+  transform: scale(0.97);
+}

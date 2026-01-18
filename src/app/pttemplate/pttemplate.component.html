@@ -146,17 +146,17 @@
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
       @if (cohort) {
           @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
-            @if (visibleColumns().includes(i)) { <!-- -->
+            @if (visibleColumnMask()[i]) {
               <th
                 class="rotate-header hpo-col hpo-col-th"
-                (mouseenter)="setHover('hpoHeader', 0, $index, true)"
-                (mouseleave)="setHover('hpoHeader', 0, $index, false)"
+                (mouseenter)="onHeaderMouseEnter(i)"
+                (mouseleave)="onHeaderMouseLeave()"
               >
                 <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
                   {{ header.hpoLabel }}
                 </div>
               <!-- Popup shown on hover -->
-              @if(isHovered('hpoHeader', 0, $index)) {
+              @if(isHeaderHovered(i)) {
                   <div class="hpo-popup">
                     <a
                       [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
@@ -174,39 +174,39 @@
   </tr>
   </thead>
     <tbody>
-      @for (row of filteredRows(); track getRowKey(row);  let rowIndex = $index) {
-      <tr [class.bg-red-50]="!hasObservedHpo(row)">
+      @for (row of tableVM(); track row.id;  let rowIndex = $index) {
+      <tr [class.bg-red-50]="!row.hasObservedHpo">
         <!-- First column: PMID/title/individual_id/comment -->
         <td class="relative narrow-column"
-          (contextmenu)="onIndividualRightClick($event, row)"
+          (contextmenu)="onIndividualRightClick($event, row.id)"
           class="cursor-context-menu">
-          {{ row.individualData.individualId }}
-          @if(!row.individualData.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
+          {{ row.individualId }}
+          @if(!row.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
           <!-- Info popup for this row -->
-          @if (rowInfoVisible && getRowKey(row) === rowInfoKey) {
+          @if (rowInfoVisible && row.id === rowInfoKey) {
             <div
               class="fixed bg-white border border-gray-300 rounded shadow-md z-[999] text-sm"
               [style.left.px]="individualMenuX"
               [style.top.px]="individualMenuY"
             >
               <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-                <li><strong>{{ row.individualData.individualId }}</strong></li>
-                <li>PMID: {{ row.individualData.pmid }}</li>
-                <li>{{ row.individualData.title }}</li>
-                @if(row.individualData.comment && row.individualData.comment.length > 0){
-                  <li><strong>Comment:</strong> {{ row.individualData.comment }}</li>
+                <li><strong>{{ row.individualId }}</strong></li>
+                <li>PMID: {{ row.pmid }}</li>
+                <li>{{ row.title }}</li>
+                @if(row.comment && row.comment.length > 0){
+                  <li><strong>Comment:</strong> {{ row.comment }}</li>
                 }
-                <li>onset: {{ row.individualData.ageOfOnset }}</li>
-                <li>last encounter: {{ row.individualData.ageAtLastEncounter }}</li>
-                <li>deceased: {{ row.individualData.deceased }}</li>
-                <li>sex: {{ row.individualData.sex }}</li>
+                <li>onset: {{ row.ageOfOnset }}</li>
+                <li>last encounter: {{ row.ageAtLastEncounter }}</li>
+                <li>deceased: {{ row.deceased }}</li>
+                <li>sex: {{ row.sex }}</li>
               </ul>
 
               <button
                 mat-stroked-button
                 color="primary"
                 class="text-xs py-0 px-2"
-                (click)="openIndividualEditor(row.individualData); $event.stopPropagation();"
+                (click)="openIndividualEditor(row.id); $event.stopPropagation();"
               >
                 ✏️ Edit
               </button>
@@ -225,29 +225,24 @@
         <!-- Second column for gene/allele -->
         @if(showAlleleColumn){
         <td class="relative narrow-column">
-        @for (alleleString of getAlleleKeys(row.alleleCountMap); track alleleString; let gi = $index) {
+        @for (allele of row.alleles; track allele.key) {
 
-        <div
-          class="relative flex items-center justify-between"
-          (mouseenter)="setHover('gene', rowIndex, gi, true)"
-          (mouseleave)="setHover('gene', rowIndex, gi, false)"
-        >
-          <div class="flex items-center gap-x-1">
-            <span 
-              class="inline-block w-3 h-3 rounded-full"
-              [ngClass]="validatedAlleles().has(alleleString) ? 'bg-green-500' : 'bg-red-500'"
-              title="validatedAlleles().has(alleleString) ? 'Validated' : 'Not validated'"
-            ></span>
-            <span class="cursor-pointer">
-              {{   shortAlleleDisplayByKey().get(alleleString)  }}
-            </span>
-          </div>
+        <div class="flex items-center gap-x-1 allele-content">
+          <span 
+            class="inline-block w-3 h-3 rounded-full"
+            [ngClass]="allele.validated ? 'bg-green-500' : 'bg-red-500'"
+            [title]="allele.validated ? 'Validated' : 'Not validated'"
+          ></span>
+          <span class="cursor-pointer">
+            {{ allele.shortDisplay }}
+          </span>
+        </div>
 
           <!-- Right side: actions -->
           <div class="flex items-center gap-x-2">
             <mat-button-toggle-group
-              [value]="row.alleleCountMap[alleleString] || 0"
-              (change)="onAlleleCountChange(alleleString, row, $event.value)"
+              [value]="row.alleleCountMap[allele.key] || 0"
+              (change)="onAlleleCountChange(allele.key, row.id, $event.value)"
               appearance="legacy"
               class="allele-toggle-group"
               appearance="legacy"
@@ -258,62 +253,63 @@
               <mat-button-toggle [value]="0" aria-label="Delete">🗑️</mat-button-toggle>
             </mat-button-toggle-group>
        
-          </div>
+          
         </div>
         } <!-- for gene -->
     </td>
-      <td class="variant-bar">
-        <button mat-icon-button
-                matTooltip="Add HGVS"
-                (click)="addAllele(row, VariantKind.HGVS)">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button mat-icon-button
-                matTooltip="Add SV"
-                (click)="addAllele(row, VariantKind.SV)">
-          <mat-icon>extension</mat-icon>
-        </button>
-        <button mat-icon-button
-                matTooltip="Add Intergenic"
-                (click)="addAllele(row, VariantKind.INTERGENIC)">
-          <mat-icon>link</mat-icon>
-        </button>
-      </td>
+   <td class="variant-bar relative">
+    <button mat-icon-button
+            matTooltip="Add allele"
+            (click)="toggleAddAllelePopover(row.id, $event)">
+      <mat-icon>add</mat-icon>
+    </button>
+    <!-- Popover -->
+  @if(openAddAlleleRowId === row.id) {
+    @if (openAddAlleleRowId === row.id) {
+      <div
+        class="absolute bg-white border border-gray-300 shadow-md rounded-lg p-2 z-50"
+        style="top: 100%; right: 0; width: 220px;"
+      >
+        <div class="grid grid-cols-2 gap-2">
+          <div
+            class="allele-tile"
+            (click)="addAllele(row.id, VariantKind.HGVS); closeAddAllelePopover()"
+          >
+            HGVS
+          </div>
+
+          <div
+            class="allele-tile"
+            (click)="addAllele(row.id, VariantKind.SV); closeAddAllelePopover()"
+          >
+            SV
+          </div>
+
+          <div
+            class="allele-tile"
+            (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
+          >
+            Intergenic
+          </div>
+
+          <div
+            class="allele-tile"
+            (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
+          >
+            Mitochondrial
+          </div>
+        </div>
+      </div>
+    }
+  }
+   </td>
     }<!-- isShowAllele -->
 
     <!-- The values of the HPO columns-->
-    @for (cell of row.hpoData; track $index; let hpoIndex = $index) {
-      @if(visibleColumns().includes(hpoIndex)) {
-      <td
-        class="hpo-col"
-        (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row, cell)"
-        [class.observed-cell]="cell.type==='Observed'"
-        [class.excluded-cell]="cell.type==='Excluded'"
-        [class.onset-cell]="cell.type==='OnsetAge'"
-        [class.na-cell]="cell.type==='Na'"
-      >
-        @switch (cell.type) {
-          @case ('Observed') {  ✅ }
-          @case ('Excluded') {  ❌  }
-          @case ('Na') { n/a }
-          @case ('OnsetAge') {
-            <div class="onset-content" [title]="cell.data">
-              <span class="onset-icon">🕒</span>
-              <span class="onset-text">{{ cell.data }}</span>
-            </div>
-          }
-          @case ('Modifier') {
-            <div
-              class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap"
-              [title]="cell.data"
-            >
-              {{ cell.data }}
-            </div>
-          }
-          @default {
-            <span>Unknown</span>
-          }
-        }
+    @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {
+      @if (visibleColumnMask()[hpoIndex]) {
+      <td class="hpo-col" [class]="cell.cssClass">
+        {{ cell.displayValue }}
       </td>
       }
     }
@@ -447,13 +443,13 @@
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="focusOnSingleRow()">Focus on row</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
-          (click)="focusOnPmid()">Focus on PMID: {{ contextRow?.individualData?.pmid }}</li>
+          (click)="focusOnPmid(contextRowPmid)">Focus on PMID: {{ contextRowPmid ?? 'N/A' }}</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="showAllRows()">Show all rows</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
-          (click)="showInfoForRow(contextRow)">Show info</li>
+          (click)="showInfoForRow(contextRowId)">Show info</li>
       <li class="px-3 py-1 cursor-pointer border border-red-500 rounded"
-          (click)="deleteRow(contextRow)">Delete row</li>
+          (click)="deleteRow(contextRowId)">Delete row</li>
     </ul>
   </div>
 }
