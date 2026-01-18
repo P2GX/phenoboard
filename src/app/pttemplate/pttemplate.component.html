@@ -2,37 +2,7 @@
 
 <div class="p-6 bg-gray-50">
   @if (cohort) {
-    <div class="text-sm text-gray-700 space-y-2">
-        <ul>@for (disease of cohort.diseaseList; track disease.diseaseId; let i = $index) {
-          <li> <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" 
-              target="_blank" class="text-blue-600 underline">
-            <h2 class="text-xl font-semibold text-gray-800"> <strong> {{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
-            </a>
-            @if (disease.geneTranscriptList.length) {
-              <span class="gene-links">
-                (
-                @for (gene of getGeneLinks(disease); let i = $index; track gene.symbol) {
-                  <i>{{ gene.symbol }}</i>
-                  [
-                    <a [href]="gene.hgncUrl" target="_blank" rel="noopener">HGNC</a> |
-                    <a [href]="gene.ncbiUrl" target="_blank" rel="noopener">NCBI</a>
-                  ]
-                  {{ i < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
-                }
-                )
-              </span>
-            }
-
-            </li>
-        }
-        </ul>
-      <p>
-        This is a <strong>{{ cohort.cohortType }}</strong> cohort of 
-        <strong>{{ cohort.rows.length }}</strong> individuals. {{ numVariants() }} Variants were identified. 
-        <strong>{{ cohort.hpoHeaders.length }}</strong> distinct HPO terms were observed.</p>
-        <p> 
-      </p>
-    </div>
+    <app-cohort-summary [cohort]="cohort"></app-cohort-summary>
   } @else {
     <p>Cohort not initialized.</p>
   }

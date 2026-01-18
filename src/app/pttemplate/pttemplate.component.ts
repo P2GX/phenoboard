@@ -19,6 +19,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
 
 interface Option { label: string; value: string };
 
@@ -35,7 +36,8 @@ interface Option { label: string; value: string };
     MatTooltipModule,
     MatDialogModule,
     MoiSelector,
-    MatIconModule
+    MatIconModule,
+    CohortSummaryComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
