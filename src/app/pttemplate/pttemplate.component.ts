@@ -334,6 +334,22 @@ export class PtTemplateComponent  {
       row.alleleCountMap[alleleString] = newCount;
     }
 
+    const cohort = this.cohortService.getCohortData();
+    if (!cohort) return;
+
+    const updatedRows = cohort.rows.map(r => {
+      if (r !== row) return r;
+      const newAlleleCountMap = {...r.alleleCountMap};
+      if (newCount === 0) {
+        delete newAlleleCountMap[alleleString];
+      } else {
+        newAlleleCountMap[alleleString] = newCount;
+      }
+       return {...r, alleleCountMap: newAlleleCountMap};
+    });
+
+    this.cohortService.setCohortData({ ...cohort, rows: updatedRows });
+
     this.notificationService.showSuccess(
       `Set ${alleleString} allele count to ${newCount}`
     );
