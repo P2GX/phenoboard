@@ -29,7 +29,7 @@ import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
-import { ConfirmationDialogComponent } from '../confirm/confirmation-dialog.component';
+import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
@@ -685,9 +685,14 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
     const firstCell = etlDto.table.columns[0].values[rowIndex]?.current ?? '';
 
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
-      data: { message: `Delete row ${rowIndex}`, subMessage: firstCell }
+      data: {
+        title:  `Delete row ${rowIndex}`,
+        message: firstCell,
+        confirmText: "delete",
+        cancelText: "cancel"
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {

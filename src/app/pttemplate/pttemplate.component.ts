@@ -20,7 +20,7 @@ import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.compo
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
-
+import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
 interface Option { label: string; value: string };
 
 @Component({
@@ -182,7 +182,7 @@ export class PtTemplateComponent  {
   }
 
   getCellClass(cell: any): string {
-    return `cell-${cell.type.toLowerCase()}`; // e.g., 'cell-observed'
+    return `${cell.type.toLowerCase()}-cell`; // e.g., 'cell-observed'
   }
 
   
@@ -580,6 +580,8 @@ export class PtTemplateComponent  {
     this.contextMenuVisible = false;
   }
 
+
+
   async saveCohort(): Promise<void> {
     const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
@@ -908,6 +910,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
 
   /** Show info like the existing hover popup */
   showInfoForRow(rowId: string | null): void {
+    console.log("showInfoForRow id=", rowId);
     this.individualContextMenuVisible = false;
     if (! rowId) return;
     const row = this.rowMapById().get(rowId);
@@ -916,9 +919,8 @@ visibleColumnMask = computed<Uint8Array>(() => {
       this.notificationService.showError("Cannot retrieve context row"); 
       return;
     }
-    this.rowInfoKey = this.getRowKey(row);
+    this.rowInfoKey = rowId;
     this.rowInfoVisible = true;
-    this.cdRef.detectChanges();
   }
 
 
@@ -934,13 +936,6 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return Object.keys(map);
   }
 
-  /** Get a unique key for a row based on the PMID and individualId (the combination of these two is garanteed to be unique) */
-  getRowKey(row: RowData): string {
-    const pmid = row?.individualData?.pmid ?? '';
-    const id = row?.individualData?.individualId ?? '';
-    return `${pmid}::${id}`; // use :: to avoid accidental collisions
-  }
-
   getIndividualKey(individual: IndividualData): string {
     return `${individual.pmid || 'NA'}-${individual.individualId || 'NA'}`;
   }
@@ -952,10 +947,24 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return row.hpoData.some(cell => cell.type !== 'Excluded' && cell.type !== "Na");
   }
 
-  deleteRow(rowId: string | null): void {
+  async deleteRow(rowId: string | null): Promise<void> {
     if (!rowId) return;
 
     this.individualContextMenuVisible = false;
+
+    const confirmed = await firstValueFrom(
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: "Delete row?",
+        message: `row ${rowId}`,
+        confirmText: "delete",
+        cancelText: "cancel"
+      }
+    }).afterClosed()
+  );
+
+  if (!confirmed) return;
 
     const currentCohort = this.cohortService.getCohortData();
     if (!currentCohort) return;
@@ -1010,15 +1019,16 @@ visibleColumnMask = computed<Uint8Array>(() => {
   this.openAddAlleleRowId = this.openAddAlleleRowId === rowId ? null : rowId;
 }
 
-// Close after selecting an option
-closeAddAllelePopover() {
-  this.openAddAlleleRowId = null;
-}
+  // Close after selecting an option
+  closeAddAllelePopover() {
+    this.openAddAlleleRowId = null;
+  }
 
-// Optional: click anywhere else closes popover
-@HostListener('document:click', ['$event'])
-onDocumentClick(event: Event) {
-  this.openAddAlleleRowId = null;
-}
+  // Optional: click anywhere else closes popover
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    this.openAddAlleleRowId = null;
+    this.individualContextMenuVisible = false;
+  }
 
 }

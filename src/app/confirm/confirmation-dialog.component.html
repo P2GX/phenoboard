@@ -1,0 +1,14 @@
+<div class="warn-banner">
+  ⚠️ {{ title }}
+</div>
+<mat-dialog-content>
+  <p class="warn-message">{{ message }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button class="btn-outline-cancel" (click)="onCancelClick()">
+    {{ cancelText }}
+  </button>
+  <button class="btn-outline-primary" (click)="onConfirmClick()">
+    {{ confirmText }}
+  </button>
+</mat-dialog-actions>

@@ -138,9 +138,6 @@
           <th class="narrow-column bottom-align">
             Alleles
           </th>
-          <th class="narrow-column bottom-align">
-            Add allele
-          </th>
         }
       <!-- The following creates the series of headers for the HPO columns.
           The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
@@ -226,43 +223,41 @@
         @if(showAlleleColumn){
         <td class="relative narrow-column">
         @for (allele of row.alleles; track allele.key) {
+        <div class="allele-row flex items-center gap-x-3">
+          <div class="flex items-center gap-x-1 allele-content">
+            <span 
+              class="inline-block w-3 h-3 rounded-full"
+              [ngClass]="allele.validated ? 'bg-green-500' : 'bg-red-500'"
+              [title]="allele.validated ? 'Validated' : 'Not validated'"
+            ></span>
+            <span class="cursor-pointer">
+              {{ allele.shortDisplay }}
+            </span>
+          </div>
 
-        <div class="flex items-center gap-x-1 allele-content">
-          <span 
-            class="inline-block w-3 h-3 rounded-full"
-            [ngClass]="allele.validated ? 'bg-green-500' : 'bg-red-500'"
-            [title]="allele.validated ? 'Validated' : 'Not validated'"
-          ></span>
-          <span class="cursor-pointer">
-            {{ allele.shortDisplay }}
-          </span>
-        </div>
-
-          <!-- Right side: actions -->
-          <div class="flex items-center gap-x-2">
-            <mat-button-toggle-group
-              [value]="row.alleleCountMap[allele.key] || 0"
-              (change)="onAlleleCountChange(allele.key, row.id, $event.value)"
-              appearance="legacy"
-              class="allele-toggle-group"
-              appearance="legacy"
-              aria-label="Select allele count">
-
-              <mat-button-toggle [value]="1">1</mat-button-toggle>
-              <mat-button-toggle [value]="2">2</mat-button-toggle>
-              <mat-button-toggle [value]="0" aria-label="Delete">🗑️</mat-button-toggle>
-            </mat-button-toggle-group>
-       
-          
+            <!-- Right side: actions -->
+            <div class="flex items-center gap-x-2">
+              <div class="allele-count-grid">
+                <button 
+                  class="allele-btn allele-btn-count" 
+                  [ngClass]="{ 'selected-count': allele.count === 1 }"
+                  (click)="onAlleleCountChange(allele.key, row.id, 1)">1</button>
+                <button class="allele-btn allele-btn-count"
+                  [ngClass]="{ 'selected-count': allele.count === 2 }"
+                  (click)="onAlleleCountChange(allele.key, row.id, 2)">2</button>
+                <button 
+                  class="allele-btn allele-btn-delete" 
+                  (click)="onAlleleCountChange(allele.key, row.id, 0)">🗑️</button>
+                <button
+                  class="allele-btn allele-btn-add"
+                  title="Add allele"
+                  (click)="toggleAddAllelePopover(row.id, $event)">
+                  +
+                </button>
+              </div>
+          </div>
         </div>
         } <!-- for gene -->
-    </td>
-   <td class="variant-bar relative">
-    <button mat-icon-button
-            matTooltip="Add allele"
-            (click)="toggleAddAllelePopover(row.id, $event)">
-      <mat-icon>add</mat-icon>
-    </button>
     <!-- Popover -->
   @if(openAddAlleleRowId === row.id) {
     @if (openAddAlleleRowId === row.id) {
@@ -308,9 +303,33 @@
     <!-- The values of the HPO columns-->
     @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {
       @if (visibleColumnMask()[hpoIndex]) {
-      <td class="hpo-col" [class]="cell.cssClass">
-        {{ cell.displayValue }}
-      </td>
+          <td class="hpo-col" [ngClass]="cell.cssClass" style="width: 2.5rem; height: 2.5rem;">
+          @switch (cell.type) {
+            @case ('Observed') {
+              <span>✅</span>
+            }
+            @case ('Excluded') {
+              <span>❌</span>
+            }
+            @case ('Na') {
+              <span>n/a</span>
+            }
+            @case ('OnsetAge') {
+              <div class="onset-content" [title]="cell.displayValue">
+                <span class="onset-icon">🕒</span>
+                <span class="onset-text"></span>
+              </div>
+            }
+            @case ('Modifier') {
+             <div class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap" [title]="cell.displayValue">
+                  {{ cell.displayValue }}
+                </div>
+            }
+            @default {
+                <span>Unknown</span>
+            }
+          }
+        </td>
       }
     }
 

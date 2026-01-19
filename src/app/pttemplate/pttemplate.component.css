@@ -68,42 +68,21 @@
   font-weight: bold;
   color: #b91c1c; /* Dark red */
 }
-
-.onset-content {
+.onset-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 4rem;
-  border-radius: 6px;
-  background-color: inherit; /* inherit from parent td */
-  color: #1e40af; /* dark blue text */
-  font-weight: 500;
-  font-size: 0.8rem;
+  width: 2.5rem;       /* match your square size */
+  height: 2.5rem;
+  border-radius: 4px;
+  background-color: #dbeafe; /* light blue background */
   cursor: pointer;
-  transition: all 0.1s ease-in;
-  padding: 2px 4px; /* add some padding */
-}
-
-.onset-cell {
-  /*display: flex; */
-  align-items: center;
-  justify-content: center;
-  max-width: 4rem;
-  border-radius: 6px;
-  background-color: #dbeafe; /* light blue */
-  color: #1e40af; /* dark blue text */
   font-weight: 500;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.1s ease-in;
+  font-size: 0.9rem;
+  transition: all 0.15s ease-in-out;
 }
 
-.onset-cell:hover {
-  background-color: #bfdbfe; /* slightly darker blue */
-  box-shadow: 0 0 3px rgba(30, 64, 175, 0.4);
-}
-
-/* Hide the symbol, show text on hover */
+/* Default: hide text, show icon */
 .onset-cell .onset-text {
   display: none;
 }
@@ -115,6 +94,13 @@
 .onset-cell:hover .onset-icon {
   display: none;
 }
+
+/* Optional: hover effect */
+.onset-cell:hover {
+  background-color: #bfdbfe; /* slightly darker blue */
+  box-shadow: 0 0 3px rgba(30, 64, 175, 0.4);
+}
+
 
 .na-cell {
   background-color: #f5f5f5;
@@ -309,3 +295,69 @@ button[mat-icon-button] {
 .allele-tile:active {
   transform: scale(0.97);
 }
+
+.allele-count-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1.5rem);
+  gap: 5px;
+}
+
+.allele-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db; /* gray-300 */
+  background-color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease-in-out;
+}
+
+.allele-btn:hover {
+  background-color: #f3f4f6; /* gray-100 */
+  border-color: #9ca3af;     /* gray-400 */
+}
+
+.allele-btn-delete {
+  color: #b91c1c; /* red-700 */
+  border: 1px solid #fecaca;
+}
+
+.allele-btn-delete:hover {
+  background-color: #fee2e2; /* red-100 */
+}
+
+.allele-btn-add {
+  background-color: #ecfdf5;   /* green-50 */
+  border-color: #a7f3d0;       /* green-200 */
+  color: #047857;              /* green-700 */
+  font-weight: 600;
+}
+
+.allele-btn-add:hover {
+  background-color: #d1fae5;  /* green-100 */
+}
+
+/* Count buttons */
+.allele-btn-count {
+  color: #1e3a8a; /* blue-800 */
+}
+
+.allele-btn-count:hover {
+  background-color: #bfdbfe; /* blue-100 */
+}
+
+/* Highlight selected count */
+.selected-count {
+  background-color: #3b82f6; /* blue-500 */
+  color: white;
+  border-color: #2563eb; /* blue-600 */
+}
+.selected-count:hover {
+  background-color: #2563eb; /* darker blue */
+}
+
