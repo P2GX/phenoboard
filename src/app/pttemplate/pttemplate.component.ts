@@ -152,7 +152,7 @@ export class PtTemplateComponent  {
         validated: validatedSet.has(key),
       }));
       const hpoCells = row.hpoData.map(cell => ({
-          type: cell.type,
+          originalCell: cell,
           displayValue: this.getCellDisplay(cell),
           cssClass: this.getCellClass(cell)
         }));
@@ -453,8 +453,7 @@ export class PtTemplateComponent  {
     try {
       const sanitized_cohort = await this.configService.sanitizeCohort(cohortData);
       this.cohortService.setCohortData(sanitized_cohort);
-      const cdiff = this.deepDiff(sanitized_cohort, cohortData);
-      alert(`✅ Cohort successfully sanitized ${cdiff}`);
+      alert(`✅ Cohort successfully sanitized`);
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
       alert('❌ Sanitization failed:\n' + JSON.stringify(err));

@@ -303,8 +303,11 @@
     <!-- The values of the HPO columns-->
     @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {
       @if (visibleColumnMask()[hpoIndex]) {
-          <td class="hpo-col" [ngClass]="cell.cssClass" style="width: 2.5rem; height: 2.5rem;">
-          @switch (cell.type) {
+          <td class="hpo-col" 
+          [ngClass]="cell.cssClass" 
+          style="width: 2.5rem; height: 2.5rem;"
+          (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row.id, cell.originalCell)">
+          @switch (cell.originalCell.type) {
             @case ('Observed') {
               <span>✅</span>
             }
