@@ -222,6 +222,14 @@
         <!-- Second column for gene/allele -->
         @if(showAlleleColumn){
         <td class="relative narrow-column">
+        @if (row.alleles.length === 0) {
+          <button
+                  class="allele-btn allele-btn-add"
+                  title="Add allele"
+                  (click)="toggleAddAllelePopover(row.id, $event)">
+                  +
+          </button>
+        }
         @for (allele of row.alleles; track allele.key) {
         <div class="allele-row flex items-center gap-x-3">
           <div class="flex items-center gap-x-1 allele-content">

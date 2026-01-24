@@ -17,17 +17,22 @@ use tauri_plugin_fs::{init};
 
 use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
 
+struct AppState {
+    phenoboard: Mutex<PhenoboardSingleton>,
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  
+    let app_state = Arc::new(AppState {
+        phenoboard: Mutex::new(PhenoboardSingleton::new()),
+    });
 
     tauri::Builder::default()
+        .manage(app_state)
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(init())
-    .manage(Arc::new(Mutex::new(PhenoboardSingleton::new())))
-        
+        .plugin(init())     
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
@@ -123,42 +128,36 @@ fn get_hpo_json_full_path_as_str(file_path: tauri_plugin_fs::FilePath) -> Result
 
 /// Load the HPO from hp.json
 #[tauri::command]
-fn load_hpo(
+async fn load_hpo(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<(), String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    // 1. Clone the state reference for the thread
+    let state_handle = state.inner().clone(); 
+    let app_handle = app.clone();
+
     let _ = app.emit("hpoLoading", "loading");
-    std::thread::spawn(move || {
-        match app.dialog().file().blocking_pick_file() {
-            Some(file) => {
-                match get_hpo_json_full_path_as_str(file) {
-                    Ok(hp_json_path) => {
-                        let _ = app.emit("loadedHPO", "loading");
-                        match ontology_loader::load_ontology(&hp_json_path) {
-                            Ok(ontology) => {
-                                let mut singleton = phenoboard_arc.lock().unwrap(); 
-                                let hpo_arc = Arc::new(ontology);
-                            
-                                singleton.set_hpo(hpo_arc, &hp_json_path);
-                                singleton.initialize_hpo_autocomplete();
-                            },
-                            Err(e) => {
-                                let _ = app.emit("failure", format!("Failed to load HPO: {}", e));
-                            }
-                        }
+
+    // 2. Use tauri::async_runtime to keep things integrated
+   tauri::async_runtime::spawn(async move {
+        // Now 'state_handle' is a 'static Arc, so the compiler is happy!
+        let file_path = app_handle.dialog().file().blocking_pick_file();
+        
+        if let Some(file) = file_path {
+            if let Ok(hp_json_path) = get_hpo_json_full_path_as_str(file) {
+                // ... heavy loading logic ...
+                match ontology_loader::load_ontology(&hp_json_path) {
+                    Ok(ontology) => {
+                        let mut singleton = state_handle.phenoboard.lock().unwrap();
+                        singleton.set_hpo(Arc::new(ontology), &hp_json_path);
+                        singleton.initialize_hpo_autocomplete();
+                        
+                        let _ = app_handle.emit("backend_status", singleton.get_status());
                     },
-                    Err(e) => {
-                        let _ = app.emit("failure", format!("Failed to get HPO path: {e}"));
-                    }
+                    Err(e) => { /* emit failure */ }
                 }
             }
-            None => {
-                let _ = app.emit("failure", "Failed to load HPO");
-            }
-        };
-        let status = phenoboard_arc.lock().unwrap().get_status();
-        let _ = app.emit("backend_status", &status);
+        }
     });
     Ok(())
 }
@@ -168,17 +167,17 @@ fn load_hpo(
 #[tauri::command]
 async fn load_phetools_excel_template(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     update_labels: bool
 ) -> Result<CohortData, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let state_handle = state.inner().clone(); 
     let app_handle = app.clone();
     
     tokio::task::spawn_blocking(move || {
         match app_handle.dialog().file().blocking_pick_file() {
             Some(file) => {
-                let mut singleton = phenoboard_arc.lock().unwrap();
+                let mut singleton = state_handle.phenoboard.lock().unwrap();
                 let path_str = file.to_string();
                 match singleton.load_excel_template(&path_str, update_labels,|p, q|{
                     let _ = app_handle.emit("progress", ProgressDto::new(p, q));
@@ -212,16 +211,16 @@ async fn load_phetools_excel_template(
 #[tauri::command]
 async fn load_ptools_json(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<CohortData, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let state_handle = state.inner().clone(); 
     let app_handle = app.clone();
     
     tokio::task::spawn_blocking(move || {
         match app_handle.dialog().file().blocking_pick_file() {
             Some(file) => {
-                let mut singleton = phenoboard_arc.lock().unwrap();
+                let mut singleton = state_handle.phenoboard.lock().unwrap();
                 let path_str = file.to_string();
                 match singleton.load_ptools_json(&path_str) {
                     Ok(dto) => {
@@ -254,11 +253,11 @@ async fn load_ptools_json(
 
 #[tauri::command]
 fn map_text_to_annotations(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     input_text: &str 
 ) -> Result<Vec<TextAnnotationDto>, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     return singleton.map_text_to_annotations(input_text);
 }
 
@@ -268,20 +267,20 @@ fn map_text_to_annotations(
 /// by comparing the latest version online
 #[tauri::command]
 fn hpo_can_be_updated(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) ->Result<bool, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.hpo_can_be_updated()
 }
 
 /// Get a JSON object that represents the directory and file structure of the Phenopacket Store
 #[tauri::command]
 fn get_ppkt_store_json(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) ->  Result<serde_json::Value, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_ppkt_store_json()
 }
 
@@ -289,10 +288,10 @@ fn get_ppkt_store_json(
 #[tauri::command]
 fn emit_backend_status(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+     state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let status = singleton.get_status();
     let _ = app.emit("backend_status", &status);
     Ok(())
@@ -302,28 +301,31 @@ fn emit_backend_status(
 
 #[tauri::command]
 fn get_hp_json_path(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<String, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.hp_json_path()
 }
 
 #[tauri::command]
 fn get_pt_template_path(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<String, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.pt_template_path()
 }
 
+/// TODO - obsolete this once we have finished all legacy Excel templates.
 #[tauri::command]
 fn reset_pt_template_path(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 )  {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    let mut singleton =  match state.phenoboard.lock() {
+        Ok(s) => s,
+        Err(_) => { return; },
+    };
     singleton.reset_pt_template_path();
 }
 
@@ -334,24 +336,24 @@ fn reset_pt_template_path(
 /// the initial Template DTO we use to add patient data to
 #[tauri::command]
 fn create_new_cohort_data(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     dto: DiseaseData,
     cohort_type: CohortType,
     acronym: String
 ) -> Result<CohortData, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.create_new_cohort_data(dto, cohort_type, acronym)
 }
 
 #[tauri::command]
 fn create_new_melded_cohort(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     diseases: Vec<DiseaseData>,
     acronym: String
 ) -> Result<CohortData, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo_version = match singleton.get_hpo() {
         Some(hpo) => hpo.version().to_string(),
         None => { return  Err("HPO not initialized".to_string());}
@@ -370,11 +372,11 @@ async fn fetch_pmid_title(
 
 #[tauri::command]
 fn get_hpo_parent_and_children_terms(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     annotation: HpoAnnotationDto
 ) -> Result<ParentChildDto, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let annots = singleton.get_hpo_parent_and_children_terms(annotation);
     Ok(annots)
 }
@@ -385,27 +387,33 @@ fn get_hpo_parent_and_children_terms(
 /// The JavaScript ensures that query is at least 3 letters
 #[tauri::command]
 fn get_hpo_autocomplete_terms(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     query: String) -> Vec<String> {
-        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-        let singleton = singleton_arc.lock().unwrap();
-        let terms = singleton.get_hpo_autocomplete();
-        terms
-            .into_iter()
-            .filter(|t| t.to_lowercase().contains(&query.to_lowercase()))
-            .cloned()
-            .collect()
+    let singleton = match state.phenoboard.lock() {
+        Ok(s) => s,
+        Err(_) => return vec![],
+    };
+    let query_lower = query.to_lowercase();
+    let terms = singleton.get_hpo_autocomplete();
+    terms
+        .into_iter()
+        .filter(|t| t.to_lowercase().contains(&query_lower))
+        .take(20)
+        .cloned()
+        .collect()
 }
 
 /// This function supplies the autocompletion candidates for angular for the HPO
 /// The JavaScript ensures that query is at least 3 letters
 #[tauri::command]
 fn get_best_hpo_match(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     query: String) -> String {
-        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-        let singleton = singleton_arc.lock().unwrap();
-        singleton.get_best_hpo_match(query)
+        match state.phenoboard.lock() {
+            Ok(singleton ) => singleton.get_best_hpo_match(query),
+            Err(_) => "".to_string(),
+        }
+        
 }
 
 
@@ -413,13 +421,13 @@ fn get_best_hpo_match(
 
 #[tauri::command]
 fn submit_autocompleted_hpo_term(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     app: AppHandle,
     term_id: &str,
     term_label: &str,
 ) -> Result<(), String> {
-        let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-        let singleton = singleton_arc.lock().unwrap();
+        let singleton = state.phenoboard.lock()
+            .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
         let dto = singleton.get_autocompleted_term_dto(term_id, term_label)?;
         let _ = app.emit("autocompletion", dto);
         Ok(())
@@ -430,10 +438,10 @@ fn submit_autocompleted_hpo_term(
 
 #[tauri::command]
 fn validate_template(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+     state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData) -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+   let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo() {
         Some(hpo) => hpo.clone(),
         None => {
@@ -445,10 +453,10 @@ fn validate_template(
 
 #[tauri::command]
 fn sanitize_cohort_data(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData) -> Result<CohortData, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo() {
         Some(hpo) => hpo.clone(),
         None => {
@@ -462,11 +470,11 @@ fn sanitize_cohort_data(
 
 #[tauri::command]
 fn save_cohort_data(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData) 
 -> Result<(), String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.save_template_json(cohort_dto)
 }
 
@@ -479,20 +487,19 @@ fn sort_cohort_by_rows(dto: CohortData)
 
 #[tauri::command]
 fn export_ppkt(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData) -> Result<String, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.export_ppkt(cohort_dto)
 }
 
 #[tauri::command]
 fn export_hpoa(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
-    cohort_dto: CohortData) -> Result<String, String> 
-    {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+    state: tauri::State<'_, Arc<AppState>>,
+    cohort_dto: CohortData) -> Result<String, String> {
+    let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.export_hpoa(cohort_dto)
 }
 
@@ -500,13 +507,13 @@ fn export_hpoa(
 
 #[tauri::command]
 fn add_hpo_term_to_cohort(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     hpo_id: &str,
     hpo_label: &str,
     cohort_dto: CohortData) 
 -> Result<CohortData, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = singleton_arc.lock().unwrap();
+   let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.add_hpo_term_to_cohort(hpo_id, hpo_label, cohort_dto)
 }
 
@@ -514,14 +521,14 @@ fn add_hpo_term_to_cohort(
 
 #[tauri::command]
 fn add_new_row_to_cohort(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     individual_data: IndividualData, 
     hpo_annotations: Vec<HpoTermData>,
     variant_key_list: Vec<String>,
     cohort_data: CohortData) 
 -> Result<CohortData, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo(){
         Some(ontology) => ontology.clone(),
         None => { return Err("HPO not initialized".to_string()); },
@@ -562,17 +569,17 @@ fn validate_intergenic_variant(
 #[tauri::command]
 async fn load_external_excel(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     row_based:bool
 ) -> Result<ColumnTableDto, String> {
     //let phenoboard_arc: Arc::clone(&*singleton);
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
+    let state_handle = state.inner().clone();
     let app_handle = app.clone();
     
     tokio::task::spawn_blocking(move || {
         match app_handle.dialog().file().blocking_pick_file() {
             Some(file) => {
-                let singleton = phenoboard_arc.lock().unwrap();
+                let singleton = state_handle.phenoboard.lock().unwrap();
                 let path_str = file.to_string();
                 match excel::read_external_excel_to_dto(&path_str, row_based) {
                     Ok(dto) => {
@@ -666,44 +673,41 @@ async fn load_external_template_json(
 
 #[tauri::command]
 async fn get_biocurator_orcid(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>
+    state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<String, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = phenoboard_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_biocurator_orcid()
 }
 
 #[tauri::command]
 async fn save_biocurator_orcid(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     orcid: String
 ) -> Result<(), String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let mut singleton = phenoboard_arc.lock().unwrap();
+    let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.save_biocurator_orcid(orcid)
 }
 
 #[tauri::command]
 async fn get_variant_analysis(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData
 ) -> Result<Vec<VariantDto>, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = phenoboard_arc.lock().unwrap();
+    let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_variant_analysis(cohort_dto)
 }
 
 #[tauri::command]
 fn process_allele_column(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     etl: EtlDto,
     col: usize
 ) -> Result<EtlDto, String> {
-    let phenoboard_arc = Arc::clone(&*singleton);
-    let singleton = phenoboard_arc
-        .lock()
-        .map_err(|_| "Internal state error: mutex poisoned".to_string())?;
-
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.process_allele_column(etl, col)
 }
 
@@ -711,11 +715,11 @@ fn process_allele_column(
 /// be called after the user has finished transformation
 #[tauri::command]
 async  fn get_cohort_data_from_etl_dto(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     dto: EtlDto,
 ) -> Result<CohortData, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = phenoboard_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo() {
         Some(hpo) => hpo,
         None => {
@@ -730,12 +734,12 @@ async  fn get_cohort_data_from_etl_dto(
 /// and merges it with the previous CohortData (previous)
 #[tauri::command]
 async fn merge_cohort_data_from_etl_dto(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     previous: CohortData,
     transformed: CohortData
 ) -> Result<CohortData, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = phenoboard_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo() {
         Some(hpo) => hpo.clone(),
         None => {
@@ -747,11 +751,11 @@ async fn merge_cohort_data_from_etl_dto(
 
 #[tauri::command]
 async fn get_hpo_terms_by_toplevel(
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+    state: tauri::State<'_, Arc<AppState>>,
     cohort: CohortData,
 )-> Result<HashMap<String, Vec<HpoTermDuplet>>, String> {
-    let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = phenoboard_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = match singleton.get_hpo() {
         Some(hpo) => hpo.clone(),
         None => {
@@ -782,14 +786,13 @@ async fn get_hpo_terms_by_toplevel(
 #[tauri::command]
 async fn save_html_report(
     app: AppHandle,
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>,
+     state: tauri::State<'_, Arc<AppState>>,
     cohort: CohortData,
 ) -> Result<(), String> {
     let app_handle = app.clone();
-      //let phenoboard_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    //let singleton = phenoboard_arc.lock().unwrap();
+    let state_handle = state.inner().clone(); 
     let hpo = {
-        let guard = singleton.lock().unwrap();
+        let guard = state_handle.phenoboard.lock().unwrap();
         guard
             .get_hpo()
             .ok_or_else(|| "Could not create CohortData because HPO was not initialized".to_string())?
@@ -828,11 +831,9 @@ async fn save_html_report(
 
 
 #[tauri::command]
-fn fetch_repo_qc( 
-    app_handle: AppHandle,  
-    singleton: State<'_, Arc<Mutex<PhenoboardSingleton>>>) 
+fn fetch_repo_qc(state: tauri::State<'_, Arc<AppState>>)
  -> Result<RepoQc, String> {
-    let singleton_arc: Arc<Mutex<PhenoboardSingleton>> = Arc::clone(&*singleton); 
-    let singleton = singleton_arc.lock().unwrap();
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_repo_qc()
 }
