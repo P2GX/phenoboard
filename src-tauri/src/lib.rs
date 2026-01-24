@@ -9,13 +9,13 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
-use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, phenoboard::HpoMatch};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -48,7 +48,7 @@ pub fn run() {
             reset_pt_template_path,
             fetch_pmid_title,
             get_hpo_parent_and_children_terms,
-            get_hpo_autocomplete_terms,
+            get_hpo_autocomplete,
             get_best_hpo_match,
             submit_autocompleted_hpo_term,
             validate_template,
@@ -386,21 +386,20 @@ fn get_hpo_parent_and_children_terms(
 /// This function supplies the autocompletion candidates for angular for the HPO
 /// The JavaScript ensures that query is at least 3 letters
 #[tauri::command]
-fn get_hpo_autocomplete_terms(
+fn get_hpo_autocomplete(
     state: tauri::State<'_, Arc<AppState>>,
-    query: String) -> Vec<String> {
+    query: String
+) -> Vec<HpoMatch> {
     let singleton = match state.phenoboard.lock() {
         Ok(s) => s,
         Err(_) => return vec![],
     };
-    let query_lower = query.to_lowercase();
-    let terms = singleton.get_hpo_autocomplete();
-    terms
-        .into_iter()
-        .filter(|t| t.to_lowercase().contains(&query_lower))
-        .take(20)
-        .cloned()
-        .collect()
+
+    // If query is too short, don't even bother searching
+    if query.len() < 3 {
+        return vec![];
+    }
+    singleton.search_hpo(&query, 20)
 }
 
 /// This function supplies the autocompletion candidates for angular for the HPO
@@ -408,12 +407,11 @@ fn get_hpo_autocomplete_terms(
 #[tauri::command]
 fn get_best_hpo_match(
     state: tauri::State<'_, Arc<AppState>>,
-    query: String) -> String {
+    query: String) -> Option<HpoMatch> {
         match state.phenoboard.lock() {
             Ok(singleton ) => singleton.get_best_hpo_match(query),
-            Err(_) => "".to_string(),
-        }
-        
+            Err(_) => None,
+        }  
 }
 
 

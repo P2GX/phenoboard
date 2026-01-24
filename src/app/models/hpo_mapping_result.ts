@@ -6,3 +6,10 @@ export interface HpoMappingResult {
   hpoId: string;
   valueToStateMap: { [key: string]: string };
 }
+
+/* A match for the HPO autocomplete function */
+export interface HpoMatch {
+  id: string;
+  label: string;
+  matched_text: string;
+}

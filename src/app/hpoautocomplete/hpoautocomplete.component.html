@@ -4,14 +4,22 @@
   <div class="flex items-center gap-4">
     <mat-form-field class="flex-1 min-w-[300px]" appearance="outline">
       <input type="text"
-            placeholder="Search HPO term"
-            matInput
-            [formControl]="control"
-            [matAutocomplete]="auto">
-      <mat-autocomplete #auto="matAutocomplete">
-        @for (option of options; track option) {
+             placeholder="Search HPO term (e.g. 'Dactylitis' or 'Swollen finger')"
+             matInput
+             [formControl]="control"
+             [matAutocomplete]="auto">
+      
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+        @for (option of options; track option.id + option.matched_text) {
           <mat-option [value]="option">
-            {{ option }}
+            <div class="flex flex-col leading-tight">
+              <span class="text-sm font-medium">{{ option.matched_text }}</span>
+              
+              @if (option.matched_text !== option.label) {
+                <small class="text-gray-500 italic">Primary: {{ option.label }}</small>
+              }
+              <small class="text-blue-600 text-xs">{{ option.id }}</small>
+            </div>
           </mat-option>
         }
       </mat-autocomplete>
@@ -19,7 +27,8 @@
 
     <button class="btn-outline-primary"
             color="primary"
-            (click)="submitTerm()">
+            (click)="submitTerm()"
+            [disabled]="!control.value || typeof control.value === 'string'">
       Submit Term
     </button>
   </div>

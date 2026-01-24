@@ -8,6 +8,7 @@ import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
+import { HpoMatch } from '../models/hpo_mapping_result';
 
 
 @Injectable({
@@ -142,8 +143,8 @@ export class ConfigService {
 }
 
 
-  async getAutocompleteHpo(value: string): Promise<string[]> {
-    return invoke<string[]>('get_hpo_autocomplete_terms', { query: value });
+  async getAutocompleteHpo(value: string): Promise<HpoMatch[]> {
+    return invoke<HpoMatch[]>('get_hpo_autocomplete', { query: value });
   }
 
   async getBestHpoMatch(value: string): Promise<string> {

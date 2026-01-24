@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges, Output, EventEmitter, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, switchMap, startWith, of } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,7 +10,8 @@ import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
 import { EMPTY } from 'rxjs';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { HpoMatch } from '../models/hpo_mapping_result';
 
 
 @Component({
@@ -30,10 +31,10 @@ import { HpoTermDuplet } from '../models/hpo_term_dto';
 export class HpoAutocompleteComponent implements OnInit {
 
 
-  constructor(public configService: ConfigService) {}
-  control = new FormControl('');
+  public configService = inject(ConfigService);
+  control = new FormControl<string | HpoMatch>('');
   @Input() initialValue = "";
-  options: string[] = [];
+  options: HpoMatch[] = [];
   textMiningSuccess: boolean = false;
 
   @Input() inputString: string = '';
@@ -64,15 +65,20 @@ export class HpoAutocompleteComponent implements OnInit {
           this.textMiningSuccess = true;
           return this.configService.getAutocompleteHpo(value);
         }
-        return EMPTY; 
+        return of([]); 
       })
-    ).subscribe((suggestions) => {  
-      console.log('Suggestions:', suggestions);
+    ).subscribe((suggestions: HpoMatch[]) => {  
       this.options = suggestions;
     });
     if (this.initialValue && this.initialValue.length > 5) {
       this.control.setValue(this.initialValue);
     }
+  }
+
+  // turn an HpoMatch object into a string for the input box
+  displayFn(option: HpoMatch | string): string {
+    if (typeof option === 'string') return option;
+    return option ? option.label : '';
   }
 
   clearInput() {
@@ -85,12 +91,11 @@ export class HpoAutocompleteComponent implements OnInit {
     The callback function will be activate, and then we clear the input. 
     We get something like "HP:0000828 - Abnormality of the parathyroid gland" and create an HpoTermDuplet*/
   async submitTerm() {
-    const termString = this.control.value;
-    if (termString) {
-      const [id, ...labelParts] = termString.split(' - ');
+    const selection = this.control.value;
+    if (selection && typeof selection !== 'string') {
       const duplet: HpoTermDuplet = {
-        hpoId: id.trim(),
-        hpoLabel: labelParts.join(' -').trim()
+        hpoId: selection.id,
+        hpoLabel: selection.label
       };
       this.selected.emit(duplet);
       await this.onSubmit(duplet);

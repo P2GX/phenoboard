@@ -7,7 +7,7 @@ use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::A
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use deunicode::deunicode;
-use ontolius::{common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{csr::FullCsrOntology, HierarchyWalks, MetadataAware, OntologyTerms}, term::{MinimalTerm}, TermId};
+use ontolius::{TermId, common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm, Synonymous}};
 use fenominal::{
     fenominal::{Fenominal, FenominalHit}
 };
@@ -15,6 +15,14 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
+
+/// We use this to support autocomplete matching in the front end
+#[derive(serde::Serialize, Clone)]
+pub struct HpoMatch {
+    pub id: String,
+    pub label: String,
+    pub matched_text: String,
+}
 
 /// A singleton that coordinates all interactions with the backend (including GA4GH Phenoboard)
 pub struct PhenoboardSingleton {
@@ -26,7 +34,7 @@ pub struct PhenoboardSingleton {
     /// Path to the directory where we store the template and the phenopackets
     pt_template_dir_path: Option<PathBuf>,
     /// Strings for autocompletion
-    hpo_auto_complete: Vec<String>,
+    hpo_auto_complete: Vec<HpoMatch>,
 }
 
 impl PhenoboardSingleton {
@@ -68,25 +76,42 @@ impl PhenoboardSingleton {
 
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
-    pub fn get_hpo_autocomplete(&self) -> &Vec<String> {
-        &self.hpo_auto_complete
+    pub fn search_hpo(&self, query: &str, limit: usize) -> Vec<HpoMatch> {
+        let matcher = SkimMatcherV2::default();
+        let query_lower = query.to_lowercase();
+
+        let mut matches: Vec<(i64, &HpoMatch)> = self.hpo_auto_complete
+            .iter()
+            .filter_map(|item| {
+                // Fuzzy match against the matched_text (synonym or label)
+                matcher.fuzzy_match(&item.matched_text, &query_lower)
+                    .map(|score| (score, item))
+            })
+            .collect();
+
+        // Sort by score descending
+        matches.sort_by(|a, b| b.0.cmp(&a.0));
+
+        matches.into_iter()
+            .take(limit)
+            .map(|(_, item)| item.clone())
+            .collect()
     }
 
     /// We want to get the single best match of any HPO term label to the query string
-    pub fn get_best_hpo_match(&self, query: String) -> String {
+    pub fn get_best_hpo_match(&self, query: String) -> Option<HpoMatch> {
         let matcher = SkimMatcherV2::default();
-        self.hpo_auto_complete.iter()
-           .filter_map(|s| {
-                let parts: Vec<&str> = s.splitn(2, " - ").collect();
-                if parts.len() != 2 {
-                    return None;
-                }
-                let label = parts[1];
-                matcher.fuzzy_match(label, &query).map(|score| (s, score))
-        })
-        .max_by_key(|(_, score)| *score)
-        .map(|(s, _)| s.clone())
-        .unwrap_or_else(|| "n/a".to_string())
+        self.hpo_auto_complete
+            .iter()
+            .filter_map(|item| {
+                // We score based on the matched_text (could be a synonym or primary label)
+                matcher.fuzzy_match(&item.matched_text, &query)
+                    .map(|score| (item, score))
+            })
+            // Get the highest scoring match
+            .max_by_key(|(_, score)| *score)
+            // Return the whole object so you have the ID and Label immediately
+            .map(|(item, _)| item.clone())
     }
 
     /// Set up autocomplete functionality that returns string with form HP:0000123 - Label
@@ -98,12 +123,23 @@ impl PhenoboardSingleton {
                 for tid in  hpo.iter_descendant_ids(&PHENOTYPIC_ABNORMALITY) {
                     match hpo.term_by_id(tid) {
                         Some(term) => {
-                            let label = term.name();
-                            let ac_string = format!("{tid} - {label}");
-                            self.hpo_auto_complete.push(ac_string);
-                            
+                            let id_str = tid.to_string();
+                            let primary_label = term.name().to_string();
+                            self.hpo_auto_complete.push(HpoMatch {
+                                id: id_str.clone(),
+                                label: primary_label.clone(),
+                                matched_text: primary_label.clone(),
+                            });
+                            for synonym in term.synonyms() {
+                                let label = synonym.name.clone();
+                                self.hpo_auto_complete.push(HpoMatch {
+                                    id: id_str.clone(),
+                                    label: label,
+                                    matched_text: primary_label.clone(),
+                                });
+                            }
                         },
-                        None => { eprintln!("Could not retrieve term for {}", tid); }
+                        None => { eprintln!("Could not retrieve term for {}", tid); } // should never happen
                     }
                 }
             },
