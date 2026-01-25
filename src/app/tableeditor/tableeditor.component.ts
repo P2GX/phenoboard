@@ -33,6 +33,7 @@ import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
 import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from './etl-metadata';
+import { CellReviewComponent } from '../cellreview/cellreview.component';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -600,30 +601,41 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     if (!dto ) return;
     const col = dto.table.columns[colIndex];
     if (!col) return;
-
+    // Stage 1. Divide the cell entries into individual word groups (";" and new line) and
+    // map each one
     const originalEntries = col.values.map(v => v.original);
-    console.log("processMultipleHpoColumn originalEntries=", originalEntries);
-    const concepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
-    console.log("processMultipleHpoColumn concepts=", concepts);
+    const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
 
-    const dialogRef = this.dialog.open(MultiHpoComponent, {
-      width: '1000px',
-      data: { concepts: concepts, title: col.header.original }
+    const globalRef = this.dialog.open(MultiHpoComponent, {
+      width: '1100px',
+      data: { concepts: initialConcepts, title: col.header.original }
     });
-    const confirmedConcepts: MiningConcept[] = await firstValueFrom(dialogRef.afterClosed());
-    if (!confirmedConcepts) return;
+    const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
+    if (!confirmedDictionary) return;
 
-    // 3. Re-map the confirmed concepts back to the original rows
-    // Create a lookup map: Original Text -> Confirmed Mapping String
+    // Review the cells using the above mappings. Adjust age of onset if necessary
+    const cellReviewRef = this.dialog.open(CellReviewComponent, {
+      width: '1100px',
+      disableClose: true,
+      data: { 
+        cells: col.values, // Pass the original spreadsheet cells
+        miningResults: confirmedDictionary, // Pass the confirmed dictionary from Step 1
+        title: col.header.original 
+      }
+    });
+    const finalResults: MiningConcept[] = await firstValueFrom(cellReviewRef.afterClosed());
+    if (!finalResults) return;
+    // --- STAGE 3: DATA APPLICATION ---
     const mappingLookup = new Map<string, string>();
-    
-    // We need to group concepts by their original text because one cell 
-    // might have split into multiple concepts (e.g., "Jaundice, Fever")
-    confirmedConcepts.forEach(c => {
+  
+    finalResults.forEach(c => {
       if (c.miningStatus === MiningStatus.Confirmed && c.suggestedTerms.length > 0) {
-        const termStrings = c.suggestedTerms.map(term => `${term.id}-${c.clinicalStatus}`);
-        const rowMapping = termStrings.join(";");
-        mappingLookup.set(c.originalText, rowMapping);
+        const termStrings = c.suggestedTerms.map(term => {
+          let val = `${term.id}-${c.clinicalStatus}`;
+          if (c.onsetString) val += `-${c.onsetString}`; // Include Onset Age!
+          return val;
+        });
+        mappingLookup.set(c.originalText, termStrings.join(";"));
       }
     });
 
@@ -633,9 +645,9 @@ export class TableEditorComponent implements OnInit, OnDestroy {
        // Logic: Split the original cell text exactly how Rust did to find the pieces
         const fragments = cell.original.split(/[;\n]/).map(f => f.trim()).filter(f => f.length > 0);
         const mappedValue = fragments
-        .map(f => mappingLookup.get(f))
-        .filter(val => !!val)
-        .join(";");
+          .map(f => mappingLookup.get(f))
+          .filter(val => !!val)
+          .join(";");
 
       return {
         ...cell,
@@ -645,22 +657,21 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       };
     });
     column.header.columnType = EtlColumnType.MultipleHpoTerm;
-    const uniqueDuplets = new Map<string, HpoTermDuplet>();
-    confirmedConcepts.forEach(c => {
-      if (c.miningStatus === MiningStatus.Confirmed && c.suggestedTerms.length > 0) {
-        c.suggestedTerms.map(term =>  {
-            uniqueDuplets.set(term.id, {
-              hpoId: term.id,
-              hpoLabel: term.label
-            });
-        });
-      }
-    });
-      col.header.hpoTerms = Array.from(uniqueDuplets.values());
-    
+    column.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
       return { ...column, values: newValues };
     });
     this.etl_service.updateColumns(newColumns);
+  }
+
+  // Helper to keep the main function clean
+  private extractUniqueHpoTerms(concepts: MiningConcept[]): HpoTermDuplet[] {
+    const unique = new Map<string, HpoTermDuplet>();
+    concepts.forEach(c => {
+      if (c.miningStatus === MiningStatus.Confirmed) {
+        c.suggestedTerms.forEach(t => unique.set(t.id, { hpoId: t.id, hpoLabel: t.label }));
+      }
+    });
+    return Array.from(unique.values());
   }
 
 

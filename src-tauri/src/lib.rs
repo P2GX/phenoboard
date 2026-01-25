@@ -859,7 +859,21 @@ async fn process_multi_hpo_text(
         // Try to get a fuzzy match for this specific snippet
         let matches = singleton.search_hpo(part, 1);
         let suggested = match matches.first().cloned() {
-            Some(m) => vec![m],
+            Some(m) => {
+                let input_len = part.len();
+                let label_len = m.label.len();
+
+                // HEURISTIC: Prevent noise like "Y" matching "Yawning"
+                // 1. If input is < 3 chars, it MUST be an exact case-insensitive match
+                // 2. Or, if the match is too "far" (label is 4x longer than input), ignore it
+                if input_len < 3 && part.to_lowercase() != m.label.to_lowercase() {
+                    vec![]
+                } else if label_len > (input_len * 2) {
+                    vec![] // Filter out long labels for short inputs
+                } else {
+                    vec![m]
+                }
+            },
             None => vec![]
         };
 

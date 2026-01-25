@@ -1,11 +1,11 @@
 <h2 mat-dialog-title class="flex justify-between items-center">
   <span>Review Mapping: <span class="text-blue-600">{{ title }}</span></span>
-  <mat-chip class="text-sm">Found {{ concepts.length }} unique terms</mat-chip>
+  <mat-chip class="text-sm">Found {{ concepts().length }} unique input strings</mat-chip>
 </h2>
 
 <mat-dialog-content class="mat-typography">
   <div class="review-table-container border rounded-lg overflow-hidden shadow-sm">
-    <table mat-table [dataSource]="concepts" class="w-full">
+    <table mat-table [dataSource]="concepts()" class="w-full">
       
       <ng-container matColumnDef="source">
         <th mat-header-cell *matHeaderCellDef> Source Fragment </th>
@@ -96,6 +96,6 @@
   <button mat-button (click)="cancel()">Discard Changes</button>
   <button mat-raised-button color="primary" (click)="save()" [disabled]="concepts.length === 0">
     <mat-icon class="mr-1">done_all</mat-icon>
-    Apply {{ concepts.length }} Mappings
+    Apply {{ concepts().length }} Mappings
   </button>
 </mat-dialog-actions>

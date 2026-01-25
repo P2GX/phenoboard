@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
@@ -18,10 +18,13 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ConfigService } from '../services/config.service';
 
 
 /// symbols for not applicable or unknown status
- const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown"]);
+const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown"]);
+
+
 
 /* Component to map columns that contain strings representing one to many HPO terms */
 @Component({
@@ -50,55 +53,69 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 ]
 })
 export class MultiHpoComponent {
-  // We work with the specific concepts found by Rust
-  concepts: MiningConcept[] = [];
-  title: string = '';
-
+  readonly concepts = signal<MiningConcept[]>([]);
+  
+  private configService = inject(ConfigService);
   // Track which row indices are currently showing the search input field
   searchingIndices = new Set<number>();
+  private dialogRef = inject(MatDialogRef<MultiHpoComponent>);
+  public data = inject(MAT_DIALOG_DATA) as { concepts: MiningConcept[], title: string };
+  title: string = this.data.title;
+  constructor() {
+    const processed = (this.data.concepts ?? [])
+      .filter(c => {
+        const text = c.originalText.toLowerCase().trim();
+        return !NOT_APPLICABLE.has(text) && /[a-zA-Z]/.test(text);
+      })
+      .map(c => ({
+        ...c,
+        // Auto-confirm if terms exist
+        miningStatus: c.suggestedTerms.length > 0 ? MiningStatus.Confirmed : c.miningStatus
+      }));
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { concepts: MiningConcept[], title: string },
-    private dialogRef: MatDialogRef<MultiHpoComponent>
-  ) {
-    // 1. Initialize with the concepts passed from the parent
-    // remove "na" - like entries
-    this.concepts = (data.concepts ?? []).filter(c => {
-      const text = c.originalText.toLowerCase().trim();
-      // Ignore if it's in our NA set or if it has no letters
-      return !NOT_APPLICABLE.has(text) && /[a-zA-Z]/.test(text);
-    });
-    this.title = data.title;
-
-    // 2. High-Confidence Auto-Confirm
-    // If Rust found a match, we can pre-set it to 'confirmed'
-    this.concepts.forEach(c => {
-      if (c.suggestedTerms.length) {
-        c.miningStatus = MiningStatus.Confirmed;
-      }
-    });
+    this.concepts.set(processed);
   }
 
-  // Update a specific concept when user uses autocomplete
-  updateMapping(index: number, newTerm: HpoTermDuplet) {
-    this.concepts[index].suggestedTerms.push( {
+  
+
+ // Update a specific concept when user uses autocomplete
+updateMapping(index: number, newTerm: HpoTermDuplet) {
+  this.concepts.update(list => {
+    const cloned = [...list];
+    const concept = cloned[index];
+
+    // Push the new term into the suggestedTerms array
+    concept.suggestedTerms.push({
       id: newTerm.hpoId,
       label: newTerm.hpoLabel,
-      matched_text: this.concepts[index].originalText // update context
+      matched_text: concept.originalText
     });
-    this.concepts[index].miningStatus = MiningStatus.Confirmed;
-  }
 
-  toggleConfirm(index: number) {
-    const c = this.concepts[index];
+    concept.miningStatus = MiningStatus.Confirmed;
+    return cloned;
+  });
+}
+
+toggleConfirm(index: number) {
+  this.concepts.update(list => {
+    const cloned = [...list];
+    const c = cloned[index];
+    
     c.miningStatus = c.miningStatus === MiningStatus.Confirmed 
       ? MiningStatus.Pending 
       : MiningStatus.Confirmed;
-  }
+      
+    return cloned;
+  });
+}
 
-  removeConcept(index: number) {
-    this.concepts.splice(index, 1);
-  }
+removeConcept(index: number) {
+  this.concepts.update(list => {
+    const cloned = [...list];
+    cloned.splice(index, 1);
+    return cloned;
+  });
+}
 
   cancel() {
     this.dialogRef.close();
@@ -109,22 +126,33 @@ export class MultiHpoComponent {
     this.dialogRef.close(this.concepts);
   }
 
-  resetMapping(index: number) {
-    this.concepts[index].miningStatus = MiningStatus.Pending;
-    this.concepts[index].suggestedTerms = [];
+ resetMapping(index: number) {
+    this.concepts.update(list => {
+      const cloned = [...list];
+      cloned[index] = {
+        ...cloned[index],
+        miningStatus: MiningStatus.Pending,
+        suggestedTerms: []
+      };
+      return cloned;
+    });
   }
 
   prepareConcepts() {
-  this.concepts = this.data.concepts.map(c => ({
-    ...c,
-    isSearching: false,
-    // Ensure suggestedTerms is an array even if Rust sent one/none
-    suggestedTerms: c.suggestedTerms  
-  }));
-}
+    const processed = this.data.concepts.map(c => ({
+      ...c,
+      // Note: If you added 'isSearching' to your interface, 
+      // it helps track local UI state for the search box
+      isSearching: false,
+      suggestedTerms: Array.isArray(c.suggestedTerms) ? [...c.suggestedTerms] : []
+    }));
+    
+    // Use .set() for a full replacement
+    this.concepts.set(processed);
+  }
 
   addNewTerm(conceptIndex: number, newTerm: HpoTermDuplet) {
-    const concept: MiningConcept = this.concepts[conceptIndex];
+    const concept: MiningConcept = this.concepts()[conceptIndex];
     
     const newMatch: HpoMatch = {
       id: newTerm.hpoId,
@@ -142,15 +170,24 @@ export class MultiHpoComponent {
   }
 
   removeTerm(conceptIndex: number, termIndex: number) {
-    this.concepts[conceptIndex].suggestedTerms.splice(termIndex, 1);
-    if (this.concepts[conceptIndex].suggestedTerms.length === 0) {
-      this.concepts[conceptIndex].miningStatus = MiningStatus.Pending;
-    }
+    this.concepts.update(list => {
+      const cloned = [...list];
+      const concept = { 
+        ...cloned[conceptIndex], 
+        suggestedTerms: [...cloned[conceptIndex].suggestedTerms] 
+      };
+      concept.suggestedTerms.splice(termIndex, 1);
+      if (concept.suggestedTerms.length === 0) {
+        concept.miningStatus = MiningStatus.Pending;
+      }
+      cloned[conceptIndex] = concept;
+      return cloned;
+    });
   }
 
   onBlur(index: number) {
     // Only collapse if we have terms; otherwise keep search open
-    if (this.concepts[index].suggestedTerms.length > 0) {
+    if (this.concepts()[index].suggestedTerms.length > 0) {
       this.searchingIndices.delete(index);
     }
   }
@@ -158,5 +195,6 @@ export class MultiHpoComponent {
   startSearch(index: number) {
     this.searchingIndices.add(index);
   }
+
 
 }

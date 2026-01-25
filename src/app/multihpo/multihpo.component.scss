@@ -3,15 +3,7 @@
   overflow-y: auto;
 }
 
-.hpo-chip {
-  background-color: #eef2ff !important; // Tailwind blue-50
-  color: #1e40af !important;           // Tailwind blue-800
-  border: 1px solid #dbeafe !important; // Tailwind blue-100
-  
-  ::ng-deep .mat-mdc-chip-remove {
-    color: #3b82f6;
-  }
-}
+
 
 tr.is-confirmed {
   background-color: #f0fdf4; // Very light green success state
@@ -32,5 +24,59 @@ tr.is-ignored {
   /* Prevent interaction with the autocomplete while ignored */
   .mat-column-mapping {
     pointer-events: none;
+  }
+}
+
+
+
+/* Ensure the table takes up the full container but doesn't exceed it */
+.review-table-container {
+  max-height: 65vh;
+  overflow-x: auto; // Allow horizontal scroll if absolutely necessary
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed; // This is the secret sauce for fixed-width columns
+}
+
+/* Source column: Fixed width, truncate long text if necessary */
+.mat-column-source {
+  width: 20%;
+  min-width: 150px;
+  padding-right: 16px;
+}
+
+/* Mapping column: Flexible, wraps content */
+.mat-column-mapping {
+  width: auto; // Takes up remaining space
+  padding-right: 16px;
+}
+
+/* Status column: Fixed width for the toggle group */
+.mat-column-status {
+  width: 180px; 
+  text-align: center;
+}
+
+/* Action column: Small fixed width for buttons */
+.mat-column-actions {
+  width: 100px;
+  text-align: right;
+}
+
+/* Allow chips to wrap nicely so they don't widen the column infinitely */
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Prevent the HPO chips from being too long */
+.hpo-chip {
+  max-width: 200px;
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
