@@ -9,12 +9,19 @@
       
       <ng-container matColumnDef="source">
         <th mat-header-cell *matHeaderCellDef> Source Fragment </th>
-        <td mat-cell *matCellDef="let c">
-          <div class="flex items-center gap-2">
+        <td mat-cell *matCellDef="let c; let i=index">
+          <div class="flex items-center group gap-2">
             <mat-icon class="text-gray-400 scale-75">description</mat-icon>
             <code class="text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
               "{{ c.originalText }}"
             </code>
+            <button mat-icon-button 
+              color="primary" 
+              class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              (click)="openSplitDialog(i)" 
+              matTooltip="Split this fragment">
+        <mat-icon style="font-size: 18px;">content_cut</mat-icon>
+      </button>
           </div>
         </td>
       </ng-container>
@@ -93,8 +100,8 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="p-4 border-t bg-gray-50">
-  <button mat-button (click)="cancel()">Discard Changes</button>
-  <button mat-raised-button color="primary" (click)="save()" [disabled]="concepts.length === 0">
+  <button mat-button class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
+  <button mat-raised-button color="primary" class="btn-outline-primary" (click)="save()" [disabled]="concepts().length === 0">
     <mat-icon class="mr-1">done_all</mat-icon>
     Apply {{ concepts().length }} Mappings
   </button>
