@@ -17,7 +17,8 @@ use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
 /// We use this to support autocomplete matching in the front end
-#[derive(serde::Serialize, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct HpoMatch {
     pub id: String,
     pub label: String,

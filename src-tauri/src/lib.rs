@@ -15,7 +15,7 @@ use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::ontology_loader, phenoboard::HpoMatch};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MiningConcept, ontology_loader}, phenoboard::HpoMatch};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -73,7 +73,8 @@ pub fn run() {
             merge_cohort_data_from_etl_dto,
             get_hpo_terms_by_toplevel,
             save_html_report,
-            fetch_repo_qc
+            fetch_repo_qc,
+            process_multi_hpo_text
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -834,4 +835,43 @@ fn fetch_repo_qc(state: tauri::State<'_, Arc<AppState>>)
     let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_repo_qc()
+}
+
+
+
+
+#[tauri::command]
+async fn process_multi_hpo_text(
+    state: tauri::State<'_, Arc<AppState>>,
+    text: String
+) -> Result<Vec<MiningConcept>, String> {
+    let singleton = state.phenoboard.lock().map_err(|_| "Lock failed")?;
+    
+    // Split by comma, semicolon, or newline
+    let parts: Vec<&str> = text.split(&[';', '\n'][..])
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    let mut concepts = Vec::new();
+
+    for part in parts {
+        // Try to get a fuzzy match for this specific snippet
+        let matches = singleton.search_hpo(part, 1);
+        let suggested = match matches.first().cloned() {
+            Some(m) => vec![m],
+            None => vec![]
+        };
+
+
+        concepts.push(MiningConcept {
+            original_text: part.to_string(),
+            suggested_terms: suggested,
+            mining_status: hpo::MiningStatus::Pending,
+            clinical_status: hpo::ClinicalStatus::Observed, // Default
+            onset_string: None,
+        });
+    }
+
+    Ok(concepts)
 }

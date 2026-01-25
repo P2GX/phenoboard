@@ -1,3 +1,4 @@
+import { HpoTermDuplet } from "./hpo_term_dto";
 
 
 /** An interface for the results of mapping of a column header */
@@ -13,3 +14,27 @@ export interface HpoMatch {
   label: string;
   matched_text: string;
 }
+
+
+export enum MiningStatus {
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+  Skipped = 'skipped'
+}
+
+export enum ClinicalStatus {
+  Observed = 'observed',
+  Excluded = 'excluded',
+  NotAssessed = 'na'
+}
+
+// This is used by the second step of the Multi-HPO mapper
+export interface MiningConcept {
+  originalText: string;
+  suggestedTerms: HpoMatch[];
+  miningStatus: MiningStatus;
+  clinicalStatus: ClinicalStatus;
+  onsetString: string | null;
+}
+
+

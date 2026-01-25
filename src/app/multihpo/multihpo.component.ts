@@ -16,12 +16,12 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { HpoStatus, HpoMappingRow } from '../models/hpo_term_dto';
-import { EtlCellValue } from '../models/etl_dto';
+import { HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 /// symbols for not applicable or unknown status
- const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown","n"]);
+ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown"]);
 
 /* Component to map columns that contain strings representing one to many HPO terms */
 @Component({
@@ -40,6 +40,7 @@ import { EtlCellValue } from '../models/etl_dto';
     MatSelectModule,
     MatSlideToggleModule,
     MatButtonModule,
+    MatTooltipModule,
     MatIconModule,
     CommonModule,
     MatTableModule,
@@ -49,48 +50,54 @@ import { EtlCellValue } from '../models/etl_dto';
 ]
 })
 export class MultiHpoComponent {
-  allHpoTerms: HpoTermDuplet[];
-  /* unique original entries (no duplicates)*/
-  uniqueEntries: string[] = [];
-  hpoMappings: HpoMappingRow[] = [];
-  /* HPO autocomplete input (not necessarily a valid HPO term yet) */
-  hpoInputString: string = ''; 
+  // We work with the specific concepts found by Rust
+  concepts: MiningConcept[] = [];
+  title: string = '';
+
+  // Track which row indices are currently showing the search input field
+  searchingIndices = new Set<number>();
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { terms: HpoTermDuplet[], rows: EtlCellValue[], title: string },
+    @Inject(MAT_DIALOG_DATA) public data: { concepts: MiningConcept[], title: string },
     private dialogRef: MatDialogRef<MultiHpoComponent>
   ) {
-    this.allHpoTerms = data.terms ?? [];
-    this.uniqueEntries = Array.from(new Set((data.rows ?? []).map(r => (r.original ?? '').trim()))).filter(r => r !== '');
+    // 1. Initialize with the concepts passed from the parent
+    // remove "na" - like entries
+    this.concepts = (data.concepts ?? []).filter(c => {
+      const text = c.originalText.toLowerCase().trim();
+      // Ignore if it's in our NA set or if it has no letters
+      return !NOT_APPLICABLE.has(text) && /[a-zA-Z]/.test(text);
+    });
+    this.title = data.title;
 
-    this.hpoMappings = this.uniqueEntries.map(rowText =>
-      this.allHpoTerms.map(term => ({
-        term,
-        status: this.getInitialStatus(rowText, term) as HpoStatus
-      }))
-    );
+    // 2. High-Confidence Auto-Confirm
+    // If Rust found a match, we can pre-set it to 'confirmed'
+    this.concepts.forEach(c => {
+      if (c.suggestedTerms.length) {
+        c.miningStatus = MiningStatus.Confirmed;
+      }
+    });
   }
 
-  /**
-   * Determines the initial status for a term based on whether the row text matches the HPO term label.
-   * Uses case-insensitive matching and handles partial matches.
-   */
-  private getInitialStatus(rowText: string, term: HpoTermDuplet): HpoStatus {
-    if (!rowText || !term.hpoLabel) return 'na';
-    const normalizedRowText = rowText.toLowerCase().trim();
-    if (NOT_APPLICABLE.has(normalizedRowText)) return "na";
-    const normalizedTermLabel = term.hpoLabel.toLowerCase().trim();
-    if (normalizedTermLabel == "normal") return "excluded"; 
-    if (normalizedRowText === normalizedTermLabel) return 'observed';
-    // Check if the row text contains the HPO term label (skip short entries such as na)
-    if (normalizedRowText.includes(normalizedTermLabel) && normalizedRowText.length > 4) {
-      return 'observed';
-    }
-    // Check if the HPO term label contains the row text (for shorter row text)
-    if (normalizedTermLabel.includes(normalizedRowText)) {
-      return 'observed';
-    }
-    return 'na';
+  // Update a specific concept when user uses autocomplete
+  updateMapping(index: number, newTerm: HpoTermDuplet) {
+    this.concepts[index].suggestedTerms.push( {
+      id: newTerm.hpoId,
+      label: newTerm.hpoLabel,
+      matched_text: this.concepts[index].originalText // update context
+    });
+    this.concepts[index].miningStatus = MiningStatus.Confirmed;
+  }
+
+  toggleConfirm(index: number) {
+    const c = this.concepts[index];
+    c.miningStatus = c.miningStatus === MiningStatus.Confirmed 
+      ? MiningStatus.Pending 
+      : MiningStatus.Confirmed;
+  }
+
+  removeConcept(index: number) {
+    this.concepts.splice(index, 1);
   }
 
   cancel() {
@@ -98,62 +105,58 @@ export class MultiHpoComponent {
   }
 
   save() {
-    const mappedRows: HpoMappingRow[] = (this.data.rows ?? []).map(row => {
-      const trimmed = (row.original ?? '').trim();
-      const idx = this.uniqueEntries.indexOf(trimmed);
-      if (idx >= 0) {
-        // clone so caller can mutate if desired without mutating this dialog state
-        return this.hpoMappings[idx].map(e => ({ ...e }));
-      }
-      return this.allHpoTerms.map(term => ({ term, status: 'na' as HpoStatus }));
-    });
-    this.dialogRef.close({
-      hpoMappings: mappedRows,
-      allHpoTerms: this.allHpoTerms,
-    });
+    // Return the refined list of concepts back to processMultipleHpoColumn
+    this.dialogRef.close(this.concepts);
   }
 
-  getEntry(rowIndex: number, termIndex: number) {
-    if (!this.hpoMappings[rowIndex]) {
-      this.hpoMappings[rowIndex] = this.allHpoTerms.map(term => ({ term, status: 'na' as HpoStatus }));
-    }
-    return this.hpoMappings[rowIndex][termIndex];
+  resetMapping(index: number) {
+    this.concepts[index].miningStatus = MiningStatus.Pending;
+    this.concepts[index].suggestedTerms = [];
   }
+
+  prepareConcepts() {
+  this.concepts = this.data.concepts.map(c => ({
+    ...c,
+    isSearching: false,
+    // Ensure suggestedTerms is an array even if Rust sent one/none
+    suggestedTerms: c.suggestedTerms  
+  }));
+}
+
+  addNewTerm(conceptIndex: number, newTerm: HpoTermDuplet) {
+    const concept: MiningConcept = this.concepts[conceptIndex];
     
-  addHpoTerm(term: HpoTermDuplet) {
-    if (!term) return;
-    if (this.allHpoTerms.some(t => t.hpoId === term.hpoId)) return;
-    this.allHpoTerms.push(term);
-    // Add a new column for this term on each unique-entry mapping
-    this.hpoMappings.forEach((row, rowIndex) => {
-      const initialStatus = this.getInitialStatus(this.uniqueEntries[rowIndex], term);
-      row.push({ term, status: initialStatus as HpoStatus });
-    });
+    const newMatch: HpoMatch = {
+      id: newTerm.hpoId,
+      label: newTerm.hpoLabel,
+      matched_text: concept.originalText
+    };
+
+    // Prevent duplicates
+    if (!concept.suggestedTerms.some(t => t.id === newMatch.id)) {
+      concept.suggestedTerms.push(newMatch);
+    }
+    
+    concept.miningStatus = MiningStatus.Confirmed;
+    this.searchingIndices.delete(conceptIndex);
   }
 
-  
-
- 
-  /** Set the value for an HPO term in a cell to excluded if the current status is "na"
-   * However, do not do this if the original text is na, unknown, or ?
-   */
-  setAllNaToExcluded() {
-    this.hpoMappings.forEach((row, rowIndex) => {
-      const rowText = this.uniqueEntries[rowIndex] ?? '';
-      const normalizedRowText = rowText.toLowerCase().trim();
-      const hasNaIndicators = NOT_APPLICABLE.has(normalizedRowText);
-      row.forEach(entry => {
-        if (entry.status === 'na' && !hasNaIndicators) {
-          entry.status = 'excluded';
-        }
-      });
-    });
+  removeTerm(conceptIndex: number, termIndex: number) {
+    this.concepts[conceptIndex].suggestedTerms.splice(termIndex, 1);
+    if (this.concepts[conceptIndex].suggestedTerms.length === 0) {
+      this.concepts[conceptIndex].miningStatus = MiningStatus.Pending;
+    }
   }
 
-  removeHpoTerm(term: HpoTermDuplet) {
-    this.allHpoTerms = this.allHpoTerms.filter(t => t.hpoId !== term.hpoId);
-    this.hpoMappings = this.hpoMappings.map(row =>
-      row.filter(entry => entry.term.hpoId !== term.hpoId)
-    );
+  onBlur(index: number) {
+    // Only collapse if we have terms; otherwise keep search open
+    if (this.concepts[index].suggestedTerms.length > 0) {
+      this.searchingIndices.delete(index);
+    }
   }
+
+  startSearch(index: number) {
+    this.searchingIndices.add(index);
+  }
+
 }

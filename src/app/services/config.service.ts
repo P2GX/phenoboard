@@ -8,7 +8,7 @@ import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
-import { HpoMatch } from '../models/hpo_mapping_result';
+import { HpoMatch, MiningConcept } from '../models/hpo_mapping_result';
 
 
 @Injectable({
@@ -147,8 +147,8 @@ export class ConfigService {
     return invoke<HpoMatch[]>('get_hpo_autocomplete', { query: value });
   }
 
-  async getBestHpoMatch(value: string): Promise<string> {
-    return invoke<string>('get_best_hpo_match', {query: value});
+  async getBestHpoMatch(value: string): Promise<HpoMatch> {
+    return invoke<HpoMatch>('get_best_hpo_match', {query: value});
   }
 
   async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {
@@ -294,6 +294,21 @@ export class ConfigService {
     const alphaOnly = uniqueItems.filter(item => /[a-zA-Z]/.test(item)); // remove entries such as "-"
     const result = alphaOnly.join(' . ');
     return await invoke<TextAnnotationDto[]>('map_text_to_annotations', {inputText: result});
+  }
+
+  async processMultiHpoText(text: string): Promise<MiningConcept[]> {
+    // This calls the #[tauri::command] in your Rust code
+    return await invoke<MiningConcept[]>('process_multi_hpo_text', { text });
+  }
+
+  async mapColumnToMiningConcepts(colValues: string[]): Promise<MiningConcept[]> {
+    // 1. Deduplicate and clean 
+    const uniqueItems = Array.from(new Set(colValues))
+      .filter(item => /[a-zA-Z]/.test(item));
+    // 2. Join using a distinct separator that Rust will split on
+    // We use \n because your Rust split includes [..., '\n', ...]
+    const bulkText = uniqueItems.join('\n');
+    return await this.processMultiHpoText(bulkText);
   }
 
   async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {

@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult } from "../models/hpo_mapping_result";
+import { HpoMappingResult, HpoMatch, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
 import { ColumnDto, ColumnTableDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -15,9 +15,8 @@ import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
 import { NotificationService } from '../services/notification.service';
-import { HpoStatus, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
-import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { removeAllWhitespace, sanitizeString } from '../validators/validators';
@@ -443,7 +442,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
   /** This method is called if the user right clicks on the header (first row) */
   onRightClickHeader(event: MouseEvent, colIndex: number): void {
-    console.log("onRightClickHeader c=", colIndex);
     event.preventDefault();
     this.contextMenuColIndex = colIndex;
     const headers = this.displayHeaders();  
@@ -526,11 +524,11 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     const columnTitle = column.header.original || "n/a";
 
     // Get the best HPO match
-    let bestHpoMatch = "";
+    let bestHpoMatch: HpoMatch | null = null;
     try {
       bestHpoMatch = (await this.configService.getBestHpoMatch(columnTitle)) ?? "";
     } catch {
-      bestHpoMatch = "";
+      this.notificationService.showError("could not get HPO match");
     }
 
     // Ask user to confirm/select HPO term
@@ -599,62 +597,68 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
   async processMultipleHpoColumn(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
-    if (!dto) return;
+    if (!dto ) return;
     const col = dto.table.columns[colIndex];
     if (!col) return;
 
     const originalEntries = col.values.map(v => v.original);
-    const hpoAnnotations: TextAnnotationDto[] = await this.configService.mapColumnToHpo(originalEntries);
+    console.log("processMultipleHpoColumn originalEntries=", originalEntries);
+    const concepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
+    console.log("processMultipleHpoColumn concepts=", concepts);
 
-    const hpoTerms: HpoTermDuplet[] = Array.from(
-      new Map(
-        hpoAnnotations
-          .filter(t => t.isFenominalHit && t.termId && t.label)
-          .map(t => [t.termId, { hpoId: t.termId, hpoLabel: t.label }])
-      ).values()
-    );
     const dialogRef = this.dialog.open(MultiHpoComponent, {
       width: '1000px',
-      data: { terms: hpoTerms, rows: col.values, title: col.header.original }
+      data: { concepts: concepts, title: col.header.original }
+    });
+    const confirmedConcepts: MiningConcept[] = await firstValueFrom(dialogRef.afterClosed());
+    if (!confirmedConcepts) return;
+
+    // 3. Re-map the confirmed concepts back to the original rows
+    // Create a lookup map: Original Text -> Confirmed Mapping String
+    const mappingLookup = new Map<string, string>();
+    
+    // We need to group concepts by their original text because one cell 
+    // might have split into multiple concepts (e.g., "Jaundice, Fever")
+    confirmedConcepts.forEach(c => {
+      if (c.miningStatus === MiningStatus.Confirmed && c.suggestedTerms.length > 0) {
+        const termStrings = c.suggestedTerms.map(term => `${term.id}-${c.clinicalStatus}`);
+        const rowMapping = termStrings.join(";");
+        mappingLookup.set(c.originalText, rowMapping);
+      }
     });
 
-    const result = await firstValueFrom(dialogRef.afterClosed());
+    const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
+      if (i !== colIndex) return column; // leave other columns unchanged
+      const newValues: EtlCellValue[] = column.values.map(cell => {
+       // Logic: Split the original cell text exactly how Rust did to find the pieces
+        const fragments = cell.original.split(/[;\n]/).map(f => f.trim()).filter(f => f.length > 0);
+        const mappedValue = fragments
+        .map(f => mappingLookup.get(f))
+        .filter(val => !!val)
+        .join(";");
 
-    const newColumns = dto.table.columns.map((col, i) => {
-      if (i !== colIndex) return col; // leave other columns unchanged
-      const newValues = col.values = col.values.map((cell, i) => {
-        if (!result) {
-          return {
-            ...cell,
-            status: EtlCellStatus.Error,
-            error: 'User cancelled'
-          }
-        }
-        const mappingRow: { term: HpoTermDuplet; status: HpoStatus }[] = result.hpoMappings[i] || [];
-        // If no mapping row exists, return empty - this is not an error, some upstream files are like this.
-        if (!mappingRow.length) {
-          return {
-            ...cell,
-            current: '',
-            status: EtlCellStatus.Transformed,
-            error: undefined
-          };
-        }
-        const mappedValue = mappingRow
-          .filter(entry => entry.status !== 'na')
-          .map(entry => `${entry.term.hpoId}-${entry.status}`)
-          .join(";");
-
-        return {
-          ...cell,
-          current: mappedValue,
-          status: TRANSFORMED,
-          error: undefined
-        }
-      });
-      col.header.hpoTerms = result?.allHpoTerms ?? [];
-      col.header.columnType = EtlColumnType.MultipleHpoTerm;
-      return col;
+      return {
+        ...cell,
+        current: mappedValue || '',
+        status: EtlCellStatus.Transformed,
+        error: undefined
+      };
+    });
+    column.header.columnType = EtlColumnType.MultipleHpoTerm;
+    const uniqueDuplets = new Map<string, HpoTermDuplet>();
+    confirmedConcepts.forEach(c => {
+      if (c.miningStatus === MiningStatus.Confirmed && c.suggestedTerms.length > 0) {
+        c.suggestedTerms.map(term =>  {
+            uniqueDuplets.set(term.id, {
+              hpoId: term.id,
+              hpoLabel: term.label
+            });
+        });
+      }
+    });
+      col.header.hpoTerms = Array.from(uniqueDuplets.values());
+    
+      return { ...column, values: newValues };
     });
     this.etl_service.updateColumns(newColumns);
   }
