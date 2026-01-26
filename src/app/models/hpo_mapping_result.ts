@@ -12,7 +12,7 @@ export interface HpoMappingResult {
 export interface HpoMatch {
   id: string;
   label: string;
-  matched_text: string;
+  matchedText: string;
 }
 
 

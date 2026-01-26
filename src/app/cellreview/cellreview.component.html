@@ -1,5 +1,5 @@
 <h2 mat-dialog-title class="flex justify-between items-center border-b pb-2">
-  <span>Fine-Tune Mapping: <span class="text-blue-600">{{ data.title }}</span></span>
+  <span>Review mapping: <span class="text-blue-600">{{ data.title }}</span></span>
   <span class="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
     Cell {{ currentIndex + 1 }} / {{ allCells.length }}
   </span>
@@ -7,7 +7,7 @@
 
 <mat-dialog-content class="pt-4">
   <div class="mb-6 p-4 bg-slate-50 border-l-4 border-blue-500 rounded-r shadow-sm">
-    <div class="text-xs font-bold text-gray-500 uppercase mb-1">Original Patient Data</div>
+    <div class="text-xs font-bold text-gray-500 uppercase mb-1">Original cell contents: </div>
     <div class="text-lg font-medium">"{{ allCells[currentIndex].original }}"</div>
   </div>
 

@@ -1,4 +1,4 @@
-import { Component, inject, Inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
@@ -16,7 +16,7 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { ClinicalStatus, HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
+import { HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
 import { SplitDialogComponent } from './splitdialog.component';
@@ -77,6 +77,8 @@ export class MultiHpoComponent {
       }));
 
     this.concepts.set(processed);
+        console.log("MultiHpoComponent CTOR")
+
   }
 
   
@@ -91,7 +93,7 @@ updateMapping(index: number, newTerm: HpoTermDuplet) {
     concept.suggestedTerms.push({
       id: newTerm.hpoId,
       label: newTerm.hpoLabel,
-      matched_text: concept.originalText
+      matchedText: concept.originalText
     });
 
     concept.miningStatus = MiningStatus.Confirmed;
@@ -126,7 +128,7 @@ removeConcept(index: number) {
 
   save() {
     // Return the refined list of concepts back to processMultipleHpoColumn
-    this.dialogRef.close(this.concepts);
+    this.dialogRef.close(this.concepts());
   }
 
  resetMapping(index: number) {
@@ -160,7 +162,7 @@ removeConcept(index: number) {
     const newMatch: HpoMatch = {
       id: newTerm.hpoId,
       label: newTerm.hpoLabel,
-      matched_text: concept.originalText
+      matchedText: concept.originalText
     };
 
     // Prevent duplicates

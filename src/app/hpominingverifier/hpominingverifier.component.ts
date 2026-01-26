@@ -7,7 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { ConfigService } from '../services/config.service';
-import { MiningConcept } from '../models/hpo_mapping_result';
+import { ClinicalStatus, HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 
 @Component({
   selector: 'app-hpo-mining-verifier',
@@ -36,8 +36,10 @@ export class HpoMiningVerifierComponent implements OnInit {
       const bestMatch = await this.configService.getBestHpoMatch(text);
       initialConcepts.push({
         originalText: text,
-        suggestedTerm: bestMatch, // This might be null or "n/a"
-        status: 'pending'
+        suggestedTerms: [bestMatch], // This might be null or "n/a"
+        miningStatus: MiningStatus.Pending,
+        clinicalStatus: ClinicalStatus.Observed,
+        onsetString: null
       });
     }
     this.concepts.set(initialConcepts);
@@ -51,15 +53,24 @@ export class HpoMiningVerifierComponent implements OnInit {
     return ((this.currentIndex() + 1) / this.concepts().length) * 100;
   }
 
-  handleUpdate(newTerm: HpoTermDuplet) {
+  handleUpdate(newTerm: HpoTermDuplet): void {
     const updated = [...this.concepts()];
-    updated[this.currentIndex()].suggestedTerm = newTerm;
+    const index = this.currentIndex();
+    const newMatch: HpoMatch = {
+      id: newTerm.hpoId,
+      label: newTerm.hpoLabel,
+      matchedText: newTerm.hpoLabel
+    };
+    updated[index] = {
+      ...updated[index],
+      suggestedTerms: [...updated[index].suggestedTerms, newMatch]
+    };
     this.concepts.set(updated);
   }
 
-  confirmAndNext() {
+  confirmAndNext(): void {
     const updated = [...this.concepts()];
-    updated[this.currentIndex()].status = 'confirmed';
+    updated[this.currentIndex()].miningStatus = MiningStatus.Confirmed;
     this.concepts.set(updated);
     this.next();
   }

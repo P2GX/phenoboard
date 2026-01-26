@@ -10,12 +10,12 @@
              [matAutocomplete]="auto">
       
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-        @for (option of options; track option.id + option.matched_text) {
+        @for (option of options; track option.id + option.matchedText) {
           <mat-option [value]="option">
             <div class="flex flex-col leading-tight">
-              <span class="text-sm font-medium">{{ option.matched_text }}</span>
+              <span class="text-sm font-medium">{{ option.matchedText }}</span>
               
-              @if (option.matched_text !== option.label) {
+              @if (option.matchedText !== option.label) {
                 <small class="text-gray-500 italic">Primary: {{ option.label }}</small>
               }
               <small class="text-blue-600 text-xs">{{ option.id }}</small>

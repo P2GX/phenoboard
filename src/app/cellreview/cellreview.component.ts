@@ -1,13 +1,12 @@
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialog, MatDialogContent } from "@angular/material/dialog";
 import { MiningConcept } from "../models/hpo_mapping_result";
-import { ConfigService } from "../services/config.service";
-import { Component, computed, Inject } from "@angular/core";
+import { Component, computed } from "@angular/core";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatIcon } from "@angular/material/icon";
 import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
 import { AddagesComponent } from '../addages/addages.component'; // Adjust path as needed
-import { inject, Input, NgZone } from '@angular/core';
+import { inject } from '@angular/core';
 import { MatChip } from "@angular/material/chips";
 import { AgeInputService } from '../services/age_service';
 
@@ -17,7 +16,7 @@ export interface SpreadsheetCell {
   rowIndex: number;    
 }
 
-
+/* This component cycles thought each row (for a column) and allows the user to confirm/edit the HPO mapping */
 @Component({
   selector: 'app-cell-review',
   standalone: true,
@@ -27,7 +26,6 @@ export interface SpreadsheetCell {
 })
 export class CellReviewComponent {
   currentIndex = 0;
- // The table for the current cell
   conceptsForThisCell: MiningConcept[] = [];
 
   public data = inject(MAT_DIALOG_DATA) as { 
@@ -46,14 +44,14 @@ export class CellReviewComponent {
         this.loadCell();
     }
 
-  async loadCell() {
-    const currentCellText = this.allCells[this.currentIndex].original;
-    this.conceptsForThisCell = this.allMiningResults.filter(concept => 
+  async loadCell(): Promise<void> {
+    const currentCellText: string = this.allCells[this.currentIndex].original;
+    this.conceptsForThisCell = (this.allMiningResults ?? []).filter(concept => 
       currentCellText.includes(concept.originalText)
     );
   }
 
-  next() {
+  next(): void {
     if (this.currentIndex < this.allCells.length - 1) {
       this.currentIndex++;
       this.loadCell();
@@ -62,35 +60,27 @@ export class CellReviewComponent {
     }
   }
 
-  prev() {
+  prev(): void {
     if (this.currentIndex > 0) {
         this.currentIndex--;
         this.loadCell(); 
     }
 }
 
-  // Add this to your class
-toggleAgeForConcept(concept: MiningConcept, age: string) {
+
+toggleAgeForConcept(concept: MiningConcept, age: string): void {
   let ages = concept.onsetString ? concept.onsetString.split(';') : [];
-  
   if (ages.includes(age)) {
-    // Remove it if already there
     ages = ages.filter(a => a !== age);
   } else {
-    // Add it
     ages.push(age);
   }
-  
   concept.onsetString = ages.join(';');
 }
 
-// Update your picker method to ensure the Service stays in sync
-openAgePicker(concept: MiningConcept) {
+// set the age of onset of the marked row
+openAgePicker(concept: MiningConcept): void {
   const existing = concept.onsetString ? concept.onsetString.split(';') : [];
-  
-  // Optional: Sync service state before opening if your AddagesComponent relies on it
-  // this.ageService.setSelectedTerms(existing); 
-
   const dialogRef = this.dialog.open(AddagesComponent, {
     width: '450px',
     data: { existingAges: existing }
@@ -99,8 +89,6 @@ openAgePicker(concept: MiningConcept) {
   dialogRef.afterClosed().subscribe((result: string[] | undefined) => {
     if (result) {
       concept.onsetString = result.join(';');
-      // The AddagesComponent already updates the service, 
-      // so your globalAgeEntries() signal will refresh automatically!
     }
   });
 }
