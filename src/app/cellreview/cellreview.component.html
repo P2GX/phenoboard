@@ -84,13 +84,13 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="border-t p-4">
-  <button mat-button (click)="prev()" class="btn-outline-primary"  [disabled]="currentIndex === 0">
+  <button mat-button (click)="prev()" class="btn-outline-primary"  [disabled]="currentIndex() === 0">
     <mat-icon>chevron_left</mat-icon> Previous
   </button>
   <div class="flex-grow"></div>
   <button mat-button class="btn-outline-cancel" (click)="dialogRef.close()">Cancel</button>
   <button mat-raised-button class="btn-outline-primary" (click)="next()">
-    {{ currentIndex < allCells.length - 1 ? 'Next Cell' : 'Finish & Save All' }}
+    {{ currentIndex() < allCells.length - 1 ? 'Next Cell' : 'Finish & Save All' }}
     <mat-icon>chevron_right</mat-icon>
   </button>
 </mat-dialog-actions>

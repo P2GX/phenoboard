@@ -605,14 +605,12 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     // map each one
     const originalEntries = col.values.map(v => v.original);
     const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
-    console.log("processMultipleHpoColumn opening MultiHpoComponent")
     const globalRef = this.dialog.open(MultiHpoComponent, {
       width: '1100px',
       data: { concepts: initialConcepts, title: col.header.original }
     });
     const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
     if (!confirmedDictionary) return;
-    console.log("confirmedDictionary", confirmedDictionary);
     // Review the cells using the above mappings. Adjust age of onset if necessary
     const cellReviewRef = this.dialog.open(CellReviewComponent, {
       width: '1100px',
@@ -624,14 +622,9 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       }
     });
     const finalResults: MiningConcept[] = await firstValueFrom(cellReviewRef.afterClosed());
+    if (!finalResults) return;
     // --- STAGE 3: DATA APPLICATION ---
     const mappingLookup = new Map<string, string>();
-
-          // Debug log to see the structure
-      console.log('Final Results Data:', finalResults);
-
-      if (!finalResults) return;
-
       // Ensure we are dealing with an array. 
       // If your component wrapped the data in an object, extract it here.
       const resultsArray = Array.isArray(finalResults) 

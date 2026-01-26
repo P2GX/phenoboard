@@ -1,6 +1,6 @@
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialog, MatDialogContent } from "@angular/material/dialog";
 import { MiningConcept } from "../models/hpo_mapping_result";
-import { Component, computed } from "@angular/core";
+import { Component, computed, signal } from "@angular/core";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatIcon } from "@angular/material/icon";
 import { MatTableModule } from '@angular/material/table';
@@ -25,8 +25,7 @@ export interface SpreadsheetCell {
   styleUrls: ['./cellreview.component.scss']
 })
 export class CellReviewComponent {
-  currentIndex = 0;
-  conceptsForThisCell: MiningConcept[] = [];
+ 
 
   public data = inject(MAT_DIALOG_DATA) as { 
     cells: SpreadsheetCell[], 
@@ -38,44 +37,50 @@ export class CellReviewComponent {
    public dialogRef = inject(MatDialogRef<CellReviewComponent>);
 
    allCells: SpreadsheetCell[] =  this.data.cells;
-   allMiningResults: MiningConcept[] = this.data.miningResults;
-  readonly globalAgeEntries = computed(() => this.ageService.getSelectedTerms());
-    constructor() {
-        this.loadCell();
-    }
+   allMiningResults = signal<MiningConcept[]>(this.data.miningResults);
 
-  async loadCell(): Promise<void> {
-    const currentCellText: string = this.allCells[this.currentIndex].original;
-    this.conceptsForThisCell = (this.allMiningResults ?? []).filter(concept => 
-      currentCellText.includes(concept.originalText)
+  readonly conceptsForThisCell = computed(() => {
+    const currentCell = this.allCells[this.currentIndex()];
+    if (!currentCell) return [];
+    
+    // Filter the signal value
+    return this.allMiningResults().filter(concept => 
+      currentCell.original.includes(concept.originalText)
     );
-  }
+  });
+  currentIndex = signal(0);
+  readonly globalAgeEntries = computed(() => this.ageService.getSelectedTerms());
+
 
   next(): void {
-    if (this.currentIndex < this.allCells.length - 1) {
-      this.currentIndex++;
-      this.loadCell();
+    if (this.currentIndex() < this.allCells.length - 1) {
+      this.currentIndex.update(i => i+1);
     } else {
       this.dialogRef.close(this.allMiningResults);
     }
   }
 
   prev(): void {
-    if (this.currentIndex > 0) {
-        this.currentIndex--;
-        this.loadCell(); 
+    if (this.currentIndex() > 0) {
+        this.currentIndex.update(i => i-1); 
     }
 }
 
 
 toggleAgeForConcept(concept: MiningConcept, age: string): void {
-  let ages = concept.onsetString ? concept.onsetString.split(';') : [];
-  if (ages.includes(age)) {
-    ages = ages.filter(a => a !== age);
-  } else {
-    ages.push(age);
-  }
-  concept.onsetString = ages.join(';');
+  this.allMiningResults.update(currentList => 
+    currentList.map(item => {
+      // Check if this is the object we want to update
+      if (item === concept) {
+        return { 
+          ...item, 
+          // If the string matches the age, clear it; otherwise set it
+          onsetString: item.onsetString === age ? null : age 
+        };
+      }
+      return item;
+    })
+  );
 }
 
 // set the age of onset of the marked row
