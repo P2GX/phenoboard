@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult, HpoMatch, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
+import { ClinicalStatus, HpoMappingResult, HpoMatch, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
 import { ColumnDto, ColumnTableDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -595,6 +595,54 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   }
 
 
+  /* We receive a multi-HPO column, which has one string for each row of the table. Each cell can have zero, one, or multiple
+   * phrases that correspond to HPO terms. (1) mapColumnToMiningConcepts splits the original text on ";" and newline, and returns
+   * a list of MiningConcept objects, each of which retains the original row number. (2) We then create a uniqueDictionary of
+   * MiningConcept objects with no duplicates. For these objects, the row number is set to zero and is meaningless. 
+   * (3) We then open the MultiHpoComponent, which allows us to update/correct/delete/confirm the automatic mappings. Optionally,
+   * we can also split the strings (the original strings were split on ";" and newline, but sometimes a human user will see that
+   * the resulting strings need to be further split, e.g., on comma). (4) We keep track of the original string in a column using the
+   * ancestorString field, and this allows us to distribute the mappings back the each specific row.
+   */
+  private async getInitialMultipleHpoMapping(col: ColumnDto): Promise<MiningConcept[]> {
+    const originalEntries = col.values.map(v => v.original);
+    const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
+    const uniqueDictionary: MiningConcept[] = await this.configService.create_canonical_dictionary(initialConcepts);
+    const globalRef = this.dialog.open(MultiHpoComponent, {
+      width: '1100px',
+      data: { concepts: uniqueDictionary, title: col.header.original }
+    });
+    const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
+    if (!confirmedDictionary) return [];
+    const ancestorLookup = new Map<string, HpoMatch[]>();
+    confirmedDictionary.forEach(concept => {
+      const key = concept.ancestorText || concept.originalText;
+      if (! ancestorLookup.has(key)) {
+        ancestorLookup.set(key, []);
+      }
+      const existingMatches = ancestorLookup.get(key) || [];
+      ancestorLookup.set(key, [...existingMatches, ...concept.suggestedTerms]);
+    });
+    // Reconstruct the full MiningConcept objects for the table
+   
+    const updatedRows = originalEntries.map((text, rowIndex) => {
+      const allMatches = ancestorLookup.get(text) || [];
+      return { 
+        originalText: text,
+        ancestorText: '', // no longer needed
+        suggestedTerms: allMatches,
+        miningStatus: allMatches.length > 0 ? MiningStatus.Confirmed : MiningStatus.Pending,
+        rowIndex: rowIndex,
+        clinicalStatus: ClinicalStatus.Observed,
+        onsetString: null
+      };
+     
+    });
+    
+    return updatedRows;
+  }
+
+
   /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
   async processMultipleHpoColumn(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
@@ -603,69 +651,41 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     if (!col) return;
     // Stage 1. Divide the cell entries into individual word groups (";" and new line) and
     // map each one
-    const originalEntries = col.values.map(v => v.original);
-    const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
-    const globalRef = this.dialog.open(MultiHpoComponent, {
-      width: '1100px',
-      data: { concepts: initialConcepts, title: col.header.original }
-    });
-    const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
-    if (!confirmedDictionary) return;
-    // Review the cells using the above mappings. Adjust age of onset if necessary
+    const mappedEntries = await this.getInitialMultipleHpoMapping(col);
     const cellReviewRef = this.dialog.open(CellReviewComponent, {
       width: '1100px',
       disableClose: true,
       data: { 
-        cells: col.values, // Pass the original spreadsheet cells
-        miningResults: confirmedDictionary, // Pass the confirmed dictionary from Step 1
+        cells: col.values, // original spreadsheet cells
+        miningResults: mappedEntries, // Mappings (0..n for each original row)
         title: col.header.original 
       }
     });
     const finalResults: MiningConcept[] = await firstValueFrom(cellReviewRef.afterClosed());
     if (!finalResults) return;
     // --- STAGE 3: DATA APPLICATION ---
-    const mappingLookup = new Map<string, string>();
-      // Ensure we are dealing with an array. 
-      // If your component wrapped the data in an object, extract it here.
-      const resultsArray = Array.isArray(finalResults) 
-        ? finalResults 
-        : (finalResults as any).concepts || (finalResults as any).results || [];
-
-      if (resultsArray.length === 0) {
-        console.warn("No results were returned or results were not an array.");
-      }
-  
-    finalResults.forEach(c => {
-      if (c.miningStatus === MiningStatus.Confirmed && c.suggestedTerms.length > 0) {
-        const termStrings = c.suggestedTerms.map(term => {
-          let val = `${term.id}-${c.clinicalStatus}`;
-          if (c.onsetString) val += `-${c.onsetString}`; // Include Onset Age!
-          return val;
-        });
-        mappingLookup.set(c.originalText, termStrings.join(";"));
-      }
-    });
-
     const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
-      if (i !== colIndex) return column; // leave other columns unchanged
-      const newValues: EtlCellValue[] = column.values.map(cell => {
-       // Logic: Split the original cell text exactly how Rust did to find the pieces
-        const fragments = cell.original.split(/[;\n]/).map(f => f.trim()).filter(f => f.length > 0);
-        const mappedValue = fragments
-          .map(f => mappingLookup.get(f))
-          .filter(val => !!val)
-          .join(";");
-
-      return {
-        ...cell,
-        current: mappedValue || '',
-        status: EtlCellStatus.Transformed,
-        error: undefined
-      };
-    });
-    column.header.columnType = EtlColumnType.MultipleHpoTerm;
-    column.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
-      return { ...column, values: newValues };
+      if (i !== colIndex) return column;
+      const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
+        const result = finalResults[rowIndex];
+        let mappedValue = '';
+        if (result && result.miningStatus == MiningStatus.Confirmed) {
+          mappedValue = result.suggestedTerms.map(term => {
+            let val = `${term.id}-${result.clinicalStatus}`;
+            if (result.onsetString) val += `-${result.onsetString}`;
+            else val += "-na";
+          }).join(";");
+        }
+        return {
+          ...cell,
+          current: mappedValue,
+          status: EtlCellStatus.Transformed,
+          error: undefined
+        };
+      });
+      col.header.columnType = EtlColumnType.MultipleHpoTerm;
+      col.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
+      return {...col, values: newValues};
     });
     this.etl_service.updateColumns(newColumns);
   }

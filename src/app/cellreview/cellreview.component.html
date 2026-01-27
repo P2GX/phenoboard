@@ -4,11 +4,13 @@
     Cell {{ currentIndex() + 1 }} / {{ allCells.length }}
   </span>
 </h2>
-
-<mat-dialog-content class="pt-4">
-  <div class="mb-6 p-4 bg-slate-50 border-l-4 border-blue-500 rounded-r shadow-sm">
-    <div class="text-xs font-bold text-gray-500 uppercase mb-1">Original cell contents: </div>
-    <div class="text-lg font-medium">"{{ allCells[currentIndex()].original }}"</div>
+ABSENT {{ absentConcepts().length }}
+<mat-dialog-content class="pt-4 overflow-auto">
+  <div class="info-card-compact">
+    <div class="info-card-label">Original cell contents:</div>
+    <div class="info-card-value">
+      "{{ allCells[currentIndex()].original }}"
+    </div>
   </div>
 
   <table mat-table [dataSource]="conceptsForThisCell()" class="w-full">
@@ -32,55 +34,83 @@
     </ng-container>
 
     <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef> Status </th>
-      <td mat-cell *matCellDef="let c">
-        <mat-button-toggle-group [(ngModel)]="c.clinicalStatus" size="small">
-          <mat-button-toggle value="observed">Observed</mat-button-toggle>
-          <mat-button-toggle value="excluded">Excluded</mat-button-toggle>
+      <th mat-header-cell *matHeaderCellDef class="compact-header"> Status </th>
+      <td mat-cell *matCellDef="let c" class="px-2">
+        <mat-button-toggle-group 
+          [(ngModel)]="c.clinicalStatus" 
+          class="compact-toggle-group"
+          appearance="standard"> <mat-button-toggle value="observed">observed</mat-button-toggle>
+          <mat-button-toggle value="excluded">excluded</mat-button-toggle>
+          <mat-button-toggle value="na">na</mat-button-toggle>
         </mat-button-toggle-group>
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="onset">
-  <th mat-header-cell *matHeaderCellDef> Age of Onset </th>
-  <td mat-cell *matCellDef="let c">
-    <div class="flex flex-col gap-2 p-2 border rounded bg-white mt-1 mb-1" style="border-color: #e9ecef;">
-      
-      <div class="flex items-center gap-4">
-        <button mat-stroked-button color="primary" (click)="openAgePicker(c)">
-          Add/Edit Age Entries
-        </button>
+  <ng-container matColumnDef="onset">
+    <th mat-header-cell *matHeaderCellDef> Age of Onset </th>
+    <td mat-cell *matCellDef="let c" class="px-2">
+      <div class="flex items-center gap-2 py-1">
         
-        <div class="flex flex-wrap gap-2 text-xs text-blue-600 font-medium">
+        <div class="flex shrink-0">
+          <button mat-stroked-button color="primary" class="compact-btn-sm !rounded-r-none" (click)="openAgePicker(c)">
+            Add/Edit
+          </button>
+          
+          <button mat-stroked-button color="primary" class="compact-btn-sm !rounded-l-none !border-l-0" [matMenuTriggerFor]="sessionMenu">
+            <mat-icon class="!m-0">arrow_drop_down</mat-icon>
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-1 items-center overflow-hidden">
           @for (age of (c.onsetString ? c.onsetString.split(';') : []); track age) {
-            <span class="bg-blue-50 px-2 py-1 rounded border border-blue-100">{{ age }}</span>
+            <span class="bg-blue-50 text-[10px] px-1.5 py-0.5 rounded border border-blue-100 text-blue-600 whitespace-nowrap">
+              {{ age }}
+            </span>
           }
         </div>
-      </div>
 
-      @if (globalAgeEntries().length > 0) {
-        <div class="pt-2 border-t border-gray-100">
-          <div class="text-[9px] uppercase text-gray-400 font-bold mb-1">Quick Add From Session:</div>
-          <div class="flex flex-wrap gap-1">
-            @for (entry of globalAgeEntries(); track entry) {
-              <button 
-                mat-button 
-                class="quick-age-btn"
-                [class.active]="c.onsetString?.includes(entry)"
-                (click)="toggleAgeForConcept(c, entry)">
-                + {{ entry }}
-              </button>
-            }
+        <mat-menu #sessionMenu="matMenu">
+          <div class="px-3 py-1 text-[9px] uppercase text-gray-400 font-bold border-b border-gray-100">
+            Quick Add From Session
           </div>
-        </div>
-      }
-    </div>
-  </td>
-</ng-container>
-
+          @for (entry of globalAgeEntries(); track entry) {
+            <button mat-menu-item (click)="toggleAgeForConcept(c, entry)" class="compact-menu-item">
+              <mat-icon color="primary">{{ c.onsetString?.includes(entry) ? 'check_box' : 'add_box' }}</mat-icon>
+              <span>{{ entry }}</span>
+            </button>
+          }
+        </mat-menu>
+        
+      </div>
+    </td>
+  </ng-container>
     <tr mat-header-row *matHeaderRowDef="['source', 'mapping', 'status', 'onset']"></tr>
     <tr mat-row *matRowDef="let row; columns: ['source', 'mapping', 'status', 'onset'];"></tr>
   </table>
+  <div class="mt-6 p-4 border rounded-md bg-gray-50">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-sm font-bold text-gray-700 uppercase tracking-tight">
+        Absent in this cell (Quick Exclude)
+      </h3>
+      <button mat-stroked-button color="warn" class="compact-btn-sm" (click)="excludeAllAbsent()">
+        Exclude All Absent
+      </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      @for (concept of absentConcepts(); track concept.originalText) {
+        <button 
+          type="button"
+          (click)="toggleExclude(concept)"
+          [class.is-excluded]="concept.clinicalStatus === 'excluded'"
+          class="absent-badge">
+          {{ concept.originalText }}
+        </button>
+      }
+    </div>
+  </div>
+
+
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="border-t p-4">

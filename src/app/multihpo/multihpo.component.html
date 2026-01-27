@@ -31,10 +31,6 @@
         <td mat-cell *matCellDef="let c; let i = index">
           <div class="flex flex-wrap gap-2 items-center min-h-[48px] py-1">
             @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
-              <div style="color: red; font-size: 10px;">
-                DEBUG ID: {{ c.suggestedTerms[0]?.id }} 
-                (Type: {{ typeof c.suggestedTerms[0]?.id }})
-              </div>
               <mat-chip-row 
                 class="hpo-chip animate-in fade-in zoom-in duration-200"
                 (removed)="removeTerm(i, termIdx)">

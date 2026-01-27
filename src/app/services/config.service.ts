@@ -296,19 +296,23 @@ export class ConfigService {
     return await invoke<TextAnnotationDto[]>('map_text_to_annotations', {inputText: result});
   }
 
-  async processMultiHpoText(text: string): Promise<MiningConcept[]> {
-    // This calls the #[tauri::command] in your Rust code
-    return await invoke<MiningConcept[]>('process_multi_hpo_text', { text });
+  /* Here, we map each individual string to a MiningConcept. */
+  async mapColumnToMiningConcepts(cellValues: string[]): Promise<MiningConcept[]> {
+    const uniqueFragments = Array.from(new Set(
+      cellValues.flatMap(val => val.split(/[;\n]/).map(f => f.trim()).filter(f => f.length > 0))
+    ));
+    return await invoke<MiningConcept[]>('mine_multi_hpo_column', { cellValues });
   }
 
-  async mapColumnToMiningConcepts(colValues: string[]): Promise<MiningConcept[]> {
-    // 1. Deduplicate and clean 
-    const uniqueItems = Array.from(new Set(colValues))
-      .filter(item => /[a-zA-Z]/.test(item));
-    // 2. Join using a distinct separator that Rust will split on
-    // We use \n because your Rust split includes [..., '\n', ...]
-    const bulkText = uniqueItems.join('\n');
-    return await this.processMultiHpoText(bulkText);
+  async create_canonical_dictionary(mining_results: MiningConcept[]): Promise<MiningConcept[]> {
+    return await invoke<MiningConcept[]>("create_canonical_dictionary", {miningResults: mining_results});
+  }
+
+  async expandDictionaryToRows(confirmedDict: MiningConcept[], rawResults: MiningConcept[]): Promise<MiningConcept[]> {
+   return await invoke<MiningConcept[]>('expand_dictionary_to_rows', {
+        dictionary: confirmedDict,
+        rawResults: rawResults
+    });
   }
 
   async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {

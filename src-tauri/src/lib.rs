@@ -74,7 +74,9 @@ pub fn run() {
             get_hpo_terms_by_toplevel,
             save_html_report,
             fetch_repo_qc,
-            process_multi_hpo_text
+            mine_multi_hpo_column,
+            create_canonical_dictionary,
+            expand_dictionary_to_rows
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -839,53 +841,74 @@ fn fetch_repo_qc(state: tauri::State<'_, Arc<AppState>>)
 
 
 
-
+/// get list of Mining concepts for each cell
 #[tauri::command]
-async fn process_multi_hpo_text(
+async fn mine_multi_hpo_column(
     state: tauri::State<'_, Arc<AppState>>,
-    text: String
+    cell_values: Vec<String>
 ) -> Result<Vec<MiningConcept>, String> {
     let singleton = state.phenoboard.lock().map_err(|_| "Lock failed")?;
-    
-    // Split by comma, semicolon, or newline
-    let parts: Vec<&str> = text.split(&[';', '\n'][..])
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
+    let all_concepts: Vec<MiningConcept> = cell_values
+        .into_iter()
+        .enumerate()
+        .flat_map(|(idx, text)| {
+            singleton.get_mining_concepts(idx, &text)
+        })
         .collect();
+    Ok(all_concepts)
+}
 
-    let mut concepts = Vec::new();
+/// Get list of unique concepts (in which the row number is fake) for the 
+/// first phase of text mining
+#[tauri::command]
+async fn create_canonical_dictionary(
+    mining_results: Vec<MiningConcept>
+) -> Result<Vec<MiningConcept>, String> {
+    let mut unique_map = std::collections::HashMap::new();
 
-    for part in parts {
-        // Try to get a fuzzy match for this specific snippet
-        let matches = singleton.search_hpo(part, 1);
-        let suggested = match matches.first().cloned() {
-            Some(m) => {
-                let input_len = part.len();
-                let label_len = m.label.len();
-
-                // HEURISTIC: Prevent noise like "Y" matching "Yawning"
-                // 1. If input is < 3 chars, it MUST be an exact case-insensitive match
-                // 2. Or, if the match is too "far" (label is 4x longer than input), ignore it
-                if input_len < 3 && part.to_lowercase() != m.label.to_lowercase() {
-                    vec![]
-                } else if label_len > (input_len * 2) {
-                    vec![] // Filter out long labels for short inputs
-                } else {
-                    vec![m]
-                }
-            },
-            None => vec![]
-        };
-
-
-        concepts.push(MiningConcept {
-            original_text: part.to_string(),
-            suggested_terms: suggested,
-            mining_status: hpo::MiningStatus::Pending,
-            clinical_status: hpo::ClinicalStatus::Observed, // Default
-            onset_string: None,
-        });
+    for concept in mining_results {
+        // We use the text as the key to deduplicate
+        if !unique_map.contains_key(&concept.original_text) {
+            // Reset row_index to 0 as it's a global dictionary entry now
+            let mut canonical = concept;
+            canonical.row_index = 0;
+            unique_map.insert(canonical.original_text.clone(), canonical);
+        }
     }
 
-    Ok(concepts)
+    // Convert the map back into a sorted or flat list
+    let mut result: Vec<MiningConcept> = unique_map.into_values().collect();
+    result.sort_by(|a, b| a.original_text.cmp(&b.original_text));
+    
+    Ok(result)
+}
+
+
+#[tauri::command]
+async fn expand_dictionary_to_rows(
+    dictionary: Vec<MiningConcept>,
+    raw_results: Vec<MiningConcept>
+) -> Result<Vec<MiningConcept>, String> {
+    // 1. Create a lookup map from the confirmed dictionary
+    let dict_map: std::collections::HashMap<String, MiningConcept> = dictionary
+        .into_iter()
+        .map(|c| (c.original_text.clone(), c))
+        .collect();
+
+    // 2. Map the raw results back to the confirmed versions while preserving row_index
+    let expanded: Vec<MiningConcept> = raw_results
+        .into_iter()
+        .map(|mut raw| {
+            if let Some(confirmed) = dict_map.get(&raw.original_text) {
+                // Apply the user's choices from Phase 1 to this specific row
+                raw.suggested_terms = confirmed.suggested_terms.clone();
+                raw.mining_status = confirmed.mining_status.clone();
+                raw.clinical_status = confirmed.clinical_status.clone();
+                // We do NOT overwrite row_index; we keep the raw one
+            }
+            raw
+        })
+        .collect();
+
+    Ok(expanded)
 }

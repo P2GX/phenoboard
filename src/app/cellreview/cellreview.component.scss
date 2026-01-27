@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* The main wrapper card */
+  .info-card-compact {
+    @apply mb-4 p-3 bg-slate-50 border-l-4 border-blue-500 rounded-r shadow-sm 
+           flex flex-wrap items-baseline gap-2;
+  }
+  /* The small uppercase label */
+  .info-card-label {
+    @apply text-xs font-bold text-gray-500 uppercase shrink-0;
+  }
+
+  /* The actual data content */
+  .info-card-value {
+    @apply text-base font-medium break-words;
+  }
+
+  .compact-toggle-group {
+    @apply h-8 items-center; /* Reduces height from default 48px to 32px */
+  }
+
+  .compact-toggle-group mat-button-toggle {
+    @apply text-xs px-1; /* Smaller font and tighter side padding */
+  }
+
+  /* Optional: Tighten the button's internal label padding */
+  .compact-toggle-group .mat-button-toggle-label-content {
+    @apply leading-7 px-3; 
+  }
+
+  /* Ultra-compact button for table rows */
+  .compact-btn-sm {
+    @apply h-7 leading-7 px-2 text-xs !important;
+    min-width: unset !important;
+  }
+
+  .compact-btn-sm mat-icon {
+    @apply w-4 h-4 text-base !important;
+  }
+
+  /* Tighter Menu Items */
+  .compact-menu-item.mat-mdc-menu-item {
+    @apply min-h-[32px] h-8 text-xs !important;
+  }
+
+  .compact-menu-item .mat-icon {
+    @apply mr-2 w-4 h-4 text-base !important;
+  }
+
+  @layer components {
+  .absent-badge {
+    @apply px-3 py-1 rounded-full border text-xs font-medium transition-colors cursor-pointer;
+    @apply bg-gray-200 border-gray-300 text-gray-600; /* Default Grey */
+
+    &:hover {
+      @apply bg-gray-300;
+    }
+
+    &.is-excluded {
+      @apply bg-red-100 border-red-200 text-red-700; /* Reddish State */
+      
+      &:hover {
+        @apply bg-red-200;
+      }
+    }
+  }
+}
+}

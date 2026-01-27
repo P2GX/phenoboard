@@ -201,7 +201,7 @@ removeConcept(index: number) {
     this.searchingIndices.add(index);
   }
 
-  private executeSplit(index: number, delimiter: string) {
+  private executeSplit(index: number, delimiter: string): void {
     const currentList = this.concepts();
     const concept = currentList[index];
 
@@ -214,17 +214,19 @@ removeConcept(index: number) {
       const knowledgeMap = new Map<string, HpoMatch[]>(
         currentList.map(c => [c.originalText.toLowerCase(), c.suggestedTerms])
       );
+      const originalProvenance = concept.ancestorText || concept.originalText;
 
       // 2. Generate the new row objects
       const newConcepts: MiningConcept[] = parts.map(p => {
         const alreadyKnownTerms = knowledgeMap.get(p.toLowerCase()) || [];
         
         return {
-          ...concept,              // Keep clinicalStatus and other metadata
+          ...concept,  
           originalText: p,
+          ancestorText: originalProvenance,
           suggestedTerms: [...alreadyKnownTerms], 
           miningStatus: alreadyKnownTerms.length > 0 ? MiningStatus.Confirmed : MiningStatus.Pending,
-          onsetString: null       // Fixes the 'undefined' vs 'string | null' error
+          onsetString: null       
         };
       });
 

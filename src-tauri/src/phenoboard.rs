@@ -2,7 +2,7 @@
 //!
 
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MiningConcept, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
 use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
@@ -73,6 +73,47 @@ impl PhenoboardSingleton {
             Some(hpo) => Some(hpo.clone()),
             None => None,
         }
+    }
+
+
+    pub fn get_mining_concepts(&self, idx: usize, text: &str) -> Vec<MiningConcept> {
+        let parts: Vec<&str> = text.split(&[';', '\n'][..])
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .collect();
+        let mut concepts = Vec::new();
+        for part in parts {
+            // Try to get a fuzzy match for this specific snippet
+            let matches = self.search_hpo(part, 1);
+            let suggested = match matches.first().cloned() {
+                Some(m) => {
+                    let input_len = part.len();
+                    let label_len = m.label.len();
+
+                    // HEURISTIC: Prevent noise like "Y" matching "Yawning"
+                    // 1. If input is < 3 chars, it MUST be an exact case-insensitive match
+                    // 2. Or, if the match is too "far" (label is 4x longer than input), ignore it
+                    if input_len < 3 && part.to_lowercase() != m.label.to_lowercase() {
+                        vec![]
+                    } else if label_len > (input_len * 2) {
+                        vec![] // Filter out long labels for short inputs
+                    } else {
+                        vec![m]
+                    }
+                },
+                None => vec![]
+            };
+            concepts.push(MiningConcept {
+                original_text: part.to_string(),
+                ancestor_text: part.to_string(),
+                suggested_terms: suggested,
+                mining_status: crate::hpo::MiningStatus::Pending,
+                clinical_status: crate::hpo::ClinicalStatus::Observed, 
+                onset_string: None,
+                row_index: idx,
+            });
+        }
+        concepts
     }
 
 
