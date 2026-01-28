@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.5.76",
+  "version": "0.5.77",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",

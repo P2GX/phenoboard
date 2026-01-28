@@ -1,5 +1,5 @@
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialog, MatDialogContent } from "@angular/material/dialog";
-import { ClinicalStatus, MiningConcept } from "../models/hpo_mapping_result";
+import { ClinicalStatus, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
 import { Component, computed, signal } from "@angular/core";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatMenuModule } from '@angular/material/menu';
@@ -12,7 +12,8 @@ import { AddagesComponent } from '../addages/addages.component'; // Adjust path 
 import { inject } from '@angular/core';
 import { MatChip } from "@angular/material/chips";
 import { AgeInputService } from '../services/age_service';
-import { newRawColumnDto } from "../models/etl_dto";
+import { CellRowEditorComponent } from "./cell-row-editor.component";
+
 
 export interface SpreadsheetCell {
   original: string;    // The raw text from the spreadsheet (e.g., "Fever, NK, Jaundice")
@@ -24,23 +25,22 @@ export interface SpreadsheetCell {
 @Component({
   selector: 'app-cell-review',
   standalone: true,
-  imports: [FormsModule, 
+  imports: [FormsModule,
     MatButtonModule,
-    MatButtonToggle, 
+    MatButtonToggle,
     MatButtonToggleGroup,
     MatChip,
-    MatDialogActions, 
+    MatDialogActions,
     MatDialogContent,
-    MatIcon, 
+    MatIcon,
     MatIconModule,
     MatMenuModule,
-    MatTableModule],
+    MatTableModule, CellRowEditorComponent],
   templateUrl: './cellreview.component.html',
   styleUrls: ['./cellreview.component.scss']
 })
 export class CellReviewComponent {
  
-
   public data = inject(MAT_DIALOG_DATA) as { 
     cells: SpreadsheetCell[], 
     miningResults: MiningConcept[],
@@ -49,6 +49,8 @@ export class CellReviewComponent {
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
   public dialogRef = inject(MatDialogRef<CellReviewComponent>);
+
+  private readonly NON_ROW_BOUND_MARKER = -1;
 
   allCells: SpreadsheetCell[] =  this.data.cells;
   allMiningResults = signal<MiningConcept[]>(this.data.miningResults);
@@ -109,7 +111,10 @@ openAgePicker(concept: MiningConcept): void {
 
   dialogRef.afterClosed().subscribe((result: string[] | undefined) => {
       if (result) {
-        concept.onsetString = result.join(';');
+        const newAgeString = result.join(';');
+        this.allMiningResults.update(currentList => 
+          currentList.map(item => item === concept ?
+             { ...item, onsetString: newAgeString}: item));
       }
     });
   }
@@ -119,8 +124,15 @@ openAgePicker(concept: MiningConcept): void {
     const results = this.allMiningResults();
     const unique = new Map<string, MiningConcept>();
     results.forEach(c => {
-      if (!unique.has(c.originalText)) {
-        unique.set(c.originalText, c);
+      // ignore manually created Exclude rows
+      if (c.miningStatus === MiningStatus.Confirmed || c.suggestedTerms.length>0){
+        if (!unique.has(c.originalText)) {
+          unique.set(c.originalText, {
+            ...c,
+            rowIndex: this.NON_ROW_BOUND_MARKER,
+            onsetString: null
+          });
+        }
       }
     });
     return Array.from(unique.values());
@@ -143,7 +155,7 @@ openAgePicker(concept: MiningConcept): void {
       let updatedResults = [...results];
       for (const term of absentTerms) {
         const existingIdx = updatedResults.findIndex(r =>
-          r.rowIndex === currentIndex && r.originalText === term.originalText
+          r.rowIndex === currentRowIndex && r.originalText === term.originalText
         );
         if (existingIdx > -1) {
           updatedResults[existingIdx] = {
@@ -163,32 +175,56 @@ openAgePicker(concept: MiningConcept): void {
     });
   }
 
-  toggleExclude(concept: MiningConcept): void {
-    const currentIndex = this.currentIndex();
-    const currentRowIndex = this.allCells[currentIndex].rowIndex;
-    const targetText = concept.originalText;
-    const currentList = this.allMiningResults();
-    const existingIndex = currentList.findIndex(item =>
+  handleToggle(concept: MiningConcept): void {
+  const currentRowIndex = this.allCells[this.currentIndex()].rowIndex;
+  const targetText = concept.originalText;
+
+  this.allMiningResults.update(results => {
+    const existingIndex = results.findIndex(item =>
       item.rowIndex === currentRowIndex && item.originalText === targetText
-    )
+    );
+
     if (existingIndex > -1) {
-      this.allMiningResults.update(results => results.map((item, idx) => {
-        if (idx == existingIndex) {
-          const newStatus = item.clinicalStatus === ClinicalStatus.Excluded ? ClinicalStatus.NotAssessed : ClinicalStatus.Excluded;
-          return { ...item, clinicalStatus: newStatus}
-        }
-        return item;
-      }));
+      // If it exists in this cell, remove it
+      return results.filter((_, idx) => idx !== existingIndex);
     } else {
-      // it does not exist for this row. Create a new Excluded entry
-      const newConcept: MiningConcept = {
-        ...concept,
+      // If it doesn't exist, add it as a new exclusion for THIS row only
+      const newExclusion: MiningConcept = {
+        ...concept, // This ensures originalText is copied!
         rowIndex: currentRowIndex,
         clinicalStatus: ClinicalStatus.Excluded,
         onsetString: null
       };
-      this.allMiningResults.update(results => [...results, newConcept]);
+      return [...results, newExclusion];
     }
+  });
+}
+  setClinicalStatus(concept: MiningConcept, status: ClinicalStatus) {
+    const currentRowIndex = this.allCells[this.currentIndex()].rowIndex;
+
+    this.allMiningResults.update(results =>
+      results.map(r =>
+        r.rowIndex === currentRowIndex &&
+        r.originalText === concept.originalText
+          ? { ...r, clinicalStatus: status }
+          : r
+      )
+    );
   }
+
+  // Parent Component Logic
+handleStatusChange(event: { concept: MiningConcept, newStatus: string }): void {
+  const currentRowIndex = this.allCells[this.currentIndex()].rowIndex;
+
+  this.allMiningResults.update(results => 
+    results.map(item => {
+      // Matches the specific row AND the specific text fragment
+      if (item.rowIndex === currentRowIndex && item.originalText === event.concept.originalText) {
+        return { ...item, clinicalStatus: event.newStatus as ClinicalStatus };
+      }
+      return item;
+    })
+  );
+}
 
 }
