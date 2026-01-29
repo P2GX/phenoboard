@@ -860,26 +860,38 @@ async fn mine_multi_hpo_column(
 
 /// Get list of unique concepts (in which the row number is fake) for the 
 /// first phase of text mining
+
 #[tauri::command]
 async fn create_canonical_dictionary(
-    mining_results: Vec<MiningConcept>
+    mining_results: Vec<MiningConcept>,
 ) -> Result<Vec<MiningConcept>, String> {
-    let mut unique_map = std::collections::HashMap::new();
+    let mut unique_map: HashMap<String, MiningConcept> = HashMap::new();
 
-    for concept in mining_results {
-        // We use the text as the key to deduplicate
-        if !unique_map.contains_key(&concept.original_text) {
-            // Reset row_index to 0 as it's a global dictionary entry now
-            let mut canonical = concept;
-            canonical.row_index = 0;
-            unique_map.insert(canonical.original_text.clone(), canonical);
-        }
+    for mut concept in mining_results {
+        unique_map
+            .entry(concept.original_text.clone())
+            .and_modify(|existing| {
+                // Merge row indices
+                existing
+                    .row_index_list
+                    .extend(concept.row_index_list.drain(..));
+            })
+            .or_insert_with(|| {
+                // First time we see this concept → becomes canonical
+                concept
+            });
     }
 
-    // Convert the map back into a sorted or flat list
+    // Optional but usually a good idea: deduplicate + sort row indices
+    for concept in unique_map.values_mut() {
+        concept.row_index_list.sort_unstable();
+        concept.row_index_list.dedup();
+    }
+
+    // Convert back to Vec and sort by text for stability
     let mut result: Vec<MiningConcept> = unique_map.into_values().collect();
     result.sort_by(|a, b| a.original_text.cmp(&b.original_text));
-    
+
     Ok(result)
 }
 

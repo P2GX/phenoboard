@@ -31,7 +31,7 @@ export enum ClinicalStatus {
 // This is used by the second step of the Multi-HPO mapper
 export interface MiningConcept {
   originalText: string;
-  ancestorText: string;
+  rowIndexList: number[];
   suggestedTerms: HpoMatch[];
   miningStatus: MiningStatus;
   clinicalStatus: ClinicalStatus;

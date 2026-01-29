@@ -614,9 +614,11 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     });
     const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
     if (!confirmedDictionary) return [];
+    return confirmedDictionary;
+    /*
     const ancestorLookup = new Map<string, HpoMatch[]>();
     confirmedDictionary.forEach(concept => {
-      const key = concept.ancestorText || concept.originalText;
+      const key = concept.originalText;
       if (! ancestorLookup.has(key)) {
         ancestorLookup.set(key, []);
       }
@@ -632,7 +634,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         ancestorText: '', // no longer needed
         suggestedTerms: allMatches,
         miningStatus: allMatches.length > 0 ? MiningStatus.Confirmed : MiningStatus.Pending,
-        rowIndex: rowIndex,
+        rowIndexList: rowIndex,
         clinicalStatus: ClinicalStatus.Observed,
         onsetString: null
       };
@@ -640,6 +642,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     });
     
     return updatedRows;
+    */
   }
 
 
@@ -663,19 +666,31 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     });
     const finalResults: MiningConcept[] = await firstValueFrom(cellReviewRef.afterClosed());
     if (!finalResults) return;
+    /// Assign the concepts to the corresponding rows
+    const conceptsByRow = new Map<number, MiningConcept[]>();
+
+    for (const concept of finalResults) {
+      for (const rowIndex of concept.rowIndexList) {
+        const list = conceptsByRow.get(rowIndex) ?? [];
+        list.push(concept);
+        conceptsByRow.set(rowIndex, list);
+      }
+    }
+
     // --- STAGE 3: DATA APPLICATION ---
     const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
       if (i !== colIndex) return column;
       const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
-        const result = finalResults[rowIndex];
-        let mappedValue = '';
-        if (result && result.miningStatus == MiningStatus.Confirmed) {
-          mappedValue = result.suggestedTerms.map(term => {
-            let val = `${term.id}-${result.clinicalStatus}`;
-            if (result.onsetString) val += `-${result.onsetString}`;
-            else val += "-na";
-          }).join(";");
-        }
+        const conceptsForRow = conceptsByRow.get(rowIndex) ?? [];
+        const mappedValue = conceptsForRow
+          .filter(c => c.miningStatus === MiningStatus.Confirmed)
+          .flatMap(c =>
+            c.suggestedTerms.map(term => {
+              let onsetString = (c.onsetString) ? `-${c.onsetString}` : "-na"
+              return `${term.id}-${c.clinicalStatus}-${onsetString}`;
+            })
+          )
+          .join(";");
         return {
           ...cell,
           current: mappedValue,

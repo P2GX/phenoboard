@@ -26,10 +26,9 @@ pub enum ClinicalStatus {
 #[serde(rename_all = "camelCase")]
 pub struct MiningConcept {
   pub(crate) original_text: String,
-  pub(crate) ancestor_text: String,
+  pub(crate) row_index_list: Vec<usize>,
   pub(crate) suggested_terms: Vec<HpoMatch>,
   pub(crate) mining_status: MiningStatus,
   pub(crate) clinical_status: ClinicalStatus,
   pub(crate) onset_string: Option<String>,
-  pub(crate) row_index: usize
 }

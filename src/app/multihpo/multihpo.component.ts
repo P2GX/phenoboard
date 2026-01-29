@@ -214,8 +214,7 @@ removeConcept(index: number) {
       const knowledgeMap = new Map<string, HpoMatch[]>(
         currentList.map(c => [c.originalText.toLowerCase(), c.suggestedTerms])
       );
-      const originalProvenance = concept.ancestorText || concept.originalText;
-
+     
       // 2. Generate the new row objects
       const newConcepts: MiningConcept[] = parts.map(p => {
         const alreadyKnownTerms = knowledgeMap.get(p.toLowerCase()) || [];
@@ -223,7 +222,6 @@ removeConcept(index: number) {
         return {
           ...concept,  
           originalText: p,
-          ancestorText: originalProvenance,
           suggestedTerms: [...alreadyKnownTerms], 
           miningStatus: alreadyKnownTerms.length > 0 ? MiningStatus.Confirmed : MiningStatus.Pending,
           onsetString: null       
