@@ -656,6 +656,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
           };
         });
         const updatedCol = {...column};
+        updatedCol.values = newValues;
         updatedCol.header.columnType = EtlColumnType.MultipleHpoTerm;
         updatedCol.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
         return updatedCol;
