@@ -8,7 +8,7 @@ import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
-import { HpoMatch, MiningConcept } from '../models/hpo_mapping_result';
+import { HpoMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
 
 
 @Injectable({
@@ -314,6 +314,19 @@ export class ConfigService {
         rawResults: rawResults
     });
   }
+
+  async createCellMappings(
+    miningResults: MiningConcept[],
+    cellValues:string[],
+  ): Promise<MinedCell[]> {
+    return await invoke<MinedCell[]>('create_cell_mappings', 
+      {miningResults: miningResults, cellValues: cellValues});
+  }
+
+  async getMultiHpoStrings(minedCells: MinedCell[]): Promise<string[]> {
+    return await invoke<string[]>('get_multi_hpo_strings', { minedCells: minedCells});
+  }
+  
 
   async  transformToCohortData(etlDto: EtlDto): Promise<CohortData> {
     return await invoke<CohortData>('get_cohort_data_from_etl_dto', { dto: etlDto});

@@ -1,0 +1,75 @@
+<div class="mined-cell-container">
+   <details class="debug-panel">
+    <summary>Raw Data Debug</summary>
+    <pre>{{ cell() | json }}</pre>
+  </details>
+  <div class="cell-header">
+    <span class="label">Source Text:</span>
+    <code class="source-text">"{{ cell().cellText }}"</code>
+  </div>
+
+  <table class="compact-table">
+    <thead>
+      <tr>
+        <th>HPO Term</th>
+        <th>ID</th>
+        <th class="action-col">Status / Onset</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (term of cell().mappedTermList; track term.hpoId) {
+      <tr>
+        <td><strong>{{ term.hpoLabel || 'MISSING LABEL' }} </strong></td>
+        <td><span class="hpo-id">{{ term.hpoId }}</span></td>
+        <td class="action-col">
+          <div class="button-group">
+            <button mat-stroked-button color="primary" [matMenuTriggerFor]="statusMenu" class="status-btn">
+              {{ term.status || 'Set Status' }}
+              <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+            </button>
+
+            <button mat-icon-button title="Set Onset" (click)="openOnsetPicker(term)">
+              <mat-icon [color]="term.onset ? 'accent' : ''">schedule</mat-icon>
+            </button>
+          </div>
+ </td>
+          <td class="action-col">
+  <div class="button-group">
+    <button mat-stroked-button color="primary" [matMenuTriggerFor]="statusMenu" class="status-btn">
+      {{ term.status || 'Status' }}
+    </button>
+
+    <div class="onset-controls">
+      <select #onsetSelect
+              (change)="updateOnset(term, onsetSelect.value)"
+              class="onset-select">
+        @for (option of availableOnsetTerms; track option) {  
+          <option
+            [value]="option"
+            [selected]="option === term.onset"
+          >
+            {{ option }}
+          </option>
+        }
+      </select>
+      
+      <button (click)="addOnsetString(term)" class="add-btn">
+        +
+      </button>
+    </div>
+  </div>
+
+  <mat-menu #statusMenu="matMenu">
+    @for (opt of statusOptions; track opt) {
+      <button mat-menu-item (click)="updateStatus(term, opt)">
+        {{ opt | titlecase }}
+      </button>
+    }
+  </mat-menu>
+</td>
+       
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

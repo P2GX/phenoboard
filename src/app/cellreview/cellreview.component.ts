@@ -1,6 +1,6 @@
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialog, MatDialogContent } from "@angular/material/dialog";
-import { ClinicalStatus, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
-import { Component, computed, signal } from "@angular/core";
+import { ClinicalStatus, MinedCell, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
+import { Component, computed, EventEmitter, Output, signal } from "@angular/core";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,60 +10,76 @@ import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
 import { AddagesComponent } from '../addages/addages.component'; // Adjust path as needed
 import { inject } from '@angular/core';
-import { MatChip } from "@angular/material/chips";
-import { AgeInputService } from '../services/age_service';
-import { CellRowEditorComponent } from "./cell-row-editor.component";
+import { single } from "rxjs";
+import { MinedCellEditorComponent } from "./mined-cell-editor.component";
 
 
-export interface SpreadsheetCell {
-  original: string;    // The raw text from the spreadsheet (e.g., "Fever, NK, Jaundice")
-  processed: string;   // The final HPO string (e.g., "HP:0001945-observed;HP:0000952-observed")
-  rowIndex: number;    
-}
 
-/* This component cycles thought each row (for a column) and allows the user to confirm/edit the HPO mapping */
+
+/* This component cycles thought each row (for a column) and allows the user to confirm/edit the HPO mapping. The input consists
+in the strings from the original column and a list of MiningConcept objects, each of which has an arraw of row indices that show
+which rows correspond to the concepts. The point of this widget is to review the mappings and add onsets if possible. The user can also delete mappings. */
 @Component({
   selector: 'app-cell-review',
   standalone: true,
   imports: [FormsModule,
     MatButtonModule,
-    MatButtonToggle,
-    MatButtonToggleGroup,
-    MatChip,
     MatDialogActions,
     MatDialogContent,
     MatIcon,
     MatIconModule,
     MatMenuModule,
-    MatTableModule, CellRowEditorComponent],
+    MatTableModule, MinedCellEditorComponent],
   templateUrl: './cellreview.component.html',
   styleUrls: ['./cellreview.component.scss']
 })
 export class CellReviewComponent {
  
   public data = inject(MAT_DIALOG_DATA) as { 
-    cells: SpreadsheetCell[], 
-    miningResults: MiningConcept[],
+    minedCells: MinedCell[],
     title: string 
   };
-  private ageService = inject(AgeInputService);
-  private dialog = inject(MatDialog);
+
+  @Output() update = new EventEmitter<MinedCell>();
+ 
   public dialogRef = inject(MatDialogRef<CellReviewComponent>);
+  currentIndex = signal(0);
+  allMinedCells = signal<MinedCell[]>(this.data.minedCells);
+  readonly currentCell = computed(() => {
+    return this.allMinedCells()[this.currentIndex()];
+  });
 
-  private readonly NON_ROW_BOUND_MARKER = -1;
+  next(): void {
+    if (this.currentIndex() < this.allMinedCells().length- 1) {
+      this.currentIndex.update(i => i+1);
+    } else {
+      this.dialogRef.close(this.allMinedCells());
+    }
+  }
 
-  allCells: SpreadsheetCell[] =  this.data.cells;
-  allMiningResults = signal<MiningConcept[]>(this.data.miningResults);
+  prev(): void {
+    if (this.currentIndex() > 0) {
+      this.currentIndex.update(i => i-1);
+    }
+  }
 
+  handleCellChange(updatedCell: MinedCell) {
+    this.allMinedCells.update(cells =>
+      cells.map((c, idx) => idx === this.currentIndex() ? updatedCell : c)
+    );
+  }
+
+
+
+  
+/*
   readonly conceptsForThisCell = computed(() => {
     const currentIndex = this.currentIndex();
-    const currentCell = this.allCells[currentIndex];
+    const currentCell = this.allMinedCells()[currentIndex];
     if (!currentCell) return [];
     
     // Filter the signal value - get concepts that belong to the current window
-    return this.allMiningResults().filter(concept => 
-      concept.rowIndex === currentCell.rowIndex
-    );
+    return currentCell.hpo_duplet_list
   });
   currentIndex = signal(0);
   readonly globalAgeEntries = computed(() => this.ageService.getSelectedTerms());
@@ -129,9 +145,13 @@ openAgePicker(concept: MiningConcept): void {
         if (!unique.has(c.originalText)) {
           unique.set(c.originalText, {
             ...c,
-            rowIndex: this.NON_ROW_BOUND_MARKER,
+            rowIndexList: [...c.rowIndexList],
             onsetString: null
           });
+        } else {
+          const existing = unique.get(c.originalText)!;
+          const mergedRowIndices = Array.from(new Set([...existing.rowIndexList,...c.rowIndexList]));
+          existing.rowIndexList = mergedRowIndices;
         }
       }
     });
@@ -225,6 +245,6 @@ handleStatusChange(event: { concept: MiningConcept, newStatus: string }): void {
       return item;
     })
   );
-}
+}*/
 
 }

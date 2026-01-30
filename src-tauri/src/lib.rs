@@ -11,11 +11,11 @@ use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
+use std::{collections::{HashMap, HashSet}, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MiningConcept, ontology_loader}, phenoboard::HpoMatch};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -76,7 +76,9 @@ pub fn run() {
             fetch_repo_qc,
             mine_multi_hpo_column,
             create_canonical_dictionary,
-            expand_dictionary_to_rows
+            expand_dictionary_to_rows,
+            create_cell_mappings,
+            get_multi_hpo_strings
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -896,6 +898,26 @@ async fn create_canonical_dictionary(
 }
 
 
+/// Get list of unique concepts (in which the row number is fake) for the 
+/// first phase of text mining
+
+#[tauri::command]
+async fn create_cell_mappings(
+    mining_results: Vec<MiningConcept>,
+    cell_values: Vec<String>,
+) -> Result<Vec<MinedCell>, String> {
+    crate::hpo::hpo_etl::create_cell_mappings(cell_values, mining_results)
+}
+
+
+#[tauri::command]
+async fn get_multi_hpo_strings(mined_cells: Vec<MinedCell>) -> Result<Vec<String>, String> {
+    crate::hpo::hpo_etl::get_multi_hpo_strings(mined_cells)
+}
+  
+
+
+
 #[tauri::command]
 async fn expand_dictionary_to_rows(
     dictionary: Vec<MiningConcept>,
@@ -915,7 +937,6 @@ async fn expand_dictionary_to_rows(
                 // Apply the user's choices from Phase 1 to this specific row
                 raw.suggested_terms = confirmed.suggested_terms.clone();
                 raw.mining_status = confirmed.mining_status.clone();
-                raw.clinical_status = confirmed.clinical_status.clone();
                 // We do NOT overwrite row_index; we keep the raw one
             }
             raw

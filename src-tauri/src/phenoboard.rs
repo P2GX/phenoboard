@@ -108,8 +108,6 @@ impl PhenoboardSingleton {
                 row_index_list: vec![idx],
                 suggested_terms: suggested,
                 mining_status: crate::hpo::MiningStatus::Pending,
-                clinical_status: crate::hpo::ClinicalStatus::Observed, 
-                onset_string: None,
             });
         }
         concepts

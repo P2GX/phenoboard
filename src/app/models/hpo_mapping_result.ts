@@ -34,9 +34,21 @@ export interface MiningConcept {
   rowIndexList: number[];
   suggestedTerms: HpoMatch[];
   miningStatus: MiningStatus;
-  clinicalStatus: ClinicalStatus;
-  onsetString: string | null;
-  rowIndex: number;
 }
+
+
+export interface MappedTerm {
+  hpoId: string;
+  hpoLabel: string;
+  status: ClinicalStatus;
+  onset: string; 
+}
+
+export interface MinedCell {
+  cellText: string;
+  rowIndexList: number[];
+  mappedTermList: MappedTerm[],
+}
+
 
 

@@ -59,19 +59,6 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef> Status </th>
-        <td mat-cell *matCellDef="let c; let i = index">
-          <mat-button-toggle-group 
-            [(ngModel)]="c.clinicalStatus" 
-            [name]="'status-' + i"
-            class="status-toggle">
-            <mat-button-toggle value="observed">Observed</mat-button-toggle>
-            <mat-button-toggle value="excluded">Excluded</mat-button-toggle>
-          </mat-button-toggle-group>
-        </td>
-      </ng-container>
-
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Action </th>
         <td mat-cell *matCellDef="let c; let i = index">
@@ -89,9 +76,9 @@
         </td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="['source', 'mapping', 'status', 'actions']" class="bg-gray-50"></tr>
+      <tr mat-header-row *matHeaderRowDef="['source', 'mapping',  'actions']" class="bg-gray-50"></tr>
       <tr mat-row 
-          *matRowDef="let row; columns: ['source', 'mapping', 'status', 'actions'];"
+          *matRowDef="let row; columns: ['source', 'mapping', 'actions'];"
           [class.is-confirmed]="row.miningStatus === 'confirmed'"
           class="hover:bg-blue-50/30 transition-colors border-b last:border-0">
       </tr>
