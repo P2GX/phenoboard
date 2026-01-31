@@ -2,7 +2,7 @@
   <div class="cell-header">
     <div class="flex items-center gap-2 mb-3">
       <mat-icon class="text-slate-400">subject</mat-icon>
-      <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Source Evidence</span>
+      <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Source text</span>
     </div>
     <div class="source-bubble">
       "{{ cell().cellText }}"
@@ -30,7 +30,6 @@
           <div class="controls-wrapper">
             <button mat-stroked-button [matMenuTriggerFor]="statusMenu" class="status-btn" 
                     [class.status-set]="term.status">
-              <span class="btn-label">Status:</span>
               <span class="current-value">{{ (term.status || 'na') | titlecase }}</span>
               <mat-icon>arrow_drop_down</mat-icon>
             </button>
@@ -63,4 +62,47 @@
       }
     </tbody>
   </table>
+</div>
+<div class="exclusion-container">
+  
+  <div class="shelf-header">
+    <div class="title-group">
+      <button mat-icon-button 
+            [matMenuTriggerFor]="helpMenu" 
+            class="help-btn"
+            aria-label="Toggle explanation">
+        <mat-icon>help_outline</mat-icon>
+      </button>
+    </div>
+    <mat-menu #helpMenu="matMenu" class="help-bubble">
+      <div class="help-content" (click)="$event.stopPropagation()">
+        <h3>About "Other Terms"</h3>
+        <p>These HPO terms were annotated for other individuals (rows in the current column), but haven't been assigned to this specific cell yet.</p>
+        <p>Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if appropriate. Alternatively, click on individual terms (below) to mark only specific terms as excluded.</p>
+      </div>
+    </mat-menu>
+    <span class="shelf-title">Other terms ({{ toExclude().length }})</span>
+    @if (toExclude().length > 0) {
+      <button class="shelf-badge bulk-action"  
+              [disabled]="toExclude().length === 0"
+              (click)="excludeAll.emit()"
+              >
+        <mat-icon>done_all</mat-icon>
+        <span class="badge-label">Exclude All</span>  
+      </button>
+    }
+  </div>
+
+  <div class="shelf-content">
+    @for (term of toExclude(); track term.id) {
+      <button class="shelf-badge" (click)="excludeTerm.emit(term)">
+        <span class="badge-label">{{ term.label }}</span>
+        <span class="badge-id"> ({{ term.id }})</span>
+        <mat-icon>add</mat-icon>
+      </button>
+    } @empty {
+      <div class="empty-shelf-message">All cohort terms are accounted for.</div>
+    }
+  </div>
+
 </div>

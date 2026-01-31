@@ -7,7 +7,11 @@
              placeholder="HPO term label"
              matInput
              [formControl]="control"
-             [matAutocomplete]="auto">
+             [matAutocomplete]="auto"
+             spellcheck="false"
+              autocorrect="off"
+              autocapitalize="none"
+              autocomplete="off">
       
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
         @for (option of options; track $index) {

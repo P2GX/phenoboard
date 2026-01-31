@@ -1,11 +1,9 @@
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialog, MatDialogContent } from "@angular/material/dialog";
-import { ClinicalStatus, MinedCell, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialogContent } from "@angular/material/dialog";
+import { ClinicalStatus, MappedTerm, MinedCell } from "../models/hpo_mapping_result";
 import { Component, computed, EventEmitter, Output, signal } from "@angular/core";
-import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon } from "@angular/material/icon";
 import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
 
@@ -28,7 +26,8 @@ which rows correspond to the concepts. The point of this widget is to review the
     MatDialogContent,
     MatIconModule,
     MatMenuModule,
-    MatTableModule, MinedCellEditorComponent],
+    MatTableModule, 
+    MinedCellEditorComponent],
   templateUrl: './cellreview.component.html',
   styleUrls: ['./cellreview.component.scss']
 })
@@ -48,6 +47,23 @@ export class CellReviewComponent {
     return this.allMinedCells()[this.currentIndex()];
   });
 
+  readonly allAvailableTerms = computed(() => {
+    const termsMap = new Map<string, {id: string, label: string}>();
+    this.allMinedCells().forEach(cell => {
+      cell.mappedTermList.forEach(term => {
+        termsMap.set(term.hpoId, { id: term.hpoId, label: term.hpoLabel });
+      });
+    });
+    return Array.from(termsMap.values());
+  });
+
+  readonly termsToExclude = computed(() => {
+    const currentCellIds = new Set(this.currentCell().mappedTermList.map(t => t.hpoId));
+    return this.allAvailableTerms().filter(t => 
+      !currentCellIds.has(t.id) 
+    );
+  });
+
   next(): void {
     if (this.currentIndex() < this.allMinedCells().length- 1) {
       this.currentIndex.update(i => i+1);
@@ -62,14 +78,14 @@ export class CellReviewComponent {
     }
   }
 
-  handleCellChange(updatedCell: MinedCell) {
+  handleCellChange(updatedCell: MinedCell): void {
     this.allMinedCells.update(cells =>
       cells.map((c, idx) => idx === this.currentIndex() ? updatedCell : c)
     );
   }
 
 
-  async onCancel() {
+  async onCancel(): Promise<void> {
     const confirmExit = await ask('Discard changes?', {
       title: 'Confirm Exit',
       kind: 'warning',
@@ -80,6 +96,49 @@ export class CellReviewComponent {
     if (confirmExit) {
       this.dialogRef.close(null);
     }
+  }
+
+  /* This gets called by an output in MinedCellEditor when the user wants to exclude a specific term in a row */
+  handleExcludeTerm(term: {id: string, label: string}): void {
+    this.allMinedCells.update(cells => {
+      const newCells = [...cells];
+      const current = newCells[this.currentIndex()];
+      
+      // Create the new term object with Excluded status
+      const newExcludedTerm: MappedTerm = {
+        hpoId: term.id,
+        hpoLabel: term.label,
+        status: ClinicalStatus.Excluded, 
+        onset: 'na' 
+      };
+
+      current.mappedTermList = [...current.mappedTermList, newExcludedTerm];
+      return newCells;
+    });
+  }
+
+  /* Called from MinedCellEditorComponent if user wants to exclude all not-mentioned terms for a row */
+  handleExcludeAll(): void {
+    const shelf = this.termsToExclude(); 
+    if (shelf.length === 0) return;
+
+    this.allMinedCells.update(cells => {
+      const newCells = [...cells];
+      const current = { ...newCells[this.currentIndex()] };
+      const existingIds = new Set(current.mappedTermList.map(t => t.hpoId));
+      const newExclusions: MappedTerm[] = shelf
+        .filter(term => !existingIds.has(term.id))
+        .map(term => ({
+          hpoId: term.id,
+          hpoLabel: term.label,
+          status: ClinicalStatus.Excluded, 
+          onset: 'na'
+        }));
+      current.mappedTermList = [...current.mappedTermList, ...newExclusions];
+      newCells[this.currentIndex()] = current;
+
+      return newCells;
+    });
   }
 
 }

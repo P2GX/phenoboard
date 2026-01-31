@@ -1,62 +1,36 @@
-/* Target the dialog container specifically */
-:host {
+@use "../../styles/variables" as *;
+
+.review-header {
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: $gray-50;
+  border-bottom: 1px solid $gray-200;
+  
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: $gray-800;
+  }
 }
 
-h2[mat-dialog-title] {
-  margin: 0;
-  padding: 16px 24px;
-  background: #f8fafc; /* Very light slate */
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1e293b;
+.stepper-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid $gray-200;
+  
+  .progress-text {
+    font-size: 0.85rem;
+    color: $gray-600;
+  }
 }
 
 mat-dialog-content {
-  /* Set a minimum height so the dialog doesn't "jump" when switching cells */
-  min-height: 300px;
-  max-height: 70vh;
-  padding: 24px !important;
-  background: #ffffff;
-  
-  /* Subtle inner shadow to give depth to the content area */
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  min-height: 400px;
+  padding: 20px !important;
 }
-
-
-mat-dialog-actions {
-  padding: 12px 24px !important;
-  display: flex;
-  justify-content: space-between;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  gap: 8px;
-
-  button {
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    font-weight: 500;
-  }
-
-  /* Specific style for the "Previous" button to make it look secondary */
-  button[mat-button]:first-child {
-    color: #64748b;
-  }
-}
-
-.cancel-btn {
-  /* Give it a bit of "warning" flavor without being too loud */
-  &:hover {
-    background-color: #fef2f2 !important; /* Very light red */
-  }
-  
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-}
-

@@ -1911,26 +1911,24 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       return;
     }
     const cohort_previous = this.cohortService.getCohortData();
-    if (! cohort_previous) {
-      this.notificationService.showError("No Cohort data available");
-      return;
-    }
-
+   
     try { 
       const cohort_dto_new = await this.configService.transformToCohortData(dto);
       // i.e., the previous cohort has patient data
-      if (cohort_previous.rows.length > 0) {
+      if (cohort_previous && cohort_previous.rows.length > 0) {
         const merged_cohort = await this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
         this.cohortService.setCohortData(merged_cohort);
-        this.router.navigate(['/pttemplate']);
       } else {
         // If we are creating a new cohort, the previous cohort will be empty (zero rows)
         // but it should still contain the cohort acronym
-        const acronym = cohort_previous.cohortAcronym ?? '';
-        cohort_dto_new.cohortAcronym = acronym;
+        if (cohort_previous?.cohortAcronym) {
+          const acronym = cohort_previous.cohortAcronym ?? '';
+          cohort_dto_new.cohortAcronym = acronym;
+        }
         this.cohortService.setCohortData(cohort_dto_new);
-        this.router.navigate(['/pttemplate']);
       }
+      this.etl_service.clearEtlDto();
+      this.router.navigate(['/pttemplate']);
     } catch (err: unknown) {
       this.notificationService.showError(
         `addToCohortData-error-Could not create CohortData: ${err instanceof Error ? err.message : err}`

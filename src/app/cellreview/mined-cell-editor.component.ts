@@ -1,8 +1,8 @@
-import { Component, effect, EventEmitter, inject, input, Input, Output } from "@angular/core";
+import { Component, computed, inject, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MinedCell, MappedTerm } from "../models/hpo_mapping_result";
+import { MinedCell, MappedTerm, ClinicalStatus } from "../models/hpo_mapping_result";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
@@ -10,6 +10,7 @@ import { MatTableModule } from "@angular/material/table";
 import { AgeInputService } from "../services/age_service";
 import { MatDialog } from "@angular/material/dialog";
 import { AddagesComponent } from "../addages/addages.component";
+
 
 @Component({
   selector: 'app-mined-cell-editor',
@@ -28,70 +29,78 @@ import { AddagesComponent } from "../addages/addages.component";
 })
 export class MinedCellEditorComponent {
   cell = input.required<MinedCell>();
+  toExclude = input.required<{id: string, label: string}[]>();
+  cellChange = output<MinedCell>();
+  excludeTerm = output<{id: string, label: string}>();
+  excludeAll = output<void>();
+  restoreTerm = output<MappedTerm>();
+  
   private ageService = inject(AgeInputService);
-   private dialog = inject(MatDialog);
-  @Output() cellChange = new EventEmitter<MinedCell>();
+  private dialog = inject(MatDialog);
+  readonly observedTerms = computed(() => 
+    this.cell().mappedTermList.filter(t => t.status !== 'excluded')
+  );
 
-  constructor() {
-    /**
-     * 2. Debugging Data: The 'effect' runs whenever the 'cell' signal updates.
-     * This replaces the need for ngOnChanges for debugging purposes.
-     */
-    effect(() => {
-      console.log('🔍 Signal Debug - MinedCell updated:', this.cell());
-    });
-  }
+  readonly excludedTerms = computed(() => 
+    this.cell().mappedTermList.filter(t => t.status === 'excluded')
+  );
+  readonly hasExclusions = computed(() => (this.excludedTerms().length ?? 0) > 0);
+
+  readonly Status = ClinicalStatus;
 
   // Available statuses for the quick-setter
   readonly statusOptions = ['observed', 'excluded', 'na'];
 
-  updateStatus(term: MappedTerm, newStatus: any) {
-    term.status = newStatus;
-    this.cellChange.emit(this.cell());
+  // called if the user changes status from observed to excluded or na
+  updateStatus(term: MappedTerm, newStatus: string): void {
+    const updatedCell: MinedCell = {
+      ...this.cell(),
+      mappedTermList: this.cell().mappedTermList.map(t => 
+        t.hpoId === term.hpoId 
+          ? { ...t, status: newStatus as ClinicalStatus } 
+          : t
+      )
+    };
+    this.cellChange.emit(updatedCell);
   }
 
-  // Assuming your Onset Widget is another component or a specific logic
-  openOnsetPicker(term: MappedTerm) {
-    // Logic to trigger your onset widget
-    // term.onset = result;
-    // this.cellChange.emit(this.cell);
-  }
 
-  get availableOnsetTerms(): string[] {
+    get availableOnsetTerms(): string[] {
       return this.ageService.getSelectedTerms();
     }
   
   
 
-    updateOnset(term: MappedTerm, newOnset: string) {
+    updateOnset(term: MappedTerm, newOnset: string): void {
         term.onset = newOnset;
         this.emitChange();
-        }
+    }
 
-addOnsetString(term: MappedTerm) {
-   const dialogRef = this.dialog.open(AddagesComponent, {
-            width: '400px',
-            data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
-          });
+    addOnsetString(term: MappedTerm): void {
+        const dialogRef = this.dialog.open(AddagesComponent, {
+        width: '400px',
+        data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
+        });
       
-          dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-              if (result.length == 1) {
-                const onset = result[0];
-                 term.onset = onset;
-                this.ageService.addSelectedTerm(onset);
-                this.emitChange();
-              } else {
-                result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
-              }
+        dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+            if (result.length == 1) {
+            const onset = result[0];
+                term.onset = onset;
+            this.ageService.addSelectedTerm(onset);
+            this.emitChange();
+            } else {
+            result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
             }
-          });
+        }
+        });
     }
 
 
-private emitChange() {
-  // We emit a clone or the mutated reference so the parent 
-  // can trigger the Tauri 'save' command.
-  this.cellChange.emit({ ...this.cell() });
-}
+    private emitChange(): void {
+        this.cellChange.emit({ ...this.cell() });
+    }
+
+   
+ 
 }

@@ -1,0 +1,34 @@
+// --- 1. Core Colors ---
+$blue-primary:   #2563eb; // Main brand/action color
+$blue-light:     #eff6ff; // Soft backgrounds for rows/badges
+$blue-dark:      #1e40af; // Hover states/headers
+
+// --- 2. Semantic States ---
+$color-success:  #16a34a; // Confirmed mappings
+$color-warn:     #dc2626; // Delete/Danger actions
+$color-pending:  #d97706; // Needs review (Amber)
+$color-info:     #0891b2; // General metadata
+
+// --- 3. Grays & Borders (The "Neutral" System) ---
+$gray-50:        #f8fafc; // App background
+$gray-100:       #f1f5f9; // Secondary background
+$gray-200:       #e2e8f0; // Standard borders
+$gray-500:       #64748b; // Secondary text/icons
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900:       #0f172a; // Main heading text
+
+// --- 4. Layout Tokens ---
+$radius-sm:      4px;
+$radius-md:      8px;
+$shadow-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+
+// --- 5. Transitions ---
+$transition-fast: all 0.2s ease-in-out;
+
+// For warnings
+$red-light: #fff5f5;
+$red-border: #feb2b2;
+$red-text: #9b2c2c;
+$red-id: #e53e3e;

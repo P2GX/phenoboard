@@ -1,3 +1,5 @@
+
+
 .mined-cell-container {
   padding: 16px;
   background: #ffffff;
@@ -21,7 +23,8 @@
 
 .compact-table {
   width: 100%;
-  border-collapse: separate;
+  border-collapse: collapse;
+  font-size: 13px;
   border-spacing: 0;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
@@ -29,7 +32,7 @@
 
   th {
     background: #f8fafc;
-    padding: 10px 16px;
+    padding: 8px;
     text-align: left;
     font-size: 11px;
     text-transform: uppercase;
@@ -38,7 +41,7 @@
   }
 
   td {
-    padding: 12px 16px;
+    padding: 6px 8ox;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
   }
@@ -65,10 +68,11 @@
 
 /* Status Button Styling */
 .status-btn {
-  height: 32px !important;
-  line-height: 32px !important;
+  height: 28px !important;
+  line-height: 28px !important;
   font-size: 12px !important;
   border-color: #cbd5e1 !important;
+  padding:  0 8px !important;
   
   .btn-label { color: #94a3b8; margin-right: 4px; }
   .current-value { font-weight: 600; color: #1e293b; }
@@ -81,10 +85,11 @@
   align-items: center;
   background: #fff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 4px;
   height: 32px;
   overflow: hidden;
   transition: all 0.2s;
+  padding: 2px 4px;
 
   &:hover { border-color: #3b82f6; }
   &.has-onset { border-color: #3b82f6; background: #eff6ff; }
@@ -102,11 +107,12 @@
     border: none;
     background: transparent;
     font-size: 12px;
-    padding: 0 8px;
+    padding: 2px;
     outline: none;
     cursor: pointer;
     color: #1e293b;
     font-weight: 500;
+    max-width: 150px;
   }
 
   .add-onset-btn {
@@ -118,5 +124,109 @@
     cursor: pointer;
     font-weight: bold;
     &:hover { background: #2563eb; }
+  }
+}
+
+
+$red-light: #fff5f5;
+$red-border: #feb2b2;
+$red-text: #9b2c2c;
+$red-id: #e53e3e;
+$gray-500:       #64748b;
+
+.shelf-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  
+  span {
+    font-weight: 600;
+    color: $gray-500;
+    font-size: 0.9rem;
+  }
+}
+
+.shelf-badge.bulk-action {
+  padding: 2px 10px;
+  height: 28px;
+  font-size: 12px;
+  background-color: #fee2e2; // Slightly deeper red than individual terms
+  border: 2px solid $red-border; // Thicker border
+  font-weight: 600;
+  
+  mat-icon {
+    font-size: 16px;
+    opacity: 1; 
+    width: 16px;
+    height: 16px;
+    color: $red-text;
+  }
+
+  &:hover {
+    background-color: $red-text;
+    color: white;
+    border-color: $red-text;
+
+    mat-icon {
+      color: white; // Invert colors on hover for high contrast
+    }
+  }
+}
+
+.shelf-badge {
+  // Layout
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  margin: 4px;
+  
+  // Aesthetics
+  background-color: $red-light;
+  border: 1px solid $red-border;
+  border-radius: 20px; // Pill shape
+  color: $red-text;
+  cursor: pointer;
+  
+  // Clean up button defaults
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: #fee2e2;
+    border-color: #fc8181;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .badge-content {
+    display: flex;
+    gap: 4px;
+    align-items: baseline;
+  }
+
+  .badge-label {
+    font-weight: 500;
+  }
+
+  .badge-id {
+    font-family: ui-monospace, monospace; // Clean mono for IDs
+    font-size: 11px;
+    color: $red-id;
+    opacity: 0.8;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.6;
   }
 }

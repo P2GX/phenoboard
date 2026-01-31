@@ -1,45 +1,33 @@
-<h2 mat-dialog-title class="flex justify-between items-center">
-  <div class="flex items-center gap-2">
-    <mat-icon color="primary">fact_check</mat-icon>
-    <span>{{ data.title }}</span>
+<div class="review-container">
+  <div class="review-header">
+    <h2>{{ data.title }}</h2>
+    <div class="stepper-controls">
+      <button mat-icon-button (click)="prev()" [disabled]="currentIndex() === 0">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="progress-text">
+        Record <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
+      </span>
+      <button mat-icon-button (click)="next()">
+        <mat-icon>{{ currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right' }}</mat-icon>
+      </button>
+    </div>
   </div>
-  <span class="text-sm font-normal text-slate-500">
-    Entry <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
-  </span>
-</h2>
 
-<div class="w-full h-1 bg-slate-100">
-  <div class="h-full bg-blue-500 transition-all duration-300" 
-       [style.width.%]="((currentIndex() + 1) / allMinedCells().length) * 100">
-  </div>
-</div>
-
-<mat-dialog-content>
-  <div class="editor-wrapper">
+  <mat-dialog-content>
     <app-mined-cell-editor 
-      [cell]="currentCell()" 
+      [cell]="currentCell()"
+      [toExclude]="termsToExclude()"
+      (excludeTerm)="handleExcludeTerm($event)"
+      (excludeAll)="handleExcludeAll()"
       (cellChange)="handleCellChange($event)">
     </app-mined-cell-editor>
-  </div>
-</mat-dialog-content>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button color="warn" (click)="onCancel()" class="cancel-btn">
-    <mat-icon>close</mat-icon>
-    Cancel & Exit
-  </button>
-  <button mat-button (click)="prev()" [disabled]="currentIndex() === 0">
-    <mat-icon>chevron_left</mat-icon>
-    Previous
-  </button>
-  
-  <div class="flex-grow"> 
-    <button mat-raised-button 
-      [color]="currentIndex() === allMinedCells().length - 1 ? 'accent' : 'primary'"
-      (click)="next()"
-      class="px-6 transition-all duration-500">  
-      {{ currentIndex() < allMinedCells().length - 1 ? 'Next' : 'Finish & Save' }}
-      <mat-icon class="ml-1">{{ currentIndex() < allMinedCells().length - 1 ? 'chevron_right' : 'save_alt' }}</mat-icon>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="next()">
+      {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
     </button>
-  </div>
-</mat-dialog-actions>
+  </mat-dialog-actions>
+</div>

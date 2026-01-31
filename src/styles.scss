@@ -1,4 +1,6 @@
 @use "@angular/material" as mat;
+@use 'styles/variables' as *;
+@use 'styles/buttons';
 
 @include mat.core();
 
@@ -7,61 +9,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
-button.btn-outline-primary {
-  @apply 
-    text-blue-700
-    border border-blue-700
-    hover:bg-blue-800
-    hover:text-white
-    focus:ring-4
-    focus:outline-none
-    focus:ring-blue-300
-    font-medium
-    rounded-lg
-    text-sm
-    px-5 py-2.5
-    text-center
-    me-2 mb-2
-    transition-colors duration-200
-    dark:border-blue-500
-    dark:text-blue-500
-    dark:hover:bg-blue-500
-    dark:hover:text-white
-    dark:focus:ring-blue-800
-
-    disabled:bg-gray-200
-    disabled:text-gray-400
-    disabled:border-gray-300
-    disabled:cursor-not-allowed
-    dark:disabled:bg-gray-700
-    dark:disabled:text-gray-500
-    dark:disabled:border-gray-600;
-}
-
-button.btn-outline-cancel {
-  @apply 
-    text-gray-600
-    border border-gray-500
-    hover:bg-gray-200
-    hover:text-black
-    focus:ring-2
-    focus:outline-none
-    focus:ring-gray-400
-    font-medium
-    rounded-lg
-    text-sm
-    px-5 py-2.5
-    text-center
-    me-2 mb-2
-    transition-colors duration-200
-    dark:border-gray-400
-    dark:text-gray-400
-    dark:hover:bg-gray-600
-    dark:hover:text-white
-    dark:focus:ring-gray-600;
-}
 
 
 .h1-primary {
