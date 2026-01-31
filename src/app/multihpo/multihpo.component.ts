@@ -56,8 +56,7 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
 })
 export class MultiHpoComponent {
   readonly concepts = signal<MiningConcept[]>([]);
-  
-  private configService = inject(ConfigService);
+
   // Track which row indices are currently showing the search input field
   searchingIndices = new Set<number>();
   private dialogRef = inject(MatDialogRef<MultiHpoComponent>);

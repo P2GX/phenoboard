@@ -28,7 +28,11 @@ import { MatRadioModule } from "@angular/material/radio";
             [ngModel]="customDelimiter()"
             (ngModelChange)="customDelimiter.set($event)"
             [disabled]="selectedDelimiter() !== 'custom'"
-            placeholder="e.g. ;">
+            placeholder="e.g. ;"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none">
         </mat-radio-button>
       </mat-radio-group>
 

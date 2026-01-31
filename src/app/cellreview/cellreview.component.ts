@@ -8,9 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from "@angular/material/icon";
 import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
-import { AddagesComponent } from '../addages/addages.component'; // Adjust path as needed
+
 import { inject } from '@angular/core';
-import { single } from "rxjs";
+import { ask } from '@tauri-apps/plugin-dialog';
 import { MinedCellEditorComponent } from "./mined-cell-editor.component";
 
 
@@ -66,6 +66,20 @@ export class CellReviewComponent {
     this.allMinedCells.update(cells =>
       cells.map((c, idx) => idx === this.currentIndex() ? updatedCell : c)
     );
+  }
+
+
+  async onCancel() {
+    const confirmExit = await ask('Discard changes?', {
+      title: 'Confirm Exit',
+      kind: 'warning',
+      okLabel: 'Discard',
+      cancelLabel: 'Stay here'
+    });
+
+    if (confirmExit) {
+      this.dialogRef.close(null);
+    }
   }
 
 }

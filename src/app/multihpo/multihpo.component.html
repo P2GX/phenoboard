@@ -1,91 +1,65 @@
-<h2 mat-dialog-title class="flex justify-between items-center">
-  <span>Review Mapping: <span class="text-blue-600">{{ title }}</span></span>
-  <mat-chip class="text-sm">Found {{ concepts().length }} unique input strings</mat-chip>
-</h2>
-
 <mat-dialog-content class="mat-typography">
-  <div class="review-table-container border rounded-lg overflow-hidden shadow-sm">
-    <table mat-table [dataSource]="concepts()" class="w-full">
-      
-      <ng-container matColumnDef="source">
-        <th mat-header-cell *matHeaderCellDef> Source Fragment </th>
-        <td mat-cell *matCellDef="let c; let i=index">
-          <div class="flex items-center group gap-2">
-            <mat-icon class="text-gray-400 scale-75">description</mat-icon>
-            <code class="text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
-              "{{ c.originalText }}"
-            </code>
-            <button mat-icon-button 
-              color="primary" 
-              class="ml-2"
-              (click)="openSplitDialog(i)" 
-              matTooltip="Split this fragment">
-        <mat-icon style="font-size: 18px;">content_cut</mat-icon>
-      </button>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="mapping">
-        <th mat-header-cell *matHeaderCellDef> HPO Mappings </th>
-        <td mat-cell *matCellDef="let c; let i = index">
-          <div class="flex flex-wrap gap-2 items-center min-h-[48px] py-1">
-            @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
-              <mat-chip-row 
-                class="hpo-chip animate-in fade-in zoom-in duration-200"
-                (removed)="removeTerm(i, termIdx)">
-                <span class="font-mono font-bold mr-1 opacity-70">{{ term.id }}</span>
-                <span>{{ term.label }}</span>
-                <button matChipRemove><mat-icon>cancel</mat-icon></button>
-              </mat-chip-row>
-            }
-
-            @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
-              <div class="flex-grow min-w-[250px] transition-all">
-                <app-hpoautocomplete 
-                  (selected)="addNewTerm(i, $event)"
-                  (blur)="onBlur(i)">
-                </app-hpoautocomplete>
+  <div class="review-table-container">
+    <table class="custom-curation-table">
+      <thead>
+        <tr>
+          <th class="w-[30%]">Source Fragment</th>
+          <th class="w-[55%]">HPO Mappings</th>
+          <th class="w-[15%] text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of concepts(); track $index; let i = $index) {
+          <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
+            
+            <td class="col-source">
+              <div class="flex items-start gap-2">
+                <mat-icon class="text-gray-400 scale-75 mt-1">description</mat-icon>
+                <code class="source-code">"{{ c.originalText }}"</code>
+                <button mat-icon-button color="primary" class="split-btn" (click)="openSplitDialog(i)">
+                  <mat-icon>content_cut</mat-icon>
+                </button>
               </div>
-            } @else {
-              <button mat-icon-button color="primary" 
-                      class="hover:bg-blue-50 transition-colors"
-                      (click)="startSearch(i)" 
-                      matTooltip="Add another HPO term">
-                <mat-icon>add_circle_outline</mat-icon>
-              </button>
-            }
-          </div>
-        </td>
-      </ng-container>
+            </td>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Action </th>
-        <td mat-cell *matCellDef="let c; let i = index">
-          <div class="flex items-center gap-1">
-             <button mat-icon-button 
-                    [color]="c.miningStatus === 'confirmed' ? 'primary' : ''" 
-                    (click)="toggleConfirm(i)"
-                    [matTooltip]="c.miningStatus === 'confirmed' ? 'Unconfirm' : 'Confirm mapping'">
-              <mat-icon>{{ c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="removeConcept(i)" matTooltip="Ignore this fragment">
-              <mat-icon>delete_outline</mat-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
+            <td class="col-mapping">
+              <div class="flex flex-wrap gap-2 items-center">
+                @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
+                  <mat-chip-row (removed)="removeTerm(i, termIdx)" class="hpo-chip">
+                    <span class="font-mono font-bold mr-1 opacity-70">{{ term.id }}</span>
+                    <span>{{ term.label }}</span>
+                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                  </mat-chip-row>
+                }
 
-      <tr mat-header-row *matHeaderRowDef="['source', 'mapping',  'actions']" class="bg-gray-50"></tr>
-      <tr mat-row 
-          *matRowDef="let row; columns: ['source', 'mapping', 'actions'];"
-          [class.is-confirmed]="row.miningStatus === 'confirmed'"
-          class="hover:bg-blue-50/30 transition-colors border-b last:border-0">
-      </tr>
+                @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
+                  <app-hpoautocomplete class="flex-grow" (selected)="addNewTerm(i, $event)"></app-hpoautocomplete>
+                } @else {
+                  <button mat-icon-button (click)="startSearch(i)" class="add-btn">
+                    <mat-icon>add_circle_outline</mat-icon>
+                  </button>
+                }
+              </div>
+            </td>
+
+            <td class="col-actions">
+              <div class="flex justify-end gap-1">
+                <button mat-icon-button (click)="toggleConfirm(i)" [color]="c.miningStatus === 'confirmed' ? 'primary' : ''">
+                  <mat-icon>{{ c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="removeConcept(i)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        }
+      </tbody>
     </table>
+    
   </div>
 </mat-dialog-content>
-
 <mat-dialog-actions align="end" class="p-4 border-t bg-gray-50">
   <button mat-button class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
   <button mat-raised-button color="primary" class="btn-outline-primary" (click)="save()" [disabled]="concepts().length === 0">

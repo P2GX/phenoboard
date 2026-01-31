@@ -1,82 +1,68 @@
 .review-table-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
   max-height: 65vh;
   overflow-y: auto;
 }
 
-
-
-tr.is-confirmed {
-  background-color: #f0fdf4; // Very light green success state
-}
-
-.status-toggle {
-  mat-button-toggle {
-    font-size: 12px;
-  }
-}
-
-tr.is-ignored {
-  background-color: #fafafa;
-  opacity: 0.6;
-  filter: grayscale(1);
-  transition: all 0.2s ease;
-  
-  /* Prevent interaction with the autocomplete while ignored */
-  .mat-column-mapping {
-    pointer-events: none;
-  }
-}
-
-
-
-/* Ensure the table takes up the full container but doesn't exceed it */
-.review-table-container {
-  max-height: 65vh;
-  overflow-x: auto; // Allow horizontal scroll if absolutely necessary
-  overflow-y: auto;
-}
-
-table {
+.custom-curation-table {
   width: 100%;
-  table-layout: fixed; // This is the secret sauce for fixed-width columns
-}
+  border-collapse: collapse;
+  background: white;
 
-/* Source column: Fixed width, truncate long text if necessary */
-.mat-column-source {
-  width: 20%;
-  min-width: 150px;
-  padding-right: 16px;
-}
+  th {
+    background: #f9fafb;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    border-bottom: 2px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 
-/* Mapping column: Flexible, wraps content */
-.mat-column-mapping {
-  width: auto; // Takes up remaining space
-  padding-right: 16px;
-}
+  td {
+    padding: 12px 16px;
+    vertical-align: top; /* Keeps everything aligned at the top */
+    border-bottom: 1px solid #f3f4f6;
+  }
 
-/* Status column: Fixed width for the toggle group */
-.mat-column-status {
-  width: 180px; 
-  text-align: center;
-}
+  tr:hover {
+    background-color: #f0f7ff;
+  }
 
-/* Action column: Small fixed width for buttons */
-.mat-column-actions {
-  width: 100px;
-  text-align: right;
-}
+  tr.is-confirmed {
+    background-color: #f0fdf4;
+  }
 
-/* Allow chips to wrap nicely so they don't widen the column infinitely */
-.flex-wrap {
-  flex-wrap: wrap;
-}
+  /* Column specific logic */
+  .col-source {
+    .source-code {
+      display: block;
+      white-space: normal;
+      word-break: break-word;
+      background: #f3f4f6;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+  }
 
-/* Prevent the HPO chips from being too long */
-.hpo-chip {
-  max-width: 200px;
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .col-actions {
+    padding-right: 20px; /* Ensures delete button doesn't hit the border */
+  }
+
+  /* Compact button tweaks */
+  .mat-icon-button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    .mat-icon { font-size: 20px; width: 20px; height: 20px; }
   }
 }
