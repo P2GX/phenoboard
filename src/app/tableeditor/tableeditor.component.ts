@@ -940,8 +940,8 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       columnA.id = crypto.randomUUID();
       columnB.id = crypto.randomUUID();
 
-      columnA.header = { ...columnA.header, original: `Sex (${originalColumn.header.original})` };
-      columnB.header = { ...columnB.header, original: `Age (${originalColumn.header.original})` };
+      columnA.header = { ...columnA.header, original: `Part 1 (${originalColumn.header.original})` };
+      columnB.header = { ...columnB.header, original: `Part 2 (${originalColumn.header.original})` };
 
       // convert split strings into EtlCellValue objects
       columnA.values = originalColumn.values.map(cell => {

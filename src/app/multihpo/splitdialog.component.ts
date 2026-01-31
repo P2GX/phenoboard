@@ -24,7 +24,7 @@ import { MatRadioModule } from "@angular/material/radio";
     .radio-card {
       display: inline-block;
       padding: 8px 16px;
-      border: 1px solid #e2e8f0; // $gray-200
+      border: 1px solid #e2e8f0; 
       border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
@@ -33,11 +33,11 @@ import { MatRadioModule } from "@angular/material/radio";
       transition: all 0.2s ease;
 
     }
-    .radio-card:hover { background: #f8fafc; } // $gray-50
+    .radio-card:hover { background: #f8fafc; } 
     
     /* Highlight selected state */
     .mat-mdc-radio-button.mat-mdc-radio-checked .radio-card {
-      background: #eff6ff; // Light blue
+      background: #eff6ff; /* Light blue */
       border-color: #3b82f6; 
       color: #1e40af;
       font-weight: 600;
