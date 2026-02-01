@@ -3,7 +3,7 @@
 
 
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MiningConcept, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
-use std::{env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
+use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use deunicode::deunicode;
@@ -681,8 +681,31 @@ impl PhenoboardSingleton {
 
         path.canonicalize()
     }
-
- 
+///
+/// This method traverses the `hpo_data` of every row in the [`CohortData`] 
+/// to find `OnsetAge` variants. It returns a deduplicated list of strings.
+///
+/// # Arguments
+/// * `dto` - The [`CohortData`] containing phenotype and age information.
+///
+/// # Returns
+/// * `Ok(Vec<String>)` - A unique list of age strings found in the data.
+/// * `Err(String)` - An error message if processing fails.
+pub fn get_all_cohort_age_strings(
+    &self,
+    dto: CohortData
+) -> Result<Vec<String>, String> {
+    let age_strings: HashSet<String> = dto
+        .rows
+        .iter()
+        .flat_map(|row| &row.hpo_data)
+        .filter_map(|entry| match entry {
+            ga4ghphetools::dto::hpo_term_dto::CellValue::OnsetAge(onset) => Some(onset.to_string()),
+            _ => None,
+        })
+        .collect();
+    Ok(age_strings.into_iter().collect())
+}
 
 
 }

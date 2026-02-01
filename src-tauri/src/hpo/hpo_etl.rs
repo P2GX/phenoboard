@@ -1,8 +1,5 @@
 use std::collections::{HashMap, HashSet};
-
-use ga4ghphetools::dto::hpo_term_dto::HpoTermDuplet;
-
-use crate::hpo::{ClinicalStatus, MappedTerm, MinedCell, MiningConcept};
+use crate::hpo::{MappedTerm, MinedCell, MiningConcept};
 
 
 

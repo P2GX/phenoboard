@@ -1,4 +1,3 @@
-use ga4ghphetools::dto::hpo_term_dto::HpoTermDuplet;
 use serde::{Deserialize, Serialize};
 
 use crate::phenoboard::HpoMatch;

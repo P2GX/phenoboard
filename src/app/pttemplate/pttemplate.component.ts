@@ -21,6 +21,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
 import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 interface Option { label: string; value: string };
 
 @Component({
@@ -37,7 +38,8 @@ interface Option { label: string; value: string };
     MatDialogModule,
     MoiSelector,
     MatIconModule,
-    CohortSummaryComponent
+    CohortSummaryComponent,
+    HelpButtonComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -73,6 +75,7 @@ export class PtTemplateComponent  {
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
+  readonly ageEntries = this.ageService.selectedTerms;
 
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddageComponent) addagesComponent!: AddageComponent;
@@ -206,13 +209,6 @@ export class PtTemplateComponent  {
     { label: 'N/A', value: 'na' },
   ];
 
-  focusOptions = [
-    { label: 'Focus on this column', value: 'focus-0' },
-    { label: 'Focus on this column ±2', value: 'focus-2' },
-    { label: 'Focus on this column ±5', value: 'focus-5' },
-    { label: 'Focus on this column ±10', value: 'focus-10' },
-    { label: 'Show all columns', value: 'focus-reset' }
-  ];
   
   /** Alleles that have been validated (and will show green). */
   validatedAlleles = computed<Set<string>>(() => {
@@ -501,12 +497,11 @@ export class PtTemplateComponent  {
     this.selectedCellContents = cell;
     this.contextMenuOptions = [
       ...this.predefinedOptions,
+      { label: '--- (Onset ages) ---', value: 'separator' },
       ...this.ageService.selectedTerms().map(term => ({
           label: term,
           value: term
         })),
-      { label: '---', value: 'separator' },
-      ...this.focusOptions,
   ];
   }
 
@@ -788,25 +783,20 @@ export class PtTemplateComponent  {
     return typeof value === "object" && value !== null;
   }
 
-
-
   
 openAgeDialog(): void {
   const dialogRef = this.dialog.open(AddageComponent, {
-    width: '400px',
-    data: { /* pass inputs if needed */ }
+    width: '400px'
   });
 
-  dialogRef.afterClosed().subscribe(result => {
+  dialogRef.afterClosed().subscribe((result: string | undefined) => {
     if (result) {
-      this.ageService.addSelectedTerms(result);
+      this.ageService.addSelectedTerm(result);
     }
   });
 }
 
-get ageEntries(): string[] {
-  return this.ageService.selectedTerms();
-}
+
 
   async recordBiocuration(): Promise<void> {
     const orcid = await this.configService.getCurrentOrcid();
@@ -1044,6 +1034,13 @@ visibleColumnMask = computed<Uint8Array>(() => {
   onDocumentClick(event: Event) {
     this.openAddAlleleRowId = null;
     this.individualContextMenuVisible = false;
+  }
+
+  async addAllCohortAges() {
+    const cohortData = this.cohortService.getCohortData();
+    if (! cohortData) return;
+    const cohortAges = await this.configService.getAllCohortAgeStrings(cohortData); 
+    this.ageService.addSelectedTerms(cohortAges); 
   }
 
 }

@@ -373,4 +373,8 @@ export class ConfigService {
   async sortCohortByrows(dto: CohortData) {
     return await invoke<CohortData>('sort_cohort_by_rows', {dto: dto});
   }
+
+  async getAllCohortAgeStrings(dto: CohortData): Promise<string[]> {
+     return await invoke<string[]>('get_all_cohort_age_strings', {dto: dto});
+  }
 }

@@ -11,7 +11,7 @@ use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::{HashMap, HashSet}, fs,  sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -78,7 +78,8 @@ pub fn run() {
             create_canonical_dictionary,
             expand_dictionary_to_rows,
             create_cell_mappings,
-            get_multi_hpo_strings
+            get_multi_hpo_strings,
+            get_cohort_age_strings
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -159,7 +160,7 @@ async fn load_hpo(
                         
                         let _ = app_handle.emit("backend_status", singleton.get_status());
                     },
-                    Err(e) => { /* emit failure */ }
+                    Err(_) => { /* emit failure */ }
                 }
             }
         }
@@ -698,7 +699,7 @@ async fn get_variant_analysis(
     state: tauri::State<'_, Arc<AppState>>,
     cohort_dto: CohortData
 ) -> Result<Vec<VariantDto>, String> {
-    let mut singleton = state.phenoboard.lock()
+    let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_variant_analysis(cohort_dto)
 }
@@ -944,4 +945,20 @@ async fn expand_dictionary_to_rows(
         .collect();
 
     Ok(expanded)
+}
+
+
+
+
+
+
+/// get list of Mining concepts for each cell
+#[tauri::command]
+async fn get_cohort_age_strings(
+    state: tauri::State<'_, Arc<AppState>>,
+    dto: CohortData
+) -> Result<Vec<String>, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    singleton.get_all_cohort_age_strings(dto)
 }
