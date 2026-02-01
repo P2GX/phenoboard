@@ -9,6 +9,13 @@
   @if (!pmidDto() || !pmidDto().title) {
     <!-- Show lookup button when no successful result -->
     <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
+     <app-help-button 
+          title="Entering PMID data"
+          [lines]="[
+            'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identified (PMID).',
+            'Enter either the number (e.g., 39233737) or the entire PMID (e.g., PMID: 39233737).',
+            'Whitespace characters are removed automatically.'
+          ]" />
   } @else {
     <!-- Show result box with reset button when successful -->
     <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
@@ -40,15 +47,31 @@
   <button mat-stroked-button color="primary" (click)="openAddDemoDialog()">
   ➕ Add/edit Demographics
 </button>
-  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
-    {{ demographicSummary }}
-  </div>
+  @if (demographicSummary) {
+      <div class="flex flex-wrap gap-2 text-xs text-gray-600">{{ demographicSummary }}</div>
+  } @else {
+  <app-help-button 
+    title="Entering demographic data"
+    [lines]="[
+      'Enter the identifier of the original being curated (as used in the original publication)',
+      'For instance, <i>Patient 1</i> or <i>Individual A</i>. If no identifier is provided and only one individual is described, use <i>proband</i> or the title of the clinical description section in the publication (e.g., <i>Case report</i>).',
+      'Enter age of onset and last encounter, sex, and desceased status from the original publication.'
+    ]" />
+  }
 </div>
 
 
 <div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
-  <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">HPO Annotations</h3>
-
+ 
+  <div class="h3-with-help">
+      <h3>HPO Annotations</h3>
+        <app-help-button 
+          title="Entering HPO data"
+          [lines]="[
+            'Copy text describing the clinical manifestations of the individual and paste it into the dialog that will appear upon clicking <b>+ Add HPO Annotations</b>.',
+            'Enter only text that is specific to the individual. The text mining dialog will allow you to add additional HPO terms as required.',
+          ]" />
+      </div>
   @if (showTwoStepHpoButton()) {
     <button 
       type="button"
@@ -59,9 +82,9 @@
   } @else {
     <div class="flex items-center justify-between p-2 border rounded bg-gray-50">
       <div class="flex flex-wrap gap-1 text-sm text-gray-500">
-        @for (annot of hpoAnnotations(); track annot) {
+        @for (annot of hpoAnnotations(); track annot; let isLast = $last) {
           <span>
-            {{ annot.termDuplet.hpoLabel }}: {{ annot.entry }}
+            {{ getEntryLabel(annot) }}@if (!isLast) {; }
           </span>
         }
       </div>
@@ -79,7 +102,16 @@
 
 <!-- Allele Section -->
 <div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
-  <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Alleles</h3>
+  <div class="h3-with-help">
+      <h3>Alleles</h3>
+        <app-help-button 
+          title="Entering variant data"
+          [lines]="[
+            'Enter HGVS, (symbolic) structural variants, intergenic variants, or mitochondrial variants',
+            'The variants will be validated using the VariantValidator API.',
+            'For homozygous variants, choose <b>biallelic</b> following validation of the variant string.'
+          ]" />
+      </div>
    <button type="button"              
         (click)="openVariantEditor(VariantKind.HGVS)"
         class="my-2 mx-4 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">

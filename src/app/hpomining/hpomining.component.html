@@ -9,13 +9,9 @@
       placeholder="Paste here with ctrl-V..."
       class="w-[100%] border-4 border-gray-400 rounded-md p-3 text-sm font-mono resize-y focus:outline-none focus:border-blue-500"
     ></textarea>
-
-    <button
-      (click)="runTextMining()"
-      class="btn-outline-primary mt-2"
-    >
-      Run HPO Text Mining
-    </button>
-     <button class="btn-outline-primary" (click)="onCancel()">Cancel</button>
+    <div class="flex justify-end mt-4 pe-4 gap-2">
+      <button (click)="runTextMining()"  class="btn-outline-primary">Run HPO Text Mining</button>
+      <button class="btn-outline-primary" (click)="onCancel()">Cancel</button>
+     </div>
   </div>
 </div>

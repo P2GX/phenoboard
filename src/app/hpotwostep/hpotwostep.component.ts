@@ -4,13 +4,14 @@ import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { HpoMiningComponent } from '../hpomining/hpomining.component';
 import { HpoPolishingComponent } from "../hpopolishing/hpopolishing.component";
 import { HpoTermData } from '../models/hpo_term_dto';
+import { MatIcon } from "@angular/material/icon";
 
 
 @Component({
   selector: 'app-hpotwostep',
   standalone: true,
   templateUrl: './hpotwostep.component.html',
-  imports: [HpoMiningComponent, HpoPolishingComponent],
+  imports: [HpoMiningComponent, HpoPolishingComponent, MatIcon],
 })
 export class HpoTwostepComponent {
   step = 1;

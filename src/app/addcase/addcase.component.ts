@@ -10,7 +10,7 @@ import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
-import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
@@ -24,6 +24,7 @@ import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from './confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -32,10 +33,11 @@ import { firstValueFrom } from 'rxjs';
   selector: 'app-addcase',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule,  
-    MatIconModule
-  ],
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    HelpButtonComponent
+],
   templateUrl: './addcase.component.html', 
   styleUrl: './addcase.component.css'
 })
@@ -473,12 +475,12 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     () => this.ageService.selectedTerms()
   );
 
-  get demographicSummary(): string {
+  get demographicSummary(): string | null {
     const value = this.demographData();
     if (value === null) {
-      return "not initialized";
+      return null;
     }
-    if (!value.individualId) return 'not initialized';
+    if (!value.individualId) return null;
 
     const age = value.ageAtLastEncounter !== 'na' ? `age: ${value.ageAtLastEncounter}` : '';
     const onset = value.ageOfOnset !== 'na' ? `onset: ${value.ageOfOnset}` : '';
@@ -496,5 +498,17 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       this.alleles().length > 0
     )
   );
+
+  /* Show the HPO terms retrieved from text mining */
+  getEntryLabel(annot: HpoTermData): string {
+    const entry = annot.entry;
+    const label = annot.termDuplet.hpoLabel;
+    switch (entry.type) {
+      case 'Observed': return `${label}: Observed`;
+      case 'Excluded': return `${label}: Excluded`;
+      case 'OnsetAge': return `${label}: ${entry.data}`; // the actual age string
+      default: return label; // should never get here, actually.
+    }
+  }
 
 }

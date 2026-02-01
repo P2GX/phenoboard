@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -57,18 +57,16 @@ type ValidatorFn = () => Promise<void>;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddVariantComponent implements OnInit{
-  kind!: VariantKind; 
+  
 
   private configService = inject(ConfigService); 
   private cohortService= inject(CohortDtoService);
   private dialogRef= inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
   readonly data = inject<AddVariantDialogData>(MAT_DIALOG_DATA);
-  constructor() {
-    this.kind = this.data.kind;
-    const row = this.cohortService.getRowById(this.data.rowId);
-  }
-  
-  
+  readonly kind: VariantKind = this.data.kind;
+  private cdr = inject(ChangeDetectorRef);
+
+
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
@@ -192,6 +190,7 @@ export class AddVariantComponent implements OnInit{
       .then((sv) => {
         this.currentStructuralVariant = sv;
         this.variantValidated = true;
+        this.cdr.markForCheck();
       })
       .catch((error) => {
         alert(String(error));
@@ -225,8 +224,7 @@ export class AddVariantComponent implements OnInit{
         this.currentIntergenicVariant = ig;
         this.variantValidated = true;
         cohortData.intergenicVariants[ig.variantKey] = ig;
-        console.log("Intergenic variant key", ig.variantKey);
-        console.log("ig=", ig);
+        this.cdr.markForCheck();
       })
       .catch((error) => {
         alert(String(error));
@@ -252,6 +250,7 @@ export class AddVariantComponent implements OnInit{
         this.currentHgvsVariant = hgvs;
         this.variantValidated = true;
         cohortDto.hgvsVariants[hgvs.variantKey] = hgvs;
+        this.cdr.markForCheck();
       })
       .catch((error) => {
         alert(String(error));

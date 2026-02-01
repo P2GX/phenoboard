@@ -1,7 +1,7 @@
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto, textAnnotationToHpoAnnotation, to_annotation_dto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
@@ -26,15 +26,13 @@ export class HpoPolishingComponent implements OnInit {
   @Output() done = new EventEmitter<HpoTermData[]>();
   @Output() cancel = new EventEmitter<void>();
 
-  constructor(private ageService: AgeInputService,
-      private configService: ConfigService,
-      private dialog: MatDialog,
-      private notificationService: NotificationService
-    ) {
-    }
-  
-  hpoAnnotations: HpoAnnotationDto[] = [];
+  private ageService = inject(AgeInputService);
+  private configService = inject(ConfigService);
+  private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
 
+  availableOnsetTerms = this.ageService.selectedTerms;  
+  hpoAnnotations = signal<HpoAnnotationDto[]>([]);
   showCollapsed = false;
   showPopup = false;
   selectedAnnotation: TextAnnotationDto | null = null;
@@ -59,7 +57,7 @@ export class HpoPolishingComponent implements OnInit {
         })
       ).values()
     );
-    this.hpoAnnotations = unique_hpo_hits;
+    this.hpoAnnotations.set(unique_hpo_hits);
   }
 
   openPopup(ann: TextAnnotationDto, event: MouseEvent) {
@@ -124,29 +122,28 @@ export class HpoPolishingComponent implements OnInit {
 
   /** This is used in the GUI to replace a term by a parent or child term. */
  replaceTerm(annotation: HpoAnnotationDto, replacement: HpoAnnotationDto) {
-    const idx = this.hpoAnnotations.indexOf(annotation);
-    if (idx < 0) {
-      this.notificationService.showError(`C ould not get index of Hpo Annotation "${annotation}"`);
-      return;
-    }
-    const updated = {
-      ...annotation,              // keep onsetString, observed, etc
-      termId: replacement.termId, // replace IDs
-      label: replacement.label
-    };
-    this.hpoAnnotations[idx] = updated;
-    // Force change detection
-    this.hpoAnnotations = [...this.hpoAnnotations];
-    this.showDropdownMap[annotation.termId] = false;
+  this.hpoAnnotations.update(current => {
+    return current.map(item => 
+      item.termId === annotation.termId
+      ? { ...item, termId: replacement.termId, label: replacement.label}
+      : item
+      );
+    });
   }
 
   /* Remove an annotation from the HTML table. */
   deleteAnnotation(index: number): void {
-    this.hpoAnnotations.splice(index, 1);
+    this.hpoAnnotations.update(current => current.filter((_,i) => i !== index));
   }
 
   updateOnset(annotation: HpoAnnotationDto, newValue: string): void {
-    annotation.onsetString = newValue;
+    this.hpoAnnotations.update(current => 
+      current.map(item => 
+        item.termId === annotation.termId 
+          ? { ...item, onsetString: newValue } 
+          : item
+      )
+    );
   }
 
   submitSelectedHpo = async () => {
@@ -156,10 +153,14 @@ export class HpoPolishingComponent implements OnInit {
     await this.submitHpoAutocompleteTerm(this.selectedHpoTerm);
   };
 
+  // Add an autocompleted term to the list (do not add duplicates, silently skip)
   async submitHpoAutocompleteTerm(autocompletedTerm: HpoTermDuplet): Promise<void> {
     if (autocompletedTerm) {
       const annot: TextAnnotationDto = to_annotation_dto(autocompletedTerm);
-      this.hpoAnnotations.push(annot);
+      this.hpoAnnotations.update(current => {
+        const exists = current.some(a => a.termId === annot.termId);
+        return exists ? current : [...current, annot];
+        });
     }
   }
 
@@ -168,58 +169,47 @@ export class HpoPolishingComponent implements OnInit {
    * This function converts one such annotation to an HpoTermData object.
   */
     convertTextAnnotationToHpoAnnotation(textAnn: HpoAnnotationDto): HpoTermData {
-      let cellValue: CellValue | null = null;
-      if (textAnn.isObserved) {
-        let status = 'observed'; // status could be observed or an age of onset.
-        if (!textAnn.onsetString || textAnn.onsetString.trim() === "" || textAnn.onsetString != 'na') {
-          status = textAnn.onsetString; // if there is a non-empty/non-na onset, use it for our value
-          cellValue = {
-            type: "OnsetAge",
-            data: status
-          }
-        } else {
-          cellValue = { type: "Observed"}
-        }
-      } else {
-         cellValue = { type: "Excluded"}
-      }
       const duplet: HpoTermDuplet = {
         hpoLabel: textAnn.label,
-        hpoId:  textAnn.termId,
+        hpoId: textAnn.termId
       };
-      
-      return {
-        termDuplet: duplet, 
-        entry: cellValue,
-      };
-    }
+      let entry: CellValue;
+      if (!textAnn.isObserved) {
+        entry = {type: 'Excluded'};
+      } else if (textAnn.onsetString && textAnn.onsetString !== "na") {
+        entry = {type: 'OnsetAge', data: textAnn.onsetString};
+      } else {
+        entry = {type: 'Observed'};
+      }
+    return {termDuplet: duplet, entry };
+  }
   
 
   finish() {
+    const annotations = this.hpoAnnotations();
     const uniqueMap = new Map<string, HpoAnnotationDto>();
+    const conflicts: string[] = [];
 
-    for (const hit of this.hpoAnnotations) {
+    for (const hit of annotations) {
       const existing = uniqueMap.get(hit.termId);
       if (!existing) {
-        // Not seen yet, add it
         uniqueMap.set(hit.termId, hit);
       } else {
-        // Already seen, check if onset or observed differs
         if (
           existing.onsetString !== hit.onsetString ||
           existing.isObserved !== hit.isObserved
         ) {
-          alert(
-            `Conflicting annotations for term ${hit.termId}: ` +
-            `existing(${existing.onsetString}, ${existing.isObserved}), ` +
-            `new(${hit.onsetString}, ${hit.isObserved}). Fix this and try again`
-          );
+          conflicts.push(`${hit.label} (${hit.termId})`);
         }
-        // else identical, skip
+      }
+      if (conflicts.length > 0) {
+        this.notificationService.showError(`Conflicting observed/onset status for: ${conflicts.join(', ')}`);
+        return;
       }
     }
-    const uniqueHits: HpoAnnotationDto[] = Array.from(uniqueMap.values());
-    let uniqueHpoData: HpoTermData[] = uniqueHits.map(h => this.convertTextAnnotationToHpoAnnotation(h));
+    const uniqueHpoData = Array.from(uniqueMap.values()).map(h => 
+      this.convertTextAnnotationToHpoAnnotation(h)
+    );
     this.done.emit(uniqueHpoData);
   }
 
@@ -227,27 +217,24 @@ export class HpoPolishingComponent implements OnInit {
     this.cancel.emit();
   }
 
-  get availableOnsetTerms(): string[] {
-    return this.ageService.selectedTerms();
-  }
-
   /** add the onset string to the Age service, and also update the current row */
   addOnsetString(annotation: HpoAnnotationDto) {
     const dialogRef = this.dialog.open(AddageComponent, {
-          width: '400px',
-          data: {  data: { existingAges: this.ageService.selectedTerms() } }
-        });
+      width: '400px'
+    });
     
-        dialogRef.afterClosed().subscribe(result => {
-          if (result) {
-            if (result.length == 1) {
-              const onset = result[0];
-              annotation.onsetString = onset;
-              this.ageService.addSelectedTerm(onset);
-            } else {
-              result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
-            }
-          }
-        });
+    dialogRef.afterClosed().subscribe((newOnset: string | undefined) => {
+      if (newOnset) {
+        this.ageService.addSelectedTerm(newOnset);
+          setTimeout(() => {
+            this.hpoAnnotations.update(current => 
+              current.map(item => 
+                item.termId === annotation.termId 
+                  ? { ...item, onsetString: newOnset } 
+                  : item
+              )
+            );
+         });}
+    });
   }
 }
