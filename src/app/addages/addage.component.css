@@ -1,0 +1,37 @@
+/* Banishing the internal vertical line artifacts */
+
+/* 1. Target the leading segment's right border */
+:host ::ng-deep .mdc-notched-outline__leading {
+  border-right: none !important;
+}
+
+/* 2. Target the trailing segment's left border */
+:host ::ng-deep .mdc-notched-outline__trailing {
+  border-left: none !important;
+}
+
+/* 3. Ensure the notch (middle) has no side borders at all */
+:host ::ng-deep .mdc-notched-outline__notch {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* 4. Fix for Tauri/Webview sub-pixel rendering gaps */
+:host ::ng-deep .mdc-notched-outline {
+  display: flex !important;
+  /* Forcing a tiny overlap to hide gaps */
+  gap: -1px; 
+}
+
+.dense-form-field {
+  --mdc-outlined-form-field-outline-width: 1px;
+  --mdc-outlined-form-field-focus-outline-width: 2px;
+  /* Sometimes the default Material floating label transition leaves a line */
+  transition: none !important; 
+}
+
+/* Ensure the input itself doesn't have a border */
+input[matInput] {
+  border: none !important;
+  box-shadow: none !important;
+}

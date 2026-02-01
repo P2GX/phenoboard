@@ -7,7 +7,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
-import { AddagesComponent } from '../addages/addages.component';
+import { AddageComponent } from '../addages/addage.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../services/notification.service';
 
@@ -228,14 +228,14 @@ export class HpoPolishingComponent implements OnInit {
   }
 
   get availableOnsetTerms(): string[] {
-    return this.ageService.getSelectedTerms();
+    return this.ageService.selectedTerms();
   }
 
   /** add the onset string to the Age service, and also update the current row */
   addOnsetString(annotation: HpoAnnotationDto) {
-    const dialogRef = this.dialog.open(AddagesComponent, {
+    const dialogRef = this.dialog.open(AddageComponent, {
           width: '400px',
-          data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
+          data: {  data: { existingAges: this.ageService.selectedTerms() } }
         });
     
         dialogRef.afterClosed().subscribe(result => {

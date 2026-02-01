@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AddagesComponent } from './addages.component';
+import { AddageComponent } from './addage.component';
 
-describe('AddagesComponent', () => {
-  let component: AddagesComponent;
-  let fixture: ComponentFixture<AddagesComponent>;
+describe('AddageComponent', () => {
+  let component: AddageComponent;
+  let fixture: ComponentFixture<AddageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddagesComponent]
+      imports: [AddageComponent]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AddagesComponent);
+    fixture = TestBed.createComponent(AddageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

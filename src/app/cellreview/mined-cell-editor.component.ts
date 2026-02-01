@@ -9,7 +9,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatTableModule } from "@angular/material/table";
 import { AgeInputService } from "../services/age_service";
 import { MatDialog } from "@angular/material/dialog";
-import { AddagesComponent } from "../addages/addages.component";
+import { AddageComponent } from "../addages/addage.component";
 
 
 @Component({
@@ -66,7 +66,7 @@ export class MinedCellEditorComponent {
 
 
     get availableOnsetTerms(): string[] {
-      return this.ageService.getSelectedTerms();
+      return this.ageService.selectedTerms();
     }
   
   
@@ -77,9 +77,9 @@ export class MinedCellEditorComponent {
     }
 
     addOnsetString(term: MappedTerm): void {
-        const dialogRef = this.dialog.open(AddagesComponent, {
+        const dialogRef = this.dialog.open(AddageComponent, {
         width: '400px',
-        data: {  data: { existingAges: this.ageService.getSelectedTerms() } }
+        data: {  data: { existingAges: this.ageService.selectedTerms() } }
         });
       
         dialogRef.afterClosed().subscribe(result => {

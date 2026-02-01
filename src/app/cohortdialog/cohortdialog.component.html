@@ -4,7 +4,17 @@
   <form [formGroup]="form" class="flex flex-col gap-3 mt-2">
 
     <!-- Disease section -->
-    <h3 class="font-semibold text-gray-700 mb-1">Disease Info</h3>
+     <div class="h3-with-help">
+      <h3>Disease Info</h3>
+        <app-help-button 
+          title="Entering disease data"
+          [lines]="[
+            'Enter the OMIM disease identified (e.g., OMIM:163950) and the corrresponding disease name (e.g., Noonan syndrome 1)',
+            'We use the OMIM disease acronym where provided by OMIM. The acronym can be found after the semicolon in the title (in this case, NS1).',
+            'Do not use the all-caps form of the disease label. The disease label should be taken from the Phenotype-Gene Relationships table on the OMIM page.'
+          ]" />
+      </div>
+   
 
     <!-- OMIM ID -->
     <div class="form-field">
@@ -31,9 +41,17 @@
     </div>
 
     <!-- Gene(s) section -->
-    <h3 class="font-semibold text-gray-700 mt-3 mb-1">
-      {{ data.mode === 'digenic' ? 'Gene 1 Info' : 'Gene Info' }}
-    </h3>
+     <div class="h3-with-help">
+        <h3>{{ data.mode === 'digenic' ? 'Gene 1 Info' : 'Gene Info' }}</h3>
+        <app-help-button 
+          title="Entering gene data"
+          [lines]="[
+            'Go to the HGNC website (https://www.genenames.org/) to find the HGNC identifier and the MANE transcript for the gene.',
+            'Phenoboard expects to use the RefSeq MANE select transcript identifier.',
+            'For instance, for the gene <i>OPA1</i>, choose the HGNC identifier <b>HGNC:8140</b> and the transcript identifier <b>NM_130837.3</b>.'
+          ]" />
+     </div>
+  
 
     <div class="form-field">
       <input placeholder="e.g., HGNC:1234" formControlName="hgnc1" class="form-input" />
@@ -100,8 +118,16 @@
   </div>
 } @else {
   <mat-dialog-actions align="end" class="mt-3">
-    <button (click)="showPasteArea = true" class="btn-outline-primary">📋 Paste OMIM data</button>
+    <button (click)="showPasteArea = true" class="btn-outline-primary">📋 Paste tabular data</button>
+   
+    <app-help-button 
+      title="Pasting tabular data"
+      [lines]="[
+        'This button can be used to paste information about several tab-separated fields at once.',
+        'The fields must be 1. <b>Disease name (Phenotype)</b>, 2. <b>OMIM id</b>, 3. skipped, 4. skipped, 5. <b>Gene symbol</b>.',
+        'For instance, the data from the Phenotype-Gene Relationships table in OMIM can be copied and pasted here.'
+      ]" />
     <button mat-button (click)="cancel()" class="btn-outline-cancel">Cancel</button>
-    <button mat-raised-button [disabled]="form.invalid" (click)="submit()" class="btn-primary">OK</button>
+    <button mat-raised-button [disabled]="form.invalid" (click)="submit()" class="btn-primary" style="margin-left: 16px;">OK</button>
   </mat-dialog-actions>
 }

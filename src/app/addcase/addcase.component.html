@@ -32,22 +32,6 @@
   }
 </div>
 
-<!-- Enter ages of onset/last encounter-->
-<div
-  class="flex items-center gap-4 p-3 border rounded"
-  style="border-color: #e9ecef; margin-bottom:10px;"
->
-  <button mat-stroked-button color="primary" (click)="openAgeDialog()">
-    Add/Edit Age Entries
-  </button>
-  <div class="flex flex-wrap gap-2 text-xs text-gray-600">
-    @for (entry of ageEntries(); track entry; let i = $index) {
-      <span class="bg-gray-100 px-2 py-1 rounded">{{ entry }}</span>
-    }
-  </div>
-</div>
-  
-
 <!-- Demographic information-->
 <div
   class="flex items-center gap-4 p-3 border rounded"

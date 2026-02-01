@@ -1,9 +1,15 @@
 @use './variables' as *;
 
-button.btn-outline-primary {
+
+// Common styles shared across buttons (optional: you could refactor this into a mixin)
+%btn-base {
   @apply 
     border font-medium rounded-lg text-sm px-5 py-2.5 
     text-center transition-all duration-200 disabled:cursor-not-allowed;
+}
+
+button.btn-outline-primary {
+  @extend %btn-base;
 
   // Use your SCSS variables for the specific colors
   border-color: $blue-primary;
@@ -25,9 +31,7 @@ button.btn-outline-primary {
 }
 
 button.btn-outline-danger {
-  @apply 
-    border font-medium rounded-lg text-sm px-5 py-2.5 
-    text-center transition-all duration-200 disabled:cursor-not-allowed;
+  @extend %btn-base;
 
   border-color: $color-warn;
   color: $color-warn;
@@ -40,5 +44,33 @@ button.btn-outline-danger {
   &:focus {
     @apply outline-none ring-2;
     --tw-ring-color: #{rgba($color-warn, 0.3)};
+  }
+}
+
+
+button.btn-outline-cancel {
+  @extend %btn-base;
+
+  // Neutral Gray theme
+  border-color: #94a3b8; // Slate-400
+  color: #475569;        // Slate-600
+
+  &:hover:not(:disabled) {
+    background-color: #f1f5f9; // Slate-100
+    color: #0f172a;           // Slate-900
+    border-color: #64748b;    // Slate-500
+  }
+
+  &:focus {
+    @apply outline-none ring-2;
+    --tw-ring-color: #{rgba(#94a3b8, 0.3)};
+  }
+
+  &:active {
+    background-color: #e2e8f0; // Slate-200
+  }
+
+  &:disabled {
+    @apply bg-gray-50 text-gray-300 border-gray-200;
   }
 }

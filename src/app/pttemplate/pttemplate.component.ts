@@ -6,7 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
 import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData, getRowId } from '../models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { AddagesComponent } from "../addages/addages.component";
+import { AddageComponent } from "../addages/addage.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
@@ -75,7 +75,7 @@ export class PtTemplateComponent  {
   private notificationService = inject(NotificationService);
 
   @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
-  @ViewChild(AddagesComponent) addagesComponent!: AddagesComponent;
+  @ViewChild(AddageComponent) addagesComponent!: AddageComponent;
   // References to the HTML elements
   @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;
   @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
@@ -501,7 +501,7 @@ export class PtTemplateComponent  {
     this.selectedCellContents = cell;
     this.contextMenuOptions = [
       ...this.predefinedOptions,
-      ...this.ageService.getSelectedTerms().map(term => ({
+      ...this.ageService.selectedTerms().map(term => ({
           label: term,
           value: term
         })),
@@ -792,7 +792,7 @@ export class PtTemplateComponent  {
 
   
 openAgeDialog(): void {
-  const dialogRef = this.dialog.open(AddagesComponent, {
+  const dialogRef = this.dialog.open(AddageComponent, {
     width: '400px',
     data: { /* pass inputs if needed */ }
   });
@@ -805,7 +805,7 @@ openAgeDialog(): void {
 }
 
 get ageEntries(): string[] {
-  return this.ageService.getSelectedTerms();
+  return this.ageService.selectedTerms();
 }
 
   async recordBiocuration(): Promise<void> {

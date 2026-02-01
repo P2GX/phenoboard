@@ -1,6 +1,7 @@
 @use "@angular/material" as mat;
 @use 'styles/variables' as *;
 @use 'styles/buttons';
+@use 'styles/titles';
 
 @include mat.core();
 

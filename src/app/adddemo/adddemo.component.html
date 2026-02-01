@@ -27,33 +27,72 @@
       </div>
 
       <!-- 2. Age of Onset -->
-      <div>
-        <label for="ageOfOnset" class="block text-sm font-medium text-gray-700 mb-1">Age of Onset</label>
-        <select
-          formControlName="ageOfOnset" 
-          id="ageOfOnset"
-          class="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        >
-          <option value="na">na</option>
-          @for (term of ageStrings; track term) {
-            <option [value]="term">{{ term }}</option>
-          }
-        </select>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">Age of Onset</label>
+      
+      <div class="flex items-center gap-2 h-10">
+        @if (!demoForm.get('ageOfOnset')?.value) {
+          <button 
+            type="button" 
+            (click)="openAgeWizard('ageOfOnset')" 
+            class="btn-outline-primary !py-1 !px-3 text-xs flex items-center gap-1">
+            <mat-icon class="text-sm">add_circle_outline</mat-icon>
+            Set Age
+          </button>
+        } @else {
+          <div class="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-3 py-1 shadow-sm">
+            <span class="text-sm font-semibold text-blue-900 mr-2">
+              {{ demoForm.get('ageOfOnset')?.value }}
+            </span>
+            
+            <div class="flex border-l border-blue-200 pl-2 gap-1">
+              <button type="button" (click)="openAgeWizard('ageOfOnset')" title="Edit"
+                      class="text-blue-600 hover:text-blue-800 transition-colors">
+                <mat-icon class="text-[16px] w-[16px] h-[16px]">edit</mat-icon>
+              </button>
+              <button type="button" (click)="demoForm.get('ageOfOnset')?.setValue('')" title="Clear"
+                      class="text-gray-400 hover:text-red-600 transition-colors">
+                <mat-icon class="text-[16px] w-[16px] h-[16px]">close</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
       </div>
+    </div>
 
       <!-- 3. Age at Last Encounter -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Age at Last Encounter</label>
-        <select
-          formControlName="ageAtLastEncounter"
-          class="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        >
-          <option value="na">na</option>
-          @for (term of ageStrings; track term) {
-            <option [value]="term">{{ term }}</option>
-          }
-        </select>
+      <div class="flex flex-col gap-1">
+      <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">Age of Onset</label>
+      
+      <div class="flex items-center gap-2 h-10">
+        @if (!demoForm.get('ageAtLastEncounter')?.value) {
+          <button 
+            type="button" 
+            (click)="openAgeWizard('ageAtLastEncounter')" 
+            class="btn-outline-primary !py-1 !px-3 text-xs flex items-center gap-1">
+            <mat-icon class="text-sm">add_circle_outline</mat-icon>
+            Set Age
+          </button>
+        } @else {
+          <div class="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-3 py-1 shadow-sm">
+            <span class="text-sm font-semibold text-blue-900 mr-2">
+              {{ demoForm.get('ageAtLastEncounter')?.value }}
+            </span>
+            
+            <div class="flex border-l border-blue-200 pl-2 gap-1">
+              <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" title="Edit"
+                      class="text-blue-600 hover:text-blue-800 transition-colors">
+                <mat-icon class="text-[16px] w-[16px] h-[16px]">edit</mat-icon>
+              </button>
+              <button type="button" (click)="demoForm.get('ageAtLastEncounter')?.setValue('')" title="Clear"
+                      class="text-gray-400 hover:text-red-600 transition-colors">
+                <mat-icon class="text-[16px] w-[16px] h-[16px]">close</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
       </div>
+    </div>
 
       <!-- 4. Sex -->
       <div>
@@ -93,7 +132,7 @@
   </div>
 
   <!-- Action buttons -->
-  <div class="mt-6 flex justify-end gap-3">
+  <div class="mt-6 flex justify-end gap-3 pb-[6px]">
     <button 
       type="button" 
       (click)="cancel()"

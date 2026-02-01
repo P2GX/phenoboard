@@ -5,7 +5,7 @@ import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
-import { AddagesComponent } from "../addages/addages.component";
+import { AddageComponent } from "../addages/addage.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
@@ -22,7 +22,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from './confirmdialog.component';
-import { signal, computed, effect } from '@angular/core';
+import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -215,7 +215,7 @@ closePopup(): void {
 
 
 openPopup(ann: TextAnnotationDto, event: MouseEvent) {
-  this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
+  this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.selectedTerms()];
   this.selectedAnnotation = ann;
   this.showPopup = true;
   // Get the clicked element's bounding box
@@ -240,7 +240,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   /* This is called by the button to submit the annotations obtained by fenominal text mining
     of an input text. */
   submitAnnotations() {
-    this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.getSelectedTerms()];
+    this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.selectedTerms()];
     this.showAnnotationTable = true;
     this.showCollapsed = false;
     this.showTextArea = false;
@@ -442,7 +442,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   openAgeDialog(): void {
-    const dialogRef = this.dialog.open(AddagesComponent, {
+    const dialogRef = this.dialog.open(AddageComponent, {
       width: '400px',
       data: { /* pass inputs if needed */ }
     });
@@ -457,7 +457,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   openAddDemoDialog() {
     const dialogRef = this.dialog.open(AdddemoComponent, {
       width: '1000px',
-      data: { ageStrings: this.ageService.getSelectedTerms(), demoDto: this.demographData() }
+      data: { demoDto: this.demographData() }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
@@ -470,7 +470,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   readonly ageEntries = computed(
-    () => this.ageService.getSelectedTerms()
+    () => this.ageService.selectedTerms()
   );
 
   get demographicSummary(): string {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Optional, Output } from '@angular/core';
+import { Component, computed, EventEmitter, inject, Inject, Optional, output, Output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
@@ -6,57 +6,80 @@ import { AgeInputService } from '../services/age_service';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { asciiValidator } from '../validators/validators';
 import { MatRadioModule } from '@angular/material/radio';
-
+import { MatAutocompleteModule } from '@angular/material/autocomplete'; // <--- Add this import
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { DemoFormDialogComponent } from './demoformdialog.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { MatAutocomplete } from "@angular/material/autocomplete";
+import { MatIcon } from "@angular/material/icon";
+import { AddageComponent } from '../addages/addage.component';
 
 @Component({
   selector: 'app-adddemo',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
+    MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
     MatSelectModule,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    MatAutocomplete,
+    MatIcon
+],
   templateUrl: './adddemo.component.html',
   styleUrls: ['./adddemo.component.css']
 })
 export class AdddemoComponent {
+  private fb =inject(FormBuilder);
+  private dialog =inject(MatDialog);
+  private ageService = inject(AgeInputService);
 
-  @Output() demoSubmitted = new EventEmitter<{ dto: DemographDto; hideDemo: boolean }>();
+  private dialogRef = inject(MatDialogRef<AdddemoComponent>, { optional: true });
+  private data = inject<{ demoDto?: DemographDto }>(MAT_DIALOG_DATA, { optional: true });
+  readonly ageStrings = this.ageService.selectedTerms;
+  demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();
+  
+  deceasedOptions: string[] = ["yes", "no", "na"];
+  sexOptions: string[] = ['M', 'F', 'O', 'U'];
 
-  demoForm: FormGroup;
+  demoForm: FormGroup = this.initForm();
+  
+  /* Open dialog to enter ageOfOnset or ageAtLastEncounter */
+  openAgeWizard(controlName: string) {
+    const control = this.demoForm.get(controlName);
+    
+    const dialogRef = this.dialog.open(AddageComponent, {
+      width: '450px',
+      data: { current: control?.value }
+    });
 
+    dialogRef.afterClosed().subscribe((result: string | undefined) => {
+      if (result) {
+        // Update the specific control passed in
+        control?.patchValue(result);
+        control?.markAsDirty();
+        control?.markAsTouched();
+      }
+    });
+  }
 
-  constructor(
-    public ageService: AgeInputService,
-    private fb: FormBuilder,
-    private dialog: MatDialog,
-    @Optional() private dialogRef?: MatDialogRef<AdddemoComponent>,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data?: { ageStrings?: string[]; demoDto?: DemographDto }
-  ) {
-    const dto: DemographDto = data?.demoDto ?? defaultDemographDto();
-    this.ageStrings = data?.ageStrings ?? [];
-
-    this.demoForm = this.fb.group({
+  private initForm(): FormGroup {
+    const dto = this.data?.demoDto ?? defaultDemographDto();
+    
+    return this.fb.group({
       individualId: [dto.individualId, [Validators.required, asciiValidator()]],
-      ageOfOnset: [dto.ageOfOnset, Validators.required],
+      ageOfOnset: [dto.ageOfOnset, [Validators.required, this.ageService.validator()]],
       ageAtLastEncounter: [dto.ageAtLastEncounter, Validators.required],
       sex: [dto.sex, Validators.required],
       deceased: [dto.deceased, Validators.required],
       comment: [dto.comment, asciiValidator()]
     });
   }
-
-  ageStrings: string[] = [];
-  deceasedOptions: string[] = ["yes", "no", "na"];
-  sexOptions: string[] = ['M', 'F', 'O', 'U'];
 
   submitDemo(hideDemographic: boolean): void {
     if (!this.demoForm.valid) return;
@@ -85,7 +108,7 @@ export class AdddemoComponent {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result !== undefined) {
-        this.demoForm.get('comment')?.setValue(result);
+        this.demoForm.patchValue({'comment':result});
       }
     });
   }
@@ -100,10 +123,13 @@ export class AdddemoComponent {
       comment: ''
     });
   }
+
   cancel() {
     if (this.dialogRef) {
-      this.dialogRef.close(null);  // will emit `null` to afterClosed()
+      this.dialogRef.close(null); 
     }
   }
+
+  
 
 }

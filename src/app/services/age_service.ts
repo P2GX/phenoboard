@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 
@@ -17,14 +17,23 @@ export class AgeInputService {
 
     readonly isoPattern = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?$/;
     readonly gestationalAgePattern = /^G\d{1,2}w(?:[0-6]d)?$/;
-    /** The user selects these terms for use in annotations */
-    public selectedTerms: string[] = ["na"];
-
+    /** *The source of truth for user-selected age strings.
+     */
+    public _selectedTerms = signal<string[]>(["na"]);
+    /** Expose the signal as read-only for components */
+    readonly selectedTerms = this._selectedTerms.asReadonly();
+    /** for autocomplete lists */
+    readonly allAvailableTerms = computed(() => {
+        return Array.from(new Set([...this.onsetTerms, ...this._selectedTerms()]));
+    });
     /**
      * Returns true if the input is a valid ISO8601 age string, a gestational age string, or a known HPO term ("na" is also an allowed entry)
      */
     validateAgeInput(input: string): boolean {
-        return input == "na" || this.onsetTerms.includes(input) || this.isoPattern.test(input) || this.gestationalAgePattern.test(input);
+        return input == "na" ||
+        this.onsetTerms.includes(input) || 
+        this.isoPattern.test(input) || 
+        this.gestationalAgePattern.test(input);
     }
 
     /** Expose an Angular validator that uses the same logic */
@@ -38,27 +47,24 @@ export class AgeInputService {
 
     /** always present "na" as the first value. These are the age terms that are selectable for the phenotypic features */
     addSelectedTerms(terms: string[]) {
-        this.selectedTerms = Array.from(new Set([...this.selectedTerms, ...terms]));
+        this._selectedTerms.update(current => Array.from(new Set([...current, ...terms])));
     }
 
     addSelectedTerm(term: string) {
-        this.selectedTerms = Array.from(new Set([...this.selectedTerms, term]));
+        this._selectedTerms.update(current => Array.from(new Set([...current, term])));
     }
 
     removeSelectedTerm(term: string) {
-        this.selectedTerms = this.selectedTerms.filter(t => t !== term);
+        this._selectedTerms.update(current => current.filter(t => t !== term));
     }
 
     removeSelectedTerms(terms: string[]) {
         const removeSet = new Set(terms);
-        this.selectedTerms = this.selectedTerms.filter(t => !removeSet.has(t));
+        this._selectedTerms.update(current => current.filter(t => !removeSet.has(t)));
     }
 
     clearSelectedTerms() {
-        this.selectedTerms = ["na"];
+        this._selectedTerms.set(["na"]);
     }
 
-    getSelectedTerms(): string[] {
-        return this.selectedTerms;
-    }
 }
