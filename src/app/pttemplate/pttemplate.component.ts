@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -11,10 +11,9 @@ import { IndividualEditComponent } from '../individual_edit/individual_edit.comp
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { firstValueFrom, from, of, switchMap, map } from 'rxjs';
+import { firstValueFrom, from, of, map, catchError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
-import { MoiSelector } from "../moiselector/moiselector.component";
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
@@ -22,8 +21,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
 import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 
 interface Option { label: string; value: string };
 
@@ -40,10 +39,10 @@ interface Option { label: string; value: string };
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
-    MoiSelector,
     MatIconModule,
     CohortSummaryComponent,
-    HelpButtonComponent
+    HelpButtonComponent,
+    CohortMetadataComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -53,22 +52,29 @@ export class PtTemplateComponent  {
 
   public cohortService = inject(CohortDtoService);
   cohortData = this.cohortService.cohortData; 
-  readonly hpoGroupsResource = rxResource({
-    params: () => this.cohortData(),
-    stream: (param) => {
-      const cohort = param.params;
-      if (!cohort) return of(new Map<string, HpoTermDuplet[]>());
+  hpoGroups = signal(new Map<string, HpoTermDuplet[]>());
+  isLoadingHpo = signal(false);
 
-      // Convert the Promise from configService to an Observable
-      return from(this.configService.getTopLevelHpoTerms(cohort)).pipe(
-        map(groupsObj => new Map(Object.entries(groupsObj)))
-      );
-    }
-  });
-  readonly hpoGroups = computed(() => 
-    this.hpoGroupsResource.value() ?? new Map<string, HpoTermDuplet[]>()
-  );
+  constructor() {
+  // Use an effect to watch ONLY the acronym
+    effect(async () => {
+      const acronym = this.cohortData()?.cohortAcronym;
+      const cohort = this.cohortData();
 
+      // Only fetch if we have a cohort and the acronym isn't empty
+      if (cohort && acronym) {
+        this.isLoadingHpo.set(true);
+        try {
+          const groupsObj = await this.configService.getTopLevelHpoTerms(cohort);
+          this.hpoGroups.set(new Map(Object.entries(groupsObj ?? {})));
+        } catch (err) {
+          console.error("Failed to fetch HPO groups:", err);
+        } finally {
+          this.isLoadingHpo.set(false);
+        }
+      }
+    });
+  }
   /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
 
@@ -228,48 +234,9 @@ export class PtTemplateComponent  {
   }
 
   contextMenuOptions: Option[] = [];
-  showMoiIndex: number | null = null;
 
   /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
   selectedTopLevelHpo = signal<string | null>(null);
-    
-    
-
-  /** Get suggest cohort acronym for melded only (others should be blank because the user
-   * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
-  suggestedAcronym = computed(() : string  => {
-    const cohort = this.cohortData();
-    if (! cohort) return '';
-    if (cohort.cohortType === 'melded') {
-      // Collect all gene symbols from both diseases
-      const symbols = cohort.diseaseList
-        .flatMap(disease => 
-          disease.geneTranscriptList.map(gt => gt.geneSymbol)
-        )
-        .filter(Boolean) // remove null/undefined just in case
-        .sort((a: string, b: string) => a.localeCompare(b)); // alphabetic sort
-      return symbols.join('-');
-    }  else if (cohort.cohortAcronym != null) {
-      return cohort.cohortAcronym;
-    } else {
-      return '';
-    }
-  });
-
-
-  moiList = computed(() => {
-    const dto = this.cohortService.cohortData();
-    if (! dto ) return [];
-    return dto.diseaseList.flatMap(d => d.modeOfInheritanceList ?? []);
-  });
-
- 
-
-  toggleMoiSelector(i: number): void {
-    this.showMoiIndex = this.showMoiIndex === i ? null : i;
-  }
-
-  
 
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
@@ -1037,12 +1004,54 @@ visibleColumnMask = computed<Uint8Array>(() => {
     this.ageService.addSelectedTerms(cohortAges); 
   }
 
-  readonly acronymDisplay = computed(() => {
-    const cohort = this.cohortData();
-    if (cohort && cohort.cohortAcronym && cohort.cohortAcronym !== 'na') {
-      return `Acronym: ${cohort.cohortAcronym}`;
-    }
-    return 'Acronym not set';
-  });
+
+  /* reset of the Moi/acronym componet */
+  handleReset() {
+    const current = this.cohortData();
+    if (!current) return;
+
+    // We create a deep-ish copy of the metadata while keeping individual rows intact
+    const resetCohort: CohortData = {
+      ...current,
+      cohortAcronym: '',
+      // Map over diseases to clear their specific inheritance lists
+      diseaseList: current.diseaseList.map(disease => ({
+        ...disease,
+        modeOfInheritanceList: []
+      }))
+    };
+
+    this.cohortService.setCohortData(resetCohort);
+    this.notificationService.showSuccess("Cohort metadata has been reset.");
+  }
+
+  /* Set the cohort acronym */
+  handleAcronym(newAcronym: string) {
+    const current = this.cohortData();
+    if (!current) return;
+
+    this.cohortService.setCohortData({
+      ...current,
+      cohortAcronym: newAcronym
+    });
+  }
+
+  handleMoi(event: {diseaseIndex: number, moi: ModeOfInheritance[]}) {
+    const current = this.cohortData();
+    if (!current) return;
+    const updatedDiseases = current.diseaseList.map((d, index) => {
+      if (index === event.diseaseIndex) {
+        return {
+          ...d,
+          modeOfInheritanceList: [...event.moi] 
+        };
+      }
+      return d; 
+    });
+    this.cohortService.setCohortData({
+      ...current,
+      diseaseList: updatedDiseases
+    });
+  }
 
 }

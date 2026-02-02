@@ -5,9 +5,18 @@
   </header>
 
   <button (click)="fetchRepoQc()" [disabled]="loading" class="btn-action">
-    <span *ngIf="loading" class="loader"></span>
+   @if (loading) {
+      <span class="loader"></span>
+   }
     {{ loading ? 'Analyzing...' : 'Fetch Repo QC' }}
   </button>
+  <app-help-button 
+          title="Repository QC"
+          [lines]="[
+            'This function performs a number of Q/C operations on a directory of cohort subdirectories.',
+            'For instance, the GitHub repository of phenopacket store is structured in this way.',
+            'This function is intended for the internal HPO team, but may be useful for others with analogous repositories or directories. See the online documentation for details.'
+          ]" />
 
   @if (errorMessage) {
     <div class="error-banner mt-4">

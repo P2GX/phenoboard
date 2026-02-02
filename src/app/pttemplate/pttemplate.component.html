@@ -9,99 +9,13 @@
 <!-- String input section -->
 <div class="mt-4">
 
-  <!-- Action buttons side by side -->
-  <div class="flex gap-4">
-    <!-- Cohort acronym button or input -->
-    <div>
-      @if (!showCohortAcronym) {
-        <button 
-          (click)="showCohortAcronym = true"
-          class="btn-outline-primary"
-        >
-          Set cohort acronym
-        </button>
-      } @else {
-        <div class="flex gap-2 items-center">
-          <input 
-            #acronymInput
-            type="text" 
-            [(ngModel)]="cohortAcronymInput"
-            placeholder="Enter cohort acronym..."
-            class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-            (keyup.enter)="submitCohortAcronym(acronymInput.value)"
-          />
-          <button 
-            (click)="submitCohortAcronym(acronymInput.value)"
-            class="btn-outline-primary"
-          >
-            Submit
-          </button>
-          <button 
-            (click)="cancelCohortAcronym()"
-            class="btn-outline-cancel"
-          >
-            Cancel
-          </button>
-        </div>
-      }
-      <div class="text-xs text-gray-500 mt-1">{{ acronymDisplay() }}</div>
-    </div>
+ <app-cohort-metadata 
+  [cohortData]="cohortData()!" 
+  (resetCohortMetadata)="handleReset()"
+  (updateAcronym)="handleAcronym($any($event))"
+  (updateMoi)="handleMoi($any($event))">
+</app-cohort-metadata>
 
-  <!-- Mode of inheritance button -->
-  @if (cohortData(); as cohort) {
-  <ul class="space-y-2">
-    @for (disease of cohort.diseaseList; track disease.diseaseId; let i = $index) {
-      <li class="flex flex-col border-b border-gray-200 pb-1">
-        <div class="flex items-center justify-between text-sm">
-          <span class="font-medium text-gray-800">
-            {{ disease.diseaseLabel }}
-          </span>
-          <button
-            (click)="toggleMoiSelector(i)"
-            [class]="
-              'ml-2 text-xs rounded-md px-2 py-0.5 border transition-colors ' +
-              (showMoiIndex === i
-                ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
-                : 'text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400')
-            "
-          >
-            {{ showMoiIndex === i ? 'Hide' : 'Set MOI' }}
-        </button>
-        </div>
-
-        <!-- inline list of MOIs -->
-        <div class="text-xs text-gray-500 truncate">
-          @if (disease.modeOfInheritanceList.length > 0) {
-            @for (moi of disease.modeOfInheritanceList; track moi.hpoId) {
-              <span>
-                <i>{{ moi.hpoLabel }}</i>{{ moi.citation ? ' — ' + moi.citation : '' }}
-                {{ $last ? '' : ', ' }}
-              </span>
-            }
-          } @else {
-            <span class="italic text-gray-400">No MOI set</span>
-          }
-        </div>
-
-        @if (showMoiIndex === i) {
-          <div class="mt-1">
-            <app-moiselector (moiChange)="onMoiChange($event, i)"></app-moiselector>
-          </div>
-        }
-      </li>
-    }
-  </ul>
-}
-<button (click)="toggleVariantColumn()" class="btn-outline-primary">
-  @if(showAlleleColumn){
-      Hide allele
-  } @else {
-      Show allele
-  }
-</button>
-    </div>
-  </div>
-</div>
 <div class="mt-4 flex items-center gap-2">
   <label for="hpoFilter" class="text-sm text-gray-700">Filter HPO columns:</label>
   <select
@@ -115,6 +29,13 @@
     <option [value]="groupKey">{{ groupKey }}</option>
   }
 </select>
+<app-help-button 
+          title="Filter HPO columns"
+          [lines]="[
+            'Filter to the columns shown in the display to the indicated top-level HPO category.',
+            'The categories correspond to top-level HPO terms (direct children of <i>Phenotypic abnormality</i>).',
+            'Choose <i>Show all</i> to restore the original view.'
+          ]" />
 </div>
 
   <!-- Table with one row per phenopacket -->

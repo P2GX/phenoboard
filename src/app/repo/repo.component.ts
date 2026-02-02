@@ -10,13 +10,14 @@ import { SourcePmid } from '../models/cohort_description_dto';
 import { RepoErrorType, RepoQc } from '../models/repo_qc';
 import { NotificationService } from '../services/notification.service';
 import { HelpService } from '../services/help.service';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 
 @Component({
   selector: 'app-status',
   templateUrl: './repo.component.html',
   styleUrls: ['./repo.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule, RouterModule],
+  imports: [CommonModule, MatIconModule, RouterModule, HelpButtonComponent],
 })
 export class RepoComponent implements OnInit {
   private configService = inject(ConfigService); 
