@@ -266,15 +266,29 @@ export class CohortDtoService {
      * the "old" keys) accordingly.
      */
     updateSv(cohort: CohortData, currentSvKey: string, updatedSvKey: string) {
-        cohort.rows.forEach(row => {
-            Object.entries(row.alleleCountMap).forEach(([key, count]) => {
-                if (key === currentSvKey) {
-                    delete row.alleleCountMap[key];
-                    row.alleleCountMap[updatedSvKey] = count;
-                }
-                });
-            });
-        this.setCohortData(cohort);
+        if (currentSvKey == updatedSvKey) {
+            this.setCohortData({...cohort});
+            return;
+        }
+        const updatedRows = cohort.rows.map(row => {
+            // Check if this row even contains the variant we are editing
+            if (!(currentSvKey in row.alleleCountMap)) {
+                return row; // Return original reference if no change needed
+            }
+            // 2. Create a brand new alleleCountMap for this specific row
+            const newAlleleMap = { ...row.alleleCountMap };
+            const count = newAlleleMap[currentSvKey];
+            delete newAlleleMap[currentSvKey];
+            newAlleleMap[updatedSvKey] = count;
+            return {
+                ...row,
+                alleleCountMap: newAlleleMap
+            };
+        });
+        this.setCohortData({
+            ...cohort,
+            rows: updatedRows
+        });
     }
 
 }

@@ -1,22 +1,53 @@
 <div class="primary-box">
 <h1 class="h1-primary">Variant Validation</h1>
-<p class="metadata-caption">Check variants and annotations. If needed, delete a variant (you will need to add back a correct variant in the table view). If a variant is not used to annotate any individual, the count cell is shown in red. Typically, users should delete such variants.</p>
+
 <table class="table-auto border-collapse border border-gray-400 w-full">
   <thead>
     <tr>
-      <th class="border border-gray-400 px-4 py-2">Variant String</th>
+      <th class="border border-gray-400 px-4 py-2">Variant</th>
+      <th class="p-3 font-semibold">Gene/Transcript</th>
       <th class="border border-gray-400 px-4 py-2">Variant Consequence</th>
-      <th class="border border-gray-400 px-4 py-2">Count</th>
+      <th class="border border-gray-400 px-4 py-2">Count <app-help-button 
+          title="Variant count"
+          [lines]="[
+            'This column shows the total number of times this variant is annotated in the cohort.',
+            'The count is based on the allele count.'
+          ]" /></th>
        <th class="border border-gray-400 px-4 py-2">Category</th>
-      <th class="border border-gray-400 px-4 py-2">Validated?</th>
-      <th class="border border-gray-400 px-4 py-2">Edit</th>
+      <th class="border border-gray-400 px-4 py-2">Validated <app-help-button 
+          title="Validated status"
+          [lines]="[
+            'This column shows a green checkmark (✅) if the variant was successfully validated.',
+            'Otherwise, the column will show a red X (❌) that indicates a problem with validation',
+            'In this case, the corresponding rows in the Template editor will also show a red dot next to the variant',
+            'Users should generally delete the variant string in one row and reannotate using the buttons (HGVS, SV, etc.).',
+            'If this operation is successful, the the ❌ will turn into a ✅ in this column.'
+          ]" /></th>
+      <th class="border border-gray-400 px-4 py-2">Edit <app-help-button 
+          title="Editing and deleting variants"
+          [lines]="[
+            'If a variant is not used to annotate any individual, the count cell is shown as zero in red. ',
+            'Typically, users should delete such variants.',
+            'This may mean that user will need to add back a correct variant in the table view (Template editor).',
+            'Check that the number of variants for each individual in the table view is as expected.'
+          ]" /></th>
     </tr>
   </thead>
   <tbody>
-    @for (v of variantDisplayList; track v.variantKey) {
+    @for (v of variantDisplayList(); track v.variantKey) {
       <tr>
         <td class="border border-gray-400 px-4 py-2" 
           [attr.title]="v.variantKey">{{ v.variantString }}</td>
+        <td class="border border-gray-400 px-4 py-2">
+            @if (v.geneSymbol) {
+              <div class="flex items-baseline gap-2 whitespace-nowrap">
+                <span class="italic font-medium text-blue-700">{{ v.geneSymbol }}</span>
+                <span class="text-[10px] text-gray-500 font-mono">{{ v.transcript }}</span>
+              </div>
+            } @else {
+              <span class="text-gray-400 italic">N/A</span>
+            }
+        </td>
         <td class="border border-gray-400 px-4 py-2">{{ v.consequence }}</td>
          <td 
           class="border border-gray-400 px-4 py-2"
@@ -45,7 +76,7 @@
   </tbody>
 </table>
 
-@if (! errorMessage && variantDisplayList.length == 0) {
+@if (! errorMessage && variantDisplayList().length == 0) {
   <p class="text-gray-400 mt-2">No variants available.</p>
 }
 
