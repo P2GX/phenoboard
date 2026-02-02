@@ -22,32 +22,64 @@
     </div>
   </div>
 } @else {
-  <div class="w-full px-[5%]">
-  <h1 class="h1-primary">Create new phenopacket cohort template</h1>
-  <p>Choose type of cohort and then enter relevant information to create a new cohort. After the information has been added, you will be ask to choose a file location to store the template.</p>
+  <div class="w-full px-[5%] p-6">
+    <h1 class="h1-primary">Create new phenopacket cohort template</h1>
+    <p>Choose type of cohort and then enter relevant information to create a new cohort. After the information has been added, you will be ask to choose a file location to store the template.</p>
+    </div>
+   
   @if (errorMessage) {
     <div class="error-container">
       <p class="error-message">{{ errorMessage }}</p>
     </div>
   }
-  <button
-    (click)="mendelian()"
-    [disabled]="meldedTemplate || digenicTemplate"
-    class="btn-outline-primary w-[300px]"
-  >Mendelian
-  </button>
-  <button
-    (click)="melded()"
-    [disabled]="mendelianTemplate || digenicTemplate"
-    class="btn-outline-primary w-[300px]"
-  >Melded (Dual)
-  </button>
-  <button
-    (click)="digenic()"
-    [disabled]="mendelianTemplate || meldedTemplate"
-    class="btn-outline-primary w-[300px]"
-  >Digenic
-  </button>
+ <div class="flex flex-col items-center justify-center gap-4 w-full mt-[70px]">
+  
+  <div class="flex items-center gap-2">
+   
+    <button
+      (click)="mendelian()"
+      [disabled]="meldedTemplate || digenicTemplate"
+      class="btn-outline-primary w-[300px]"
+    >
+      Mendelian
+    </button>
+    <app-help-button 
+      title="Mendelian Template"
+      class="w-8"
+      [lines]="[ 'A Mendelian disease is a disorder caused by mutations in a single gene and inherited according to classic Mendelian patterns such as autosomal dominant, autosomal recessive, or X-linked inheritance.',]" />
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+      (click)="melded()"
+      [disabled]="mendelianTemplate || digenicTemplate"
+      class="btn-outline-primary w-[300px]"
+    >
+      Melded (Dual)
+    </button>
+    <app-help-button 
+      title="Melded (Dual) Diagnosis"
+      class="w-8"
+      [lines]="[ 'A melded phenotype is a clinical presentation resulting from two or more independent genetic diagnoses in the same individual, where features from each condition combine to produce a blended or overlapping phenotype.',
+        'You will need to enter disease/gene information for each of the two conditions'
+      ]" />
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+      (click)="digenic()"
+      [disabled]="mendelianTemplate || meldedTemplate"
+      class="btn-outline-primary w-[300px]"
+    >
+      Digenic
+    </button>
+    <app-help-button 
+      title="Digenic Inheritance"
+      class="w-8"
+      [lines]="[ 'A digenic disease is a disorder in which pathogenic variants in two specific genes are both required to cause the disease phenotype in an individual.',
+            'Support for digenic disease curation has not yet been implemented in phenoboard.']" />
+  </div>
+</div>
 
 
   @if (thisCohortType) {
@@ -161,7 +193,7 @@
   } @else if (digenicTemplate) {
     <p>Digenic template not implemented</p>
   }
-  </div>
+  
 
 } 
 

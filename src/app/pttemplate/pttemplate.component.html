@@ -1,7 +1,6 @@
-@let cohort = cohortData();
 
 <div class="p-6 bg-gray-50">
-  @if (cohort) {
+  @if (cohortData(); as cohort) {
     <app-cohort-summary [cohort]="cohort"></app-cohort-summary>
   } @else {
     <p>Cohort not initialized.</p>
@@ -45,14 +44,11 @@
           </button>
         </div>
       }
-        <div class="text-xs text-gray-500 mt-1">
-            {{ cohort !== null && cohort.cohortAcronym !== "na" ? 'Acronym: ' + cohort.cohortAcronym : "Acronym not set" }}
-        </div>
-      
+      <div class="text-xs text-gray-500 mt-1">{{ acronymDisplay() }}</div>
     </div>
 
-    <!-- Mode of inheritance button -->
-   @if (cohort) {
+  <!-- Mode of inheritance button -->
+  @if (cohortData(); as cohort) {
   <ul class="space-y-2">
     @for (disease of cohort.diseaseList; track disease.diseaseId; let i = $index) {
       <li class="flex flex-col border-b border-gray-200 pb-1">
@@ -96,16 +92,13 @@
     }
   </ul>
 }
-
-
-      <button (click)="toggleVariantColumn()" class="btn-outline-primary">
-      @if(showAlleleColumn){
-          Hide allele
-      } @else {
-          Show allele
-      }
-    </button>
-
+<button (click)="toggleVariantColumn()" class="btn-outline-primary">
+  @if(showAlleleColumn){
+      Hide allele
+  } @else {
+      Show allele
+  }
+</button>
     </div>
   </div>
 </div>
@@ -115,6 +108,7 @@
   id="hpoFilter"
   class="border rounded p-1 text-sm"
   [value]="selectedTopLevelHpo()"
+  (change)="selectedTopLevelHpo.set($any($event.target).value)"
 >
   <option value="">Show all</option>
   @for (groupKey of hpoGroupKeys(); track groupKey) {
@@ -124,7 +118,7 @@
 </div>
 
   <!-- Table with one row per phenopacket -->
-  @if (cohort){
+  @if (cohortData(); as cohort){
   <div class="pt-table-container">
     <div class="top-scroll-mirror overflow-x-auto invisible-scrollbar">
        <div class="h-1" [style.width]="tableWidth"></div>
@@ -181,29 +175,30 @@
           @if(!row.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
           <!-- Info popup for this row -->
           @if (rowInfoVisible && row.id === rowInfoKey) {
+            @let currentRow = rowMapById().get(rowInfoKey);
             <div
               class="fixed bg-white border border-gray-300 rounded shadow-md z-[999] text-sm"
               [style.left.px]="individualMenuX"
               [style.top.px]="individualMenuY"
             >
               <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-                <li><strong>{{ row.individualId }}</strong></li>
-                <li>PMID: {{ row.pmid }}</li>
-                <li>{{ row.title }}</li>
-                @if(row.comment && row.comment.length > 0){
-                  <li><strong>Comment:</strong> {{ row.comment }}</li>
+                <li><strong>{{ currentRow?.individualData?.individualId }}</strong></li>
+                <li>PMID: {{ currentRow?.individualData?.pmid }}</li>
+                <li>{{ currentRow?.individualData?.title }}</li>
+                @if(currentRow?.individualData?.comment; as comment){
+                  <li><strong>Comment:</strong> {{ comment }}</li>
                 }
-                <li>onset: {{ row.ageOfOnset }}</li>
-                <li>last encounter: {{ row.ageAtLastEncounter }}</li>
-                <li>deceased: {{ row.deceased }}</li>
-                <li>sex: {{ row.sex }}</li>
+                <li>onset: {{ currentRow?.individualData?.ageOfOnset }}</li>
+                <li>last encounter: {{ currentRow?.individualData?.ageAtLastEncounter }}</li>
+                <li>deceased: {{ currentRow?.individualData?.deceased }}</li>
+                <li>sex: {{ currentRow?.individualData?.sex }}</li>
               </ul>
 
               <button
                 mat-stroked-button
                 color="primary"
                 class="text-xs py-0 px-2"
-                (click)="openIndividualEditor(row.id); $event.stopPropagation();"
+                (click)="openIndividualEditor(rowInfoKey!); $event.stopPropagation();"
               >
                 ✏️ Edit
               </button>
@@ -350,7 +345,7 @@
   </div>
   <div style="height: 40px;"></div>
   </div>
-} <!-- close  @if (cohort){ -->
+} <!-- close  @if (cohortData(); as cohort){ -->
 
 
   <!-- Toolbar / Controls -->

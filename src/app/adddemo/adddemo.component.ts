@@ -1,4 +1,4 @@
-import { Component, computed, EventEmitter, inject, Inject, Optional, output, Output, signal } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
@@ -6,13 +6,10 @@ import { AgeInputService } from '../services/age_service';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { asciiValidator } from '../validators/validators';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatAutocompleteModule } from '@angular/material/autocomplete'; // <--- Add this import
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { DemoFormDialogComponent } from './demoformdialog.component';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { MatAutocomplete } from "@angular/material/autocomplete";
 import { MatIcon } from "@angular/material/icon";
 import { AddageComponent } from '../addages/addage.component';
 
@@ -22,13 +19,11 @@ import { AddageComponent } from '../addages/addage.component';
   imports: [
     CommonModule,
     FormsModule,
-    MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
     MatSelectModule,
     ReactiveFormsModule,
-    MatAutocomplete,
     MatIcon
 ],
   templateUrl: './adddemo.component.html',

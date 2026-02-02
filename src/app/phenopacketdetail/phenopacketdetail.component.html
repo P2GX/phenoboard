@@ -1,4 +1,4 @@
-@if (row) {
+@if (row(); as r) {
   <div class="phenopacket-container">
     <!-- Individual info using mat-card -->
     <mat-card class="card">
@@ -7,18 +7,18 @@
       </mat-card-header>
       <mat-card-content>
         <div class="grid">
-          <div><strong>ID:</strong> {{ row.individualData.individualId }}</div>
-          <div><strong>Sex:</strong> {{ row.individualData.sex }}</div>
-          <div><strong>Age of onset:</strong> {{ row.individualData.ageOfOnset }}</div>
-          <div><strong>Age at last encounter:</strong> {{ row.individualData.ageAtLastEncounter }}</div>
-          <div><strong>Deceased:</strong> {{ row.individualData.deceased }}</div>
-          <div class="full"><strong>Comment:</strong> {{ row.individualData.comment }}</div>
+          <div><strong>ID:</strong> {{ r.individualData.individualId }}</div>
+          <div><strong>Sex:</strong> {{ r.individualData.sex }}</div>
+          <div><strong>Age of onset:</strong> {{ r.individualData.ageOfOnset }}</div>
+          <div><strong>Age at last encounter:</strong> {{ r.individualData.ageAtLastEncounter }}</div>
+          <div><strong>Deceased:</strong> {{ r.individualData.deceased }}</div>
+          <div class="full"><strong>Comment:</strong> {{r.individualData.comment }}</div>
           <div class="full"><strong>Publication:</strong>
             <a mat-button 
-               [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmidNumber(row.individualData.pmid)" 
+               [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmidNumber(r.individualData.pmid)" 
                target="_blank"
                color="primary">
-              {{ row.individualData.pmid }}
+              {{ r.individualData.pmid }}
             </a>
           </div>
         </div>
@@ -26,14 +26,14 @@
     </mat-card>
 
     <!-- Diseases -->
-    @if (row.diseaseIdList.length) {
+    @if (r.diseaseIdList.length) {
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title>Diseases</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <mat-list>
-            @for (diseaseId of row.diseaseIdList; track diseaseId) {
+            @for (diseaseId of r.diseaseIdList; track diseaseId) {
               <mat-list-item>
                 <mat-icon mat-list-icon>medical_services</mat-icon>
                  @if (getOmimUrl(diseaseId)) {
@@ -53,7 +53,7 @@
     }
 
     <!-- Variants -->
-    @if (row.alleleCountMap | keyvalue; as alleleCounts) {
+    @if (r.alleleCountMap | keyvalue; as alleleCounts) {
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title>Variants</mat-card-title>
@@ -80,13 +80,13 @@
     }
 
     <!-- Phenotypic Features -->
-    @if (observedTerms.length || excludedTerms.length) {
+    @if (terms().observed.length || terms().excluded.length) {
       <mat-card class="card">
         <mat-card-header>
           <mat-card-title>Phenotypic Features (HPO)</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          @if (observedTerms.length) {
+          @if (terms().observed.length) {
             <h3>Observed</h3>
             <mat-list class="hpo-observed">
               @for (h of observedTerms; track h.hpoId) {
@@ -103,7 +103,7 @@
             </mat-list>
           }
 
-          @if (excludedTerms.length) {
+          @if (terms().excluded.length) {
             <h3>Excluded</h3>
             <mat-list class="hpo-excluded">
               @for (h of excludedTerms; track h.hpoId) {

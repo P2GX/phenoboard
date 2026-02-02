@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, RowData } from '../models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
@@ -9,6 +9,7 @@ import { MatCard, MatCardModule } from "@angular/material/card";
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 
@@ -28,50 +29,55 @@ import { MatButtonModule } from '@angular/material/button';
     MatIconModule
 ]
 })
-export class PhenopacketDetailComponent implements OnInit {
+export class PhenopacketDetailComponent {
   private cohortService = inject(CohortDtoService);
   private route = inject(ActivatedRoute);
 
-  row?: RowData;
-  cohort: CohortData|null = null;
   observedTerms: HpoTermDuplet[] = [];
   excludedTerms: HpoTermDuplet[] = [];
-  diseaseIdToLabel: Map<string, string> = new Map();
+
+
+  private params = toSignal(this.route.paramMap);
+  readonly id = computed(() => this.params()?.get('id'));
+  readonly cohort = signal<CohortData | null>(this.cohortService.getCohortData());
+  readonly row = computed(() => {
+    const currentId = this.id();
+    return currentId ? this.cohortService.findPhenopacketById(currentId) : undefined;
+  });
+  readonly terms = computed(() => {
+    const row = this.row();
+    const cohort = this.cohort();
+    
+    const observed: HpoTermDuplet[] = [];
+    const excluded: HpoTermDuplet[] = [];
+
+    if (row && cohort) {
+      cohort.hpoHeaders.forEach((hpo, idx) => {
+        const cellVal = row.hpoData[idx];
+        if (cellVal.type === 'Observed' || cellVal.type === 'OnsetAge') {
+          observed.push(hpo);
+        } else if (cellVal.type === 'Excluded') {
+          excluded.push(hpo);
+        }
+      });
+    }
+
+    return { observed, excluded };
+  });
+
+  readonly diseaseMap = computed(() => {
+    const map = new Map<string, string>();
+    this.cohort()?.diseaseList.forEach(dx => {
+      map.set(dx.diseaseId, dx.diseaseLabel);
+    });
+    return map;
+  });
  
 
-  ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.row = this.cohortService.findPhenopacketById(id);
-        const cohort = this.cohortService.getCohortData();
-      if (! cohort ) {
-        return;
-      }
-      const row = this.row;
-      if (! row) {
-        return;
-      }
-      cohort.hpoHeaders.forEach((hpo, idx) => {
-          const cellVal = row.hpoData[idx];
-          if (cellVal.type === 'Observed') {
-            this.observedTerms.push(hpo);
-          } else if (cellVal.type === "OnsetAge") {
-            this.observedTerms.push(hpo); // TODO - special treatment for onset/modifier terms
-          } else if (cellVal.type === 'Excluded') {
-            this.excludedTerms.push(hpo);
-          }
-        });
-      cohort.diseaseList.forEach((dx, idx) => {
-        this.diseaseIdToLabel.set(dx.diseaseId, dx.diseaseLabel);
-      });
-      }
-    });
-    this.cohort = this.cohortService.getCohortData();
-  }
+  
 
   getDiseaseLabel(id: string): string {
-    return this.diseaseIdToLabel.get(id) ?? id;
+    return this.diseaseMap().get(id) ?? id;
   }
 
   getOmimUrl(diseaseId: string): string | null {
@@ -88,18 +94,15 @@ export class PhenopacketDetailComponent implements OnInit {
   }
 
   getVariantString(v: string): string {
-    if (this.cohort == null) {
-      return v;
-    } else if (this.cohort.hgvsVariants[v] != null) {
-      const hgvs = this.cohort.hgvsVariants[v].hgvs;
-      const transcript = this.cohort.hgvsVariants[v].transcript;
-      const symbol = this.cohort.hgvsVariants[v].symbol;
+    const cohort = this.cohort();
+    if (!cohort) return v;
+
+    if (cohort.hgvsVariants[v]) {
+      const { hgvs, transcript, symbol } = cohort.hgvsVariants[v];
       return `${transcript}(${symbol}):${hgvs}`;
-    } else if (this.cohort.structuralVariants[v] != null) {
-      return this.cohort.structuralVariants[v].label;
-    } else {
-      return v;
     }
+    
+    return cohort.structuralVariants[v]?.label ?? v;
   }
 
 }

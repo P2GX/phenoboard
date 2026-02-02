@@ -4,8 +4,6 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
-import { MatMenu } from "@angular/material/menu";
-import { MatIcon } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 
@@ -17,8 +15,6 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
     CommonModule,
     FormsModule,
     MatDialogModule,
-    MatMenu,
-    MatIcon,
     MatMenuModule,
     ReactiveFormsModule,
     HelpButtonComponent

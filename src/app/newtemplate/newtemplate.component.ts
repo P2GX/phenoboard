@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { EtlSessionService } from '../services/etl_session_service';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 
 
 
@@ -21,7 +22,7 @@ import { EtlSessionService } from '../services/etl_session_service';
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RouterLinkActive, HelpButtonComponent],
   templateUrl: './newtemplate.component.html',
   styleUrls: ['./newtemplate.component.scss'],
 })
