@@ -73,6 +73,7 @@ export class AddVariantComponent implements OnInit{
     if (this.geneOptions && this.geneOptions.length === 1) {
         // Set the selectedGene model property to the only entry in the list
         this.selectedGene = this.geneOptions[0];
+        console.log("addvariant init options=", this.geneOptions);
     }
     
   }
@@ -245,6 +246,7 @@ export class AddVariantComponent implements OnInit{
     if (! cohortDto) {
       return this.fail("Attempt to validate HGVS with null cohortDto");
     }
+    console.log("add variant, ", this.selectedGene);
     this.configService.validateHgvsVariant(this.selectedGene.geneSymbol, this.selectedGene.hgncId, this.selectedGene.transcript, this.variant_string)
       .then((hgvs) => {
         this.currentHgvsVariant = hgvs;

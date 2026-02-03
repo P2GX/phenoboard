@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom, single } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
@@ -30,7 +30,7 @@ export function toDiseaseData(entry: CohortEntry): DiseaseData {
   const gtd: GeneTranscriptData = {
     hgncId: entry.hgnc,
     geneSymbol: entry.symbol,
-    transcript: entry.symbol
+    transcript: entry.transcript
   };
   return {
     diseaseId: entry.diseaseId,
@@ -83,29 +83,9 @@ export class NewTemplateComponent  {
   pendingCohort = signal<CohortData | null>(null);
   showSuccessMessage = signal<boolean>(false);
 
-  finalAcronym = computed(() => {
-    if (! this.thisCohortType()) return '';
-    if (this.thisCohortType() === "mendelian") {
-      const a = this.diseaseA();
-      if (!a) return '';
-      return a.cohortAcronym;
-    } else if (this.thisCohortType() === "melded") {
-      const a = this.diseaseA();
-      const b = this.diseaseB();
-      if (!a || !b) return '';
-       return  `${a.cohortAcronym}-${b.cohortAcronym}` ;
-    } else if (this.thisCohortType() === 'digenic') {
-      return "digenic not currently implemented";
-    } else {
-      return 'did not recognize cohort type';
-    }
-  });
 
 
- 
-  
 
-  
 
  async melded(): Promise<void> {
   this.mendelianTemplate = false;
@@ -211,7 +191,7 @@ async mendelian(): Promise<void> {
       const acronymB = diseaseB.cohortAcronym;
       const geneA = diseaseA.symbol;
       const geneB = diseaseB.symbol;
-      const acronym = `${acronymA}-${geneA}-${acronymB}-${geneB}`;
+      const acronym = `${geneA}-${acronymA}-${geneB}-${acronymB}`;
       const cohort = await this.configService.createNewMeldedTemplate(toDiseaseData(diseaseA), toDiseaseData(diseaseB), acronym);
        this.resetCohort();
       this.pendingCohort.set(cohort);
@@ -260,6 +240,7 @@ private async createMendelianTemplate(): Promise<void> {
     this.cohortService.setCohortData(cohort);
     this.showSuccessMessage.set(true);
   }
+  /* helper for displaying info in the termplate */
 readonly cohortModes = [
   { 
     id: 'mendelian', 
@@ -267,7 +248,7 @@ readonly cohortModes = [
     action: () => this.mendelian(),
     disabled: false,
     helpTitle: 'Mendelian Template',
-    helpLines: ['A Mendelian disorder is caused by mutations in a single gene...']
+    helpLines: ['A Mendelian disorder is caused by mutations in a single gene.']
   },
   { 
     id: 'melded', 
@@ -275,7 +256,7 @@ readonly cohortModes = [
     action: () => this.melded(),
     disabled: false,
     helpTitle: 'Melded Diagnosis',
-    helpLines: ['A clinical presentation resulting from two or more independent genetic diagnoses...']
+    helpLines: ['A clinical presentation resulting from two or more independent genetic diagnoses.']
   },
   { 
     id: 'digenic', 

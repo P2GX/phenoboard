@@ -14,7 +14,7 @@ import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
-import { VariantDto } from '../models/variant_dto';
+import { VariantDto, VariantType } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
@@ -265,69 +265,37 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
 
   openVariantEditor(varKind: VariantKind) {
     const dialogRef = this.dialog.open(AddVariantComponent, {
-      data: {
-        kind: varKind
-      },
-        width: '600px'
-      });
+      data: {  kind: varKind},  width: '600px' });
     
       dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
-        if (result) {
-          const variantKey = result.variantKey;
-          const alleleCount = result.count;
-          if (variantKey == null) {
-            this.notificationService.showError("Could not retrieve variantKey");
-            return;
-          }
-          if (! result.isValidated) {
-            this.notificationService.showError("Variant could not be validated");
-            return;
-          }
-      let dto: VariantDto;
-       if (varKind == VariantKind.HGVS) {
-          dto = {
-            variantString: result.variantString,
-            variantKey: result.variantKey,
-            transcript: result.transcript,
-            hgncId: result.hgncId,
-            geneSymbol: result.geneSymbol,
-            variantType: 'HGVS',
-            isValidated: false,
-            count: alleleCount
-          };
-        } else if (varKind == VariantKind.SV) {
-            dto = {
-              variantString: result.variantString,
-              variantKey: result.variantKey,
-              transcript: result.transcript,
-              hgncId: result.hgncId,
-              geneSymbol: result.geneSymbol,
-              variantType: 'SV',
-              isValidated: false,
-              count: alleleCount
-            };
-        } else if (varKind == VariantKind.INTERGENIC) {
-          dto = {
-              variantString: result.variantString,
-              variantKey: result.variantKey,
-              transcript: '',
-              hgncId: result.hgncId,
-              geneSymbol: result.geneSymbol,
-              variantType: 'INTERGENICHGVS',
-              isValidated: false,
-              count: alleleCount
-            };
-        } else {
-          this.notificationService.showError(`Could not identifiy variant kind ${varKind}`);
+        if (! result) return;
+        const { variantKey, count: alleleCount, isValidated } = result;
+        if ( variantKey == null) {
+          this.notificationService.showError("Could not retrieve variantKey");
           return;
         }
-          this.alleles.update(a => [...a, dto]);
-          if (alleleCount == 2) {
-            this.alleles.update(a => [...a, dto]);
-          }
-        } else {
-          console.error("Error in open Allele Dialog")
+        if (! isValidated) {
+          this.notificationService.showError("Variant could not be validated");
+          return;
         }
+        const typeMapping: Record<VariantKind, string> = {
+          [VariantKind.HGVS]: 'HGVS',
+          [VariantKind.SV]: 'SV',
+          [VariantKind.INTERGENIC]: 'INTERGENICHGVS'
+        };
+        const variantType = typeMapping[varKind];      
+         if (!variantType) {
+          return this.notificationService.showError(`Could not identify variant kind ${varKind}`);
+        }
+      let dto: VariantDto = {
+           ...result,
+           variantType: variantType as VariantType,
+           transcript: variantType === "INTERGENIC" ? '' : result.transcript,
+            isValidated: false,
+          };
+       
+          const entriesToAdd = alleleCount === 2 ? [dto, dto] : [dto];
+          this.alleles.update(current => [...current, ...entriesToAdd]);
       });
     }
 
