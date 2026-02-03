@@ -48,6 +48,7 @@ export class ConfigService {
    * @returns 
    */
   async createNewTemplate(dto: DiseaseData, cohortType: CohortType, acronym: string):  Promise<CohortData> {
+    console.log("service, createNewTemplate", cohortType);
     return await invoke<CohortData>("create_new_cohort_data", {
       'dto': dto,
       'cohortType': cohortType,

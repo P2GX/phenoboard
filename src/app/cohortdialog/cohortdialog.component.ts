@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject,  signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -24,57 +24,24 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 })
 export class CohortDialogComponent {
   form: FormGroup;
-  showPasteArea = false;
-  pastedText: string | null = null;
 
-
+  showPasteArea = signal(false);
+  pastedText = signal<string | null>(null);
+  private fb = inject(FormBuilder);
+  public dialogRef = inject(MatDialogRef<CohortDialogComponent>);
+public data = inject(MAT_DIALOG_DATA) as { title: string };
   constructor(
-    private fb: FormBuilder,
-    public dialogRef: MatDialogRef<CohortDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { title: string; mode: 'mendelian' | 'melded' | 'digenic' }
   ) {
     this.form = this.fb.group({
       diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
       diseaseLabel: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
       cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
-      hgnc1: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
-      symbol1: ['', [Validators.required, noWhitespaceValidator]],
-      transcript1: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
-      hgnc2: [''],
-      symbol2: [''],
-      transcript2: [''],
+      hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
+      symbol: ['', [Validators.required, noWhitespaceValidator]],
+      transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
     });
-
-    // Only make the second gene required if mode is digenic
-    if (data.mode === 'digenic') {
-      this.makeSecondGeneRequired();
-    } else {
-      this.clearSecondGeneValidators();
-    }
   }
 
-  /** Mark the second gene set as required for digenic mode */
-  private makeSecondGeneRequired() {
-    this.form.get('hgnc2')?.setValidators([Validators.required, Validators.pattern(/^HGNC:\d+$/)]);
-    this.form.get('symbol2')?.setValidators([Validators.required, noWhitespaceValidator]);
-    this.form.get('transcript2')?.setValidators([Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]);
-    this.updateValidation();
-  }
-
-  /** Clear validators for the second gene (mendelian or melded) */
-  private clearSecondGeneValidators() {
-    ['hgnc2', 'symbol2', 'transcript2'].forEach(field => {
-      const ctrl = this.form.get(field);
-      ctrl?.clearValidators();
-      ctrl?.setValue(''); // reset empty
-    });
-    this.updateValidation();
-  }
-
-  /** Recalculate form validity */
-  private updateValidation() {
-    Object.values(this.form.controls).forEach(control => control.updateValueAndValidity());
-  }
 
   cancel() {
     this.dialogRef.close(null);
@@ -89,16 +56,16 @@ export class CohortDialogComponent {
   }
 
   processPastedText() {
-    if (!this.pastedText) {
-      this.showPasteArea = false;
+    const text = this.pastedText();
+    if (! text) {
+      this.showPasteArea.set(false);
       return;
     }
-
-    const parts = this.pastedText.split(/\t/).filter(p => p.trim());
+    const parts = text.split(/\t/).filter(p => p.trim());
     const omimIdIndex = parts.findIndex(p => /^\d{6}$/.test(p));
     if (omimIdIndex === -1) {
       alert('No valid 6-digit OMIM ID found in pasted data.');
-      this.showPasteArea = false;
+      this.showPasteArea.set(false);
       return;
     }
 
@@ -109,9 +76,13 @@ export class CohortDialogComponent {
     this.form.patchValue({
       diseaseLabel: diseaseLabel,
       diseaseId: `OMIM:${omimId}`,
-      symbol1: geneSymbol,
+      symbol: geneSymbol,
     });
 
-    this.showPasteArea = false;
+    this.showPasteArea.set(false);
+  }
+
+  togglePaste() {
+    this.showPasteArea.update(v => !v);
   }
 }

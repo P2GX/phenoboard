@@ -42,7 +42,7 @@
 
     <!-- Gene(s) section -->
      <div class="h3-with-help">
-        <h3>{{ data.mode === 'digenic' ? 'Gene 1 Info' : 'Gene Info' }}</h3>
+        <h3>Gene Info</h3>
         <app-help-button 
           title="Entering gene data"
           [lines]="[
@@ -54,54 +54,29 @@
   
 
     <div class="form-field">
-      <input placeholder="e.g., HGNC:1234" formControlName="hgnc1" class="form-input" />
-      @if (form.get('hgnc1')?.invalid && form.get('hgnc1')?.touched) {
+      <input placeholder="e.g., HGNC:1234" formControlName="hgnc" class="form-input" />
+      @if (form.get('hgnc')?.invalid && form.get('hgnc')?.touched) {
         <p class="error-text">Valid HGNC ID required (e.g., HGNC:1234)</p>
       }
     </div>
 
     <div class="form-field">
-      <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol1" class="form-input" />
-      @if (form.get('symbol1')?.invalid && form.get('symbol1')?.touched) {
+      <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol" class="form-input" />
+      @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
         <p class="error-text">Gene symbol is required.</p>
       }
     </div>
 
     <div class="form-field">
-      <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript1" class="form-input" />
-      @if (form.get('transcript1')?.invalid && form.get('transcript1')?.touched) {
+      <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript" class="form-input" />
+      @if (form.get('transcript')?.invalid && form.get('transcript')?.touched) {
         <p class="error-text">Transcript must be in format NM_000492.4</p>
       }
     </div>
-
-    @if (data.mode === 'digenic') {
-      <h3 class="font-semibold text-gray-700 mt-3 mb-1">Gene 2 Info</h3>
-
-      <div class="form-field">
-        <input placeholder="HGNC:5678" formControlName="hgnc2" class="form-input" />
-        @if (form.get('hgnc2')?.invalid && form.get('hgnc2')?.touched) {
-          <p class="error-text">Valid HGNC ID required.</p>
-        }
-      </div>
-
-      <div class="form-field">
-        <input placeholder="Gene symbol (e.g. SLC26A9)" formControlName="symbol2" class="form-input" />
-        @if (form.get('symbol2')?.invalid && form.get('symbol2')?.touched) {
-          <p class="error-text">Gene symbol is required.</p>
-        }
-      </div>
-
-      <div class="form-field">
-        <input placeholder="Transcript (e.g. NM_001160.3)" formControlName="transcript2" class="form-input" />
-        @if (form.get('transcript2')?.invalid && form.get('transcript2')?.touched) {
-          <p class="error-text">Transcript must be in format NM_001160.3</p>
-        }
-      </div>
-    }
   </form>
 </mat-dialog-content>
 
-@if (showPasteArea) {
+@if (showPasteArea()) {
   <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
     <label class="block text-sm font-medium text-gray-700 mb-2">
       Paste OMIM data here (from Phenotype-Gene Relationships table):
@@ -113,12 +88,12 @@
     ></textarea>
     <div class="flex gap-2 mt-2">
       <button (click)="processPastedText()" class="btn-primary">Process</button>
-      <button (click)="showPasteArea = false" class="btn-cancel">Cancel</button>
+      <button (click)="showPasteArea.set(false)" class="btn-cancel">Cancel</button>
     </div>
   </div>
 } @else {
   <mat-dialog-actions align="end" class="mt-3">
-    <button (click)="showPasteArea = true" class="btn-outline-primary">📋 Paste tabular data</button>
+    <button (click)="showPasteArea.set(true)" class="btn-outline-primary">📋 Paste tabular data</button>
    
     <app-help-button 
       title="Pasting tabular data"
