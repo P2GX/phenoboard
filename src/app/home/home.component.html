@@ -3,9 +3,6 @@
 
     <p class="text-gray-600 text-base leading-relaxed">
     This application supports the biocuration of GA4GH Phenopackets.
-    For each disease to be curated, users should read or create an Excel curation template file.
-    Use the <strong class="font-medium text-gray-800">cohorts</strong> window to curate tabular data,
-    and the <strong class="font-medium text-gray-800">mining</strong> window to perform text mining on individual cases.
     </p>
 
     <div class="flex flex-col space-y-4">
@@ -22,12 +19,20 @@
     >
       Select the hp.json file
     </div>
+     <app-help-button 
+        title="Loading the HPO Ontology"
+        [lines]="[
+          'Download the latest HPO ontology file (hp.json) to your file system.',
+          'Make sure to download the hp.json file (and <i>not</i> OBO or OWL).',
+          'The file can be downloaded from https://hpo.jax.org/data/ontology.',
+          'After you have downloaded the hp.json file, choose the file using the dialog that opens when you click on the <b>Load HPO</b> button.'
+        ]" />
     </div>
-    <span [ngClass]="{'text-red-600': hpoMessage === 'loading ...'}"
+    <span [ngClass]="{'text-red-600': hpoLoading() }"
       class="text-sm text-gray-500 italic">
-      {{ hpoMessage }}
-      @if (status.hpoLoaded) {
-        <span>({{ status.nHpoTerms }} terms)</span>
+      {{ hpoMessage() }}
+      @if (status().hpoLoaded ) {
+        <span>({{ status().nHpoTerms }} terms)</span>
       }
     </span>
 </div>
@@ -36,11 +41,16 @@
   <div class="relative group">
     <button
       (click)="chooseExistingTemplateFile()"
-      [disabled]="!status.hpoLoaded"
+      [disabled]="!status().hpoLoaded"
       class="btn-outline-primary w-[300px]"
     >
       {{ 'Select phetools (legacy) template file' }}
     </button>
+    <app-help-button 
+        title="Loading the HPO Ontology"
+        [lines]="[
+          'For use by internal HPO team for migrating original pyphetools files.'
+        ]" />
 
     <!-- Tooltip -->
     <div
@@ -50,7 +60,7 @@
     </div>
   </div>
 
-  <span class="text-sm text-gray-500 italic">{{ templateFileMessage }}</span>
+  <span class="text-sm text-gray-500 italic">{{ templateFileMessage() }}</span>
   @if (isRunning){
     <div style="margin-top: 20px;">
       <mat-progress-bar mode="determinate" [value]="progressValue"></mat-progress-bar>
@@ -68,11 +78,17 @@
   <div class="relative group">
     <button
       (click)="chooseJsonTemplateFile()"
-      [disabled]="!status.hpoLoaded"
+      [disabled]="!status().hpoLoaded"
       class="btn-outline-primary w-[300px]"
     >
       {{ 'Select phetools JSON file' }}
     </button>
+     <app-help-button 
+        title="JSON Cohort files"
+        [lines]="[
+          'Open a phenoboard cohort file (JSON format).',
+          'Each row of of a phenoboard cohort file corresponds to one individual (one phenopacket).'
+        ]" />
 
     <!-- Tooltip -->
     <div
@@ -82,7 +98,7 @@
     </div>
   </div>
 
-  <span class="text-sm text-gray-500 italic">{{ jsonTemplateFileMessage }}</span>
+  <span class="text-sm text-gray-500 italic">{{ jsonTemplateFileMessage() }}</span>
 
 </div>
 
@@ -90,37 +106,19 @@
   <div class="relative group">
     <button
         (click)="createNewPhetoolsTemplate()"
-        [disabled]="!status.hpoLoaded"
+        [disabled]="!status().hpoLoaded"
         class="btn-outline-primary w-[300px]"
-    >Create new template
+    >Create new cohort
     </button>
     <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Create a new phetools template file (enabled after HPO is loaded)
-    </div>
+    <app-help-button 
+        title="Create new cohort"
+        [lines]="[
+          'Use this button to start a new template (Mendelian, Melded, or Digenic). '
+        ]" />
     </div>
     <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
 </div>
-
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-        (click)="openExternalTemplate()"
-        [disabled]="!status.hpoLoaded"
-        class="btn-outline-primary w-[300px]"
-    >Open external table
-    </button>
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Open external excel file (e.g., Supplemental table; enabled after HPO is loaded)
-    </div>
-    </div>
-</div>
-
 
 <div class="flex items-center gap-3">
   <div class="relative group">
@@ -129,14 +127,14 @@
         class="btn-outline-primary w-[300px]"
     >Set biocurator ORCID
     </button>
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Set the researcher identifier (ORCID)
+    <app-help-button 
+        title="Biocurator ID"
+        [lines]="[
+          'Use this button to set the researcher identifier (ORCID).',
+          'See https://orcid.org/ for more information.'
+        ]" />
     </div>
-    </div>
-    <span class="text-sm text-gray-500 italic">{{ biocuratorOrcid }}</span>
+    <span class="text-sm text-gray-500 italic">{{ biocuratorOrcid() }}</span>
 </div>
 
 

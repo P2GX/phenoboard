@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.5.90"
+version = "0.5.91"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"

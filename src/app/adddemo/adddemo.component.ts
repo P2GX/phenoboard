@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { DemoFormDialogComponent } from './demoformdialog.component';
 import { MatIcon } from "@angular/material/icon";
 import { AddageComponent } from '../addages/addage.component';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 
 @Component({
   selector: 'app-adddemo',
@@ -24,7 +25,8 @@ import { AddageComponent } from '../addages/addage.component';
     MatRadioModule,
     MatSelectModule,
     ReactiveFormsModule,
-    MatIcon
+    MatIcon,
+    HelpButtonComponent
 ],
   templateUrl: './adddemo.component.html',
   styleUrls: ['./adddemo.component.css']

@@ -15,7 +15,7 @@ use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::ProgressDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -148,10 +148,9 @@ async fn load_hpo(
    tauri::async_runtime::spawn(async move {
         // Now 'state_handle' is a 'static Arc, so the compiler is happy!
         let file_path = app_handle.dialog().file().blocking_pick_file();
-        
-        if let Some(file) = file_path {
-            if let Ok(hp_json_path) = get_hpo_json_full_path_as_str(file) {
-                // ... heavy loading logic ...
+        match file_path {
+            Some(file) => {
+                if let Ok(hp_json_path) = get_hpo_json_full_path_as_str(file) {
                 match ontology_loader::load_ontology(&hp_json_path) {
                     Ok(ontology) => {
                         let mut singleton = state_handle.phenoboard.lock().unwrap();
@@ -160,10 +159,22 @@ async fn load_hpo(
                         
                         let _ = app_handle.emit("backend_status", singleton.get_status());
                     },
-                    Err(_) => { /* emit failure */ }
+                    Err(e) => { 
+                        let _ = app_handle.emit("failure", format!("Failed to parse HPO: {}", e));
+                        let singleton = state_handle.phenoboard.lock().unwrap();
+                        let _ = app_handle.emit("backend_status", singleton.get_status());
+                        
+                     }
                 }
             }
-        }
+            },
+            None => {
+                // USER CANCELLED
+                let mut status = StatusDto::default();
+                status.error_message = format!("User canceled HPO loading");
+                let _ = app_handle.emit("failure", status);
+            },
+        };
     });
     Ok(())
 }

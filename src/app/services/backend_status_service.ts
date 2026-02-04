@@ -1,21 +1,26 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { computed, Injectable, signal } from '@angular/core';
 import { defaultStatusDto, type StatusDto } from '../models/status_dto'
 
 @Injectable({ providedIn: 'root' })
 export class BackendStatusService {
-    private statusSubject = new BehaviorSubject<StatusDto>(defaultStatusDto());
-    status$ = this.statusSubject.asObservable();
+
+    private _status = signal<StatusDto>(defaultStatusDto());
+    status = this._status.asReadonly();
+
+    hpoLoaded = computed(() => this._status().hpoLoaded);
+    hpoVersion = computed(() => this._status().hpoVersion);
+
+   
 
     setStatus(status: StatusDto) {
-        this.statusSubject.next(status);
+        this._status.set(status);
     }
 
     getStatus(): StatusDto {
-        return this.statusSubject.value;
+        return this._status();
     }
 
     clearStatus(){
-        this.statusSubject.next(defaultStatusDto());
+        this._status.set(defaultStatusDto());
     }
 }

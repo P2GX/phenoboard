@@ -28,7 +28,16 @@
 
       <!-- 2. Age of Onset -->
     <div class="flex flex-col gap-1">
-      <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">Age of Onset</label>
+      <div class="flex items-center gap-1">
+        <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">
+          Age of Onset</label>
+       <app-help-button 
+          title="Age of Onset"
+          [lines]="[
+            'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
+            'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.'
+          ]" />
+      </div>
       
       <div class="flex items-center gap-2 h-10">
         @if (!demoForm.get('ageOfOnset')?.value) {
@@ -62,7 +71,16 @@
 
       <!-- 3. Age at Last Encounter -->
       <div class="flex flex-col gap-1">
-      <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">Age of Onset</label>
+      <div class="flex items-center gap-1">
+        <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">
+          Age at last encounter
+        </label>
+        <app-help-button 
+          title="Age at last encounter"
+          [lines]="[
+            'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
+          ]" />
+      </div>
       
       <div class="flex items-center gap-2 h-10">
         @if (!demoForm.get('ageAtLastEncounter')?.value) {
@@ -96,7 +114,17 @@
 
       <!-- 4. Sex -->
       <div>
+         <div class="flex items-center gap-1">
         <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
+          <app-help-button 
+            title="Sex"
+            [lines]="[
+              '<b>M</b>: male.',
+              '<b>F</b>: male.',
+              '<b>O</b>: other.',
+              '<b>U</b>: unknown or not recorded.',
+            ]" />
+          </div>
         <div class="flex flex-col gap-1 text-sm">
           @for (s of sexOptions; track s) {
             <label class="inline-flex items-center">
