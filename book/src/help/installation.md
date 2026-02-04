@@ -14,7 +14,7 @@ Because this application is open-source and distributed for free, it is not sign
 3. When you try to open it, macOS may show an error message:  
    *"App can't be opened because it is from an unidentified developer"*
    or
-   *“phenoboard” is damaged and can’t be opened. You should move it to the Trash*
+   *“phenoboard is damaged and can’t be opened. You should move it to the Trash"*
 
 This error happens because macOS applies strict security checks for programs downloaded from the Web that are not signed with a paid Apple Developers account. 
 There are at least two ways of dealing with this. (Of course, do not move the app to the trash!)
