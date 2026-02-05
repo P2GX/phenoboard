@@ -11,7 +11,7 @@ use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::HashMap, fs,  sync::{Arc, Mutex}};
+use std::{collections::HashMap, fmt::format, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -131,6 +131,32 @@ fn get_hpo_json_full_path_as_str(file_path: tauri_plugin_fs::FilePath) -> Result
     Ok(path.to_string_lossy().to_string())
 }
 
+#[derive(serde::Serialize, Clone)]
+#[serde(rename_all = "camelCase")] // Keeps TS happy with camelCase
+struct HpoLoadEvent {
+    status: String, // "loading", "success", "error", "canceled"
+    message: Option<String>,
+    data: Option<StatusDto>, // Your existing status DTO
+}
+
+impl HpoLoadEvent {
+    pub fn loading() -> Self {
+        Self { status: "loading".to_string(), message: None, data: None }
+    }
+
+    pub fn success(dto: StatusDto) -> Self {
+        Self { status: "success".into(), message: None, data: Some(dto) }
+    }
+
+    pub fn error(msg: String) -> Self {
+        Self { status:"error".into(), message: Some(msg), data: None }
+    }
+
+    pub fn cancel() -> Self {
+        Self { status:"cancel".into(), message: Some("User canceled HPO loading".into()), data: None }
+    }
+}
+
 
 /// Load the HPO from hp.json
 #[tauri::command]
@@ -142,7 +168,7 @@ async fn load_hpo(
     let state_handle = state.inner().clone(); 
     let app_handle = app.clone();
 
-    let _ = app.emit("hpoLoading", "loading");
+    let _ = app.emit("hpo-load-event", HpoLoadEvent::loading());
 
     // 2. Use tauri::async_runtime to keep things integrated
    tauri::async_runtime::spawn(async move {
@@ -157,22 +183,17 @@ async fn load_hpo(
                         singleton.set_hpo(Arc::new(ontology), &hp_json_path);
                         singleton.initialize_hpo_autocomplete();
                         
-                        let _ = app_handle.emit("backend_status", singleton.get_status());
+                        let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::success(singleton.get_status()));
                     },
                     Err(e) => { 
-                        let _ = app_handle.emit("failure", format!("Failed to parse HPO: {}", e));
-                        let singleton = state_handle.phenoboard.lock().unwrap();
-                        let _ = app_handle.emit("backend_status", singleton.get_status());
-                        
+                        let msg = format!("Failed to parse HPO: {}", e);
+                        let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::cancel());
                      }
                 }
             }
             },
             None => {
-                // USER CANCELLED
-                let mut status = StatusDto::default();
-                status.error_message = format!("User canceled HPO loading");
-                let _ = app_handle.emit("failure", status);
+                let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::error("User canceled HPO loading".to_string()));
             },
         };
     });

@@ -28,20 +28,25 @@
             <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Ontology Setup</h2>
             <div class="flex items-center gap-4">
                 <div class="relative flex items-center gap-2">
-                    <button (click)="loadHpo()" class="btn-outline-primary w-[300px] bg-white">
-                        Load HPO
+                    <button (click)="loadHpo()" [disabled]="hpoLoading()" class="btn-outline-primary w-[300px] bg-white">
+                       @if (hpoLoading()) {
+                        <mat-spinner diameter="15"></mat-spinner>
+                            <span>Loading...</span>
+                        } @else {
+                            <span>Load HPO</span>
+                        }
                     </button>
                     <app-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
                 </div>
                 
                 <div class="flex flex-col">
-                    <span [ngClass]="{'text-red-600 font-medium': hpoLoading(), 'text-green-600': status().hpoLoaded}" class="text-sm">
-                        @if(status().hpoLoaded) {
+                    <span [ngClass]="{'text-red-600 font-medium': hpoLoading(), 'text-green-600': hpoLoaded()}" class="text-sm">
+                        @if(hpoLoaded()) {
                           <mat-icon class="scale-75 align-middle">check_circle</mat-icon> 
                         }
                         {{ hpoMessage() }}
                     </span>
-                    @if(status().hpoLoaded) {
+                    @if(hpoLoaded()) {
                       <span class="text-xs text-gray-400 italic">
                         {{ status().nHpoTerms }} terms available
                       </span>
@@ -58,7 +63,7 @@
                   <div class="relative flex items-center gap-2">
                     <button 
                     (click)="createNewPhetoolsTemplate()" 
-                    [disabled]="!status().hpoLoaded" 
+                    [disabled]="!hpoLoaded()" 
                     class="btn-outline-primary w-[300px]">
                           Create New Cohort
                       </button>
@@ -75,7 +80,7 @@
                   <div class="relative flex items-center gap-2">
                     <button 
                     (click)="chooseJsonTemplateFile()" 
-                    [disabled]="!status().hpoLoaded" 
+                    [disabled]="!hpoLoaded()" 
                     class="btn-outline-primary w-[300px]">
                         Open Cohort JSON
                     </button>
@@ -89,7 +94,7 @@
                 </div>
 
                 <div class="flex items-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity">
-                    <button (click)="chooseExistingTemplateFile()" [disabled]="!status().hpoLoaded" class="btn-ghost w-[300px] border-dashed border-2">
+                    <button (click)="chooseExistingTemplateFile()" [disabled]="!hpoLoaded()" class="btn-ghost w-[300px] border-dashed border-2">
                         Legacy Excel Import
                     </button>
                     <span class="text-xs text-gray-400">Internal HPO team use only</span>

@@ -16,11 +16,13 @@ import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { MatIcon } from "@angular/material/icon";
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule, HelpButtonComponent, MatIcon],
+  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule, HelpButtonComponent, MatIcon, MatProgressSpinnerModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -46,7 +48,7 @@ export class HomeComponent implements OnInit {
     if (s.hpoLoaded) {
       return `${s.hpoVersion} (${s.nHpoTerms})` || "Loaded";
     }
-    if (this.hpoLoading()) return "loading";
+    if (this.hpoLoading()) return "Loading hp.json ...";
     if (cancel) return cancel;
     return "uninitialized";
   });
@@ -61,14 +63,12 @@ export class HomeComponent implements OnInit {
 
   ptTemplateLoaded = computed(() => !!this.status().ptTemplatePath);
   
-
+  // Updated by checkbox in front end, should we update outdated HPO loabels upon import of Excel legacy files?
   updateLabels = false;
   
   newTemplateMessage = this.NOT_INIT;
-  
   biocuratorOrcid = signal<string | null>(this.NOT_INIT);
-  pendingHpoVersion: string | null = null;
-  pendingHpoNterms: string | null = null;
+
 
   progressValue = 0;
   isRunning = false;
@@ -78,40 +78,31 @@ export class HomeComponent implements OnInit {
     await this.updateOrcid();
     const currentOrcid = this.biocuratorOrcid();
     this.biocuratorOrcid.set(currentOrcid || "not initialized");
-    this.unlisten = await listen('backend_status', (event) => {
+    this.unlisten = await listen("hpo-load-event", (event) =>{
+      const { status, message, data } = event.payload as {status: string, message?: string, data?: StatusDto};
       this.ngZone.run(() => {
-        const status = event.payload as StatusDto;
-        this.backendStatusService.setStatus(status);
-        this.cancelMessage.set(null);
+        switch(status) {
+          case 'loading':
+            this.hpoLoading.set(true);
+            this.hpoLoaded.set(false);
+            break;
+          case 'success':
+            this.hpoLoading.set(false);
+            this.hpoLoaded.set(true);
+            if (data) this.backendStatusService.setStatus(data);
+            this.configService.resetPtTemplate();
+            break;
+          case 'error':
+            this.hpoLoading.set(false);
+            this.hpoLoaded.set(false);
+            this.notificationService.showError(message || ' Unknown error');
+            break;
+          case 'cancel':
+            this.hpoLoading.set(false);
+            this.hpoLoaded.set(false);
+        }
       });
     });
-    await listen('failure', (event) => {
-      const payload = event.payload as StatusDto;
-      const errorMessage = payload.errorMessage;
-      this.ngZone.run(() => {
-        this.hpoLoading.set(false);
-        this.hpoLoaded.set(false);
-        this.notificationService.showError(errorMessage);
-        if (errorMessage.toLocaleLowerCase().includes("cancel")) {
-          this.cancelMessage.set("User cancelled file selection");
-        } 
-      });
-      
-    });
-    await listen('hpoLoading', () => {
-      this.ngZone.run(() => {
-        this.cancelMessage.set(null);
-         this.hpoLoading.set(true);
-      });
-    });
-    await listen<{ current: number; total: number }>('progress', (event) => {
-      const { current, total } = event.payload;
-      this.ngZone.run(() => {
-        this.progressValue = Math.round((current / total) * 100);
-      });
-      
-    });
-    
     this.configService.emitStatusFromBackend();
   }
 
@@ -119,17 +110,13 @@ export class HomeComponent implements OnInit {
 
   async loadHpo(): Promise<void> {
     try {
+      this.hpoLoaded.set(false);
       this.hpoLoading.set(true);
       await this.configService.loadHPO();
-      this.hpoLoaded.set(true);
-      await this.configService.resetPtTemplate();
-      this.clearData();
-      this.resetBackend();
     } catch (error: unknown) {
       this.notificationService.showError(
         `Failed to load HPO: ${error instanceof Error ? error.message : error}`
       );
-      this.hpoLoading.set(false);
     } 
   }
 
@@ -232,6 +219,7 @@ export class HomeComponent implements OnInit {
   /** Clear existing datasets, e.g., when we move to a new template */
   clearData(): void {
     this.backendStatusService.clearStatus();
+    this.hpoLoading.set(false);
     this.cohortService.clearCohortData();
     this.pmidService.clearAllPmids();
     this.newTemplateMessage = this.NOT_INIT;
