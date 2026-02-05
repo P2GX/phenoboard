@@ -1,143 +1,100 @@
-<div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg space-y-6">
-    <h1 class="text-3xl font-bold text-gray-800">GA4GH Phenoboard</h1>
+<div class="max-w-4xl mx-auto mt-12 mb-12">
+    
+    <div class="flex items-center gap-6 mb-8 p-6 bg-gradient-to-r from-blue-50 to-white rounded-xl border border-blue-100 shadow-sm">
+        <img src="assets/icon.png" alt="Phenoboard Logo" class="w-20 h-20 shadow-md rounded-lg" />
+        
+        <div>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                GA4GH <span class="text-blue-600">Phenoboard</span>
+            </h1>
+            <p class="text-gray-500 text-lg">Biocuration suite for GA4GH Phenopackets</p>
+        </div>
 
-    <p class="text-gray-600 text-base leading-relaxed">
-    This application supports the biocuration of GA4GH Phenopackets.
-    </p>
-
-    <div class="flex flex-col space-y-4">
-    <div class="flex items-center gap-3">
-      <div class="relative group">
-    <button
-        (click)="loadHpo()"
-        class="btn-outline-primary w-[300px]"
-    >Load HPO
-    </button>
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Select the hp.json file
+        <div class="ml-auto text-right">
+            <div class="relative flex items-center gap-2">  
+          <button (click)="setBiocuratorOrcid()" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                <mat-icon class="scale-75">account_circle</mat-icon>
+                {{ biocuratorOrcid() || 'Set ORCID' }}
+             </button>
+             <app-help-button title="ORCID" 
+                      [lines]="['Set your researcher ID.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#orcid" />  
+                      </div>
+        </div>
     </div>
-     <app-help-button 
-        title="Loading the HPO Ontology"
-        [lines]="[
-          'Download the latest HPO ontology file (hp.json) to your file system.',
-          'Make sure to download the hp.json file (and <i>not</i> OBO or OWL).',
-          'The file can be downloaded from https://hpo.jax.org/data/ontology.',
-          'After you have downloaded the hp.json file, choose the file using the dialog that opens when you click on the <b>Load HPO</b> button.'
-        ]" />
+
+    <div class="bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
+        
+        <div class="p-8 border-b border-gray-50 bg-gray-50/30">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Ontology Setup</h2>
+            <div class="flex items-center gap-4">
+                <div class="relative flex items-center gap-2">
+                    <button (click)="loadHpo()" class="btn-outline-primary w-[300px] bg-white">
+                        Load HPO
+                    </button>
+                    <app-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
+                </div>
+                
+                <div class="flex flex-col">
+                    <span [ngClass]="{'text-red-600 font-medium': hpoLoading(), 'text-green-600': status().hpoLoaded}" class="text-sm">
+                        @if(status().hpoLoaded) {
+                          <mat-icon class="scale-75 align-middle">check_circle</mat-icon> 
+                        }
+                        {{ hpoMessage() }}
+                    </span>
+                    @if(status().hpoLoaded) {
+                      <span class="text-xs text-gray-400 italic">
+                        {{ status().nHpoTerms }} terms available
+                      </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 space-y-6">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400">Curation Tools</h2>
+            
+            <div class="grid grid-cols-1 gap-4">   
+                <div class="tool-row">
+                  <div class="relative flex items-center gap-2">
+                    <button 
+                    (click)="createNewPhetoolsTemplate()" 
+                    [disabled]="!status().hpoLoaded" 
+                    class="btn-outline-primary w-[300px]">
+                          Create New Cohort
+                      </button>
+                      <app-help-button title="New phenoboard cohort" 
+                      [lines]="['Create a phenoboard JSON file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#create-new-cohort" />   
+                    </div> 
+                    <div class="tool-info">
+                        <span class="tool-title">Start a new project</span>
+                        <span class="tool-description">Mendelian, Melded, or Digenic templates</span>
+                    </div>
+                </div>
+
+                <div class="tool-row">
+                  <div class="relative flex items-center gap-2">
+                    <button 
+                    (click)="chooseJsonTemplateFile()" 
+                    [disabled]="!status().hpoLoaded" 
+                    class="btn-outline-primary w-[300px]">
+                        Open Cohort JSON
+                    </button>
+                     <app-help-button title="Open a phenoboard cohort" 
+                      [lines]="['Open an existing cohort (JSON file).']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#open-an-existing-cohort" />   
+                    </div> 
+                    <div class="tool-info">
+                        <span class="tool-title">Continue curation</span>
+                        <span class="tool-description">{{ jsonTemplateFileMessage() || 'Select a .json file' }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity">
+                    <button (click)="chooseExistingTemplateFile()" [disabled]="!status().hpoLoaded" class="btn-ghost w-[300px] border-dashed border-2">
+                        Legacy Excel Import
+                    </button>
+                    <span class="text-xs text-gray-400">Internal HPO team use only</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <span [ngClass]="{'text-red-600': hpoLoading() }"
-      class="text-sm text-gray-500 italic">
-      {{ hpoMessage() }}
-      @if (status().hpoLoaded ) {
-        <span>({{ status().nHpoTerms }} terms)</span>
-      }
-    </span>
 </div>
-
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-      (click)="chooseExistingTemplateFile()"
-      [disabled]="!status().hpoLoaded"
-      class="btn-outline-primary w-[300px]"
-    >
-      {{ 'Select phetools (legacy) template file' }}
-    </button>
-    <app-help-button 
-        title="Loading the HPO Ontology"
-        [lines]="[
-          'For use by internal HPO team for migrating original pyphetools files.'
-        ]" />
-
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Select a phetools template file (enabled after HPO is loaded)
-    </div>
-  </div>
-
-  <span class="text-sm text-gray-500 italic">{{ templateFileMessage() }}</span>
-  @if (isRunning){
-    <div style="margin-top: 20px;">
-      <mat-progress-bar mode="determinate" [value]="progressValue"></mat-progress-bar>
-      <p>{{ progressValue }} %</p>
-    </div>
-  }
-   <div class="ml-auto">
-    <mat-checkbox [(ngModel)]="updateLabels">
-      Update HPO labels
-    </mat-checkbox>
-  </div>
-</div>
-
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-      (click)="chooseJsonTemplateFile()"
-      [disabled]="!status().hpoLoaded"
-      class="btn-outline-primary w-[300px]"
-    >
-      {{ 'Select phetools JSON file' }}
-    </button>
-     <app-help-button 
-        title="JSON Cohort files"
-        [lines]="[
-          'Open a phenoboard cohort file (JSON format).',
-          'Each row of of a phenoboard cohort file corresponds to one individual (one phenopacket).'
-        ]" />
-
-    <!-- Tooltip -->
-    <div
-      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none text-center"
-    >
-      Select a phetools JSON template file (enabled after HPO is loaded)
-    </div>
-  </div>
-
-  <span class="text-sm text-gray-500 italic">{{ jsonTemplateFileMessage() }}</span>
-
-</div>
-
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-        (click)="createNewPhetoolsTemplate()"
-        [disabled]="!status().hpoLoaded"
-        class="btn-outline-primary w-[300px]"
-    >Create new cohort
-    </button>
-    <!-- Tooltip -->
-    <app-help-button 
-        title="Create new cohort"
-        [lines]="[
-          'Use this button to start a new template (Mendelian, Melded, or Digenic). '
-        ]" />
-    </div>
-    <span class="text-sm text-gray-500 italic">{{ newTemplateMessage }}</span>
-</div>
-
-<div class="flex items-center gap-3">
-  <div class="relative group">
-    <button
-        (click)="setBiocuratorOrcid()"
-        class="btn-outline-primary w-[300px]"
-    >Set biocurator ORCID
-    </button>
-    <app-help-button 
-        title="Biocurator ID"
-        [lines]="[
-          'Use this button to set the researcher identifier (ORCID).',
-          'See https://orcid.org/ for more information.'
-        ]" />
-    </div>
-    <span class="text-sm text-gray-500 italic">{{ biocuratorOrcid() }}</span>
-</div>
-
-
-</div>
-</div>
-

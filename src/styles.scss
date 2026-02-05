@@ -243,3 +243,32 @@
   z-index: 2001 !important; /* default dialogs use around 1000–1050 */
 }
 
+@layer components {
+  /* The row container for each tool */
+  .tool-row {
+    @apply flex items-center gap-4 p-4 rounded-xl transition-all border border-transparent;
+    @apply hover:bg-blue-50/50 hover:border-blue-100;
+  }
+
+  /* The container for the text next to the buttons */
+  .tool-info {
+    @apply flex flex-col ml-2;
+    
+    .tool-title {
+      @apply text-sm text-gray-600 font-medium;
+    }
+    
+    .tool-description {
+      @apply text-xs text-gray-400 italic;
+    }
+  }
+
+  /* Status message styles */
+  .status-text {
+    @apply text-sm font-medium transition-colors;
+    
+    &.loading { @apply text-amber-600; }
+    &.success { @apply text-green-600; }
+    &.error   { @apply text-red-600; }
+  }
+}

@@ -15,11 +15,12 @@ import { NotificationService } from '../services/notification.service';
 import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule, HelpButtonComponent],
+  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule, HelpButtonComponent, MatIcon],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
