@@ -10,7 +10,7 @@ import { AdddemoComponent } from "../adddemo/adddemo.component";
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
-import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
@@ -25,6 +25,7 @@ import { ConfirmDialogComponent } from './confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { AppStatusService } from '../services/app_status_servce';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -57,7 +58,7 @@ export class AddcaseComponent {
   readonly demographData = signal<DemographDto>(defaultDemographDto());
   readonly hpoAnnotations = signal<HpoTermData[]>([]);
   readonly alleles = signal<VariantDto[]>([]);
-  readonly backendStatus = signal<StatusDto>(defaultStatusDto());
+  public statusService = inject(AppStatusService);
 
   public VariantKind = VariantKind;
     
@@ -72,6 +73,9 @@ export class AddcaseComponent {
   showHoverPopup: boolean = false;
   selectedAnnotation: TextAnnotationDto | null = null;
 
+  readonly hpoInitialized = computed(() => this.statusService.state().hpoLoaded);
+
+
   /* Once we have annotations from the first step, show the second step! */
   readonly showTwoStepHpoButton = computed(
     () => this.hpoAnnotations().length === 0
@@ -84,7 +88,6 @@ export class AddcaseComponent {
   predefinedOptions: string[] = ["observed", "excluded", "na"];
   selectedOptions: string[] = []; //  selected radio button values
   customOptions: string[] = []; // manually entered custom options
-  hpoInitialized: boolean = false;
   errorString: string | null = null;
   hasError: boolean = false;
 
@@ -100,24 +103,7 @@ export class AddcaseComponent {
   hpoInputString: string = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
 
-  private unlisten: UnlistenFn | null = null;
-  private unlistenFns: UnlistenFn[] = [];
 
-  async ngOnInit(): Promise<void> {
-    this.unlistenFns.push(
-      await listen('backend_status', (event) => {
-        this.ngZone.run(() => this.handleBackendStatus(event.payload));
-      })
-    );
-  }
-
-  
-  ngOnDestroy() {
-    if (this.unlisten) {
-      this.unlisten();
-      this.unlisten = null;
-    }
-  }
 
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
@@ -171,11 +157,6 @@ export class AddcaseComponent {
     await this.router.navigate(['/pttemplate']);
   }
 
-  private handleBackendStatus(payload: unknown): void {
-    const status = payload as StatusDto;
-    this.backend_status = status;
-    this.hpoInitialized = status.hpoLoaded;
-  }
 
 
   setError(errMsg: string): void {
@@ -332,13 +313,6 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.hpoAnnotations.set([]);
     this.demographData.set(defaultDemographDto());
     this.pmidDto.set(defaultPmidDto());
-    this.backendStatus.set(defaultStatusDto());
-    
-    /*this.selectedAnnotation = null;
-    this.selectionRange = null;
-    this.errorString = null;
-    this.hasError = false;
-    */
   }
 
  private async selectPmid(): Promise<PmidDto | null> {

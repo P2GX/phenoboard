@@ -296,21 +296,12 @@ impl PhenoboardSingleton {
         match &self.pt_template_path {
             Some(path) => {
                 status.pt_template_path = path.to_string();
-                let path2 = Path::new(&path);
-                let cohort_name =  path2.file_stem()
-                        .and_then(|stem| stem.to_str())
-                        .map(|s| s.to_string());
-                if cohort_name.is_some() {
-                    status.cohort_name = cohort_name.unwrap();
-                };
                 status.pt_template_loaded = true;
             },
             None => {
                 status.pt_template_path = String::default();
             },
         }
-        status.new_cohort = false; // TODO
-        status.unsaved_changes = false; // TODO
         return status;
     }
 
@@ -706,6 +697,24 @@ pub fn get_all_cohort_age_strings(
         .collect();
     Ok(age_strings.into_iter().collect())
 }
+
+    pub fn get_status_dto(&self) -> StatusDto {
+        let hpo_version = match &self.ontology {
+            Some(hpo) => hpo.version().to_string(),
+            None => "not loaded".to_string(),
+        };
+        StatusDto {
+            hpo_loaded: self.ontology.is_some(),
+            hpo_version,
+            n_hpo_terms: self.ontology.as_ref()
+                .map(|o| o.len()) 
+                .unwrap_or(0),
+            pt_template_path: self.pt_template_path.clone().unwrap_or_default(),
+            pt_template_loaded: self.pt_template_path.is_some(),
+            has_error: false,
+            error_message: "".to_string(),
+        }
+    }
 
 
 }

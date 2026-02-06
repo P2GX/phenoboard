@@ -1,9 +1,6 @@
-import { Component, computed, inject, NgZone, OnDestroy, OnInit, signal, Signal } from '@angular/core';
+import { Component, computed, inject, NgZone, OnInit, signal } from '@angular/core';
 import { ConfigService } from '../services/config.service';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { CommonModule } from '@angular/common';
-import { StatusDto } from '../models/status_dto';
-import { BackendStatusService } from '../services/backend_status_service'
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,6 +14,7 @@ import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AppStatusService } from '../services/app_status_servce';
 
 
 @Component({
@@ -30,38 +28,35 @@ export class HomeComponent implements OnInit {
 
   cohortService= inject(CohortDtoService);
   private configService = inject(ConfigService);
-  private backendStatusService = inject(BackendStatusService);
   private ageService = inject(AgeInputService);
   private pmidService = inject(PmidService);
   private router= inject(Router);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
-  status: Signal<StatusDto> = this.backendStatusService.status;
   private cancelMessage = signal<string | null>(null);
-  private unlisten: UnlistenFn | null = null;
+  public statusService = inject(AppStatusService);
 
 
   hpoMessage = computed(() => {
-    const s = this.status();
+    const s = this.statusService.state();
     const cancel = this.cancelMessage();
     if (s.hpoLoaded) {
       return `${s.hpoVersion} (${s.nHpoTerms})` || "Loaded";
     }
-    if (this.hpoLoading()) return "Loading hp.json ...";
+    if (this.statusService.hpoLoading()) return "Loading hp.json ...";
     if (cancel) return cancel;
     return "uninitialized";
   });
-  hpoLoading = signal<boolean>(false);
-  hpoLoaded = signal<boolean>(false);
+
   templateFileMessage = computed(()=> {
-    const path = this.status().ptTemplatePath;
+    const path = this.statusService.state().ptTemplatePath;
     return path ? path : this.NOT_INIT;
   });
   NOT_INIT = "not initialized";
   jsonTemplateFileMessage = signal(this.NOT_INIT);
 
-  ptTemplateLoaded = computed(() => !!this.status().ptTemplatePath);
+  ptTemplateLoaded = computed(() => !!this.statusService.state().ptTemplatePath);
   
   // Updated by checkbox in front end, should we update outdated HPO loabels upon import of Excel legacy files?
   updateLabels = false;
@@ -78,40 +73,14 @@ export class HomeComponent implements OnInit {
     await this.updateOrcid();
     const currentOrcid = this.biocuratorOrcid();
     this.biocuratorOrcid.set(currentOrcid || "not initialized");
-    this.unlisten = await listen("hpo-load-event", (event) =>{
-      const { status, message, data } = event.payload as {status: string, message?: string, data?: StatusDto};
-      this.ngZone.run(() => {
-        switch(status) {
-          case 'loading':
-            this.hpoLoading.set(true);
-            this.hpoLoaded.set(false);
-            break;
-          case 'success':
-            this.hpoLoading.set(false);
-            this.hpoLoaded.set(true);
-            if (data) this.backendStatusService.setStatus(data);
-            this.configService.resetPtTemplate();
-            break;
-          case 'error':
-            this.hpoLoading.set(false);
-            this.hpoLoaded.set(false);
-            this.notificationService.showError(message || ' Unknown error');
-            break;
-          case 'cancel':
-            this.hpoLoading.set(false);
-            this.hpoLoaded.set(false);
-        }
-      });
-    });
-    this.configService.emitStatusFromBackend();
+    
+    
   }
 
     
 
   async loadHpo(): Promise<void> {
     try {
-      this.hpoLoaded.set(false);
-      this.hpoLoading.set(true);
       await this.configService.loadHPO();
     } catch (error: unknown) {
       this.notificationService.showError(
@@ -218,8 +187,6 @@ export class HomeComponent implements OnInit {
 
   /** Clear existing datasets, e.g., when we move to a new template */
   clearData(): void {
-    this.backendStatusService.clearStatus();
-    this.hpoLoading.set(false);
     this.cohortService.clearCohortData();
     this.pmidService.clearAllPmids();
     this.newTemplateMessage = this.NOT_INIT;

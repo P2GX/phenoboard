@@ -2,17 +2,47 @@
   <h1 class="text-2xl font-bold text-gray-800 mb-6 mt-6">
   Add Case Data
 </h1>
+<div class="flex justify-start mb-4">
+  <div 
+    [class]="statusService.hpoLoaded() ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'"
+    class="flex items-center gap-2 px-3 py-1 border rounded-full shadow-sm transition-all"
+  >
+    <div class="relative flex h-2.5 w-2.5">
+      @if (!statusService.hpoLoaded()) {
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+      }
+      <span 
+        [class]="statusService.hpoLoaded() ? 'bg-green-500' : 'bg-red-500'"
+        class="relative inline-flex rounded-full h-2.5 w-2.5 border border-white">
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2 whitespace-nowrap">
+      <span class="text-xs font-bold text-gray-800">
+        {{ statusService.hpoLoaded() ? 'HPO Ready' : 'HPO Missing' }}
+      </span>
+      
+      <span class="text-[11px] text-gray-500 border-l border-gray-300 pl-2">
+        @if (statusService.hpoLoaded()) {
+          {{ statusService.state().hpoVersion }} ({{ statusService.state().nHpoTerms }} terms)
+        } @else {
+          Please load HPO on Home page to proceed
+        }
+      </span>
+    </div>
+  </div>
+</div>
 <div
   class="flex items-center gap-4 p-3 border rounded"
   style="border-color: #e9ecef; margin-bottom:10px;"
 >
   @if (!pmidDto() || !pmidDto().title) {
     <!-- Show lookup button when no successful result -->
-    <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
+    <button (click)="openPubmedDialog()" class="btn-outline-primary" [disabled]="!hpoInitialized()">🔍 Lookup PubMed</button>
      <app-help-button 
           title="Entering PMID data"
           [lines]="[
-            'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identified (PMID).',
+            'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identifier (PMID).',
             'Enter either the number (e.g., 39233737) or the entire PMID (e.g., PMID: 39233737).',
             'Whitespace characters are removed automatically.'
           ]" />
@@ -44,7 +74,7 @@
   class="flex items-center gap-4 p-3 border rounded"
   style="border-color: #e9ecef; margin-bottom:10px;"
 >
-  <button mat-stroked-button color="primary" (click)="openAddDemoDialog()">
+  <button class="btn-outline-primary" (click)="openAddDemoDialog()" [disabled]="!hpoInitialized()">
   ➕ Add/edit Demographics
 </button>
   @if (demographicSummary) {
@@ -72,12 +102,14 @@
             'Enter only text that is specific to the individual. The text mining dialog will allow you to add additional HPO terms as required.',
           ]" />
       </div>
+      
   @if (showTwoStepHpoButton()) {
     <button 
       type="button"
       (click)="openHpoTwoStepDialog()"
-      class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 block">
-      + Add HPO Annotations
+      class="btn-outline-primary"
+      [disabled]="!hpoInitialized()">
+      ➕ Add HPO Annotations
     </button>
   } @else {
     <div class="flex items-center justify-between p-2 border rounded bg-gray-50">

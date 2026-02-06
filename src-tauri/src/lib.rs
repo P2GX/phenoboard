@@ -11,7 +11,7 @@ use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::HashMap, fmt::format, fs, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -79,7 +79,8 @@ pub fn run() {
             expand_dictionary_to_rows,
             create_cell_mappings,
             get_multi_hpo_strings,
-            get_cohort_age_strings
+            get_cohort_age_strings,
+            get_status_dto
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -872,6 +873,13 @@ fn fetch_repo_qc(state: tauri::State<'_, Arc<AppState>>)
     let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_repo_qc()
+}
+
+#[tauri::command]
+fn get_status_dto(state: tauri::State<'_, Arc<AppState>>) -> Result<StatusDto, String> {
+     let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    Ok(singleton.get_status_dto())
 }
 
 
