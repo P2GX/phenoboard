@@ -1,7 +1,7 @@
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto, textAnnotationToHpoAnnotation, to_annotation_dto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
@@ -30,6 +30,7 @@ export class HpoPolishingComponent implements OnInit {
   private configService = inject(ConfigService);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
+  @ViewChild('annotationTable') annotationTable!: ElementRef;
 
   availableOnsetTerms = this.ageService.selectedTerms;  
   hpoAnnotations = signal<HpoAnnotationDto[]>([]);
@@ -119,6 +120,14 @@ export class HpoPolishingComponent implements OnInit {
       });
     }
   }
+
+  @HostListener('document:mousedown', ['$event']) // mousedown is often more reliable than click
+    onGlobalClick(event: MouseEvent): void {
+      const clickedInside = this.annotationTable.nativeElement.contains(event.target);
+      if (!clickedInside) {
+        this.showDropdownMap = {};
+      }
+    }
 
   /** This is used in the GUI to replace a term by a parent or child term. */
  replaceTerm(annotation: HpoAnnotationDto, replacement: HpoAnnotationDto) {

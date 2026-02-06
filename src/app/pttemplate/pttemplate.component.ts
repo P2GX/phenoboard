@@ -21,7 +21,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
 import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
-import { rxResource } from '@angular/core/rxjs-interop';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 
 interface Option { label: string; value: string };
@@ -1052,6 +1052,15 @@ visibleColumnMask = computed<Uint8Array>(() => {
       ...current,
       diseaseList: updatedDiseases
     });
+  }
+
+  async openPmidInBrowser(pmid: string | null) {
+    if (!pmid) return;
+    const cleanId = pmid.replace(/pmid:/i, '').trim();
+    if (cleanId) {
+      const url = `https://pubmed.ncbi.nlm.nih.gov/${cleanId}/`;
+      await openUrl(url);
+    }
   }
 
 }

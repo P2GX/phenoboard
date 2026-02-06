@@ -426,6 +426,9 @@
           (click)="focusOnSingleRow()">Focus on row</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="focusOnPmid(contextRowPmid)">Focus on PMID: {{ contextRowPmid ?? 'N/A' }}</li>
+      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100 text-blue-600 flex justify-between items-center"
+      (click)="openPmidInBrowser(contextRowPmid)"> Open PMID in Browser<span class="text-xs">↗</span>
+      </li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
           (click)="showAllRows()">Show all rows</li>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
