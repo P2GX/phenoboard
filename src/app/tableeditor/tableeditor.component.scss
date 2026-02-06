@@ -1,12 +1,13 @@
-/* ===== CONTAINER & PRIMARY STYLES ===== */
+
+:host {
+  display: block;
+  padding: 20 24px; /* Consistent side padding for the whole page */
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .primary-box {
-  background: white;
-  color: #2d3748;
-  padding: 2rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
+  @apply py-3 px-5 border rounded-lg bg-white shadow-sm mb-4;
 }
 
 .h1-primary {
@@ -54,6 +55,57 @@
   transform: translateY(0);
 }
 
+
+
+
+/* 2. The Container */
+.pt-table-container {
+  width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+}
+
+/* 3. The Table - Back to Basics */
+.pt-table {
+  width: 100%;
+  border-collapse: separate; /* Keep this for sticky headers */
+  border-spacing: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+
+  /* Standard Cell styling */
+  th, td {
+    padding: 1px 2px;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    text-align: left;
+  }
+
+  /* Reset the Header Row */
+  tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #4a5568 !important;
+    color: white;
+  }
+
+  /* Reset the Type Row */
+  .type-row th {
+    position: sticky;
+    top: 33px; /* Adjust this after we see Row 1's height */
+    z-index: 10;
+    background: #f8fafc !important;
+    color: #64748b;
+    font-size: 10px;
+    font-style: italic;
+  }
+}
+
 /* ===== ERROR HANDLING ===== */
 .error-container {
   margin: 1rem 0;
@@ -70,34 +122,22 @@
 }
 
 /* ===== TABLE CONTAINER ===== */
-.pt-table-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  margin-top: 2rem;
-    overflow-x: auto;
-  display: block;
-}
+
 
 /* ===== TABLE STYLES ===== */
-.pt-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 14px;
-  background: white;
 
-  white-space: nowrap;
+td.table-cell {
+  padding: 0; /* Remove padding from the TD so the etl-cell can fill it */
+  height: 1px; /* Hack to make children 100% height */
+  
+  etl-cell {
+    display: block;
+    padding: 6px 12px;
+    width: 100%;
+    height: 100%;
+  }
 }
 
-.pt-table thead,
-.pt-table tbody {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
 
 /* ===== HEADER ROW ===== */
 .header-row {
@@ -133,16 +173,7 @@
   text-transform: capitalize;
 }
 
-/* ===== DATA ROWS ===== */
 
-.pt-table tr:nth-child(even) {
-  background: #f8fafc;
-}
-
-/* Hover only on individual cells */
-.pt-table td:hover {
-  background: linear-gradient(135deg, #ebf8ff, #e6fffa);
-}
 
 
 /* ===== EDIT MODE ===== */
@@ -163,18 +194,41 @@
 }
 
 /* ===== CONTEXT MENUS ===== */
-.context-menu,
-.context-menu-visible {
-  position: absolute;
-  overflow: visible;
+.context-menu, .context-menu-visible {
+  position: fixed; /* Escape the table container scrolling */
+  z-index: 9999 !important; /* Ensure it floats above everything */
   background: white;
-  border: 1px solid #d1d5db;
   border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  min-width: 150px;       /* narrower */
-  font-size: 13px;        /* smaller text */
-  z-index: 1000;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  animation: fadeIn 0.15s ease-out;
+
+  ul {
+    padding: 4px 0;
+    margin: 0;
+  }
+
+  li {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: #2563eb;
+      color: white;
+    }
+  }
 }
+
+  li:hover {
+    background: #2563eb; /* Use a solid professional blue */
+    color: white;
+  }
 
 .context-menu ul,
 .context-menu-visible ul {
@@ -522,43 +576,6 @@ th {
 .visible-column:hover {
   box-shadow: inset 0 -3px 0 0 rgba(0, 0, 0, 0.15);
 }
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 768px) {
-  .button-row {
-    flex-direction: column;
-  }
-  
-  .btn-outline-primary {
-    width: 100%;
-    text-align: center;
-  }
-  
-  .pt-table-container {
-   background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-    margin-top: 2rem;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .pt-table {
-    width: 100%;
-    border-collapse: separate;
-    font-size: 14px;
-    background: white;
-    table-layout: auto;        /* let columns size naturally */
-    white-space: normal; 
-  }
-  
-  .primary-box {
-    padding: 1.5rem;
-  }
-  
-  .h1-primary {
-    font-size: 2rem;
-  }
-}
 
 /* ===== UTILITY CLASSES ===== */
 .text-center {
@@ -633,18 +650,10 @@ th {
 }
 
 .hpo-button {
-  position: relative;
-  padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-  font-size: 14px;
-  min-width: 80px;
+  @apply flex items-center gap-1 px-2 py-1 rounded border bg-gray-50 text-[11px] transition-colors;
+  &.has-terms {
+    @apply bg-blue-50 border-blue-200 text-blue-700 font-bold;
+  }
 }
 
 .hpo-button:hover {
@@ -826,4 +835,27 @@ button {
 .edit-modal {
   position: absolute;
   z-index: 1100;
+}
+
+.button-row {
+  /* Ensure icons and text align perfectly */
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px; 
+    font-size: 12px;
+    height: 32px;
+    white-space: nowrap;
+  }
+
+  /* Make the dividers look more like a native app toolbar */
+  .border-r {
+    border-color: #e2e8f0; 
+    margin-right: 8px;
+  }
+}
+
+/* Style for the "Add to Cohort" primary button to make it stand out */
+.btn-primary {
+  @apply bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm;
 }

@@ -4,10 +4,8 @@ export interface StatusDto {
     nHpoTerms: number;
     ptTemplatePath: string;
     ptTemplateLoaded: boolean;
-    cohortName: string;
-    nPhenopackets: number;
-    newCohort: boolean;
-    unsavedChanges: boolean;
+    biocuratorOrcid: string;
+    hpoJsonPath: string;
     hasError: boolean;
     errorMessage: string;
 }
@@ -15,15 +13,13 @@ export interface StatusDto {
 export function defaultStatusDto(): StatusDto {
     return {
         hpoLoaded: false,
-        hpoVersion: '',
+        hpoVersion: "not initialized",
         nHpoTerms: 0,
-        ptTemplatePath: '',
+        ptTemplatePath: "not initialized",
         ptTemplateLoaded: false,
-        cohortName: '',
-        nPhenopackets: 0,
-        newCohort: false,
-        unsavedChanges: false,
+        biocuratorOrcid: "not initialized",
+        hpoJsonPath: "not initialized",
         hasError: false,
-        errorMessage: ''
+        errorMessage: ""
     };
 }

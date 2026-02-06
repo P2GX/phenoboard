@@ -12,13 +12,14 @@
 
         <div class="ml-auto text-right">
             <div class="relative flex items-center gap-2">  
-          <button (click)="setBiocuratorOrcid()" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
-                <mat-icon class="scale-75">account_circle</mat-icon>
-                {{ biocuratorOrcid() || 'Set ORCID' }}
-             </button>
+            <button (click)="setBiocuratorOrcid()" 
+                class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                    <mat-icon class="scale-75">account_circle</mat-icon>
+                    {{ biocuratorOrcid() || 'Set ORCID' }}
+            </button>
              <app-help-button title="ORCID" 
                       [lines]="['Set your researcher ID.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#orcid" />  
-                      </div>
+            </div>
         </div>
     </div>
 

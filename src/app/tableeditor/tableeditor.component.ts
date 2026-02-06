@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { ClinicalStatus, HpoMappingResult, HpoMatch, MinedCell, MiningConcept, MiningStatus } from "../models/hpo_mapping_result";
+import {  HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
 import { ColumnDto, ColumnTableDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -34,6 +34,8 @@ import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
 import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from './etl-metadata';
 import { CellReviewComponent } from '../cellreview/cellreview.component';
+import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { AppStatusService } from '../services/app_status_service';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -53,9 +55,9 @@ interface OverlayPosition {
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent],
+  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, HelpButtonComponent],
   templateUrl: './tableeditor.component.html',
-  styleUrls: ['./tableeditor.component.css'],
+  styleUrls: ['./tableeditor.component.scss'],
 })
 export class TableEditorComponent implements OnInit, OnDestroy {
   constructor() {
@@ -76,6 +78,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private helpService = inject(HelpService);
   private cohortService = inject(CohortDtoService);
+  public statusService = inject(AppStatusService);
 
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;

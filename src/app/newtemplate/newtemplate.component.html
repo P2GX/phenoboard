@@ -37,7 +37,11 @@
     <h1 class="h1-primary">Create Phenopacket Cohort Template</h1>
     
     @if (!thisCohortType()) {
-      <p class="text-gray-600 mb-8">Choose a cohort type to get started.</p>
+      @if (statusService.hpoLoaded()) {
+        <p class="text-gray-600 mb-8">Choose a cohort type to get started.</p>
+      } @else {
+        <p class="text-read-600 mb-8">Load the HPO from the Home page before creating cohort.</p>
+      }
       
       <div class="flex flex-col items-center gap-4 mt-12">
         @for (mode of cohortModes; track mode.id) {

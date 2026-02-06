@@ -721,7 +721,7 @@ async fn get_biocurator_orcid(
 async fn save_biocurator_orcid(
     state: tauri::State<'_, Arc<AppState>>,
     orcid: String
-) -> Result<(), String> {
+) -> Result<StatusDto, String> {
     let mut singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.save_biocurator_orcid(orcid)
@@ -879,7 +879,7 @@ fn fetch_repo_qc(state: tauri::State<'_, Arc<AppState>>)
 fn get_status_dto(state: tauri::State<'_, Arc<AppState>>) -> Result<StatusDto, String> {
      let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    Ok(singleton.get_status_dto())
+    Ok(singleton.get_status())
 }
 
 

@@ -25,7 +25,7 @@ import { ConfirmDialogComponent } from './confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
-import { AppStatusService } from '../services/app_status_servce';
+import { AppStatusService } from '../services/app_status_service';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.

@@ -13,6 +13,7 @@ import { EtlSessionService } from '../services/etl_session_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { DisplayMendelianComponent } from "./display-mendelian.component";
 import { DisplayMeldedComponent } from "./display-melded.component";
+import { AppStatusService } from '../services/app_status_service';
 
 
 export interface CohortEntry {
@@ -62,6 +63,7 @@ export class NewTemplateComponent  {
   private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private dialog= inject(MatDialog);
+  public statusService = inject(AppStatusService);
 
   digenicTemplate = false;
   meldedTemplate = false;

@@ -3,6 +3,7 @@ import { listen } from '@tauri-apps/api/event';
 import { StatusDto, defaultStatusDto } from '../models/status_dto';
 import { NotificationService } from './notification.service';
 import { ConfigService } from './config.service';
+import { invoke } from '@tauri-apps/api/core';
 
 @Injectable({ providedIn: 'root' })
 export class AppStatusService {
@@ -18,7 +19,17 @@ export class AppStatusService {
   readonly hpoLoaded = computed(() => this.state().hpoLoaded);
 
   constructor() {
+    this.init();
     this.setupListeners();
+  }
+
+  private async init() {
+    try {
+      const status: StatusDto = await invoke('get_status_dto');
+      this.state.set(status);
+     } catch (err) {
+      console.error("Failed to fetch initial backend status", err);
+    }
   }
 
   private async setupListeners() {

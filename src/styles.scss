@@ -38,29 +38,22 @@
     px-5
     text-sm text-gray-500 
 }
-
 .primary-box {
-  @apply space-y-4 p-4 border rounded-md bg-white dark:bg-transparent;
-}
+  /* Reduced vertical padding (p-4 -> py-2 px-4) for a thinner look */
+  @apply space-y-2 py-2 px-4 border rounded-md bg-white dark:bg-transparent shadow-sm;
 
-.primary-box h1
-.primary-divider h1 {
-  @apply text-center font-bold text-3xl; /* Largest and bold */
-}
+  /* Target headings anywhere inside the box */
+  .heading-with-help {
+    /* Ensure the help button doesn't add height */
+    min-height: unset; 
+    margin-bottom: 0; 
+  }
 
-.primary-box h2
-.primary-divider h2 {
-  @apply text-left font-bold text-2xl mt-2.5;  /* Slightly smaller, less bold */
-}
+  h1 { @apply text-center font-bold text-2xl; } /* Scaled down from 3xl for compactness */
+  h2 { @apply text-left font-bold text-xl mt-1; }
+  h3 { @apply text-left font-bold text-lg mt-1; }
 
-.primary-box h3
-.primary-divider h3 {
-  @apply text-left font-bold text-xl mt-2.5;   /* Even smaller, normal weight */
-}
-
-.primary-box p
-.primary-divider p {
-    @apply text-left mt-0;
+  p { @apply text-left mt-0 text-sm; } /* Smaller text for compact feel */
 }
 
 .primary-list {

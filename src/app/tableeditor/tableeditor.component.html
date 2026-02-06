@@ -1,42 +1,44 @@
 <div class="primary-box">
-<h1 class="h1-primary">External Table Editor</h1>
-  <p class="text-s">Ingest external Excel tables (e.g., Supplemental Files with information about cohorts) by transforming the table column by column.</p>
-  <p class="text-xs">You can save and load the external templates to continue work later. In general, however, these JSON files should not be stored long-term (or checked into GitHub).</p>
+ <div class="heading-with-help">
+        <h1>External Table Editor</h1>
+        <app-help-button 
+          title="External tables"
+          [lines]="[
+            'This page is for importing Supplemental tables (excel files) in which each row or column represents an individual.',
+            'Users should transform the table column by column.',
+            'You can save and load the external templates in multiple sessions. These JSON files should not be stored long-term (or checked into GitHub).'
+          ]"
+          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html" />
+     </div>
 </div>
-<div class="button-row">
-  <button 
-    class="btn-outline-primary"
-    (click)="loadExcel(false)">
-    Load Excel File (Columns)
-  </button>
 
-  <button 
-    class="btn-outline-primary"
-    (click)="loadExcel(true)">
-    Load Excel File (Rows)
-  </button>
+@if (statusService.hpoLoaded()) {
+<div class="button-row flex flex-wrap gap-2 mb-6 p-2 bg-gray-50 rounded-md border border-gray-100">
+  <div class="flex gap-1 border-r pr-3 border-gray-300">
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(false)">📂 Excel (Cols)</button>
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(true)">📂 Excel (Rows)</button>
+  </div>
 
-  <button 
-    class="btn-outline-primary"
-    (click)="saveExternalTemplateJson()">
-    Save ETL JSON
-  </button>
+  <div class="flex gap-1 border-r pr-3 border-gray-300">
+    <button class="btn-sm btn-outline-primary" (click)="saveExternalTemplateJson()">💾 Save ETL</button>
+    <button class="btn-sm btn-outline-primary" (click)="loadExternalTemplateJson()">📥 Load ETL</button>
+  </div>
 
-  <button 
-    class="btn-outline-primary"
-    (click)="loadExternalTemplateJson()">
-    Load ETL JSON
-  </button>
-
-    <button 
-    class="btn-outline-primary"
-    (click)="importCohortDiseaseData()">
-    Import cohort disease data
-  </button>
-
-  <button (click)="openPubmedDialog()" class="btn-outline-primary">🔍 Lookup PubMed</button>
-  <button (click)="addToCohortData()" class="btn-outline-primary">Add data to cohort</button>
+  <div class="flex gap-1">
+    <button class="btn-sm btn-outline-primary" (click)="importCohortDiseaseData()">🧪 Import Disease</button>
+    <button class="btn-sm btn-outline-primary" (click)="openPubmedDialog()">🔍 PubMed</button>
+    <button class="btn-primary btn-sm" (click)="addToCohortData()">✨ Add to Cohort</button>
+  </div>
 </div>
+} @else {
+  <div class="flex items-center gap-3 p-4 mb-6 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
+    <mat-icon class="text-amber-600">warning</mat-icon>
+    <div class="flex flex-col">
+      <span class="font-bold text-sm">HPO Not Loaded</span>
+      <span class="text-xs">The Table Editor requires the HPO ontology to validate terms. Please load HPO on the Home page to proceed.</span>
+    </div>
+  </div>
+}
 
 @if (errorMessage) {
   <div class="error-container">

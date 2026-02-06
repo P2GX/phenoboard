@@ -14,7 +14,7 @@ import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AppStatusService } from '../services/app_status_servce';
+import { AppStatusService } from '../services/app_status_service';
 
 
 @Component({
@@ -24,7 +24,7 @@ import { AppStatusService } from '../services/app_status_servce';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
 
   cohortService= inject(CohortDtoService);
   private configService = inject(ConfigService);
@@ -62,21 +62,14 @@ export class HomeComponent implements OnInit {
   updateLabels = false;
   
   newTemplateMessage = this.NOT_INIT;
-  biocuratorOrcid = signal<string | null>(this.NOT_INIT);
+ 
 
 
   progressValue = 0;
   isRunning = false;
 
-
-   async ngOnInit(): Promise<void> {
-    await this.updateOrcid();
-    const currentOrcid = this.biocuratorOrcid();
-    this.biocuratorOrcid.set(currentOrcid || "not initialized");
-    
-    
-  }
-
+  readonly biocuratorOrcid = computed(() => this.statusService.state().biocuratorOrcid);
+ 
     
 
   async loadHpo(): Promise<void> {
@@ -133,29 +126,11 @@ export class HomeComponent implements OnInit {
       if (!result) return;
 
       this.ngZone.run(async () => {
-        await this.configService.saveCurrentOrcid(result);
-        await this.updateOrcid();
+        const updatedStatus = await this.configService.saveCurrentOrcid(result);
+        this.statusService.state.set(updatedStatus); 
       });
     });
   }
-
-  private async updateOrcid(): Promise<void> {
-    try {
-      const orcid = await this.configService.getCurrentOrcid();
-      this.ngZone.run(() => {
-        this.biocuratorOrcid.set(orcid);
-      });
-
-    } catch (error: unknown) {
-      this.ngZone.run(() => {
-        const errMessage =
-          'No ORCID found. Use the "Set biocurator ORCID" button to specify your research ID.';
-        this.notificationService.showError(errMessage);
-        this.biocuratorOrcid.set(null);
-      });
-    }
-  }
-
 
 
   async chooseJsonTemplateFile(): Promise<void> {

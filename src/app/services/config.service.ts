@@ -83,11 +83,6 @@ export class ConfigService {
     return await invoke<void>("reset_pt_template_path");
   }
 
-  async fetchStatus(): Promise<void> {
-    const status: StatusDto = await invoke('get_status');
-    console.log('Status received:', status);
-  }
-
 
 
   async processRightClickPhetoolsMatrix(item: string, row: number, col: number): Promise<boolean> {
@@ -276,8 +271,8 @@ export class ConfigService {
     return await invoke<string>('get_biocurator_orcid');
   }
 
-  async saveCurrentOrcid(orcid: string): Promise<void> {
-    return await invoke('save_biocurator_orcid',{
+  async saveCurrentOrcid(orcid: string): Promise<StatusDto> {
+    return await invoke<StatusDto>('save_biocurator_orcid',{
       orcid
     });
   }

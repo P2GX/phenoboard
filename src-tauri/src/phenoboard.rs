@@ -278,7 +278,6 @@ impl PhenoboardSingleton {
     }
  
     /// Get a DTO that summarizes the status of the data in the backend
-    /// The DTO is synchronized with the corresponding tscript in app/models
     pub fn get_status(&self) -> StatusDto {
         let mut status = StatusDto::default(); 
         match &self.ontology {
@@ -302,6 +301,10 @@ impl PhenoboardSingleton {
                 status.pt_template_path = String::default();
             },
         }
+        status.hpo_json_path = self.settings.get_hp_json_path().clone()
+            .unwrap_or_else(|_| "Not Initialized".to_string()); 
+        status.biocurator_orcid =self.settings.get_biocurator_orcid().clone()
+            .unwrap_or_else(|_| "Not Set".to_string());
         return status;
     }
 
@@ -622,8 +625,9 @@ impl PhenoboardSingleton {
        self.settings.get_biocurator_orcid()
     }
 
-    pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<(), String> {
-        self.settings.save_biocurator_orcid(orcid)
+    pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<StatusDto, String> {
+        self.settings.save_biocurator_orcid(orcid);
+        Ok(self.get_status())
     }
 
     pub fn get_variant_analysis(
@@ -697,24 +701,6 @@ pub fn get_all_cohort_age_strings(
         .collect();
     Ok(age_strings.into_iter().collect())
 }
-
-    pub fn get_status_dto(&self) -> StatusDto {
-        let hpo_version = match &self.ontology {
-            Some(hpo) => hpo.version().to_string(),
-            None => "not loaded".to_string(),
-        };
-        StatusDto {
-            hpo_loaded: self.ontology.is_some(),
-            hpo_version,
-            n_hpo_terms: self.ontology.as_ref()
-                .map(|o| o.len()) 
-                .unwrap_or(0),
-            pt_template_path: self.pt_template_path.clone().unwrap_or_default(),
-            pt_template_loaded: self.pt_template_path.is_some(),
-            has_error: false,
-            error_message: "".to_string(),
-        }
-    }
 
 
 }

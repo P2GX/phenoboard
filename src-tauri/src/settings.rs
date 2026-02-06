@@ -4,7 +4,7 @@
 use dirs::home_dir;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 
@@ -27,15 +27,6 @@ impl HpoCuratorSettings {
         }
     }
 
-    fn settings_directory_path() -> Result<PathBuf, String> {
-        let path = home_dir();
-        match path {
-            Some (dir_path) => Ok(dir_path),
-            None => Err(format!("Could not find home directory path"))
-        }
-    }
-
-
     pub fn set_hp_json_path(&mut self, hp_json: &str) -> Result<(), String> {
         let path = Path::new(hp_json);
         if ! path.is_file() {
@@ -54,13 +45,6 @@ impl HpoCuratorSettings {
         }
     }
 
-    pub fn hp_json_path_or_none(&self) -> Option<String> {
-        match &self.hp_json_file {
-            Some (hp_json) => Some(hp_json.clone()),
-            None => None
-        }
-    }
-
      pub fn get_biocurator_orcid(&self) -> Result<String, String> {
        match &self.orcid_id {
             Some(orcid) => Ok(orcid.clone()),
@@ -74,13 +58,6 @@ impl HpoCuratorSettings {
     }
 
 
-
-    /// Returns the path of the HPO Curator directory/settings file
-    fn settings_file_path() -> Result<PathBuf, String> {
-        let path = get_config_file()?;
-        Ok(path)
-    }
-
     pub fn load_settings() -> HpoCuratorSettings {
         let _ = ensure_config_directory();
         let path = get_config_file();
@@ -92,20 +69,20 @@ impl HpoCuratorSettings {
         if !path.exists() {
             // Write default settings if file doesn't exist
             let default_settings = HpoCuratorSettings::empty();
-            let toml_string = toml::to_string_pretty(&default_settings)
-                .expect("Could not serialize default settings");
-            fs::write(&path, toml_string).expect("Could not write settings file");
+            if let Ok(toml_string) = toml::to_string_pretty(&default_settings) {
+                let _ = fs::write(&path, toml_string);
+            }
             return default_settings;
         }
-    
-        // Read and parse existing settings
-        let mut contents = String::new();
-        File::open(&path)
-            .expect("Could not open settings file")
-            .read_to_string(&mut contents)
-            .expect("Could not read settings file");
-    
-        toml::from_str(&contents).expect("Could not parse settings TOML")
+
+        fs::read_to_string(&path)
+            .and_then(|contents| toml::from_str(&contents).map_err(|e| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+            }))
+            .unwrap_or_else(|err| {
+                eprintln!("Warning: Failed to load settings.toml: {}. Using defaults.", err);
+                HpoCuratorSettings::empty()
+            })
     }
 
     pub fn save_settings(&self) -> Result<(), String> {
