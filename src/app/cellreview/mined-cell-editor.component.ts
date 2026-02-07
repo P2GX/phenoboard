@@ -72,7 +72,7 @@ export class MinedCellEditorComponent {
   
     /* Set the onset of the indicated HPO term */
     updateOnset(term: MappedTerm, newOnset: string): void {
-      term.onset = newOnset;
+      console.log("updateOnset term=", term, "newOnset=", newOnset);
       const updatedCell: MinedCell = {
         ...this.cell(),
         mappedTermList: this.cell().mappedTermList.map(t => 
@@ -82,25 +82,31 @@ export class MinedCellEditorComponent {
       this.cellChange.emit(updatedCell);
     }
 
-    addOnsetString(term: MappedTerm): void {
-        const dialogRef = this.dialog.open(AddageComponent, {
-        width: '400px',
-        data: {  data: { existingAges: this.ageService.selectedTerms() } }
-        });
-      
-        dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-            if (result.length == 1) {
-            const onset = result[0];
-                term.onset = onset;
-            this.ageService.addSelectedTerm(onset);
-            this.emitChange();
-            } else {
-            result.forEach((r: string) => {this.ageService.addSelectedTerm(r); });
-            }
-        }
-        });
-    }
+      addOnsetString(term: MappedTerm): void {
+          const dialogRef = this.dialog.open(AddageComponent, {
+            width: '400px',
+            data: {  data: { existingAges: this.ageService.selectedTerms() } }
+            });
+        
+          dialogRef
+            .afterClosed()
+            .subscribe(result => {
+              if (!result) return;
+              if (typeof result !== 'string') {
+                // should never happen...
+                alert(`Addagecomponent did not return a string but instead: ${result} `);
+                return;
+              }
+              this.ageService.addSelectedTerm(result);
+              const updatedCell: MinedCell = {
+                ...this.cell(),
+                mappedTermList: this.cell().mappedTermList.map(t => 
+                  t.hpoId === term.hpoId ? { ...t, onset: result } : t
+                )
+              };
+              this.cellChange.emit(updatedCell);
+            });
+      }
 
 
     private emitChange(): void {

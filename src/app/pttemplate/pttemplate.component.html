@@ -326,14 +326,14 @@
 <div class="flex items-center flex-wrap gap-3 p-3 bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
   
   <div class="flex items-center gap-2 border-r pr-3 border-gray-300">
-    <button class="tool-btn btn-workflow" (click)="addNewCase()">
-      <mat-icon>person_add</mat-icon> New Case
-    </button>
+     <a routerLink="/addcase" class="tool-btn btn-workflow no-underline">
+          Add Phenopacket
+        </a>
     
     <div class="action-with-help">
-      <button class="tool-btn btn-workflow" (click)="startNewEtl()">
-        <mat-icon>table_chart</mat-icon> New ETL
-      </button>
+      <a routerLink="/tableeditor" class="tool-btn btn-workflow no-underline">
+      <mat-icon>table_chart</mat-icon> New ETL
+    </a>
       <app-help-button 
         title="Adding additional data" 
         [lines]="[

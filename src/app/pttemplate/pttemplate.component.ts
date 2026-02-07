@@ -23,6 +23,7 @@ import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
+import { RouterLink } from '@angular/router';
 
 interface Option { label: string; value: string };
 
@@ -42,19 +43,14 @@ interface Option { label: string; value: string };
     MatIconModule,
     CohortSummaryComponent,
     HelpButtonComponent,
-    CohortMetadataComponent
+    CohortMetadataComponent,
+    RouterLink
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PtTemplateComponent  {
-startNewEtl() {
-throw new Error('Method not implemented.');
-}
-addNewCase() {
-throw new Error('Method not implemented.');
-}
 
   public cohortService = inject(CohortDtoService);
   cohortData = this.cohortService.cohortData; 

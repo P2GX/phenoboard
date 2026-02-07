@@ -84,10 +84,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
   pmidForm: FormGroup;
 
- 
   diseaseData: DiseaseData | null = null;
-  /** Strings such as P3Y, Congenital onset, that have been used so far to annotate onsets etc. */
-  currentAgeStrings: string[] = [];
 
   INVISIBLE = -1;
   contextMenuColHeader: EtlColumnHeader | null = null;
@@ -156,15 +153,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (val) => this.etl_service.validateAgeEntry(val),
   };
 
-  /* These functions are more involved -- they open dialogs, combine columns, etc. (everything else) 
-    TODO
-    */
-  readonly ACTION_MAP: Partial<Record<TransformType, (colIndex: number) => void>> = {
-    // Column Type Setters
-    [TransformType.FAMILY_ID_COLUMN_TYPE]: (idx) => this.simpleColumnOp(idx, EtlColumnType.FamilyId),
-    
-  };
-
+ 
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
   editingValue: EtlCellValue | null = null;
   editingString  = '';
