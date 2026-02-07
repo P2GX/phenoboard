@@ -81,6 +81,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   public statusService = inject(AppStatusService);
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
+  diseaseDataSignal = signal<DiseaseData | null>(null);
 
   pmidForm: FormGroup;
 
@@ -219,8 +220,8 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
     });
-
-    this.checkAndImportDisease();
+    this.importCohortDiseaseData();
+    
   }
 
   /* When we open this page, the user MUST have previously initialized
@@ -266,6 +267,11 @@ export class TableEditorComponent implements OnInit, OnDestroy {
    * individuals are in rows. */
   async loadExcel(rowBased: boolean = false) {
     this.errorMessage = null;
+    const diseaseData = this.diseaseDataSignal();
+    if (! diseaseData) {
+      this.notificationService.showError("COuld not retrieve disease data. Have you loaded a cohort?");
+      return;
+    }
     try {
       const table: ColumnTableDto | null = rowBased
         ? await this.configService.loadExternalExcelRowBased()
@@ -277,6 +283,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       }
       const dto = fromColumnDto(table);
       this.etl_service.setEtlDto(dto);
+      this.etl_service.setDisease(diseaseData);
     } catch (error) {
       this.errorMessage = String(error);
       this.notificationService.showError("Could not retrieve external table");
@@ -1867,8 +1874,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
 
   importCohortDiseaseData(): void {
-    const dto = this.etl_service.etlDto();
-    if (! dto) return;
     const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
       this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
@@ -1882,8 +1887,9 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
       return;
     }
-    const diseaseData = cohort.diseaseList[0];
-    this.etl_service.setDisease(diseaseData);
+    const ddata = cohort.diseaseList[0];
+    console.log("About to set the disease data", ddata);
+    this.diseaseDataSignal.set(ddata);
     this.notificationService.showSuccess("Imported cohort data");
   }
 
@@ -1949,16 +1955,13 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   async processVariantColumn(index: number): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
-    console.log("processVariantColumn etl=", dto);
     try {
       const processed_etl = await this.configService.processAlleleColumn(dto, index);
       this.etl_service.setEtlDto(processed_etl); 
-      console.log("processVariantColumn processed_etl=", processed_etl);
     } catch (err) {
       let message = err instanceof Error ? err.message : String(err);
       message = `Could not process alleles: "${message}"`;
       this.notificationService.showError(message);
-      console.error("ERROR", message);
     }
   }
 

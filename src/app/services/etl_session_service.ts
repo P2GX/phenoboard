@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from "@angular/core";
+import { computed, inject, Injectable, signal } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from "../models/etl_dto";
 import { ConfigService } from "./config.service";
@@ -16,13 +16,7 @@ export class EtlSessionService {
   private _etlDto = signal<EtlDto | null>(null);
   // expose as computed for read-only access
   public etlDto = computed(() => this._etlDto());
-  
-
-  constructor(
-    private configService: ConfigService,
-    private ageService: AgeInputService){
-      console.log('🟡 EtlSessionService instance created');
-  }
+  private ageService = inject(AgeInputService);
 
  // private etlDtoSubject = new BehaviorSubject<EtlDto | null>(null);
   //etlDto$ = this.etlDtoSubject.asObservable();
