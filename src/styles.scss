@@ -265,3 +265,64 @@
     &.error   { @apply text-red-600; }
   }
 }
+
+/* 1. The Container: Force a strict height */
+.global-action-bar {
+  display: flex;
+  align-items: center; /* Vertical center */
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  height: 38px; /* Strict height to prevent expansion */
+  overflow: hidden; 
+}
+
+/* 2. The Button + Help Wrapper */
+.action-with-help {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 2px; /* Small gap to prevent overlap */
+}
+
+/* 3. The Help Icon: Shrink it to non-existence until needed */
+.subtle-help {
+  width: 16px; 
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  app-help-button {
+    /* Use ::ng-deep to override the internal Material button styles */
+    ::ng-deep {
+      .mat-mdc-icon-button {
+        width: 16px !important;
+        height: 16px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      mat-icon {
+        font-size: 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+        margin: 0 !important;
+        color: #94a3b8 !important; /* Light slate */
+        opacity: 0.6;
+      }
+    }
+    &:hover mat-icon { opacity: 1; color: #2563eb !important; }
+  }
+}
+
+/* 4. Fix Button Heights */
+.btn-sm {
+  height: 28px !important; /* Fixed height */
+  line-height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 12px !important;
+}

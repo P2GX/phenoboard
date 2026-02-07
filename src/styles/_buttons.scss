@@ -74,3 +74,79 @@ button.btn-outline-cancel {
     @apply bg-gray-50 text-gray-300 border-gray-200;
   }
 }
+
+/* Button with Help Utility */
+.action-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px; // Tighter gap for buttons
+  vertical-align: middle;
+
+  // Ensure the help button scales down slightly to not overpower the button
+  app-help-button {
+    transform: scale(0.85); 
+    display: flex;
+    align-items: center;
+    
+    ::ng-deep .help-trigger {
+      width: 24px !important;
+      height: 24px !important;
+      
+      mat-icon {
+        font-size: 18px !important;
+      }
+    }
+  }
+}
+
+/* Global Button Styles */
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px; /* Standardized height */
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Group 1: Blue/Workflow */
+  &.btn-workflow {
+    border-color: #2563eb;
+    color: #2563eb;
+    &:hover { background: #eff6ff; }
+  }
+
+  /* Group 2: Green/Persistence */
+  &.btn-success {
+    border-color: #16a34a;
+    color: #16a34a;
+    &:hover { background: #f0fdf4; }
+  }
+  
+  /* Group 3: Orange/Special */
+  &.btn-warning {
+    border-color: #ea580c;
+    color: #ea580c;
+    &:hover { background: #fff7ed; }
+  }
+
+  /* Disabled State */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #cbd5e1;
+    color: #64748b;
+  }
+}

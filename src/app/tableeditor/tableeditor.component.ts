@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnDestroy, OnInit, signal, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
@@ -79,7 +79,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   private helpService = inject(HelpService);
   private cohortService = inject(CohortDtoService);
   public statusService = inject(AppStatusService);
-
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
 
@@ -226,10 +225,35 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
 
    ngOnInit(): void {
-  
     this.pmidForm.valueChanges.subscribe(value => {
       console.log('Form value:', value);
     });
+
+    this.checkAndImportDisease();
+  }
+
+  /* When we open this page, the user MUST have previously initialized
+   * a Mendelian disease cohort. If this is not the case, display an error */
+  private async checkAndImportDisease() {
+    const cohort = this.cohortService.cohortData();
+    if (!cohort) {
+      this.errorMessage = "No Cohort data found. Please create or load a cohort on the Home page first.";
+      this.notificationService.showError("Missing Cohort Data");
+      return;
+    }
+    const cohortType = cohort.cohortType;
+    if (cohortType != "mendelian") {
+      this.errorMessage = "Table import only available for Mendelian cohorts.";
+      this.notificationService.showError(this.errorMessage );
+      return;
+    }
+    if (this.statusService.hpoLoaded()) {
+      await this.importCohortDiseaseData();
+    } else {
+      this.errorMessage = "HPO not loaded.";
+        this.notificationService.showError(this.errorMessage );
+        return;
+    }
   }
 
  
@@ -2248,7 +2272,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       default:                        return '❓';
     }
   }
-
 
 }
 

@@ -49,6 +49,12 @@ interface Option { label: string; value: string };
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PtTemplateComponent  {
+startNewEtl() {
+throw new Error('Method not implemented.');
+}
+addNewCase() {
+throw new Error('Method not implemented.');
+}
 
   public cohortService = inject(CohortDtoService);
   cohortData = this.cohortService.cohortData; 
@@ -394,9 +400,28 @@ export class PtTemplateComponent  {
     try {
       await this.configService.validateCohort(cohortData);
       alert("✅ Cohort successfully validated");
+      return;
     } catch (err: unknown) {
       // If the Rust command returns a ValidationErrors struct
-      alert('❌ Validation failed:\n' + JSON.stringify(err));
+      this.notificationService.showError('❌ Validation failed:\n' + JSON.stringify(err));
+      const confirm = await firstValueFrom(
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Validation Issues',
+          message: `The cohort has errors: "${err}". Would you like to automatically sanitize the data?`,
+          confirmText: 'Sanitize',
+          cancelText: 'Cancel'
+        }
+      }).afterClosed()
+    );
+    if (confirm) {
+      try {
+        await this.sanitizeCohort();
+        this.notificationService.showSuccess("Sanitization complete. You can now re-validate.");
+      } catch (sanitError) {
+        this.notificationService.showError("Sanitization failed: " + sanitError);
+      }
+    }
     }
   }
 

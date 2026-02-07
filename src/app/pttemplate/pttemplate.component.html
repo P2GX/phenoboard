@@ -320,76 +320,81 @@
         ]" />
     </div>
 </div>
+ </div>
 
- <!-- Actions -->
-<div class="flex flex-col gap-2 ml-auto">
-  <!-- First Row -->
-  <div class="flex items-center gap-3">
-    <button 
-      (click)="validateCohort()" 
-      class="px-4 py-2 text-sm rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
-    >
-      Validate
-    </button>
-    <button 
-      (click)="sanitizeCohort()" 
-      class="px-4 py-2 text-sm rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50 transition"
-    >
-      Sanitize
-    </button>
-    <button 
-      (click)="saveCohort()" 
-      class="px-4 py-2 text-sm rounded-lg border border-green-600 text-green-600 hover:bg-green-50 transition"
-    >
-      Save
-    </button>
-    <button 
-      (click)="recordBiocuration()" 
-      class="px-4 py-2 text-sm rounded-lg border border-orange-600 text-orange-600 hover:bg-orange-50 transition"
-    >
-      Record Biocuration
-    </button>
-  </div>
+
+<div class="flex items-center flex-wrap gap-3 p-3 bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
   
-  <!-- Second Row -->
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-2 border-r pr-3 border-gray-300">
+    <button class="tool-btn btn-workflow" (click)="addNewCase()">
+      <mat-icon>person_add</mat-icon> New Case
+    </button>
     
-    <button 
-      (click)="exportPpkt()" 
-      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-purple-50 transition"
-    >
-      Export phenopackets
+    <div class="action-with-help">
+      <button class="tool-btn btn-workflow" (click)="startNewEtl()">
+        <mat-icon>table_chart</mat-icon> New ETL
+      </button>
+      <app-help-button 
+        title="Adding additional data" 
+        [lines]="[
+          '<b>New Case:</b> Add a new individual (e.g., case report).',
+          '<b>New ETL:</b> Add ETL cohort'
+        ]" 
+        helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+      />
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 border-r pr-3 border-gray-300">
+    <button class="tool-btn btn-workflow" (click)="validateCohort()">
+      <mat-icon>health_and_safety</mat-icon> Check & Fix
     </button>
-    <button 
-      (click)="exportHpoa()" 
-      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
-    >
-      Export Hpoa
+
+    <div class="action-with-help">
+      <button class="tool-btn btn-workflow" (click)="sortCohortRows()" matTooltip="Sort rows chronologically">
+        <mat-icon>sort</mat-icon> Sort
+      </button>
+      <app-help-button 
+        title="Editing cohort data" 
+        [lines]="[
+          '<b>Check & Fix:</b> Validate data (and offer chance to fix if desired).',
+          '<b>Sort rows:</b> Sort rows of cohort chronologically according to PMID'
+        ]" 
+        helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+      />
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button class="tool-btn btn-success" (click)="saveCohort()">
+      <mat-icon>save</mat-icon> Save
     </button>
-     <button 
-      (click)="sortCohortRows()" 
-      class="px-4 py-2 text-sm rounded-lg border border-purple-600 text-purple-600 hover:bg-pink-50 transition"
-      matTooltip="Sort the cohort rows (oldest to newest)"
-      matTooltipPosition="above"   
-      matTooltipShowDelay="50" 
-      matTooltipHideDelay="200"    
-    >
-      Sort rows
+    
+    <button class="tool-btn btn-success" (click)="exportPpkt()">
+      <mat-icon>description</mat-icon> Phenopackets
     </button>
-    <div class="flex items-center gap-3">
+
+    <button class="tool-btn btn-success" (click)="exportHpoa()">
+      <mat-icon>assignment</mat-icon> HPOA
+    </button>
+
+    <button class="tool-btn btn-warning" (click)="recordBiocuration()">
+      <mat-icon>fingerprint</mat-icon> Biocuration
+    </button>
+
     <app-help-button 
       title="Cohort Action Guide"
       [lines]="[
-        '<b>Validate:</b> Checks for missing HPO terms or invalid age formats.',
-        '<b>Sanitize:</b> Cleans up errors identified by <b>Validate</b>.',
         '<b>Save:</b> Saves current cohort as JSON file.',
-        '<b>Biocuration:</b> Adds current ORCID id to the cohort file.',
-        '<b>Export phenopackets:</b> Generates Phenopackets (one for each individual in the cohort).',
-        '<b>Exoirt HPOA:</b>: Generates HPOA files (annotation files used internally by the HPO team).',
-        '<b>Sort:</b> Reorders rows chronologically by PMID.'
-      ]" />
+         '<b>Phenopackets:</b> Exports current cohort as collection of phenopacket files.',
+         '<b>HPOA:</b> Exports current cohort as an HPO annotation file.',
+        '<b>Biocuration:</b>Adds current ORCID id to the cohort file.',
+       
+      ]" 
+      helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+    />
   </div>
-  </div>
+
 </div>
 </div>
 

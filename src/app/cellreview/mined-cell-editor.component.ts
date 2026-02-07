@@ -70,10 +70,16 @@ export class MinedCellEditorComponent {
     }
   
   
-
+    /* Set the onset of the indicated HPO term */
     updateOnset(term: MappedTerm, newOnset: string): void {
-        term.onset = newOnset;
-        this.emitChange();
+      term.onset = newOnset;
+      const updatedCell: MinedCell = {
+        ...this.cell(),
+        mappedTermList: this.cell().mappedTermList.map(t => 
+          t.hpoId === term.hpoId ? { ...t, onset: newOnset } : t
+        )
+      };
+      this.cellChange.emit(updatedCell);
     }
 
     addOnsetString(term: MappedTerm): void {
