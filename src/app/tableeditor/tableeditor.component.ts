@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import {  HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
+import { HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
 import { ColumnDto, ColumnTableDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -110,15 +110,18 @@ export class TableEditorComponent implements OnInit, OnDestroy {
 
   editModalPosition: OverlayPosition | null = null;
 
-
-
+  // The following mark columns for merging 
+  colAforMerge = signal<number | null>(null);
+  colBforMerge = signal<number | null>(null);
   contextMenuCellRow: number | null = null;
   contextMenuCellCol: number | null = null;
   contextMenuCellValue: EtlCellValue | null = null;
   contextMenuCellType: EtlColumnType | null = null;
 
-
-
+  // For undoing the merge op
+  private lastSnapshot = signal<any[] | null>(null);
+  undoVisible = signal(false);
+  mergeSeparator = signal<string>(' ');
 
   columnTypeCategories: TransformType[] = [
     TransformType.RAW_COLUMN_TYPE,
@@ -195,7 +198,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     [TransformType.DELETE_COLUMN]: (colIndex) => { this.deleteColumn(colIndex); },
     [TransformType.DUPLICATE_COLUMN]: (colIndex) => { this.duplicateColumn(colIndex); },
     [TransformType.CONSTANT_COLUMN]: (colIndex) => { this.addConstantColumn(colIndex); },
-    [TransformType.MERGE_INDIVIDUAL_FAMILY]: (colIndex) => { this.mergeIndividualAndFamilyColumns(); },
     [TransformType.RAW_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.FamilyId); },
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
@@ -547,7 +549,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     } catch {
       this.notificationService.showError("could not get HPO match");
     }
-
     // Ask user to confirm/select HPO term
     const selectedTerm: HpoTermDuplet = await firstValueFrom(
       this.dialog.open(HpoDialogWrapperComponent, {
@@ -1243,7 +1244,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         TransformType.DELETE_COLUMN,
         TransformType.DUPLICATE_COLUMN,
         TransformType.CONSTANT_COLUMN,
-        TransformType.MERGE_INDIVIDUAL_FAMILY,
         TransformType.SPLIT_COLUMN,
       ]
     }
@@ -1272,7 +1272,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       [TransformType.DELETE_COLUMN]: 'Delete column',
       [TransformType.DUPLICATE_COLUMN]: 'Duplicate column',
       [TransformType.CONSTANT_COLUMN]: 'Add constant column',
-      [TransformType.MERGE_INDIVIDUAL_FAMILY]: 'Merge individual and family columns',
       [TransformType.RAW_COLUMN_TYPE]: 'Raw',
       [TransformType.FAMILY_ID_COLUMN_TYPE]: 'Family ID',
       [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
@@ -1515,9 +1514,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       case TransformType.CONSTANT_COLUMN:
         this.addConstantColumn(colIndex);
         return;
-      case TransformType.MERGE_INDIVIDUAL_FAMILY:
-        this.mergeIndividualAndFamilyColumns();
-        return;
       case TransformType.ONSET_AGE:
       case TransformType.LAST_ENCOUNTER_AGE:
       case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
@@ -1625,75 +1621,73 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     this.etl_service.updateColumns(newColumns);
   }
 
-  async mergeIndividualAndFamilyColumns(): Promise<void> {
+  async executeMerge(): Promise<void> {
+    const idxA = this.colAforMerge();
+    const idxB = this.colBforMerge();
     const dto = this.etl_service.etlDto();
-    if (!dto) return;
 
+    if (idxA === null || idxB === null || !dto) {
+      this.notificationService.showError("Could not merge columns - Be sure to set both column A and B")
+      return;
+    }
+    this.lastSnapshot.set([...dto.table.columns]);
+    const sep = this.mergeSeparator();
     try {
-      const famIdx = await this.getEtlColumnIndex(EtlColumnType.FamilyId);
-      const indIdx = await this.getEtlColumnIndex(EtlColumnType.PatientId);
-      if (famIdx < 0 || indIdx < 0) {
-        this.notificationService.showError(
-          "Could not locate FamilyId or PatientId column"
-        );
-        return;
-      }
-      const famCol = dto.table.columns[famIdx];
-      const indCol = dto.table.columns[indIdx];
-
-      if (famCol.values.length !== indCol.values.length) {
-        this.notificationService.showError(
-          "Family and patient columns have different lengths"
-        );
-        return;
-      }
-
-      const mergedIndColumn = {
-        ...indCol,
+      const colA = dto.table.columns[idxA];
+      const colB = dto.table.columns[idxB];
+      const mergedColumn = {
+        ...colA,
         header: {
-          ...indCol.header,
-          columnType: EtlColumnType.PatientId
+          ...colA.header,
+          label: `${colA.header.original}_merged`,
+          columnType: EtlColumnType.Raw // Reset so user can re-classify the merged result
         },
-        values: indCol.values.map((cell, i) => {
-          const fam = famCol.values[i]?.original ?? '';
-          const ind = cell.original ?? '';
-          const merged = `${fam} ${ind}`.trim();
-
+        values: colA.values.map((cell, i) => {
+          const valA = cell.original ?? '';
+          const valB = colB.values[i]?.original ?? '';
           return {
             ...cell,
-            current: merged,
-            status: EtlCellStatus.Transformed,
-            errorMessage: undefined
+            original: `(A) ${valA} ${sep} (B) ${valB}`.trim(),
+            status: EtlCellStatus.Transformed
           };
         })
       };
+      // Build the new column array:
+      // 1. Remove both old columns
+      // 2. Insert the merged one at the position of A
+      let newColumns = [...dto.table.columns];
+      
+      // We remove the higher index first so the lower index remains stable
+      const firstToRemove = Math.max(idxA, idxB);
+      const secondToRemove = Math.min(idxA, idxB);
+      
+      newColumns.splice(firstToRemove, 1);
+      newColumns.splice(secondToRemove, 1);
+    
+      // Insert merged column at the original position of A (or adjusted)
+      const insertIdx = idxA > firstToRemove ? idxA - 1 : (idxA > secondToRemove ? idxA - 1 : idxA);
+      newColumns.splice(insertIdx, 0, mergedColumn);
 
-      // Remove FamilyId column and replace PatientId column
-      let newColumns = dto.table.columns
-        .filter((_, i) => i !== famIdx)
-        .map((col, i) =>
-          i === (indIdx > famIdx ? indIdx - 1 : indIdx)
-            ? mergedIndColumn
-            : col
-        );
-
-      // Move merged PatientId column to first position
-      const mergedIdx = newColumns.findIndex(
-        c => c.header.columnType === EtlColumnType.PatientId
-      );
-
-      if (mergedIdx > 0) {
-        const [col] = newColumns.splice(mergedIdx, 1);
-        newColumns.unshift(col);
-      }
-
-      // Commit update
       this.etl_service.updateColumns(newColumns);
+    
+      // Success & Reset
+      this.notificationService.showSuccess("Columns merged successfully");
+      this.colAforMerge.set(null);
+      this.colBforMerge.set(null);
+      this.undoVisible.set(true);
+      setTimeout(() => this.undoVisible.set(false), 10000);
 
     } catch (e) {
-      this.notificationService.showError(
-        "Could not merge family/id columns: " + String(e)
-      );
+      this.notificationService.showError("Merge failed: " + String(e));
+    }
+  }
+  undoMerge(): void {
+    const snapshot = this.lastSnapshot();
+    if (snapshot) {
+      this.etl_service.updateColumns(snapshot);
+      this.lastSnapshot.set(null);
+      this.undoVisible.set(false);
+      this.notificationService.showSuccess("Merge undone.");
     }
   }
 

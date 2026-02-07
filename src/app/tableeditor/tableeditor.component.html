@@ -89,19 +89,84 @@
 
 @if(this.etl_service.etlDto()) {
 <div class="pt-table-container">
+  <div class="merge-undo-container mb-4">
+    <div class="fixed top-20 left-4 z-[100] pointer-events-none">
+  
+  @if ((colAforMerge() !== null && colBforMerge() !== null) && !undoVisible()) {
+    <div class="pointer-events-auto flex items-center gap-4 p-3 bg-indigo-600 text-white rounded-lg shadow-2xl border border-indigo-400 animate-in slide-in-from-left-4 w-[350px]">
+      
+      <div class="flex-shrink-0">
+        <mat-icon class="block">call_merge</mat-icon>
+      </div>
+
+      <div class="flex-grow">
+        <div class="text-[10px] uppercase tracking-wider font-bold opacity-80">Merge Staged</div>
+        <div class="text-xs font-mono">
+          A:{{colAforMerge()! + 1}} <span class="opacity-50">→</span> B:{{colBforMerge()! + 1}}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="flex gap-1">
+          <select 
+            [value]="mergeSeparator()" 
+            (change)="mergeSeparator.set($any($event.target).value)"
+            class="bg-indigo-700 border-none rounded text-[10px] p-1 outline-none text-white">
+            <option value=" ">Space</option>
+            <option value=" and ">and</option>
+            <option value="-">-</option>
+            <option value="">None</option>
+          </select>
+          <button (click)="executeMerge()" 
+                  [disabled]="colAforMerge() === null || colBforMerge() === null"
+                  class="bg-white text-indigo-600 px-2 py-1 rounded text-[10px] font-bold hover:bg-indigo-50 disabled:bg-indigo-400 disabled:text-indigo-200">
+            Merge
+          </button>
+        </div>
+        <button (click)="colAforMerge.set(null); colBforMerge.set(null)" 
+                class="text-[10px] text-indigo-200 hover:text-white text-right underline">
+          Cancel
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (undoVisible()) {
+    <div class="pointer-events-auto flex items-center gap-4 p-3 bg-amber-500 text-white rounded-lg shadow-2xl animate-in slide-in-from-left-4">
+       <mat-icon>history</mat-icon>
+       <div class="text-xs font-bold">Merge Complete</div>
+       <button (click)="undoMerge()" class="bg-white text-amber-600 px-2 py-1 rounded text-[10px] font-bold">Undo</button>
+       <button (click)="undoVisible.set(false)" class="text-[10px] opacity-80">Dismiss</button>
+    </div>
+  }
+</div>
+</div>
 <table class="pt-table">
    <!-- ===== HEADER ROW ===== -->
   <tr>
     @for(col of this.etl_service.columns(); track $index; let i = $index){
-    <th [ngClass]="
-          etl_service.transformedColumns()[i]
-            ? 'transformed-column'
-            : i === visibleColIndex
-              ? 'visible-column'
-              : 'normal-column'
-        "
+      <th [ngClass]="{
+          'transformed-column': etl_service.transformedColumns()[i],
+          'visible-column': i === visibleColIndex,
+          'normal-column': i !== visibleColIndex && !etl_service.transformedColumns()[i],
+          'bg-blue-50 border-blue-400': colAforMerge() === i,
+          'bg-orange-50 border-orange-400': colBforMerge() === i
+        }"
+        class="relative"
         (contextmenu)="onRightClickHeader($event, i)">
+      
       {{ col.header.original }}
+
+      @if (colAforMerge() === i) {
+        <span class="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] px-1 font-bold rounded-bl shadow-sm">
+          A
+        </span>
+      }
+      @if (colBforMerge() === i) {
+        <span class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] px-1 font-bold rounded-bl shadow-sm">
+          B
+        </span>
+      }
     </th>
 }
 </tr>
@@ -205,7 +270,22 @@
     }
   </ul>
 </li>
+<li class="has-submenu">
+  Merge Columns ▸
+   <ul class="submenu">
+    <li (click)="colAforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
+      Mark as Column A (Merge)
+    </li>
+    <li (click)="colBforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
+      Mark as Column B (Merge)
+    </li>
+     <li (click)="executeMerge(); columnContextMenuVisible = false">
+      Merge columns A and B
+    </li>
+   </ul>
+</li>
   </ul>
+
 </div>
 }
   @if (contextMenuCellVisible) {

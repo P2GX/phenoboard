@@ -108,11 +108,6 @@ export class MinedCellEditorComponent {
             });
       }
 
-
-    private emitChange(): void {
-        this.cellChange.emit({ ...this.cell() });
-    }
-
    
  
 }

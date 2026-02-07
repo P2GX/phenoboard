@@ -179,7 +179,7 @@ export class PtTemplateComponent  {
       ageAtLastEncounter: row.individualData.ageAtLastEncounter,
       deceased: row.individualData.deceased,
       sex: row.individualData.sex,
-      hasObservedHpo: row.hpoData.some(c => c.type === 'Observed'),
+      hasObservedHpo: row.hpoData.some(c => c.type === 'Observed' || c.type === 'OnsetAge'),
       alleleCountMap: { ...row.alleleCountMap }, 
       alleles: alleles,
       hpoCells: hpoCells,

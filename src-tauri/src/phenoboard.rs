@@ -140,6 +140,16 @@ impl PhenoboardSingleton {
     /// We want to get the single best match of any HPO term label to the query string
     pub fn get_best_hpo_match(&self, query: String) -> Option<HpoMatch> {
         let matcher = SkimMatcherV2::default();
+        let query_lower = query.to_lowercase();
+        // First, prioritize exact matches
+        let exact_match = self.hpo_auto_complete
+            .iter()
+            .find(|item| item.matched_text.to_lowercase() == query_lower);
+
+        if let Some(item) = exact_match {
+            return Some(item.clone());
+        }
+        // Otherwise, try to get a good fuzzy match
         self.hpo_auto_complete
             .iter()
             .filter_map(|item| {

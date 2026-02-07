@@ -8,9 +8,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common'; 
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
-import { EMPTY } from 'rxjs';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { HpoMatch } from '../models/hpo_mapping_result';
 
 

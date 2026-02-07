@@ -18,9 +18,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ConfigService } from '../services/config.service';
 import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '../services/config.service';
 
 
 /// symbols for not applicable or unknown status
@@ -56,7 +56,7 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
 })
 export class MultiHpoComponent {
   readonly concepts = signal<MiningConcept[]>([]);
-
+  private configService = inject(ConfigService);
   // Track which row indices are currently showing the search input field
   searchingIndices = new Set<number>();
   private dialogRef = inject(MatDialogRef<MultiHpoComponent>);
@@ -76,8 +76,6 @@ export class MultiHpoComponent {
       }));
 
     this.concepts.set(processed);
-        console.log("MultiHpoComponent CTOR")
-
   }
 
   
@@ -200,7 +198,7 @@ removeConcept(index: number) {
     this.searchingIndices.add(index);
   }
 
-  private executeSplit(index: number, delimiter: string): void {
+  private async executeSplit(index: number, delimiter: string): Promise<void> {
     const currentList = this.concepts();
     const concept = currentList[index];
 
@@ -215,8 +213,19 @@ removeConcept(index: number) {
       );
      
       // 2. Generate the new row objects
-      const newConcepts: MiningConcept[] = parts.map(p => {
-        const alreadyKnownTerms = knowledgeMap.get(p.toLowerCase()) || [];
+      const newConcepts: MiningConcept[] = await Promise.all(parts.map(async p => {
+        const lowerP = p.toLowerCase();
+        let alreadyKnownTerms = knowledgeMap.get(lowerP) || [];
+        if (alreadyKnownTerms.length === 0) {
+          try {
+            const bestMatch = await this.configService.getBestHpoMatch(p);
+            if (bestMatch) {
+              alreadyKnownTerms = [bestMatch];
+            }
+          } catch (e) {
+          console.error(`Could not fetch best match for ${p}`, e);
+        }
+      }
         
         return {
           ...concept,  
@@ -225,7 +234,7 @@ removeConcept(index: number) {
           miningStatus: alreadyKnownTerms.length > 0 ? MiningStatus.Confirmed : MiningStatus.Pending,
           onsetString: null       
         };
-      });
+      }));
 
       // 3. Update the Signal
       this.concepts.update(old => {
