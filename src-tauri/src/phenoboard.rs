@@ -636,7 +636,7 @@ impl PhenoboardSingleton {
     }
 
     pub fn save_biocurator_orcid(&mut self, orcid: String) -> Result<StatusDto, String> {
-        self.settings.save_biocurator_orcid(orcid);
+        self.settings.save_biocurator_orcid(orcid)?;
         Ok(self.get_status())
     }
 
@@ -647,13 +647,15 @@ impl PhenoboardSingleton {
         ga4ghphetools::variant::analyze_variants(cohort_dto)
     }
 
-    pub fn process_allele_column(
+    pub fn process_allele_column<F>(
         &self,
         etl: EtlDto,
-        col: usize
-    ) -> Result<EtlDto, String> {
+        col: usize,
+        progress_cb: F
+    ) -> Result<EtlDto, String> where F: FnMut(u32, u32) {
+   
         match &self.ontology {
-            Some(hpo) =>  ga4ghphetools::etl::process_allele_column(hpo.clone(),etl, col),
+            Some(hpo) =>  ga4ghphetools::etl::process_allele_column(hpo.clone(),etl, col, progress_cb),
             None => Err("HPO not initialized".to_string()),
         }
        

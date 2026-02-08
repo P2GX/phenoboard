@@ -859,3 +859,27 @@ button {
 .btn-primary {
   @apply bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm;
 }
+
+.progress-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 12px auto;
+}
+
+.progress {
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 20px;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  transition: width 0.3s ease;
+}
+

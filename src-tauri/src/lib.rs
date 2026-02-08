@@ -9,9 +9,9 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
-use tauri::{AppHandle, Emitter, Manager, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, Window, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
+use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -737,15 +737,39 @@ async fn get_variant_analysis(
     singleton.get_variant_analysis(cohort_dto)
 }
 
+
+#[derive(Clone, serde::Serialize)]
+struct ProgressPayload {
+    current: u32,
+    total: u32,
+}
+
+/// Check all alleles in an ETL column and emit signals to show progress.
 #[tauri::command]
-fn process_allele_column(
+async fn process_allele_column(
     state: tauri::State<'_, Arc<AppState>>,
+    window: Window,
     etl: EtlDto,
     col: usize
 ) -> Result<EtlDto, String> {
-    let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    singleton.process_allele_column(etl, col)
+    let app_handle = state.inner().clone();
+    if col >= etl.table.columns.len() {
+        return Err(format!("Attempt to access invalid column {} for table with {} columns", col, etl.table.columns.len()));
+    }
+    // Move work to background task so we can still send emits to front-end!
+    tokio::task::spawn_blocking(move || {
+        let singleton = app_handle.phenoboard.lock()
+            .map_err(|_| "Failed to acquire lock".to_string())?;
+        let total_alleles = etl.table.columns[col].values.len() as u32;
+        let pb = |current: u32, q: u32| {
+            let _ = window.emit("progress-update", ProgressPayload { 
+                current, 
+                total: total_alleles 
+            });
+        };
+
+    singleton.process_allele_column(etl, col, pb)
+    }).await.map_err(|e| e.to_string())?
 }
 
 /// This command creates a CohortData object from the current EtlDto and should

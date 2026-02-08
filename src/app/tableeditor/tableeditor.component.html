@@ -8,7 +8,7 @@
             'Users should transform the table column by column.',
             'You can save and load the external templates in multiple sessions. These JSON files should not be stored long-term (or checked into GitHub).'
           ]"
-          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html" />
+          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#excel-import" />
      </div>
 </div>
 
@@ -17,14 +17,14 @@
   
   <div class="action-group flex items-center gap-1 border-r pr-2 mr-1 border-slate-300">
     <div class="action-with-help">
-    <button class="btn-sm btn-outline-primary" (click)="loadExcel(false)">📂 Excel (Cols)</button>
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(false)" [disabled]="!diseaseDataSignal()">📂 Excel (Cols)</button>
     <div class="subtle-help">
         <app-help-button title="Excel (column-based)" 
         [lines]="['Import an excel file in which each individual is represented by a column.']" />
       </div>
     </div>
     <div class="action-with-help">
-    <button class="btn-sm btn-outline-primary" (click)="loadExcel(true)">📂 Excel (Rows)</button>
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(true)" [disabled]="!diseaseDataSignal()">📂 Excel (Rows)</button>
  <div class="subtle-help">
         <app-help-button title="Excel (row-based)" 
         [lines]="['Import an excel file in which each individual is represented by a row.']" />
@@ -34,30 +34,33 @@
 
   <div class="action-group flex items-center gap-1 border-r pr-2 mr-1 border-slate-300">
      <div class="action-with-help">
-    <button class="btn-sm btn-outline-primary" (click)="saveExternalTemplateJson()">💾 Save ETL</button>
+    <button class="btn-sm btn-outline-primary" (click)="saveExternalTemplateJson()" [disabled]="!etl_service.etlDto()">💾 Save ETL</button>
         <div class="subtle-help">
         <app-help-button title="Save ETL file" 
-        [lines]="['Save the current extract-transform-load (ETL) file as JSON.']" />
+        [lines]="['Save the current extract-transform-load (ETL) file as JSON.']" 
+        helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#saving-and-loading-etl-files"/>
       </div>
     </div>
     
     <div class="action-with-help">
       <button class="btn-sm btn-outline-primary" (click)="loadExternalTemplateJson()">📥 Load ETL</button>
       <div class="subtle-help">
-        <app-help-button title="Load" [lines]="['Load an extract-transform-load (ETL) JSON file']" />
+        <app-help-button title="Load" [lines]="['Load an extract-transform-load (ETL) JSON file']"
+         helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#saving-and-loading-etl-files" />
       </div>
     </div>
   </div>
   <div class="action-group flex items-center gap-1">
       <div class="action-with-help">
-    <button class="btn-sm btn-outline-primary" (click)="openPubmedDialog()">🔍 PubMed</button>
+    <button class="btn-sm btn-outline-primary" (click)="openPubmedDialog()" [disabled]="!etl_service.etlDto()">🔍 PubMed</button>
       <div class="subtle-help">
-        <app-help-button title="Load" [lines]="['Assign the PMID of the article from which the ETL data came.']" />
+        <app-help-button title="Load" [lines]="['Assign the PMID of the article from which the ETL data came.']"
+          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#pmid" /> />
       </div>
     </div>
     <div class="action-with-help">
-    <button class="btn-primary btn-sm" 
-      (click)="addToCohortData()">✨ Add to Cohort</button>
+    <button class="btn-outline-primary btn-sm" 
+      (click)="addToCohortData()" [disabled]="!etl_service.etlDto()">✨ Add to Cohort</button>
         <div class="subtle-help">
           <app-help-button title="Load" [lines]="['Add data from the ETL file to current cohort']" />
       </div>
@@ -84,6 +87,23 @@
 @if (!this.etl_service.etlDto()) {
   <div>
     <p>No table loaded yet.</p>
+  </div>
+}
+
+@if (isProcessing()) {
+  <div class="progress-container">
+    <div class="progress" style="height: 20px;">
+      <div 
+        class="progress-bar progress-bar-striped progress-bar-animated" 
+        role="progressbar" 
+        [style.width.%]="statusService.progress()" 
+        [attr.aria-valuenow]="statusService.progress()" 
+        aria-valuemin="0" 
+        aria-valuemax="100">
+        {{ statusService.progress() }}%
+      </div>
+    </div>
+    <p class="text-center mt-2">Validating variants...</p>
   </div>
 }
 

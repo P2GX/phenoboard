@@ -27,8 +27,6 @@ export enum TransformType {
   INDIVIDUAL_ID_COLUMN_TYPE="INDIVIDUAL_ID_COLUMN_TYPE",
   GENE_SYMBOL_COLUMN_TYPE="GENE_SYMBOL_COLUMN_TYPE",
   DISEASE_COLUMN_TYPE="DISEASE_COLUMN_TYPE",
-  AGE_OF_ONSET_COLUMN_TYPE="AGE_OF_ONSET_COLUMN_TYPE",
-  AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE="AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE",
   SEX_COLUMN_TYPE="SEX_COLUMN_TYPE",
   DECEASED_COLUMN_TYPE="DECASED_COLUMN_TYPE",
   IGNORE_COLUMN_TYPE="IGNORE_COLUMN_TYPE"
@@ -59,8 +57,6 @@ export const TransformLabels: Record<TransformType, string> = {
   [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
   [TransformType.GENE_SYMBOL_COLUMN_TYPE]: 'Gene symbol',
   [TransformType.DISEASE_COLUMN_TYPE]: 'Disease',
-  [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: 'Age of onset',
-  [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: 'Age at last encounter',
   [TransformType.SEX_COLUMN_TYPE]: 'Sex',
   [TransformType.DECEASED_COLUMN_TYPE]: 'Deceased',
   [TransformType.IGNORE_COLUMN_TYPE]: 'Ignore',
@@ -110,7 +106,6 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: EtlColumnType.PatientId,
     [TransformType.GENE_SYMBOL_COLUMN_TYPE]: EtlColumnType.GeneSymbol,
     [TransformType.DISEASE_COLUMN_TYPE]: EtlColumnType.Disease,
-    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: EtlColumnType.AgeOfOnset,
     [TransformType.ONSET_AGE]: EtlColumnType.AgeOfOnset,
     [TransformType.SEX_COLUMN_TYPE]: EtlColumnType.Sex,
     [TransformType.SEX_COLUMN]: EtlColumnType.Sex,
@@ -119,7 +114,6 @@ export const columnTypeColors: ColumnTypeColorMap = {
     [TransformType.ONSET_AGE_ASSUME_YEARS]: EtlColumnType.AgeOfOnset,
     [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: EtlColumnType.AgeAtLastEncounter,
     [TransformType.LAST_ENCOUNTER_AGE]: EtlColumnType.AgeAtLastEncounter,
-    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: EtlColumnType.AgeAtLastEncounter,
   };
 
 

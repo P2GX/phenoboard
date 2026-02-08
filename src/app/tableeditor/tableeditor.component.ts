@@ -82,6 +82,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
   diseaseDataSignal = signal<DiseaseData | null>(null);
+  readonly isProcessing = signal<boolean>(false);
 
   pmidForm: FormGroup;
 
@@ -130,7 +131,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     TransformType.INDIVIDUAL_ID_COLUMN_TYPE,
     TransformType.GENE_SYMBOL_COLUMN_TYPE,
     TransformType.DISEASE_COLUMN_TYPE,
-    TransformType.AGE_OF_ONSET_COLUMN_TYPE,
     TransformType.SEX_COLUMN_TYPE,
     TransformType.DECEASED_COLUMN_TYPE,
     TransformType.IGNORE_COLUMN_TYPE
@@ -153,8 +153,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
     [TransformType.FAMILY_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
     [TransformType.DECEASED_COLUMN_TYPE]: (val) => this.etl_service.parseDeceasedColumn(val),
-    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (val) => this.etl_service.validateAgeEntry(val),
-    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (val) => this.etl_service.validateAgeEntry(val),
   };
 
  
@@ -204,12 +202,10 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
     [TransformType.GENE_SYMBOL_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.GeneSymbol); },
     [TransformType.DISEASE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Disease); },
-    [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: (colIndex: number) => { this.transformColumnElementwise(colIndex, TransformType.AGE_OF_ONSET_COLUMN_TYPE); },
     [TransformType.SEX_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Sex); },
     [TransformType.DECEASED_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Deceased); },
     [TransformType.IGNORE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Ignore); },
     [TransformType.REMOVE_WHITESPACE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
-    [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: (colIndex: number) => { this.transformColumnElementwise(colIndex, TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE); },
     [TransformType.ANNOTATE_VARIANTS]: (colIndex: number) => { this.annotateVariants(colIndex); }
 
   };
@@ -225,7 +221,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   }
 
   /* When we open this page, the user MUST have previously initialized
-   * a Mendelian disease cohort. If this is not the case, display an error */
+   * a Mendelian disease cohort. If this is not the case, display an error 
   private async checkAndImportDisease() {
     const cohort = this.cohortService.cohortData();
     if (!cohort) {
@@ -247,7 +243,7 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         return;
     }
   }
-
+*/
  
 
 
@@ -993,8 +989,19 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   async annotateVariants(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (dto == null) return;
-    const new_dto = await this.configService.processAlleleColumn(dto, colIndex);
-    this.etl_service.setEtlDto(new_dto);
+    this.isProcessing.set(true);
+    this.statusService.progress.set(1);
+    // Give the UI thread a moment to render the progress bar
+    await new Promise(resolve => setTimeout(resolve, 20));
+    try {
+      const new_dto = await this.configService.processAlleleColumn(dto, colIndex);
+      this.etl_service.setEtlDto(new_dto);
+    } catch(error) {
+      const errMsg = String(error);
+      this.notificationService.showError(errMsg);
+    } finally {
+      this.isProcessing.set(false);
+    }
   }
 
 
@@ -1206,9 +1213,11 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         TransformType.INDIVIDUAL_ID_COLUMN_TYPE,
         TransformType.FAMILY_ID_COLUMN_TYPE,
         TransformType.SEX_COLUMN,
+         TransformType.ONSET_AGE,
+        TransformType.ONSET_AGE_ASSUME_YEARS,
+        TransformType.LAST_ENCOUNTER_AGE,
+        TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS,
         TransformType.DECEASED_COLUMN_TYPE,
-        TransformType.AGE_OF_ONSET_COLUMN_TYPE,
-        TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE,
       ]
     },
     {
@@ -1220,15 +1229,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         TransformType.TO_LOWERCASE,
         TransformType.EXTRACT_NUMBERS,
         TransformType.REPLACE_UNIQUE_VALUES,
-      ]
-    },
-    {
-      label: 'Age Transforms',
-      transforms: [
-        TransformType.ONSET_AGE,
-        TransformType.ONSET_AGE_ASSUME_YEARS,
-        TransformType.LAST_ENCOUNTER_AGE,
-        TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS
       ]
     },
     {
@@ -1284,11 +1284,9 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: 'Individual ID',
       [TransformType.GENE_SYMBOL_COLUMN_TYPE]: 'Gene symbol',
       [TransformType.DISEASE_COLUMN_TYPE]: 'Disease',
-      [TransformType.AGE_OF_ONSET_COLUMN_TYPE]: 'Age of onset',
       [TransformType.SEX_COLUMN_TYPE]: 'Sex',
       [TransformType.DECEASED_COLUMN_TYPE]: 'Deceased',
       [TransformType.IGNORE_COLUMN_TYPE]: 'Ignore',
-      [TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE]: 'Age at last encounter',
       [TransformType.ANNOTATE_VARIANTS]: 'Annotate variants'
     };
     return displayNames[transform] || transform;
@@ -1300,8 +1298,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     if (! dto) return;
     const col = dto.table.columns[colIndex];
     if (!col || !col.values) return;
-    const newColumnns = 
-
     col.values.forEach(cell => {
       const original = cell.original ?? '';
       let transformed: string | undefined;
@@ -1594,7 +1590,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       if (i !== colIndex) return col; // leave other columns unchanged
       const newValues = col.values.map(cell => this.getNewCellValue(cell, transform));
       switch (transform) {
-        case TransformType.AGE_AT_LAST_ENCOUNTER_COLUMN_TYPE:
         case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
         case TransformType.LAST_ENCOUNTER_AGE:
           const newHeader = {
@@ -1606,7 +1601,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
             header: newHeader,
             values: newValues
            };
-        case TransformType.AGE_OF_ONSET_COLUMN_TYPE:
         case TransformType.ONSET_AGE:
         case TransformType.ONSET_AGE_ASSUME_YEARS:
           const newHeader2 = {
@@ -1876,7 +1870,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
   importCohortDiseaseData(): void {
     const cohort = this.cohortService.getCohortData();
     if (cohort == null) {
-      this.notificationService.showError("Attempt to import DiseaseData from cohort but cohort was null");
       return;
     }
     if (cohort.cohortType != 'mendelian') {
@@ -1888,7 +1881,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
       return;
     }
     const ddata = cohort.diseaseList[0];
-    console.log("About to set the disease data", ddata);
     this.diseaseDataSignal.set(ddata);
     this.notificationService.showSuccess("Imported cohort data");
   }

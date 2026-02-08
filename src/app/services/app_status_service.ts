@@ -17,10 +17,13 @@ export class AppStatusService {
   // Derived UI states
   readonly hpoLoading = signal<boolean>(false);
   readonly hpoLoaded = computed(() => this.state().hpoLoaded);
+  progress = signal<number>(0);
+  
 
   constructor() {
     this.init();
     this.setupListeners();
+    this.listen_alleles();
   }
 
   private async init() {
@@ -30,6 +33,17 @@ export class AppStatusService {
      } catch (err) {
       console.error("Failed to fetch initial backend status", err);
     }
+  }
+
+  private async listen_alleles() {
+    await listen("progress-update", (event) => {
+      const {current, total} = event.payload as {current: number, total: number};
+      const percent = Math.round((current / total) * 100);
+      this.ngZone.run(() => {
+        this.progress.set(percent)
+      });
+       ;
+    });
   }
 
   private async setupListeners() {

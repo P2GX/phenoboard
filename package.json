@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.5.99",
+  "version": "0.5.100",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -24,16 +24,16 @@
     "@angular/platform-browser": "^20.0.6",
     "@angular/platform-browser-dynamic": "^20.0.6",
     "@angular/router": "^20.0.6",
-    "@tauri-apps/api": "^2.5.0",
-    "@tauri-apps/plugin-dialog": "^2.4.0",
-    "@tauri-apps/plugin-fs": "^2.4.2",
-    "@tauri-apps/plugin-opener": "2.5.0",
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
+    "@tauri-apps/plugin-fs": "^2.4.5",
+    "@tauri-apps/plugin-opener": "2.5.3",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "tw-elements": "^2.0.0",
     "xlsx": "^0.18.5",
-    "zone.js": "^0.15.1"
+    "zone.js": "^0.16.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.0.5",

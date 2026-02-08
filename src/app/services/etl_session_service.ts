@@ -1,10 +1,26 @@
 import { computed, inject, Injectable, signal } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from "../models/etl_dto";
-import { ConfigService } from "./config.service";
 import { AgeInputService } from "./age_service";
 import { DiseaseData } from "../models/cohort_dto";
 import { PmidDto } from "../models/pmid_dto";
+
+
+const AGE_TERM_MAP: Record<string, string> = {
+  antenatal: "Antenal onset",
+  neonate: "Neonatal onset",
+  neonatal: "Neonatal onset",
+  "neonatal onset": "Neonatal onset",
+  newborn: "Neonatal onset",
+  "newborn onset": "Neonatal onset",
+  birth: "Congenital onset",
+  congenital: "Congenital onset",
+  child: "Childhood onset",
+  childhood: "Childhood onset",
+  adult: "Adult onset",
+  adulthood: "Adult onset",
+  unk: "na",
+  na: "na"
+};
 
 
 // 4. ETL Session Service
@@ -141,53 +157,30 @@ export class EtlSessionService {
   /* Try to parse a variety of age strings to Iso8601. 
     If another kind of valid age string is found, keep it (.e., Gestational or ISO) */
   parseAgeToIso8601(ageStr: string | null | undefined): string | undefined {
-    if (ageStr == null || ageStr == undefined) {
-      return undefined;
-    }
-    console.log("parseAgeToIso8601", ageStr);
+    if (!ageStr?.trim()) return undefined;
     if (this.ageService.validateAgeInput(ageStr)) return ageStr;
-    const neonatalSymbols = new Set(["neonate", "neonatal", "neonatal onset", "newborn", "newborn onset"])
- 
-    if (neonatalSymbols.has(ageStr.toLowerCase())) {
-      return "Neonatal onset";
-    }
     const lower = ageStr.trim().toLowerCase();
+    if (AGE_TERM_MAP[lower]) return AGE_TERM_MAP[lower];
+    
+    const yearMatch = /(\d+(?:\.\d+)?)\s*(y(?:ear)?s?|yr?s?|yo)\b/.exec(lower);
+    const monthMatch = /(\d+(?:\.\d+)?)\s*(m(?:onth)?s?|mo?s?)\b/.exec(lower);
+    const dayMatch = /(\d+)\s*(d(?:ay)?s?)\b/.exec(lower);
 
-   
-   // Only handle decimal years if *no months or days* are present
-    if (!/[md]/.test(lower)) {
-      const decimalYearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
-      if (decimalYearMatch) {
-        const yearsFloat = parseFloat(decimalYearMatch[1]);
-        const years = Math.floor(yearsFloat);
-        const months = Math.round((yearsFloat - years) * 12);
-        let result = 'P';
-        if (years > 0) result += `${years}Y`;
-        if (months > 0) result += `${months}M`;
-        return result;
-      }
-    }
-
-    const yearMatch = /(\d+(?:\.\d+)?)\s*(y|year|years)\b/.exec(lower);
-    const monthMatch = /(\d+(?:\.\d+)?)\s*(m|month|months)\b/.exec(lower);
-    const dayMatch = /(\d+)\s*(d|day|days)\b/.exec(lower);
-    /* We could not find anything looking like an age string */
-    if (! yearMatch && ! monthMatch && ! dayMatch) return undefined;
-
-    const rawYears = yearMatch ? parseFloat(yearMatch[1]) : 0;
-    const rawMonths = monthMatch ? parseFloat(monthMatch[1]) : 0;
-    const days = dayMatch ? parseInt(dayMatch[1], 10) : 0;
+    if (!yearMatch && !monthMatch && !dayMatch) return undefined;
+    const rawYears: number = yearMatch ? parseFloat(yearMatch[1]) : 0;
+    const rawMonths: number = monthMatch ? parseFloat(monthMatch[1]) : 0;
+    const days: number = dayMatch ? parseInt(dayMatch[1], 10) : 0;
 
     const years = Math.floor(rawYears);
-    const extraMonths = Math.round((rawYears - years) * 12);
-    const months = Math.floor(rawMonths) + extraMonths;
-    
-    let result = 'P';
-    if (years > 0) result += `${years}Y`;
-    if (months > 0) result += `${months}M`;
-    if (days > 0) result += `${days}D`;
-
-    return result !== 'P' ? result : '';
+    const monthsFromYears = Math.round((rawYears - years) * 12);
+    const totalMonths = Math.floor(rawMonths) + monthsFromYears;
+    // Build ISO8601 string
+    const parts = [
+      years > 0 ? `${years}Y` : '',
+      totalMonths > 0 ? `${totalMonths}M` : '',
+      days > 0 ? `${days}D` : ''
+    ].join('');
+    return parts ? `P${parts}` : undefined;
   }
 
   /**
