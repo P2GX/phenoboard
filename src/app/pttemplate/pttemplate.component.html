@@ -190,33 +190,37 @@
         style="top: 100%; right: 0; width: 220px;"
       >
         <div class="grid grid-cols-2 gap-2">
-          <div
+          <button
+            type="button"
             class="allele-tile"
             (click)="addAllele(row.id, VariantKind.HGVS); closeAddAllelePopover()"
           >
             HGVS
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             class="allele-tile"
             (click)="addAllele(row.id, VariantKind.SV); closeAddAllelePopover()"
           >
             SV
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             class="allele-tile"
             (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
           >
             Intergenic
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             class="allele-tile"
             (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
           >
             Mitochondrial
-          </div>
+          </button>
         </div>
       </div>
     }
@@ -405,6 +409,7 @@
     class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-md p-2 text-sm w-44"
     role="menu"
     aria-label="Annotation context menu"
+    #contextMenu
   >
     @for (option of contextMenuOptions; track option) {
       <button
@@ -425,6 +430,7 @@
     class="absolute bg-white border border-gray-300 rounded shadow-md z-50 text-sm"
     [style.left.px]="individualMenuX"
     [style.top.px]="individualMenuY"
+    #individualContextMenu
   >
     <ul>
       <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"

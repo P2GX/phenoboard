@@ -11,7 +11,7 @@ import { IndividualEditComponent } from '../individual_edit/individual_edit.comp
 import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { firstValueFrom, from, of, map, catchError } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from "@angular/material/icon";
@@ -26,7 +26,6 @@ import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.
 import { RouterLink } from '@angular/router';
 
 interface Option { label: string; value: string };
-
 
 @Component({
   selector: 'app-pttemplate',
@@ -93,6 +92,8 @@ export class PtTemplateComponent  {
   @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;
   @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
   @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
+  @ViewChild('contextMenu') contextMenuElement?: ElementRef<HTMLDivElement>;
+  @ViewChild('individualContextMenu') individualContextMenuElement?: ElementRef<HTMLDivElement>;
   tableWidth = '100%'; 
   Object = Object; // expose global Object to template
   public readonly VariantKind = VariantKind;
@@ -131,12 +132,14 @@ export class PtTemplateComponent  {
     const mode = this.filterMode();
     const allRows = cohort.rows;
     switch (mode) {
-      case 'single':
+      case 'single': {
         const row = this.focusedRow();
         return row ? [row] : allRows;
-      case 'pmid':
+      }
+      case 'pmid': {
         const pmid = this.focusedPmid();
         return pmid ? allRows.filter(r => r.individualData.pmid === pmid) : allRows;
+      }
       case 'all':
       default:
         return allRows;
@@ -187,14 +190,14 @@ export class PtTemplateComponent  {
     });
   });
 
-  getCellDisplay(cell: any): string {
+  getCellDisplay(cell: CellValue): string {
     if (cell.type === 'Observed') return '✅';
     if (cell.type === 'Excluded') return '❌';
     if (cell.type === 'Na') return 'n/a';
     return cell.data || 'Unknown';
   }
 
-  getCellClass(cell: any): string {
+  getCellClass(cell: CellValue): string {
     return `${cell.type.toLowerCase()}-cell`; // e.g., 'cell-observed'
   }
 
@@ -277,7 +280,7 @@ export class PtTemplateComponent  {
     });
     dialogRef.afterClosed().subscribe((result: IndividualData | null) => {
       if (result) {
-        let cohort = this.cohortData();
+        const cohort = this.cohortData();
         if (! cohort ) return; // safeguard, but should never happen
        const updatedRows = cohort.rows.map(row => {
         // Use the stable rowId captured when the dialog opened
@@ -317,11 +320,11 @@ export class PtTemplateComponent  {
 
   hoveredCell: { rowId: string; alleleKey: string } | null = null;
 
-  onMouseEnter(rowId: string, alleleKey: string) {
+  onMouseEnter(rowId: string, alleleKey: string): void {
     this.hoveredCell = { rowId, alleleKey };
   }
 
-  onMouseLeave() {
+  onMouseLeave(): void {
     this.hoveredCell = null;
   }
 
@@ -348,8 +351,8 @@ export class PtTemplateComponent  {
     }
     const ok = this.cohortService.addAlleleToRow(
       rowId,
-      result.variantKey,
-      result.count
+      variantKey,
+      count
     );
     if (!ok) {
       this.notificationService.showError("Failed to add allele");
@@ -467,15 +470,15 @@ export class PtTemplateComponent  {
   
   /** Open a context menu after a right-click on an HPO column */
   onRightClick(event: MouseEvent, hpoColumnIndex: number, hpoRowIndex: number, rowId: string, cell: CellValue): void {
-    event.preventDefault();
-    this.contextMenuVisible = true;
+    event.preventDefault();  // prevent default (open generic system menu)
+    event.stopPropagation(); 
+    this.contextMenuVisible = true; 
     this.contextMenuX = event.clientX;
     this.contextMenuY = event.clientY;
     this.pendingHpoColumnIndex = hpoColumnIndex;
     this.pendingHpoRowIndex = hpoRowIndex;
     this.pendingRowId = rowId;
     this.selectedCellContents = cell;
-    console.log("pending c&r=", this.pendingHpoColumnIndex, this.pendingHpoRowIndex)
     this.selectedCellContents = cell;
     this.contextMenuOptions = [
       ...this.predefinedOptions,
@@ -563,15 +566,21 @@ export class PtTemplateComponent  {
     this.contextMenuVisible = false;
   }
 
-  onClickAnywhere(): void {
+  @HostListener('document:mousedown', ['$event'])
+  closeContextMenu(event: MouseEvent): void {
+    this.openAddAlleleRowId = null;
+    const menu = this.contextMenuElement?.nativeElement;
+    const individualMenu = this.individualContextMenuElement?.nativeElement;
+    console.log("CloseContextMenu")
+    if (menu && menu.contains(event.target as Node)) {
+      return;
+    } 
     this.contextMenuVisible = false;
+    if (individualMenu && individualMenu.contains(event.target as Node)) {
+      return;
+    }
+    this.individualContextMenuVisible = false;
   }
-
-  @HostListener('document:click')
-  closeContextMenu(): void {
-    this.contextMenuVisible = false;
-  }
-
 
 
   async saveCohort(): Promise<void> {
@@ -859,7 +868,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
     if (! row) return;
     this.focusedRow.set(row);
     this.filterMode.set('single');
-    this.closeContextMenu();
+    this.contextMenuVisible = false;
     this.individualContextMenuVisible = false;
   }
 
@@ -980,7 +989,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
     }));
   }
 
-  async sortCohortRows() {
+  async sortCohortRows(): Promise<void> {
     const dto = this.cohortData();
     if (! dto) return;
     const sorted_dto = await this.configService.sortCohortByrows(dto);
@@ -988,11 +997,11 @@ visibleColumnMask = computed<Uint8Array>(() => {
   
   }
 
-  onHeaderMouseEnter(index: number) {
+  onHeaderMouseEnter(index: number): void{
     this.hoveredHpoHeader = index;
   }
 
-  onHeaderMouseLeave() {
+  onHeaderMouseLeave(): void {
     this.hoveredHpoHeader = null;
   }
 
@@ -1001,24 +1010,19 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return this.hoveredHpoHeader === index;
   }
 
-  toggleAddAllelePopover(rowId: string, event: MouseEvent) {
-  event.stopPropagation(); // prevents the table row click from firing
-  this.openAddAlleleRowId = this.openAddAlleleRowId === rowId ? null : rowId;
-}
+  toggleAddAllelePopover(rowId: string, event: MouseEvent): void {
+    event.stopPropagation(); // prevents the table row click from firing
+    this.openAddAlleleRowId = this.openAddAlleleRowId === rowId ? null : rowId;
+  }
 
   // Close after selecting an option
-  closeAddAllelePopover() {
+  closeAddAllelePopover(): void {
     this.openAddAlleleRowId = null;
   }
 
-  // Optional: click anywhere else closes popover
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: Event) {
-    this.openAddAlleleRowId = null;
-    this.individualContextMenuVisible = false;
-  }
 
-  async addAllCohortAges() {
+
+  async addAllCohortAges(): Promise<void> {
     const cohortData = this.cohortData();
     if (! cohortData) return;
     const cohortAges = await this.configService.getAllCohortAgeStrings(cohortData); 
@@ -1027,7 +1031,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
 
 
   /* reset of the Moi/acronym componet */
-  handleReset() {
+  handleReset(): void {
     const current = this.cohortData();
     if (!current) return;
 
@@ -1047,7 +1051,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
   }
 
   /* Set the cohort acronym */
-  handleAcronym(newAcronym: string) {
+  handleAcronym(newAcronym: string): void {
     const current = this.cohortData();
     if (!current) return;
 
@@ -1057,7 +1061,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
     });
   }
 
-  handleMoi(event: {diseaseIndex: number, moi: ModeOfInheritance[]}) {
+  handleMoi(event: {diseaseIndex: number, moi: ModeOfInheritance[]}): void {
     const current = this.cohortData();
     if (!current) return;
     const updatedDiseases = current.diseaseList.map((d, index) => {
@@ -1075,7 +1079,7 @@ visibleColumnMask = computed<Uint8Array>(() => {
     });
   }
 
-  async openPmidInBrowser(pmid: string | null) {
+  async openPmidInBrowser(pmid: string | null): Promise<void> {
     if (!pmid) return;
     const cleanId = pmid.replace(/pmid:/i, '').trim();
     if (cleanId) {

@@ -59,7 +59,7 @@ interface OverlayPosition {
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.scss'],
 })
-export class TableEditorComponent implements OnInit, OnDestroy {
+export class TableEditorComponent implements OnInit {
   constructor() {
     this.pmidForm = this.fb.group({
       pmid: [defaultPmidDto()],
@@ -220,33 +220,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     
   }
 
-  /* When we open this page, the user MUST have previously initialized
-   * a Mendelian disease cohort. If this is not the case, display an error 
-  private async checkAndImportDisease() {
-    const cohort = this.cohortService.cohortData();
-    if (!cohort) {
-      this.errorMessage = "No Cohort data found. Please create or load a cohort on the Home page first.";
-      this.notificationService.showError("Missing Cohort Data");
-      return;
-    }
-    const cohortType = cohort.cohortType;
-    if (cohortType != "mendelian") {
-      this.errorMessage = "Table import only available for Mendelian cohorts.";
-      this.notificationService.showError(this.errorMessage );
-      return;
-    }
-    if (this.statusService.hpoLoaded()) {
-      await this.importCohortDiseaseData();
-    } else {
-      this.errorMessage = "HPO not loaded.";
-        this.notificationService.showError(this.errorMessage );
-        return;
-    }
-  }
-*/
- 
-
-
   /** Reset if user clicks outside of defined elements. */
   @HostListener('document:click')
   onClickAnywhere(): void {
@@ -254,9 +227,6 @@ export class TableEditorComponent implements OnInit, OnDestroy {
     this.editModalVisible = false;
   }
 
-
-   ngOnDestroy(): void {
-  }
  
   /* Load an external Excel file (e.g., supplemental table from a publication). 
    * We support column (individuals incolumns) or row (individuals iun rows) and normalize such that the 
@@ -845,6 +815,21 @@ export class TableEditorComponent implements OnInit, OnDestroy {
         return;
       }
       this.etl_service.setEtlDto(dto);
+      // edge case: User has loaded a disease for another disease, and then they decide to 
+      // process a previous ETL file that has a disease. In this case, we want to update our disease
+      // object and reset the GUI
+      const etlHasDisease = !!dto.disease;
+      if (etlHasDisease) {
+        this.diseaseDataSignal.set(dto.disease);
+        this.cohortService.clearCohortData();
+      } else {
+        const d = this.diseaseDataSignal();
+        if (d) {
+          this.notificationService.showWarning(`Using disease data from session ${d?.diseaseLabel} (${d?.diseaseId})`);
+        } else {
+          this.notificationService.showWarning("Missing disease data. Create the cohort and reload the ETL file");
+        }
+      }
     } catch (error) {
       this.errorMessage = String(error);
     }

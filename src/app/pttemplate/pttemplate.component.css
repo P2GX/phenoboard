@@ -274,6 +274,10 @@ button[mat-icon-button] {
 }
 
 .allele-tile {
+  all: unset;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
   border: 1px solid #d1d5db; /* gray-300 */
   border-radius: 0.5rem;
   padding: 0.75rem 0.5rem;
