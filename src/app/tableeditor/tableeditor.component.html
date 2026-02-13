@@ -143,6 +143,15 @@
             Merge
           </button>
         </div>
+        <label class="flex items-center gap-1 cursor-pointer">
+    <input 
+      type="checkbox" 
+      [checked]="labelMergedColumn()" 
+      (change)="labelMergedColumn.set($any($event.target).checked)"
+      class="accent-indigo-500 w-3 h-3"
+    />
+    <span class="text-[10px] text-white">Label merged values (A) ... (B) ...</span>
+  </label>
         <button (click)="colAforMerge.set(null); colBforMerge.set(null)" 
                 class="text-[10px] text-indigo-200 hover:text-white text-right underline">
           Cancel
@@ -178,12 +187,12 @@
       {{ col.header.original }}
 
       @if (colAforMerge() === i) {
-        <span class="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] px-1 font-bold rounded-bl shadow-sm">
+        <span class="absolute top-0 right-0 bg-yellow-600 text-white text-[18px] px-1 font-bold rounded-bl shadow-sm">
           A
         </span>
       }
       @if (colBforMerge() === i) {
-        <span class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] px-1 font-bold rounded-bl shadow-sm">
+        <span class="absolute top-0 right-0 bg-orange-600 text-white text-[18px] px-1 font-bold rounded-bl shadow-sm">
           B
         </span>
       }

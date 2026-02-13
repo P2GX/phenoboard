@@ -124,6 +124,8 @@ export class TableEditorComponent implements OnInit {
   private lastSnapshot = signal<any[] | null>(null);
   undoVisible = signal(false);
   mergeSeparator = signal<string>(' ');
+  // if this is true, add (A) original A value (B) original B value
+  labelMergedColumn = signal<boolean>(false);
 
   columnTypeCategories: TransformType[] = [
     TransformType.RAW_COLUMN_TYPE,
@@ -922,17 +924,17 @@ export class TableEditorComponent implements OnInit {
     const columns = dto.table.columns;
     const originalColumn = columns[index];
     if (!originalColumn) return;
+    if (originalColumn.values.length < 1) return;
+    const example = originalColumn.values[0].original;
 
     const dialogRef = this.dialog.open(SplitColumnDialogComponent, {
       width: '400px',
-      data: { separator: '/' }
+      data: { originalHeader: originalColumn.header.original, example: example }
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) return; // user cancelled
-
-      let separator = String(result.separator ?? '').trim();
-      if (!separator) separator = " "; // default split
+      const separator = result; 
 
       let columnAPosition = Number(result.sexPosition);
       let columnBPosition = Number(result.agePosition);
@@ -945,8 +947,8 @@ export class TableEditorComponent implements OnInit {
       columnA.id = crypto.randomUUID();
       columnB.id = crypto.randomUUID();
 
-      columnA.header = { ...columnA.header, original: `Part 1 (${originalColumn.header.original})` };
-      columnB.header = { ...columnB.header, original: `Part 2 (${originalColumn.header.original})` };
+      columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
+      columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
 
       // convert split strings into EtlCellValue objects
       columnA.values = originalColumn.values.map(cell => {
@@ -1618,6 +1620,7 @@ export class TableEditorComponent implements OnInit {
     }
     this.lastSnapshot.set([...dto.table.columns]);
     const sep = this.mergeSeparator();
+    const labelAB = this.labelMergedColumn();
     try {
       const colA = dto.table.columns[idxA];
       const colB = dto.table.columns[idxB];
@@ -1631,9 +1634,10 @@ export class TableEditorComponent implements OnInit {
         values: colA.values.map((cell, i) => {
           const valA = cell.original ?? '';
           const valB = colB.values[i]?.original ?? '';
+          const mergedValue = labelAB ? `(A) ${valA} ${sep} (B) ${valB}`.trim() : `${valA}${sep}${valB}`.trim();
           return {
             ...cell,
-            original: `(A) ${valA} ${sep} (B) ${valB}`.trim(),
+            original: mergedValue,
             status: EtlCellStatus.Transformed
           };
         })

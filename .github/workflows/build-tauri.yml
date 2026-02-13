@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ macos-latest, windows-latest] # ubuntu-latest - waiting for upstream ashpd (2025-01-13)
+        platform: [ macos-latest, windows-latest, ubuntu-latest] #  - waiting for upstream ashpd (2025-01-13)
 
     steps:
       - name: Checkout repository
