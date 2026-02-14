@@ -53,17 +53,12 @@ export class HpoMiningVerifierComponent implements OnInit {
     return ((this.currentIndex() + 1) / this.concepts().length) * 100;
   }
 
-  handleUpdate(newTerm: HpoTermDuplet): void {
+  handleUpdate(match: HpoMatch): void {
     const updated = [...this.concepts()];
     const index = this.currentIndex();
-    const newMatch: HpoMatch = {
-      id: newTerm.hpoId,
-      label: newTerm.hpoLabel,
-      matchedText: newTerm.hpoLabel
-    };
     updated[index] = {
       ...updated[index],
-      suggestedTerms: [...updated[index].suggestedTerms, newMatch]
+      suggestedTerms: [...updated[index].suggestedTerms, match]
     };
     this.concepts.set(updated);
   }

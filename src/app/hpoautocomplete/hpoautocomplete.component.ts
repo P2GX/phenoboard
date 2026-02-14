@@ -51,7 +51,7 @@ export class HpoAutocompleteComponent {
   selected = output<HpoMatch>();
 
   inputElement = viewChild<HTMLInputElement>('hpoInput');
-  control = new FormControl<string | HpoMatch>('', [hpoMatchValidator()]);
+  control = new FormControl<string | HpoMatch>('', [hpoMatchValidator()]);
 
   // A helper signal for the parent to check validity
   isValid = toSignal(this.control.statusChanges.pipe(map(status => status === 'VALID')), { initialValue: false });

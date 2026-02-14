@@ -153,10 +153,21 @@
 </div>
 
 <div class="space-y-1">
-  <app-hpoautocomplete
-    [inputString]="hpoInputString"
-    (selected)="handleSelection($event)"
-  ></app-hpoautocomplete>
+  <div class="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+  <div class="flex-grow">
+    <app-hpoautocomplete
+      [inputString]="hpoInputString"
+      (selected)="handleSelection($event)"
+    ></app-hpoautocomplete>
+  </div>
+
+  <button 
+    color="primary" 
+    (click)="submitSelectedHpo()"
+    [disabled]="!selectedHpoTerm"
+    class="btn-outline-primary h-[40px] px-6"
+  >Submit</button>
+</div>
   
   @if (selectedHpoTerm) {
      <p class="text-xs text-blue-600 italic">Last added: {{ selectedHpoTerm.label }}</p>

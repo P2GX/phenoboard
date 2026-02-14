@@ -11,6 +11,7 @@ import { AddageComponent } from '../addages/addage.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../services/notification.service';
 import { HpoMatch } from '../models/hpo_mapping_result';
+import { MatIcon } from "@angular/material/icon";
 
 /** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
@@ -18,7 +19,7 @@ import { HpoMatch } from '../models/hpo_mapping_result';
   templateUrl: './hpopolishing.component.html',
   styleUrls: ['./hpopolishing.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HpoAutocompleteComponent]
+  imports: [CommonModule, FormsModule, HpoAutocompleteComponent, MatIcon]
 })
 export class HpoPolishingComponent implements OnInit {
 
@@ -26,6 +27,8 @@ export class HpoPolishingComponent implements OnInit {
   @Input() annotations: TextAnnotationDto[] = [];
   @Output() done = new EventEmitter<HpoTermData[]>();
   @Output() cancel = new EventEmitter<void>();
+
+  @ViewChild(HpoAutocompleteComponent) hpoAutocomplete!: HpoAutocompleteComponent;
 
   private ageService = inject(AgeInputService);
   private configService = inject(ConfigService);
@@ -159,14 +162,6 @@ export class HpoPolishingComponent implements OnInit {
 
   async handleSelection(match: HpoMatch) {
     this.selectedHpoTerm = match;
-    
-    // If you need to immediately convert it for an existing function:
-    const duplet: HpoTermDuplet = {
-      hpoId: match.id,
-      hpoLabel: match.label
-    };
-    
-    await this.submitHpoAutocompleteTerm(duplet);
   }
 
   submitSelectedHpo = async () => {
@@ -188,6 +183,9 @@ export class HpoPolishingComponent implements OnInit {
         const exists = current.some(a => a.termId === annot.termId);
         return exists ? current : [...current, annot];
         });
+    }
+    if (this.hpoAutocomplete) {
+      this.hpoAutocomplete.clear(); 
     }
   }
 

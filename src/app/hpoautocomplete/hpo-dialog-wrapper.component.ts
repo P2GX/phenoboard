@@ -1,4 +1,4 @@
-import { Component, inject, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatDialogRef, MatDialogContent, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HpoAutocompleteComponent } from './hpoautocomplete.component';
 import { HpoTermDuplet } from '../models/hpo_term_dto';

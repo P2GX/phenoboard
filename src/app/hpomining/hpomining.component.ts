@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { NotificationService } from '../services/notification.service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
@@ -12,16 +12,16 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, FormsModule],
 })
 export class HpoMiningComponent {
+  private configService = inject(ConfigService);
+  private notificationService = inject(NotificationService);
+  
   pastedText = '';
 
   @Output() success = new EventEmitter<TextAnnotationDto[]>();
   @Output() error = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();
 
-  constructor(
-    private configService: ConfigService,
-    private notificationService: NotificationService
-  ) {}
+  
 
   async runTextMining(): Promise<void> {
     try {
