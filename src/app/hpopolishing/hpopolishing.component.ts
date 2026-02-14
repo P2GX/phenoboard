@@ -10,6 +10,7 @@ import { CellValue, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { AddageComponent } from '../addages/addage.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../services/notification.service';
+import { HpoMatch } from '../models/hpo_mapping_result';
 
 /** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
@@ -43,7 +44,8 @@ export class HpoPolishingComponent implements OnInit {
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
    /* used for autocomplete widget */
   hpoInputString: string = '';
-  selectedHpoTerm: HpoTermDuplet | null = null;
+  //selectedHpoTerm: HpoTermDuplet | null = null;
+  selectedHpoTerm: HpoMatch | null = null;
 
 
   
@@ -155,11 +157,27 @@ export class HpoPolishingComponent implements OnInit {
     );
   }
 
+  async handleSelection(match: HpoMatch) {
+    this.selectedHpoTerm = match;
+    
+    // If you need to immediately convert it for an existing function:
+    const duplet: HpoTermDuplet = {
+      hpoId: match.id,
+      hpoLabel: match.label
+    };
+    
+    await this.submitHpoAutocompleteTerm(duplet);
+  }
+
   submitSelectedHpo = async () => {
     if (this.selectedHpoTerm == null) {
       return;
     }
-    await this.submitHpoAutocompleteTerm(this.selectedHpoTerm);
+    const duplet: HpoTermDuplet = {
+      hpoLabel: this.selectedHpoTerm.label,
+      hpoId: this.selectedHpoTerm.id
+    };
+    await this.submitHpoAutocompleteTerm(duplet);
   };
 
   // Add an autocompleted term to the list (do not add duplicates, silently skip)

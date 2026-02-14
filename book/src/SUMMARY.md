@@ -19,4 +19,5 @@
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
     - [Practical tips](developers/practical.md)
+    - [Linux](developers/linux.md)
     - [Release](developers/release.md)

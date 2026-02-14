@@ -24,6 +24,7 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 import { RouterLink } from '@angular/router';
+import { HpoMatch } from '../models/hpo_mapping_result';
 
 interface Option { label: string; value: string };
 
@@ -441,12 +442,16 @@ export class PtTemplateComponent  {
     }
   }
 
-  submitSelectedHpo = async (): Promise<void> => {
-    if (this.selectedHpoTerm == null) {
-      this.notificationService.showError("No HPO term selected");
+  submitSelectedHpo = async (selectedHpo: HpoMatch | string | null): Promise<void> => {
+    if (! selectedHpo || typeof selectedHpo === 'string') {
+      this.notificationService.showError(`HPO Text mining component did not return valid HpoMatch but instead '${selectedHpo}'.`)
       return;
     }
-    await this.addHpoTermToCohort(this.selectedHpoTerm);
+    const duplet: HpoTermDuplet = {
+      hpoLabel: selectedHpo.label,
+      hpoId: selectedHpo.id
+    };
+    await this.addHpoTermToCohort(duplet);
   };
 
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {

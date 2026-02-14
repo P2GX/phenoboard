@@ -153,15 +153,8 @@ removeConcept(index: number) {
     this.concepts.set(processed);
   }
 
-  addNewTerm(conceptIndex: number, newTerm: HpoTermDuplet) {
+  addNewTerm(conceptIndex: number, newMatch: HpoMatch) {
     const concept: MiningConcept = this.concepts()[conceptIndex];
-    
-    const newMatch: HpoMatch = {
-      id: newTerm.hpoId,
-      label: newTerm.hpoLabel,
-      matchedText: concept.originalText
-    };
-
     // Prevent duplicates
     if (!concept.suggestedTerms.some(t => t.id === newMatch.id)) {
       concept.suggestedTerms.push(newMatch);

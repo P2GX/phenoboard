@@ -9,9 +9,9 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
-use tauri::{AppHandle, Emitter, Manager, Window, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::{HashMap, HashSet}, fs, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
@@ -746,12 +746,12 @@ struct ProgressPayload {
 
 /// Check all alleles in an ETL column and emit signals to show progress.
 #[tauri::command]
-async fn process_allele_column(
+async fn process_allele_column<R>(
     state: tauri::State<'_, Arc<AppState>>,
-    window: Window,
+    app: AppHandle<R>,
     etl: EtlDto,
     col: usize
-) -> Result<EtlDto, String> {
+) -> Result<EtlDto, String> where R: Runtime {
     let app_handle = state.inner().clone();
     if col >= etl.table.columns.len() {
         return Err(format!("Attempt to access invalid column {} for table with {} columns", col, etl.table.columns.len()));
@@ -762,7 +762,7 @@ async fn process_allele_column(
             .map_err(|_| "Failed to acquire lock".to_string())?;
         let total_alleles = etl.table.columns[col].values.len() as u32;
         let pb = |current: u32, q: u32| {
-            let _ = window.emit("progress-update", ProgressPayload { 
+            let _ = app.emit("progress-update", ProgressPayload { 
                 current, 
                 total: total_alleles 
             });
@@ -1010,10 +1010,6 @@ async fn expand_dictionary_to_rows(
 
     Ok(expanded)
 }
-
-
-
-
 
 
 /// get list of Mining concepts for each cell

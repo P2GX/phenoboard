@@ -1,15 +1,30 @@
-import { Component, OnInit, Input, SimpleChanges, Output, EventEmitter, inject } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, switchMap, startWith, of } from 'rxjs';
+import { Component, inject, input, output, viewChild, effect } from '@angular/core';
+import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { debounceTime, switchMap, of, map, startWith } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core'; 
 import { CommonModule } from '@angular/common'; 
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
-import { HpoTermDuplet } from '../models/hpo_term_dto';
 import { HpoMatch } from '../models/hpo_mapping_result';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { MatIcon } from "@angular/material/icon";
+
+
+/* the autocomplete form returns an HpoMatch object upon success. We check for this */
+export function hpoMatchValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    // If it's a string, it means the user typed but didn't click an option
+    // If it's null/empty, let 'required' handle it (or ignore)
+    if (typeof value === 'string' && value.length > 0) {
+      return { 'invalidSelection': true };
+    }
+    return null;
+  };
+}
 
 
 @Component({
@@ -23,86 +38,69 @@ import { HpoMatch } from '../models/hpo_mapping_result';
     MatInputModule,
     MatAutocompleteModule,
     MatOptionModule,
-    MatCardModule
-  ]
+    MatCardModule,
+    MatIcon
+]
 })
-export class HpoAutocompleteComponent implements OnInit {
+export class HpoAutocompleteComponent {
+  private configService = inject(ConfigService);
+  
+  placeholder = input<string>('Search HPO term...');
+  inputString = input<string>('');
 
+  selected = output<HpoMatch>();
 
-  public configService = inject(ConfigService);
-  control = new FormControl<string | HpoMatch>('');
-  @Input() initialValue = "";
-  options: HpoMatch[] = [];
-  textMiningSuccess: boolean = false;
+  inputElement = viewChild<HTMLInputElement>('hpoInput');
+  control = new FormControl<string | HpoMatch>('', [hpoMatchValidator()]);
 
-  @Input() inputString: string = '';
-  @Output() selected = new EventEmitter<HpoTermDuplet>();
-  @Input() onSubmit: (term: HpoTermDuplet) => Promise<void> = async () => {};
+  // A helper signal for the parent to check validity
+  isValid = toSignal(this.control.statusChanges.pipe(map(status => status === 'VALID')), { initialValue: false });
 
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['inputString'] && changes['inputString'].currentValue !== undefined) {
-      this.control.setValue(this.inputString);
-    }
-    if (this.inputString) {
-      this.control.setValue(this.inputString, { emitEvent: false });
-    }
-    // visually highlight the text so the user can overwrite it immediately
-    setTimeout(() => {
-      const input = document.querySelector('input[matInput]') as HTMLInputElement;
-      if (input) input.select();
-    });
-  }
-
-  ngOnInit(): void {
+  options = toSignal(
     this.control.valueChanges.pipe(
-      startWith(''),
+      startWith(this.control.value), // the start values ensures that changes trigger autocomplete!
       debounceTime(300),
-      switchMap((value) => {
-        if (typeof value === 'string' && value.length > 2) {
-          this.textMiningSuccess = true;
-          return this.configService.getAutocompleteHpo(value);
+      switchMap((value) =>{
+        const query = typeof value ==='string' ? value : value?.label;
+        if (query && query.length > 2) {
+          return this.configService.getAutocompleteHpo(query);
         }
-        return of([]); 
+        return of([]);
       })
-    ).subscribe((suggestions: HpoMatch[]) => {  
-      this.options = suggestions;
+    ),
+    { initialValue: [] as HpoMatch[]}
+  );
+
+  constructor() {
+    effect(() => {
+      const val = this.inputString();
+      if (val) {
+        this.control.setValue(val, {emitEvent: false});
+        this.inputElement()?.select();
+      }
     });
-    if (this.initialValue && this.initialValue.length > 5) {
-      this.control.setValue(this.initialValue);
-    }
   }
+  
+  
 
   // turn an HpoMatch object into a string for the input box
-  displayFn(option: HpoMatch | string): string {
-    if (typeof option === 'string') return option;
-    return option ? option.label : '';
-  }
-
-  clearInput() {
-    this.control.reset();
-    this.textMiningSuccess = false;
-  }
-
-  /* This function works with a callback from the parent component. 
-    for instance, <app-hpoautocomplete (termSubmitted)="handleTermSubmit($event)"></app-hpoautocomplete>.
-    The callback function will be activate, and then we clear the input. 
-    We get something like "HP:0000828 - Abnormality of the parathyroid gland" and create an HpoTermDuplet*/
-  async submitTerm() {
-    const selection = this.control.value;
-    if (selection && typeof selection !== 'string') {
-      const duplet: HpoTermDuplet = {
-        hpoId: selection.id,
-        hpoLabel: selection.label
-      };
-      this.selected.emit(duplet);
-      await this.onSubmit(duplet);
-    } else {
-      console.error("could not retrieve HPO autocompletion value");
-    }
-    this.clearInput();
+  displayFn(option: HpoMatch | string | null): string {
+    if (! option) return '';
+    return typeof option === 'string' ? option  : option.label;
   }
 
 
+  onOptionSelected(event: MatAutocompleteSelectedEvent) {
+    const selection = event.option.value as HpoMatch;
+    this.selected.emit(selection);
+  }
+  
+  clear() {
+    this.control.setValue('');
+  }
+
+ 
+
+ 
   
 }

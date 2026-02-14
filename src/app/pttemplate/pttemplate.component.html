@@ -277,14 +277,16 @@
 <div class="flex items-center gap-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
   <!-- HPO Autocomplete -->
   <div class="flex flex-col ">
-    <app-hpoautocomplete
-      aria-label="Add HPO Term"
-      [inputString]="hpoInputString"
-      (selected)="selectedHpoTerm = $event"
-      [onSubmit]="submitSelectedHpo"
-      #hpoAutocomplete
-      class="w-full"
-    ></app-hpoautocomplete>
+    <div class="flex gap-4">
+    <app-hpoautocomplete #hpoSearch></app-hpoautocomplete>
+    <button 
+      mat-flat-button 
+      color="primary"
+      [disabled]="hpoSearch.control.invalid" 
+      (click)="submitSelectedHpo(hpoSearch.control.value)">
+      Submit
+    </button>
+  </div>
   </div>
 
   <!-- Add Ages -->

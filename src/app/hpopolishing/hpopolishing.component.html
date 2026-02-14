@@ -155,11 +155,12 @@
 <div class="space-y-1">
   <app-hpoautocomplete
     [inputString]="hpoInputString"
-    (selected)="selectedHpoTerm = $event"
-    [onSubmit]="submitSelectedHpo"
-    #hpoAutocomplete
-  ><span card-title>Add new HPO term</span></app-hpoautocomplete>
-  <p class="text-xs">Selected HPO Term: {{ selectedHpoTerm }}</p>
+    (selected)="handleSelection($event)"
+  ></app-hpoautocomplete>
+  
+  @if (selectedHpoTerm) {
+     <p class="text-xs text-blue-600 italic">Last added: {{ selectedHpoTerm.label }}</p>
+  }
 </div>
 
 </div>
