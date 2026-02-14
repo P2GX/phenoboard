@@ -6,6 +6,7 @@
 @include mat.core();
 
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import '@angular/cdk/overlay-prebuilt.css';
 
 @tailwind base;
 @tailwind components;
@@ -325,4 +326,8 @@
   line-height: 28px !important;
   padding: 0 8px !important;
   font-size: 12px !important;
+}
+
+.cdk-overlay-transparent-backdrop {
+  background: transparent;
 }

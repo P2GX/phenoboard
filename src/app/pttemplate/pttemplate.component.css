@@ -300,11 +300,7 @@ button[mat-icon-button] {
   transform: scale(0.97);
 }
 
-.allele-count-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1.5rem);
-  gap: 5px;
-}
+
 
 .allele-btn {
   width: 1.75rem;

@@ -8,84 +8,82 @@
 
 <!-- String input section -->
 <div class="mt-4">
-
  <app-cohort-metadata 
   [cohortData]="cohortData()!" 
   (resetCohortMetadata)="handleReset()"
   (updateAcronym)="handleAcronym($any($event))"
   (updateMoi)="handleMoi($any($event))">
-</app-cohort-metadata>
+  </app-cohort-metadata>
 
-<div class="mt-4 flex items-center gap-2">
-  <label for="hpoFilter" class="text-sm text-gray-700">Filter HPO columns:</label>
-  <select
-  id="hpoFilter"
-  class="border rounded p-1 text-sm"
-  [value]="selectedTopLevelHpo()"
-  (change)="selectedTopLevelHpo.set($any($event.target).value)"
->
-  <option value="">Show all</option>
-  @for (groupKey of hpoGroupKeys(); track groupKey) {
-    <option [value]="groupKey">{{ groupKey }}</option>
-  }
-</select>
-<app-help-button 
-          title="Filter HPO columns"
-          [lines]="[
-            'Filter to the columns shown in the display to the indicated top-level HPO category.',
-            'The categories correspond to top-level HPO terms (direct children of <i>Phenotypic abnormality</i>).',
-            'Choose <i>Show all</i> to restore the original view.'
-          ]" />
-</div>
+  <div class="mt-4 flex items-center gap-2">
+    <label for="hpoFilter" class="text-sm text-gray-700">Filter HPO columns:</label>
+    <select
+    id="hpoFilter"
+    class="border rounded p-1 text-sm"
+    [value]="selectedTopLevelHpo()"
+    (change)="selectedTopLevelHpo.set($any($event.target).value)"
+  >
+    <option value="">Show all</option>
+    @for (groupKey of hpoGroupKeys(); track groupKey) {
+      <option [value]="groupKey">{{ groupKey }}</option>
+    }
+  </select>
+  <app-help-button 
+            title="Filter HPO columns"
+            [lines]="[
+              'Filter to the columns shown in the display to the indicated top-level HPO category.',
+              'The categories correspond to top-level HPO terms (direct children of <i>Phenotypic abnormality</i>).',
+              'Choose <i>Show all</i> to restore the original view.'
+            ]" />
+  </div>
 
   <!-- Table with one row per phenopacket -->
   @if (cohortData(); as cohort){
   <div class="pt-table-container">
     <div class="top-scroll-mirror overflow-x-auto invisible-scrollbar">
-       <div class="h-1" [style.width]="tableWidth"></div>
-     </div>
-     <div class="overflow-y-auto max-h-[600px] max-w-7xl">
-  <table class="pt-table">
-    <thead class="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
-    <tr>
-      <th class="narrow-column bottom-align">Individual ID</th>
-      @if(showAlleleColumn){
-          <th class="narrow-column bottom-align">
-            Alleles
-          </th>
-        }
-      <!-- The following creates the series of headers for the HPO columns.
-          The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
-      @if (cohort) {
-          @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
-            @if (visibleColumnMask()[i]) {
-              <th
-                class="rotate-header hpo-col hpo-col-th"
-                (mouseenter)="onHeaderMouseEnter(i)"
-                (mouseleave)="onHeaderMouseLeave()"
-              >
-                <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
-                  {{ header.hpoLabel }}
-                </div>
-              <!-- Popup shown on hover -->
-              @if(isHeaderHovered(i)) {
-                  <div class="hpo-popup">
-                    <a
-                      [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
-                      target="_blank"
-                      rel="noopener"
-                    >
-                      🔗 {{ header.hpoId }}
-                    </a>
+      <div class="h-1" [style.width]="tableWidth"></div>
+    </div>
+    <div class="overflow-y-auto max-h-[600px] max-w-7xl">
+    <table class="pt-table">
+      <thead class="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
+        <tr>
+        <th class="narrow-column bottom-align">Individual ID</th>
+
+            <th class="narrow-column bottom-align">
+              Alleles
+            </th>
+        <!-- The following creates the series of headers for the HPO columns.
+            The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
+        @if (cohort) {
+            @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
+              @if (visibleColumnMask()[i]) {
+                <th
+                  class="rotate-header hpo-col hpo-col-th"
+                  (mouseenter)="onHeaderMouseEnter(i)"
+                  (mouseleave)="onHeaderMouseLeave()"
+                >
+                  <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
+                    {{ header.hpoLabel }}
                   </div>
-                }
-              </th>
+                <!-- Popup shown on hover -->
+                @if(isHeaderHovered(i)) {
+                    <div class="hpo-popup">
+                      <a
+                        [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        🔗 {{ header.hpoId }}
+                      </a>
+                    </div>
+                  }
+                </th>
+              }
             }
           }
-        }
-  </tr>
-  </thead>
-    <tbody>
+        </tr>
+      </thead>
+      <tbody>
       @for (row of tableVM(); track row.id;  let rowIndex = $index) {
       <tr [class.bg-red-50]="!row.hasObservedHpo">
         <!-- First column: PMID/title/individual_id/comment -->
@@ -136,19 +134,20 @@
         </td>
 
         <!-- Second column for gene/allele -->
-        @if(showAlleleColumn){
-        <td class="relative narrow-column">
-        @if (row.alleles.length === 0) {
-          <button
-                  class="allele-btn allele-btn-add"
-                  title="Add allele"
-                  (click)="toggleAddAllelePopover(row.id, $event)">
-                  +
-          </button>
-        }
-        @for (allele of row.alleles; track allele.key) {
-        <div class="allele-row flex items-center gap-x-3">
-          <div class="flex items-center gap-x-1 allele-content">
+     
+
+<td class="relative narrow-column">
+  @if (row.alleles.length === 0) {
+    <button cdkOverlayOrigin #originEmpty="cdkOverlayOrigin"
+            class="allele-btn allele-btn-add" (click)="openAddAlleleRowId = row.id">+</button>
+    
+    <app-popover [trigger]="originEmpty" [isOpen]="openAddAlleleRowId === row.id">
+      <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
+    </app-popover>
+  }
+  @for (allele of row.alleles; track allele.key) {
+    <div class="allele-row flex items-center gap-x-3">
+       <div class="flex items-center gap-x-1 allele-content">
             <span 
               class="inline-block w-3 h-3 rounded-full"
               [ngClass]="allele.validated ? 'bg-green-500' : 'bg-red-500'"
@@ -158,11 +157,8 @@
               {{ allele.shortDisplay }}
             </span>
           </div>
-
-            <!-- Right side: actions -->
-            <div class="flex items-center gap-x-2">
-              <div class="allele-count-grid">
-                <button 
+      <div class="allele-count-grid">
+          <button 
                   class="allele-btn allele-btn-count" 
                   [ngClass]="{ 'selected-count': allele.count === 1 }"
                   (click)="onAlleleCountChange(allele.key, row.id, 1)">1</button>
@@ -172,61 +168,24 @@
                 <button 
                   class="allele-btn allele-btn-delete" 
                   (click)="onAlleleCountChange(allele.key, row.id, 0)">🗑️</button>
-                <button
-                  class="allele-btn allele-btn-add"
-                  title="Add allele"
-                  (click)="toggleAddAllelePopover(row.id, $event)">
-                  +
-                </button>
-              </div>
-          </div>
-        </div>
-        } <!-- for gene -->
-    <!-- Popover -->
-  @if(openAddAlleleRowId === row.id) {
-    @if (openAddAlleleRowId === row.id) {
-      <div
-        class="absolute bg-white border border-gray-300 shadow-md rounded-lg p-2 z-50"
-        style="top: 100%; right: 0; width: 220px;"
-      >
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            class="allele-tile"
-            (click)="addAllele(row.id, VariantKind.HGVS); closeAddAllelePopover()"
-          >
-            HGVS
-          </button>
-
-          <button
-            type="button"
-            class="allele-tile"
-            (click)="addAllele(row.id, VariantKind.SV); closeAddAllelePopover()"
-          >
-            SV
-          </button>
-
-          <button
-            type="button"
-            class="allele-tile"
-            (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
-          >
-            Intergenic
-          </button>
-
-          <button
-            type="button"
-            class="allele-tile"
-            (click)="addAllele(row.id, VariantKind.INTERGENIC); closeAddAllelePopover()"
-          >
-            Mitochondrial
-          </button>
-        </div>
+         <button cdkOverlayOrigin #originList="cdkOverlayOrigin"
+                 class="allele-btn allele-btn-add" (click)="openAddAlleleRowId = row.id">+</button>
+          <app-popover [trigger]="originList" [isOpen]="openAddAlleleRowId === row.id">
+           <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
+         </app-popover>
       </div>
-    }
+    </div>
   }
-   </td>
-    }<!-- isShowAllele -->
+
+  <ng-template #alleleMenuContent>
+    <div class="grid grid-cols-2 gap-2 w-[220px]">
+      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.HGVS); openAddAlleleRowId = null">HGVS</button>
+      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null">SV</button>
+      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.INTERGENIC); openAddAlleleRowId = null">Intergenic</button>
+      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null">Mito</button>
+    </div>
+  </ng-template>
+</td>
 
     <!-- The values of the HPO columns-->
     @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {

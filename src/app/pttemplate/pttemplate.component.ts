@@ -25,6 +25,8 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 import { RouterLink } from '@angular/router';
 import { HpoMatch } from '../models/hpo_mapping_result';
+import { PopoverComponent } from "../util/popover/popover-component";
+import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 
 interface Option { label: string; value: string };
 
@@ -32,6 +34,7 @@ interface Option { label: string; value: string };
   selector: 'app-pttemplate',
   standalone: true,
   imports: [
+    CdkOverlayOrigin,
     CommonModule,
     FormsModule,
     HpoAutocompleteComponent,
@@ -41,10 +44,12 @@ interface Option { label: string; value: string };
     MatTooltipModule,
     MatDialogModule,
     MatIconModule,
+    OverlayModule,
     CohortSummaryComponent,
     HelpButtonComponent,
     CohortMetadataComponent,
-    RouterLink
+    RouterLink,
+    PopoverComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -573,15 +578,14 @@ export class PtTemplateComponent  {
 
   @HostListener('document:mousedown', ['$event'])
   closeContextMenu(event: MouseEvent): void {
-    this.openAddAlleleRowId = null;
     const menu = this.contextMenuElement?.nativeElement;
     const individualMenu = this.individualContextMenuElement?.nativeElement;
-    console.log("CloseContextMenu")
-    if (menu && menu.contains(event.target as Node)) {
+    const target = event.target as Node;
+    if (menu && menu.contains(target)) {
       return;
     } 
     this.contextMenuVisible = false;
-    if (individualMenu && individualMenu.contains(event.target as Node)) {
+    if (individualMenu && individualMenu.contains(target)) {
       return;
     }
     this.individualContextMenuVisible = false;
@@ -744,14 +748,6 @@ export class PtTemplateComponent  {
     newMoiList.forEach(moi => {disease.modeOfInheritanceList.push(moi)});
   }
 
-    showAlleleColumn = true;
-
-    toggleVariantColumn(): void {
-      this.showAlleleColumn = !this.showAlleleColumn;
-    }
-
-   
-
   /** 
    * Debug helper: returns human-readable differences between two values.
    */
@@ -809,7 +805,7 @@ openAgeDialog(): void {
     this.notificationService.showSuccess(`Added biocuration event: ${biocurationEvent.orcid} on ${biocurationEvent.date}`)
   }
 
-  /** Calculate the columns we show if the user chooses to filter to a top-level term */
+
   /** Calculate the columns we show if the user chooses to filter to a top-level term */
 visibleColumns = computed<number[]>(() => {
   const cohort = this.cohortData();
@@ -861,10 +857,6 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return this.rowMapById().get(this.pendingRowId) ?? null;
   }
 
-  closeIndividualContextMenu(): void {
-    this.individualContextMenuVisible = false;
-  }
-
 
   // Just show the row that the user clicks on
   focusOnSingleRow(): void {
@@ -895,9 +887,6 @@ visibleColumnMask = computed<Uint8Array>(() => {
     this.focusedPmid.set('');
     this.individualContextMenuVisible = false;
   }
- 
-
-
 
 
  filteredKeys = computed(() => {
@@ -905,13 +894,8 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return new Set(frows);
  });
 
-
-
-
-
   /** Show info like the existing hover popup */
   showInfoForRow(rowId: string | null): void {
-    console.log("showInfoForRow id=", rowId);
     this.individualContextMenuVisible = false;
     if (! rowId) return;
     const row = this.rowMapById().get(rowId);
