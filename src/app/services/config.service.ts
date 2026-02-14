@@ -373,4 +373,29 @@ export class ConfigService {
   async getAllCohortAgeStrings(dto: CohortData): Promise<string[]> {
      return await invoke<string[]>('get_all_cohort_age_strings', {dto: dto});
   }
+
+  /**
+ * Adjusts x and y coordinates to ensure a menu stays within the viewport.
+ */
+  calculateMenuPosition(
+    clickX: number, 
+    clickY: number, 
+    menuWidth: number = 200, 
+    menuHeight: number = 250
+  ): { x: number, y: number } {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    // If x + menuWidth exceeds viewport, flip it to the left of the cursor
+    const x = (clickX + menuWidth > windowWidth) 
+      ? clickX - menuWidth 
+      : clickX;
+
+    // If y + menuHeight exceeds viewport, flip it above the cursor
+    const y = (clickY + menuHeight > windowHeight) 
+      ? clickY - menuHeight 
+      : clickY;
+
+    return { x, y };
+  }
 }

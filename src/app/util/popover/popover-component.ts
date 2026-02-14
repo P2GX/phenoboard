@@ -1,5 +1,5 @@
-import { Component, input, model, output } from '@angular/core';
-import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
+import { Component, input, model } from '@angular/core';
+import { CdkOverlayOrigin, ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-popover',
@@ -27,10 +27,10 @@ import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
   `
 })
 export class PopoverComponent {
-  trigger = input.required<any>(); 
+  // Only accepts a real UI element origin now
+  trigger = input.required<CdkOverlayOrigin>();
   isOpen = model<boolean>(false);
 
-  // Best-practice positions: try bottom-right, then bottom-left, then top
   positions: ConnectedPosition[] = [
     { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
     { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },

@@ -114,6 +114,7 @@ export class PtTemplateComponent  {
   contextMenuY = 0;
   /* used for first column only */
   individualContextMenuVisible = false;
+  individualMenuTrigger = signal<{ x: number, y: number } | null>(null);
   individualMenuX = 0;
   individualMenuY = 0;
 
@@ -843,10 +844,11 @@ visibleColumnMask = computed<Uint8Array>(() => {
 
   /* right click on first column can focus on row or PMIDs */
   onIndividualRightClick(event: MouseEvent, rowId: string): void {
-    event.preventDefault();
+    event.preventDefault(); // stop default menu of browser
     this.contextRowId = rowId; 
-    this.individualMenuX = event.clientX;
-    this.individualMenuY = event.clientY;
+    const {x, y} = this.configService.calculateMenuPosition(event.clientX, event.clientY);
+    this.individualMenuX = x;
+    this.individualMenuY = y;
     this.individualContextMenuVisible = true;
     event.stopPropagation();
   }
@@ -894,27 +896,36 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return new Set(frows);
  });
 
-  /** Show info like the existing hover popup */
-  showInfoForRow(rowId: string | null): void {
+  
+
+
+  // One signal for position, one for the data
+  infoMenuPos = signal<{ x: number, y: number } | null>(null);
+  activeInfoRow = signal<RowData | null>(null); // Use your RowData interface
+
+  showInfoForRow(rowId: string | null, event: MouseEvent): void {
     this.individualContextMenuVisible = false;
-    if (! rowId) return;
-    const row = this.rowMapById().get(rowId);
-    if (! row) {
-      this.rowInfoKey = null;
-      this.notificationService.showError("Cannot retrieve context row"); 
+    if (!rowId) {
+      this.activeInfoRow.set(null);
       return;
     }
-    this.rowInfoKey = rowId;
-    this.rowInfoVisible = true;
+    const row = this.rowMapById().get(rowId);
+    if (!row) {
+      this.notificationService.showError("Cannot retrieve context row");
+      this.activeInfoRow.set(null);
+      return;
+    }
+    const pos = this.configService.calculateMenuPosition(event.clientX, event.clientY, 280, 350);
+    
+    this.infoMenuPos.set(pos);
+    this.activeInfoRow.set(row); // This is your "Source of Truth"
+    this.rowInfoKey = rowId;      // Keep this if you still need the ID for the editor
   }
-
 
   closeRowInfo(): void {
-    this.rowInfoKey = null;
-    this.rowInfoVisible = false;
-    this.cdRef.detectChanges();
+    this.activeInfoRow.set(null);
+    this.infoMenuPos.set(null);
   }
-
 
 
   getAlleleKeys(map: Record<string, unknown>): string[] {
