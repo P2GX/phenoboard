@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.5.103"
+version = "0.5.104"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -25,7 +25,7 @@ ontolius = "0.7.2"
 reqwest = { version = "0.13.2", features = ["json", "blocking"] }
 rfd = { version = "0.16.0", default-features = false}
 fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.1.18' }
-ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.5.23' }
+ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', tag = '0.5.24' }
 #ga4ghphetools = { path = "../../ga4ghphetools" }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.148"
@@ -45,7 +45,7 @@ nucleo-matcher = "0.3"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rfd = { version = "0.16.0", default-features = false, features = ["xdg-portal", "tokio"] }
-
+# rfd buggy with version 0.17.2: package `phenoboard` depends on `rfd` with feature `tokio` but `rfd` does not have that feature.
 
 
 
