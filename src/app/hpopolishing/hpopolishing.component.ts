@@ -11,7 +11,6 @@ import { AddageComponent } from '../addages/addage.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../services/notification.service';
 import { HpoMatch } from '../models/hpo_mapping_result';
-import { MatIcon } from "@angular/material/icon";
 
 /** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
@@ -19,7 +18,7 @@ import { MatIcon } from "@angular/material/icon";
   templateUrl: './hpopolishing.component.html',
   styleUrls: ['./hpopolishing.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HpoAutocompleteComponent, MatIcon]
+  imports: [CommonModule, FormsModule, HpoAutocompleteComponent]
 })
 export class HpoPolishingComponent implements OnInit {
 

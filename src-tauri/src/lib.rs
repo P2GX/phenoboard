@@ -15,7 +15,7 @@ use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -80,7 +80,8 @@ pub fn run() {
             create_cell_mappings,
             get_multi_hpo_strings,
             get_cohort_age_strings,
-            get_status_dto
+            get_status_dto,
+            fetch_hgnc_data
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
@@ -1022,3 +1023,13 @@ async fn get_cohort_age_strings(
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_all_cohort_age_strings(dto)
 }
+
+
+/// Get HGNC data related to a gene symbol
+#[tauri::command]
+async fn fetch_hgnc_data(
+    symbol: String
+) -> Result<HgncBundle, String> {
+    util::fetch_hgnc_data(&symbol).await
+}
+

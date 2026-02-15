@@ -1,4 +1,4 @@
-import { Component, inject,  signal } from '@angular/core';
+import { Component, computed, inject,  signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
@@ -6,6 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { MatMenuModule } from "@angular/material/menu";
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { ConfigService } from '../services/config.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -23,16 +25,15 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
   styleUrls: ['./cohortdialog.component.css'],
 })
 export class CohortDialogComponent {
-  form: FormGroup;
-
+  
   showPasteArea = signal(false);
   pastedText = signal<string | null>(null);
   private fb = inject(FormBuilder);
   public dialogRef = inject(MatDialogRef<CohortDialogComponent>);
-public data = inject(MAT_DIALOG_DATA) as { title: string };
-  constructor(
-  ) {
-    this.form = this.fb.group({
+  public data = inject(MAT_DIALOG_DATA) as { title: string };
+  private configService = inject(ConfigService);
+ 
+  form: FormGroup = this.fb.group({
       diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
       diseaseLabel: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
       cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
@@ -40,8 +41,12 @@ public data = inject(MAT_DIALOG_DATA) as { title: string };
       symbol: ['', [Validators.required, noWhitespaceValidator]],
       transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
     });
-  }
-
+  symbolValue = toSignal(this.form.get('symbol')!.valueChanges, { initialValue: '' });
+  canFetch = computed(() => {
+    const s = this.symbolValue();
+    return s && s.trim().length > 0;
+  });
+  isLoading = signal(false);
 
   cancel() {
     this.dialogRef.close(null);
@@ -84,5 +89,33 @@ public data = inject(MAT_DIALOG_DATA) as { title: string };
 
   togglePaste() {
     this.showPasteArea.update(v => !v);
+  }
+
+  async fetchHgncData(symbol: string): Promise<{ hgncId: string, maneSelect: string } | null> {
+    try {
+      return await this.configService.fetchHgncData(symbol);
+    } catch (error) {
+      console.error(`Error fetching gene ${symbol}: ${error}`);
+      return null; // Return null so your UI can show a "Gene not found" message
+    }
+  }
+
+  async fetchAndFillHgnc() {
+    const symbol = this.symbolValue();
+    if (!symbol) return;
+
+    this.isLoading.set(true);
+    const result = await this.fetchHgncData(symbol);
+    this.isLoading.set(false);
+
+    if (result) {
+      this.form.patchValue({
+        hgnc: result.hgncId,
+        transcript: result.maneSelect
+      });
+    } else {
+      // Optional: Toast or specific error handling if gene not found
+      alert(`Could not find data for symbol: ${symbol}`);
+    }
   }
 }

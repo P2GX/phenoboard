@@ -59,9 +59,26 @@
         <p class="error-text">Valid HGNC ID required (e.g., HGNC:1234)</p>
       }
     </div>
-
+    
     <div class="form-field">
-      <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol" class="form-input" />
+    <div class="form-field flex gap-2">
+      <input 
+      placeholder="Gene symbol (e.g. CFTR)" 
+      formControlName="symbol" 
+      class="form-input flex-1" />
+      <button
+        type="button"
+        [disabled]="!canFetch() || isLoading()"
+        (click)="fetchAndFillHgnc()"
+        class="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100 disabled:opacity-50 transition-all flex items-center gap-2"
+        >
+        @if (isLoading()) {
+          <span class="animate-spin">⏳</span>
+        } @else {
+          🔍 Fetch info
+        }
+        </button>
+    </div>
       @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
         <p class="error-text">Gene symbol is required.</p>
       }

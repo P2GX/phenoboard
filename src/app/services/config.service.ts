@@ -374,6 +374,10 @@ export class ConfigService {
      return await invoke<string[]>('get_all_cohort_age_strings', {dto: dto});
   }
 
+  async fetchHgncData(symbol: string): Promise<{ hgncId: string, maneSelect: string}> {
+    return await invoke<{ hgncId: string, maneSelect: string}>('fetch_hgnc_data', {symbol: symbol});
+  }
+
   /**
  * Adjusts x and y coordinates to ensure a menu stays within the viewport.
  */
