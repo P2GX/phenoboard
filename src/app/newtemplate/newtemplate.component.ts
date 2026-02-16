@@ -166,11 +166,11 @@ async mendelian(): Promise<void> {
     if (rawValue) {
         const entryA: CohortEntry = {
           ...rawValue,
-          geneTranscriptList: [] // Ensure the optional list is initialized if needed
+          geneTranscriptList: []
         };
         this.diseaseA.set(entryA);
       } else {
-        this.notificationService.showError("Could not retrieve disease A");
+        this.notificationService.showError("Could not retrieve disease");
         return;
       }
 
@@ -193,7 +193,7 @@ async mendelian(): Promise<void> {
       const acronymB = diseaseB.cohortAcronym;
       const geneA = diseaseA.symbol;
       const geneB = diseaseB.symbol;
-      const acronym = `${geneA}-${acronymA}-${geneB}-${acronymB}`;
+      const acronym = `${geneA}_${acronymA}_${geneB}_${acronymB}`;
       const cohort = await this.configService.createNewMeldedTemplate(toDiseaseData(diseaseA), toDiseaseData(diseaseB), acronym);
        this.resetCohort();
       this.pendingCohort.set(cohort);
@@ -209,7 +209,7 @@ private async createMendelianTemplate(): Promise<void> {
   }
   const acronym = diseaseA.cohortAcronym;
   const gene = diseaseA.symbol;
-  const fullAcronym = `${gene}-${acronym}`;
+  const fullAcronym = `${gene}_${acronym}`;
   const ctype: CohortType = "mendelian";
   const template = await this.configService.createNewTemplate(
     toDiseaseData(diseaseA),

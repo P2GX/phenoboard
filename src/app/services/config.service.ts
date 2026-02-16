@@ -378,7 +378,7 @@ export class ConfigService {
     return await invoke<{ hgncId: string, maneSelect: string}>('fetch_hgnc_data', {symbol: symbol});
   }
 
-  /**
+/**
  * Adjusts x and y coordinates to ensure a menu stays within the viewport.
  */
   calculateMenuPosition(

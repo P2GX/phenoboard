@@ -727,18 +727,17 @@ export class TableEditorComponent implements OnInit {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
     const rect = this.contextMenuAnchor.getBoundingClientRect();
-    const modalHeight = 300;
-    const margin = 8;
-
-    let top = rect.top + window.scrollY;
-    let left = rect.left + window.scrollX;
-    // Flip above if needed
-    if (top + modalHeight > window.scrollY + window.innerHeight) {
-      top = rect.bottom + window.scrollY - modalHeight - margin;
-    }
-
-  this.editModalPosition = { x:left, y: top };
-  this.editModalVisible = true;
+    const safePos = this.configService.calculateMenuPosition(
+      rect.left, 
+      rect.top, 
+      250, // Estimated Modal Width
+      300  // Estimated Modal Height
+    );
+    this.editModalPosition = { 
+      x: safePos.x + window.scrollX, 
+      y: safePos.y + window.scrollY 
+    };
+    this.editModalVisible = true;
 
     const cell = this.contextMenuCellValue;
     this.editingValue = cell;

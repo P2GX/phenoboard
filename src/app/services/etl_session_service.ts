@@ -127,7 +127,7 @@ export class EtlSessionService {
     const value = val.toLowerCase().trim();
     const femaleSymbols = new Set(["female", "woman","f", "w", "girl", "fem"]);
     const maleSymbols = new Set(["male","man","m","boy", "masc"]);
-    const unknownSymbols = new Set(["u", "ukn", "unknown", "?"]);
+    const unknownSymbols = new Set(["u", "ukn", "unknown", "?", "n.k."]);
     const otherSymbols = new Set(["o", "other"]);
     if (femaleSymbols.has(value)) {
       return "F";
