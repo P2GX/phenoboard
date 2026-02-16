@@ -16,6 +16,7 @@
     - [Table editor](help/table-editor.md)
     - [Repo Q/C](help/repo.md)
     - [Variants](help/variants.md)
+    - [Entering variant data](help/variant-data.md)
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
     - [Practical tips](developers/practical.md)
