@@ -75,7 +75,8 @@ export class HpoAutocompleteComponent {
     effect(() => {
       const val = this.inputString();
       if (val) {
-        this.control.setValue(val, {emitEvent: false});
+        this.control.setValue(val, {emitEvent: true});
+        setTimeout(() => this.inputElement()?.focus(), 0);
         this.inputElement()?.select();
       }
     });
