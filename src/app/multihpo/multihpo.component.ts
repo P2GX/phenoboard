@@ -67,7 +67,7 @@ export class MultiHpoComponent {
     const processed = (this.data.concepts ?? [])
       .filter(c => {
         const text = c.originalText.toLowerCase().trim();
-        return !NOT_APPLICABLE.has(text) && /[a-zA-Z]/.test(text);
+        return !NOT_APPLICABLE.has(text) && text.length > 0;
       })
       .map(c => ({
         ...c,

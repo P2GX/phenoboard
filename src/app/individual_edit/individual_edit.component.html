@@ -31,7 +31,7 @@
           >
           <!-- dropdown list -->
           <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
-            @for (term of ageInputService.onsetTerms; track term) {
+            @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
               <mat-option [value]="term">
                 {{ term }}
               </mat-option>
@@ -52,7 +52,7 @@
           >
           <!-- dropdown list -->
           <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
-            @for (term of ageInputService.onsetTerms; track term) {
+            @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
               <mat-option [value]="term">
                 {{ term }}
               </mat-option>

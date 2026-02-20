@@ -5,22 +5,6 @@ import { DiseaseData } from "../models/cohort_dto";
 import { PmidDto } from "../models/pmid_dto";
 
 
-const AGE_TERM_MAP: Record<string, string> = {
-  antenatal: "Antenal onset",
-  neonate: "Neonatal onset",
-  neonatal: "Neonatal onset",
-  "neonatal onset": "Neonatal onset",
-  newborn: "Neonatal onset",
-  "newborn onset": "Neonatal onset",
-  birth: "Congenital onset",
-  congenital: "Congenital onset",
-  child: "Childhood onset",
-  childhood: "Childhood onset",
-  adult: "Adult onset",
-  adulthood: "Adult onset",
-  unk: "na",
-  na: "na"
-};
 
 
 // 4. ETL Session Service
@@ -160,76 +144,7 @@ export class EtlSessionService {
     return undefined
   }
   
-  /* Try to parse a variety of age strings to Iso8601. 
-    If another kind of valid age string is found, keep it (.e., Gestational or ISO) */
-  parseAgeToIso8601(ageStr: string | null | undefined): string | undefined {
-    if (!ageStr?.trim()) return undefined;
-    if (this.ageService.validateAgeInput(ageStr)) return ageStr;
-    const lower = ageStr.trim().toLowerCase();
-    if (AGE_TERM_MAP[lower]) return AGE_TERM_MAP[lower];
-    
-    const yearMatch = /(\d+(?:\.\d+)?)\s*(y(?:ear)?s?|yr?s?|yo)\b/.exec(lower);
-    const monthMatch = /(\d+(?:\.\d+)?)\s*(m(?:onth)?s?|mo?s?)\b/.exec(lower);
-    const dayMatch = /(\d+)\s*(d(?:ay)?s?)\b/.exec(lower);
-
-    if (!yearMatch && !monthMatch && !dayMatch) return undefined;
-    const rawYears: number = yearMatch ? parseFloat(yearMatch[1]) : 0;
-    const rawMonths: number = monthMatch ? parseFloat(monthMatch[1]) : 0;
-    const days: number = dayMatch ? parseInt(dayMatch[1], 10) : 0;
-
-    const years = Math.floor(rawYears);
-    const monthsFromYears = Math.round((rawYears - years) * 12);
-    const totalMonths = Math.floor(rawMonths) + monthsFromYears;
-    // Build ISO8601 string
-    const parts = [
-      years > 0 ? `${years}Y` : '',
-      totalMonths > 0 ? `${totalMonths}M` : '',
-      days > 0 ? `${days}D` : ''
-    ].join('');
-    return parts ? `P${parts}` : undefined;
-  }
-
-  /**
-   * Converts a decimal number representing years into ISO 8601 duration format.
-   * Examples: 
-   * - "4" -> "P4Y"
-   * - "4.5" -> "P4Y6M" 
-   * - "2.25" -> "P2Y3M"
-   * - "0.75" -> "P9M"
-   * @param input - String containing a decimal number
-   * @returns ISO 8601 duration string or empty string if invalid
-   */
-  parseDecimalYearsToIso8601(input: string | null | undefined): string {
-    if (input == null || input == undefined) {
-      return '';
-    }
-    const trimmed = input.trim();
-    // May be integer or decimal
-    const numberMatch = /^\d+(?:\.\d+)?$/.exec(trimmed);
-    if (!numberMatch) {
-      return '';
-    }
-    const totalYears = parseFloat(trimmed);
-    if (isNaN(totalYears) || totalYears < 0) {
-      return '';
-    }
-    const wholeYears = Math.floor(totalYears);
-    const fractionalYears = totalYears - wholeYears;
-    const months = Math.round(fractionalYears * 12);
-    let result = 'P';
-    if (wholeYears > 0) {
-      result += `${wholeYears}Y`;
-    }
-    if (months > 0) {
-      result += `${months}M`;
-    }
-    // Handle edge case where input is 0
-    return result === 'P' ? '' : result;
-  }
-
-
-
-
+  
   
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);

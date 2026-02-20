@@ -36,6 +36,7 @@ import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, 
 import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { AppStatusService } from '../services/app_status_service';
+import { AgeInputService } from '../services/age_service';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -69,6 +70,7 @@ export class TableEditorComponent implements OnInit {
   Object = Object;
 
   private configService = inject(ConfigService);
+  private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
   public etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
@@ -149,7 +151,7 @@ export class TableEditorComponent implements OnInit {
 
   /* Functions that perform a fixed operation on cells and DO expect the column type to change */
   readonly ELEMENTWISE_MAP: Partial<Record<TransformType, StringTransformFn>> = {
-    [TransformType.ONSET_AGE]: (val) => this.etl_service.parseAgeToIso8601(val),
+    [TransformType.ONSET_AGE]: (val) => this.ageService.mapEtlAgeString(val),
     [TransformType.SEX_COLUMN]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.SEX_COLUMN_TYPE]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
@@ -1307,11 +1309,9 @@ export class TableEditorComponent implements OnInit {
           break;
         case TransformType.ONSET_AGE:
         case TransformType.LAST_ENCOUNTER_AGE:
-          transformed = this.etl_service.parseAgeToIso8601(original);
-          break;
         case TransformType.ONSET_AGE_ASSUME_YEARS:
         case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-          transformed = this.etl_service.parseDecimalYearsToIso8601(original);
+          transformed = this.ageService.mapEtlAgeString(original) ?? `Could not convert ${original}`;
           break;
         case TransformType.SEX_COLUMN:
           transformed = this.etl_service.parseSexColumn(original);
@@ -1537,18 +1537,14 @@ export class TableEditorComponent implements OnInit {
       case TransformType.TO_LOWERCASE:
         output = input.toLowerCase();
         break;
-      case TransformType.ONSET_AGE:
-        output = this.etl_service.parseAgeToIso8601(input);
-        break;
-      case TransformType.LAST_ENCOUNTER_AGE:
-        output = this.etl_service.parseAgeToIso8601(input);
-        break;
       case TransformType.SEX_COLUMN:
         output = this.etl_service.parseSexColumn(input);
         break;
+      case TransformType.ONSET_AGE:
+      case TransformType.LAST_ENCOUNTER_AGE:
       case TransformType.ONSET_AGE_ASSUME_YEARS:
       case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-        output = this.etl_service.parseDecimalYearsToIso8601(input);
+        output = this.ageService.mapEtlAgeString(input);
         break;
     }
     if (output) {
