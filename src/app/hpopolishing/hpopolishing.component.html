@@ -1,97 +1,68 @@
-<div class="p-4">
+ <!-- Annotation area -->
+<div class="flex flex-col h-full overflow-hidden">
+  <div class="flex-none p-4 overflow-y-auto max-h-60 bg-gray-50 border-b">
 
-
-  <!-- Annotation area -->
-  <div class="whitespace-pre-wrap text-sm font-mono mb-4 relative">
+ 
+  <div class="whitespace-pre-wrap text-sm font-mono leading-relaxed">
     @for (ann of annotations; track $index) {
       @if (ann.isFenominalHit) {
-        <span
-          class="cursor-pointer px-1 rounded"
-          (click)="openPopup(ann, $event)"
-          [ngClass]="{
-            'bg-green-100': ann.isObserved,
-            'bg-red-100': !ann.isObserved
-          }"
-          [attr.data-id]="ann.termId"
-        >
-          {{ ann.originalText }}
-        </span>
-      } @else {
-        {{ ann.originalText }}
-      }
+          <span
+            (click)="openPopup(ann, $event)"
+            class="cursor-pointer px-1 rounded transition-colors duration-200 border-b-2"
+            [ngClass]="{
+              'bg-green-100 border-green-400 hover:bg-green-200': ann.isObserved,
+              'bg-red-100 border-red-400 hover:bg-red-200': !ann.isObserved
+            }">
+            {{ ann.originalText }}
+          </span>
+        } @else {
+          <span class="text-gray-700">{{ ann.originalText }}</span>
+        }
     }
   </div>
-
-  <!-- Popup for one of the terms in the marked up text that will be activated if the user clicks on the colored text -->
-   @if (showPopup) {
-<div
-    class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
-    [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
-    (mouseleave)="closePopup()"
-  >
-  <div class="flex justify-between items-center mb-2">
-    <p class="text-sm font-semibold">Edit Annotation</p>
-    <button (click)="closePopup()" class="text-gray-500 hover:text-black text-xs">✕</button>
   </div>
+
+<!-- Popup for one of the terms in the marked up text that will be activated if the user clicks on the colored text -->
+@if (showPopup) {
+  <div
+      class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
+      [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
+      (mouseleave)="closePopup()"
+    >
+      <div class="flex justify-between items-center mb-2">
+        <button (click)="closePopup()" class="text-gray-500 hover:text-black text-xs">✕</button>
+      </div>
       <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
       <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
-      <p><strong>Observed:</strong> {{ selectedAnnotation?.isFenominalHit ? 'Yes' : 'No'  }}</p>
-      <p><strong>Onset:</strong> {{ selectedAnnotation?.onsetString || '(none)' }}</p>
-    <p class="text-xs text-gray-600 mb-1">Term: {{ selectedAnnotation?.label }}</p>
-    <button
-      class="text-xs px-2 py-1 mb-1 bg-gray-100 rounded w-full"
-      (click)="toggleObserved(this.selectedAnnotation)"
-    >Mark as {{ selectedAnnotation?.isObserved ? 'Excluded' : 'Observed' }}</button>
-    <div class="mt-2">
-      @if (selectedAnnotation) {
-        <label class="text-xs block mb-1">Select Onset:</label>
-        @for(onset of availableOnsetTerms(); track onset) {
-          <div class="text-xs mb-1">
-            <label class="inline-flex items-center">
-              <input
-                type="radio"
-                name="onsetGroup"
-                class="mr-1"
-                [value]="onset"
-                [(ngModel)]="selectedAnnotation.onsetString"
-              />
-              {{ onset }}
-            </label>
-          </div>
-        }
-      }
-    </div>
+      <p><strong>Original:</strong> {{ selectedAnnotation?.originalText ?? 'n/a'  }}</p>
   </div>
-   }
+}
 
-
-<div class="mt-4 p-2 border rounded bg-gray-50 flex flex-col h-[70vh]">
-  <strong class="mb.1">Annotated Terms: n={{ getFenominalAnnotations().length }}</strong>
-  <!-- text-annotations.component.htmloverflow-y-auto -->
-<div class="flex-1 border border-gray-300 rounded">
-  <table #annotationTable class="table-auto w-full border-collapse text-xs leading-tight">
-  <thead class="bg-gray-100 sticky top-0 z-10">
-    <tr>
-      <th class="border px-1 py-[1px]">Term ID</th>
-      <th class="border px-1 py-[1px]">Label</th>
-      <th class="border px-1 py-[1px]">Observed</th>
-      <th class="border px-1 py-[1px]">Onset</th>
-      <th class="border px-1 py-[1px]">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (annotation of hpoAnnotations(); track i; let i = $index) {
-    <tr>
-      <td class="border px-1 py-[1px]">
-          <a (click)="onLinkClick($event, annotation.termId)" class="text-blue-600 underline">
-            {{ annotation.termId }}
-          </a>
-      </td>
-      <td class="border px-1 py-[1px] relative">
-        <span (click)="showParentChildDropdown(annotation)" class="cursor-pointer text-blue-600 underline">
-          {{ annotation.label }} ▼
-        </span>
-        @if (showDropdownMap[annotation.termId]) {
+<div class="flex-1 overflow-auto min-h-0 bg-white">
+    <table #annotationTable class="table-auto w-full border-collapse text-xs leading-tight">
+      <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
+        <tr>
+          <th class="border-b p-2 text-left w-24">Term ID</th>
+          <th class="border-b p-2 text-left">Label</th>
+          <th class="border-b p-2 text-left w-16">Status</th>
+          <th class="border-b p-2 text-left w-24">Onset</th>
+          <th class="border-b p-2 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        @for (annotation of hpoAnnotations(); track annotation.termId; let i = $index) {
+          <tr class="hover:bg-blue-50/50 h-6 transition-colors">
+           <!-- <td class="p-2 font-mono text-blue-600">-->
+              <td class="px-2 py-[1px] font-mono leading-none">
+              <a (click)="onLinkClick($event, annotation.termId)" class="hover:underline cursor-pointer">
+                {{ annotation.termId }}
+              </a>
+            </td>
+            <td class="p-2 relative">
+              <span (click)="showParentChildDropdown(annotation)" class="cursor-pointer font-medium flex items-center gap-1">
+                {{ annotation.label }} <span class="text-[8px] text-gray-400">▼</span>
+              </span>
+               @if (showDropdownMap[annotation.termId]) {
           <div class="absolute left-0 top-full z-50 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg">           
             @if (!parentChildHpoTermMap[annotation.termId]) {
               <div class="p-2 text-gray-500 text-sm italic">
@@ -125,17 +96,23 @@
             }
           </div>
         }
-      </td>
-      <td class="border px-1 py-[1px]">
-        <span [class.text-green-600]="annotation.isObserved" [class.text-red-600]="!annotation.isObserved">
-          {{ annotation.isObserved ? 'Yes' : 'No' }}
-        </span>
-      </td>
-      <td class="border px-1 py-[1px]">{{ annotation.onsetString }}</td>
-      <td class="border px-1 py-[1px] flex gap-1 flex-wrap items-center">
-        <button (click)="deleteAnnotation(i)" class="bg-red-500 text-white px-1 py-0.5 text-[10px] rounded">Delete</button>
-        <button (click)="toggleObserved(annotation)" class="bg-blue-500 text-white px-1 py-0.5 text-[10px] rounded">Toggle</button>
-        <select 
+              </td>
+            <td class="p-2">
+               <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                 [ngClass]="annotation.isObserved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                 {{ annotation.isObserved ? 'OBS' : 'EXC' }}
+               </span>
+            </td>
+            <td class="p-2 italic text-gray-600">{{ annotation.onsetString || '—' }}</td>
+            <td class="p-2 text-right">
+              <div class="flex justify-end gap-1">
+                <button (click)="toggleObserved(annotation)" class="p-1 hover:bg-gray-200 rounded">
+                  <mat-icon class="text-sm scale-75">swap_horiz</mat-icon>Toggle
+                </button>
+                <button (click)="deleteAnnotation(i)" class="p-1 hover:bg-red-100 text-red-500 rounded">
+                  <mat-icon class="text-sm scale-75">delete</mat-icon>Delete
+                </button>
+                 <select 
           [(ngModel)]="annotation.onsetString"
           (ngModelChange)="updateOnset(annotation, $event)"
           class="px-1 py-0.5 border rounded text-[10px] h-5"
@@ -145,44 +122,29 @@
           }
         </select>
         <button (click)="addOnsetString(annotation)" class="bg-green-500 text-white px-1 py-0.5 text-[10px] rounded">Add onset</button>
-      </td>
-    </tr>
-  }
-  </tbody>
-</table>
-</div>
-
-<div class="space-y-1">
-  <div class="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
-  <div class="flex-grow">
-    <app-hpoautocomplete
-      [inputString]="hpoInputString"
-      (selected)="handleSelection($event)"
-    ></app-hpoautocomplete>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </div>
 
-  <button 
-    color="primary" 
-    (click)="submitSelectedHpo()"
-    [disabled]="!selectedHpoTerm"
-    class="btn-outline-primary h-[40px] px-6"
-  >Submit</button>
-</div>
-  
-  @if (selectedHpoTerm) {
-     <p class="text-xs text-blue-600 italic">Last added: {{ selectedHpoTerm.label }}</p>
-  }
-</div>
-
-</div>
-  <!-- Done button -->
-  <div class="flex justify-end mt-4 pe-4 gap-2">
-    <button
-      class="btn-outline-primary"
-      (click)="finish()"
-    >
-      Finish
-    </button>
-     <button class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
+  <div class="p-3 bg-gray-50 border-t">
+    <div class="flex items-center gap-3">
+      <div class="flex-grow">
+        <app-hpoautocomplete
+          [inputString]="hpoInputString"
+          (selected)="handleSelection($event)"
+        ></app-hpoautocomplete>
+      </div>
+      <button 
+        (click)="submitSelectedHpo()"
+        [disabled]="!selectedHpoTerm"
+        class="bg-blue-600 text-white px-4 py-2 rounded shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium">
+        Add Term
+      </button>
+    </div>
   </div>
+
 </div>

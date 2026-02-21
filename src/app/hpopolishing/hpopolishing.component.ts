@@ -11,6 +11,7 @@ import { AddageComponent } from '../addages/addage.component';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../services/notification.service';
 import { HpoMatch } from '../models/hpo_mapping_result';
+import { MatIcon } from "@angular/material/icon";
 
 /** This component takes the results of the raw text mining (fenominal) and allows the user to revise them and add new terms */
 @Component({
@@ -18,7 +19,7 @@ import { HpoMatch } from '../models/hpo_mapping_result';
   templateUrl: './hpopolishing.component.html',
   styleUrls: ['./hpopolishing.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HpoAutocompleteComponent]
+  imports: [CommonModule, FormsModule, HpoAutocompleteComponent, MatIcon]
 })
 export class HpoPolishingComponent implements OnInit {
 
@@ -119,7 +120,6 @@ export class HpoPolishingComponent implements OnInit {
 
     if (this.showDropdownMap[termId] && !this.parentChildHpoTermMap[termId]) {
       this.configService.getHpoParentAndChildTerms(annotation).then(relativeTermDtos => {
-        console.log("relativeTermDtos", relativeTermDtos)
         this.parentChildHpoTermMap[termId] = relativeTermDtos;
       });
     }
@@ -131,6 +131,7 @@ export class HpoPolishingComponent implements OnInit {
       if (!clickedInside) {
         this.showDropdownMap = {};
       }
+      this.showPopup = false; // the dialog that shows the original text/mined term. Close this with any click!
     }
 
   /** This is used in the GUI to replace a term by a parent or child term. */

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { HpoMiningComponent } from '../hpomining/hpomining.component';
@@ -17,7 +17,8 @@ export class HpoTwostepComponent {
   step = 1;
   annotations: TextAnnotationDto[] = [];
 
-  constructor(private dialogRef: MatDialogRef<HpoMiningComponent>) {}
+  private dialogRef = inject(MatDialogRef<HpoMiningComponent>);
+  @ViewChild(HpoPolishingComponent) polishingComp!: HpoPolishingComponent;
 
   onTextMiningSuccess(result: TextAnnotationDto[]) {
     this.annotations = result;

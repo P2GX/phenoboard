@@ -1,0 +1,39 @@
+/* hpopolishing.component.scss */
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+
+  tr {
+    height: 18px; // Force a very short row height
+  }
+
+  td {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    line-height: 1 !important;
+    white-space: nowrap; 
+    vertical-align: middle;
+  }
+}
+
+/* Shrink Material Icons and remove their default padding */
+mat-icon {
+  width: 14px !important;
+  height: 14px !important;
+  font-size: 14px !important;
+  line-height: 14px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* If you use mat-icon-button, it's a huge space hog. 
+   Use raw buttons with icons inside instead. */
+button {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 !important;
+  vertical-align: middle;
+}
