@@ -161,15 +161,15 @@ button.btn-primary {
 
   &:hover:not(:disabled) {
     // A slightly darker blue for hover
-    background-color: color.adjust($blue-primary, -8%);
-    border-color: color.adjust($blue-primary, -8%);
+    background-color: color.adjust($blue-primary, $lightness: -8%);
+    border-color: color.adjust($blue-primary, $lightness: -8%);
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    background-color: color.adjust($blue-primary, -12%);
+    background-color: color.adjust($blue-primary, $lightness: -12%);
   }
 
   &:focus {
