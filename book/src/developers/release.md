@@ -3,14 +3,16 @@
 This page explains the release process whereby installers are added to a Release on the project GitHub page.
 
 Following an important update, increment the Application version (we are using the same version number in Cargo.toml and package.json and tauri.conf.json).
-The version number will be something like 0.5.12. Adjust the tag accordingly and enter the following commands.
+The version number will be something like 0.5.12. 
+The ``npm version patch`` script will increment patch version in Cargo.toml and ``package.json`` and create the tag. You will see the new
+tag version on the shell. Use this (adjust ``v.0.5.???``) to push to origin. This will trigger a new release. 
 
 ```bash
 git add .
 git commit -m "<whatever>"
-git push
-git tag v0.5.12
-git push origin v0.5.12
+npm version patch  
+git commit -m "version bump"
+git push origin v0.5.???
 ```
 
 If all goes well, this will add a new release with Mac, Windows, and Debian/Ubuntu installers.
