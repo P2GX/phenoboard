@@ -10,7 +10,9 @@
     "tauri:dev": "tauri dev",
     "tauri:dev:clean": "rimraf dist && rimraf src-tauri/target && npm run tauri dev",
     "tauri:dev:fresh": "npm run clean && npm run tauri dev",
-    "clean": "rimraf dist && rimraf src-tauri/target && rimraf node_modules/.cache"
+    "clean": "rimraf dist && rimraf src-tauri/target && rimraf node_modules/.cache",
+    "version:sync": "sed -i 's/^version = \".*\"/version = \"'${npm_package_version}'\"/' src-tauri/Cargo.toml",
+    "postversion": "npm run version:sync && git add src-tauri/Cargo.toml"
   },
   "private": true,
   "dependencies": {

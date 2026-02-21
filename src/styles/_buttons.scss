@@ -1,5 +1,5 @@
 @use './variables' as *;
-
+@use "sass:color";
 
 // Common styles shared across buttons (optional: you could refactor this into a mixin)
 %btn-base {
