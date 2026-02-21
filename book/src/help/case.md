@@ -11,7 +11,9 @@ Phenoboard allows individual case reports to be curated using text mining. This 
 </figure>
 
 ## Lookup PubMed
-Phenoboard is currently setup to curate published literature with a PubMed identifier (contact us if you would like to use the app for in house cohorts). The user will first need to enter a PMID, either as ``PMID: 35003478``or with just the number (``35003478``). The app will reach out to PubMed and retrieve the title, which is also stored. The app will warn users if it is attempted to enter a previously used PMID (perhaps because the same article is being mistakenly entered a second time). If you are entering multiple individuals from the same article, the warning can be ignored.
+Phenoboard is currently setup to curate published literature with a PubMed identifier (contact us if you would like to use the app for in house cohorts). The user will first need to enter a PMID, either as ``PMID: 35003478``or with just the number (``35003478``). The app will reach out to PubMed and retrieve the title, which is also stored. 
+
+The app will warn users if it is attempted to enter a previously used PMID (perhaps because the same article is being mistakenly entered a second time). If you are entering multiple individuals from the same article, the warning can be ignored.
 
 ## Add/Edit Age entries.
 Enter the age entries needed to curate the case. See [GA4GH Phenopackets: A Practical Introduction](https://pubmed.ncbi.nlm.nih.gov/36910590/) and the [Phenopacket Schema documentation](https://phenopacket-schema.readthedocs.io/en/latest/) for information about how to represent ages. In brief, one case use one of three options:

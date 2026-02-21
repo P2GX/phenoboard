@@ -19,7 +19,7 @@ import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.compo
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
-import { ConfirmDialogComponent } from '../addcase/confirmdialog.component';
+import { ConfirmDialogComponent } from '../util/confirmdialog.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";

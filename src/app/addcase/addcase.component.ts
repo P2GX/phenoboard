@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule} from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { AddageComponent } from "../addages/addage.component";
 import { AdddemoComponent } from "../adddemo/adddemo.component";
@@ -21,7 +20,7 @@ import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
-import { ConfirmDialogComponent } from './confirmdialog.component';
+import { ConfirmDialogComponent } from '../util/confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
@@ -331,7 +330,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         title: 'Duplicate PMID',
         message: `${pmid} is already in the database. Continue anyway?`,
         confirmText: 'Continue',
-        cancelText: 'Cancel'
+        cancelText: 'Cancel',
+        helpTitle: 'PMID Management',
+        helpLines: [
+          'Duplicate entries should be avoided!.',
+          'Only one entry per PMID/individual is allowed.',
+          '<strong>Proceed only</strong> if you are sure this PMID/individual has not been previously entered.'
+        ],
+        helpUrl: 'https://p2gx.github.io/phenoboard/help/case.html#lookup-pubMed'
       }
     });
 
