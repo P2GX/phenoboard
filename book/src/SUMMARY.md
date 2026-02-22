@@ -15,7 +15,6 @@
     - [Cohort editor](help/cohort-editor.md)
     - [Table editor](help/table-editor.md)
     - [Repo Q/C](help/repo.md)
-    - [Variants](help/variants.md)
     - [Entering variant data](help/variant-data.md)
 - [Variants](variants/overview.md)
     - [Structural variants](variants/structural.md)

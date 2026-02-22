@@ -139,10 +139,13 @@
 <td class="relative narrow-column">
   @if (row.alleles.length === 0) {
     <button 
-      cdkOverlayOrigin 
+      cdkOverlayOrigin #originList="cdkOverlayOrigin"
       #originEmpty="cdkOverlayOrigin"
       class="allele-btn allele-btn-add" 
       (click)="openAddAlleleRowId = row.id">+</button>
+      <app-popover [trigger]="originList" [isOpen]="openAddAlleleRowId === row.id">
+           <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
+         </app-popover>
   }
   @for (allele of row.alleles; track allele.key) {
     <div class="allele-row flex items-center gap-x-3">
