@@ -11,8 +11,7 @@ tag version on the shell. Use this (adjust ``v.0.5.???``) to push to origin. Thi
 git add .
 git commit -m "<whatever>"
 npm version patch  
-git commit -m "version bump"
-git push origin v0.5.???
+git push origin main --follow-tags
 ```
 
 If all goes well, this will add a new release with Mac, Windows, and Debian/Ubuntu installers.
