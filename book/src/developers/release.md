@@ -17,6 +17,24 @@ git push origin v0.5.???
 
 If all goes well, this will add a new release with Mac, Windows, and Debian/Ubuntu installers.
 
+### Git tags
+Here are some tips for dealing with the tags.
+
+1. Update the local tags
+```bash
+git fetch --prune --prune-tags origin
+``` 
+2. Show the available tags
+```bash
+git tag
+```
+
+3. Show latest tag
+```bash
+git describe --tags --abbrev=0
+``` 
+
+
 
 ### Manual release
 To create an installer locally (for the current OS), enter the following command
