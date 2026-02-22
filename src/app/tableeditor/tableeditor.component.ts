@@ -933,14 +933,9 @@ export class TableEditorComponent implements OnInit {
       data: { originalHeader: originalColumn.header.original, example: example }
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result: string) => {
       if (!result) return; // user cancelled
       const separator = result; 
-
-      let columnAPosition = Number(result.sexPosition);
-      let columnBPosition = Number(result.agePosition);
-      if (![0, 1].includes(columnAPosition)) columnAPosition = 0;
-      if (![0, 1].includes(columnBPosition)) columnBPosition = 1;
 
       // deep copy original column
       const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
@@ -951,23 +946,25 @@ export class TableEditorComponent implements OnInit {
       columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
       columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
 
-      // convert split strings into EtlCellValue objects
-      columnA.values = originalColumn.values.map(cell => {
+      originalColumn.values.forEach((cell, i) => {
         const text = cell?.original ?? '';
-        const part = (text.split(separator)[columnAPosition]?.trim() || 'U');
-        return { ...cell, original: part, current: part, status: RAW, error: undefined };
+        const firstIdx = text.indexOf(separator);
+        let valA: string;
+        let valB: string;
+        if (firstIdx === -1 || separator === '') {
+          valA = text || 'na';
+          valB = 'na';
+        } else {
+          valA = text.substring(0, firstIdx).trim() || 'na';
+          valB = text.substring(firstIdx + separator.length).trim() || 'na';
+        }
+        columnA.values[i] = { ...cell, original: valA, current: valA, status: RAW };
+        columnB.values[i] = { ...cell, original: valB, current: valB, status: RAW };
       });
 
-      columnB.values = originalColumn.values.map(cell => {
-        const text = cell?.original ?? '';
-        const part = (text.split(separator)[columnBPosition]?.trim() || 'na');
-        return { ...cell, original: part, current: part, status: RAW, error: undefined };
-      });
-
-      // update columns array
-      columns.splice(index + 1, 0, columnB);
-      columns[index] = columnA;
-      this.etl_service.updateColumns(columns);
+      const newColumns = [...columns];
+      newColumns.splice(index, 1, columnA, columnB);
+      this.etl_service.updateColumns(newColumns);
     });
   }
 

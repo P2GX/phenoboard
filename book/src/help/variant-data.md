@@ -2,6 +2,8 @@
 
 Phenoboard uses the [VariantValidator](https://variantvalidator.org/) API to validate HGVS expressions and ensure that variant descriptions are syntactically correct and consistent with reference sequences.
 
+See [Variants](../variants/overview.md) for more information about specific variant classes.
+
 ---
 
 ## Gene Information

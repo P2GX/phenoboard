@@ -17,6 +17,8 @@
     - [Repo Q/C](help/repo.md)
     - [Variants](help/variants.md)
     - [Entering variant data](help/variant-data.md)
+- [Variants](variants/overview.md)
+    - [Structural variants](variants/structural.md)
 - [Developers](developers/overview.md)
     - [Angular tips](developers/angular.md)
     - [Practical tips](developers/practical.md)

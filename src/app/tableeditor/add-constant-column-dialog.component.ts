@@ -12,15 +12,29 @@ import { FormsModule } from '@angular/forms';
     <div mat-dialog-content class="dialog-content">
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Column Name</mat-label>
-        <input matInput [(ngModel)]="data.columnName" />
+        <input 
+          matInput 
+          [(ngModel)]="data.columnName"
+          autofocus
+          autocapitalize="none"
+          spellcheck="false"
+          autocomplete="off" 
+          name="columnName" />
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Constant Value</mat-label>
-        <input matInput [(ngModel)]="data.constantValue" />
+        <input 
+          matInput 
+          [(ngModel)]="data.constantValue"
+          autofocus
+          autocapitalize="none"
+          spellcheck="false"
+          autocomplete="off" 
+          name="constantValue" />
       </mat-form-field>
     </div>
-    <div mat-dialog-actions align="end">
+    <div mat-dialog-actions align="end" class="flex gap-3 px-4 pt-2 pb-2">
       <button mat-button (click)="onCancel()" class="btn-outline-cancel">Cancel</button>
       <button mat-flat-button (click)="onSave()" class="btn-outline-primary">Add</button>
     </div>

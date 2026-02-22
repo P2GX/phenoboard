@@ -56,5 +56,3 @@ This button adds your ORCID identifier to the cohort export file.
 
 
 
-# Sanitization
-

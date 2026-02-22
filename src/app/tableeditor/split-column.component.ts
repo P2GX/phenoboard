@@ -114,9 +114,7 @@ export class SplitColumnDialogComponent {
   });
 
   confirm() {
-    this.dialogRef.close({ 
-      separator: this.finalDelimiter()
-    });
+    this.dialogRef.close(this.finalDelimiter());
   }
 
   cancel() {
