@@ -1,21 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;600&display=swap');
 
 :root {
-  --accent-color: #ffcc00;
-  --sidebar-bg: #f4f5f7;
+  --accent-color: #4f46e5;  
+  --accent-soft: #eef2ff;      
+  --sidebar-bg: #f9fafb;
   --main-bg: #ffffff;
-  --text-color: #222222;
-  --sidebar-text: #333333;
-  --border-color: #ddd;
+  --text-color: #1f2937;      
+  --sidebar-text: #4b5563;
+  --border-color: #e5e7eb;
   --base-font-size: 18px;
 }
 
-/* General body and typography */
 body {
   font-family: 'Fira Sans', sans-serif;
   background: var(--main-bg);
   color: var(--text-color);
-  line-height: 1.7;
+  line-height: 1.6;
   font-size: var(--base-font-size);
   margin: 0;
   padding: 0;
@@ -34,31 +34,28 @@ pre code {
 /* Sidebar */
 .sidebar {
   background: var(--sidebar-bg);
-  color: var(--sidebar-text);
-  padding: 1em;
-  width: 250px;
-  min-height: 100vh;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+  border-right: 1px solid var(--border-color);
 }
 
 .sidebar a {
-  color: var(--accent-color);
-  text-decoration: none;
-  display: block;
-  padding: 0.4em 0;
-  font-weight: 500;
-  font-size: 1.05em;
+  color: var(--sidebar-text);
+  padding: 0.6em 1em;
+  border-radius: 6px;
+  margin: 2px 0;
+  font-size: 0.95em;
+  transition: all 0.15s ease;
 }
 
 .sidebar a:hover {
-  color: #000;
+  background: var(--accent-soft);
+  color: var(--accent-color);
 }
 
 /* Main content */
 main {
-  background: var(--main-bg);
-  color: var(--text-color);
-  padding: 2em 3em;
+  max-width: 850px; 
+  margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
 /* Paragraphs and general text */
@@ -69,22 +66,33 @@ p {
 
 /* Headings */
 h1, h2, h3, h4 {
-  font-family: 'Fira Sans', sans-serif;
-  margin-top: 1.4em;
-  margin-bottom: 0.5em;
-  scroll-margin-top: 80px;
+ font-weight: 600;
+  color: #111827;
 }
 
 h1 {
-  font-size: 2.2em;
-  color: #222;
-  border-bottom: 2px solid var(--accent-color);
-  padding-bottom: 0.3em;
+  font-size: 2.4em;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  /* Instead of a bottom border, we use a subtle accent marker */
+  display: flex;
+  align-items: center;
+}
+
+h1::before {
+  content: "";
+  width: 6px;
+  height: 1.2em;
+  background: var(--accent-color);
+  margin-right: 15px;
+  border-radius: 3px;
 }
 
 h2 {
-  font-size: 1.75em;
-  color: #333;
+  font-size: 1.8em;
+  margin-top: 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
 }
 
 h3 {
@@ -99,19 +107,13 @@ h4 {
 
 /* Figures */
 figure {
-  display: block;
-  text-align: center;
-  margin: 2em auto;
-  max-width: 90%;
+  margin: 3em auto;
 }
 
 figure img {
-  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-  max-width: 100%;
-  height: auto;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
 }
 
 figure img:hover {
@@ -120,10 +122,10 @@ figure img:hover {
 }
 
 figcaption {
-  font-size: 1em;
-  font-style: italic;
-  color: #666;
-  margin-top: 0.6em;
+ margin-top: 1rem;
+  color: #6b7280;
+  font-size: 0.9em;
+  text-align: left; /* Align with text instead of centering */
 }
 
 figcaption strong {
@@ -150,4 +152,14 @@ figcaption a:hover {
 
 main {
   flex: 1;
+}
+
+code:not(pre code) {
+  font-family: 'JetBrains Mono', monospace;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  border: 1px solid #e5e7eb;
 }

@@ -100,6 +100,17 @@ export class AgeInputService {
         return null;
     }
 
+    // transform strings like 11 and 11.2 (years) into ISO format
+    numericYearToIso(input: string): string | undefined {
+        const yVal = parseFloat(input) ?? 0;
+        const years = Math.floor(yVal);
+        const monthsFromY = Math.round((yVal - years) * 12);
+        let res = "P";
+        if (years > 0) res += `${years}Y`;
+        if (monthsFromY > 0) res += `${monthsFromY}M`;
+        return res === "P" ? undefined : res;
+    }
+
     mapYmdToIso(input: string): string | undefined {
         const yMatch = RE_YEAR.exec(input);
         const mMatch = RE_MONTH.exec(input);

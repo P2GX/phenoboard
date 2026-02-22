@@ -1,9 +1,19 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, inject, Inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { openUrl } from '@tauri-apps/plugin-opener';
+
+export interface ConfirmDialogData {
+  title?: string;
+  message: string;          // Required, as the dialog needs content
+  confirmText?: string;
+  cancelText?: string;
+  helpTitle?: string;
+  helpLines?: string[];     // Array of strings for the @for loop
+  helpUrl?: string;         // The URL for the Tauri opener
+}
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -112,10 +122,9 @@ import { openUrl } from '@tauri-apps/plugin-opener';
   `]
 })
 export class ConfirmDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+
+  public dialogRef = inject(MatDialogRef<ConfirmDialogComponent>);
+  public data = inject(MAT_DIALOG_DATA) as ConfirmDialogData;
 
   onConfirmClick(): void { this.dialogRef.close(true); }
   onCancelClick(): void { this.dialogRef.close(false); }

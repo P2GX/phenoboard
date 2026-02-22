@@ -1309,9 +1309,11 @@ export class TableEditorComponent implements OnInit {
           break;
         case TransformType.ONSET_AGE:
         case TransformType.LAST_ENCOUNTER_AGE:
+          transformed = this.ageService.mapEtlAgeString(original) ?? `Could not convert ${original}`;
+          break;
         case TransformType.ONSET_AGE_ASSUME_YEARS:
         case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-          transformed = this.ageService.mapEtlAgeString(original) ?? `Could not convert ${original}`;
+          transformed = this.ageService.numericYearToIso(original)  ?? `Could not convert ${original}`;
           break;
         case TransformType.SEX_COLUMN:
           transformed = this.etl_service.parseSexColumn(original);
@@ -1542,9 +1544,11 @@ export class TableEditorComponent implements OnInit {
         break;
       case TransformType.ONSET_AGE:
       case TransformType.LAST_ENCOUNTER_AGE:
+        output = this.ageService.mapEtlAgeString(input);
+        break;
       case TransformType.ONSET_AGE_ASSUME_YEARS:
       case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-        output = this.ageService.mapEtlAgeString(input);
+        output = this.ageService.numericYearToIso(input);
         break;
     }
     if (output) {

@@ -19,7 +19,7 @@ import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.compo
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from "../cohortsummary/cohortsummary.component";
-import { ConfirmDialogComponent } from '../util/confirmdialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../util/confirmdialog.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
@@ -416,9 +416,11 @@ export class PtTemplateComponent  {
           title: 'Validation Issues',
           message: `The cohort has errors: "${err}". Would you like to automatically sanitize the data?`,
           confirmText: 'Sanitize',
-          cancelText: 'Cancel'
-        }
-      }).afterClosed()
+          cancelText: 'Cancel',
+          helpLines: ['The sanitization steps removes redundant HPO annotations.', 'Any other errors that are flagged need to be fixed manually.'],
+          helpUrl: 'https://p2gx.github.io/phenoboard/help/cohort-editor.html#check-and-fix'
+         } as ConfirmDialogData
+        }).afterClosed()
     );
     if (confirm) {
       try {
