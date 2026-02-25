@@ -181,3 +181,33 @@ button.btn-primary {
     @apply bg-gray-200 text-gray-400 border-gray-200;
   }
 }
+
+button.btn-secondary {
+  @extend %btn-base;
+
+  // Using a soft Purple/Indigo theme
+  background-color: #f5f3ff; // Violet-50
+  color: #5b21b6;            // Violet-800
+  border-color: #ddd6fe;     // Violet-200
+
+  &:hover:not(:disabled) {
+    background-color: #ede9fe; // Violet-100
+    color: #4c1d95;           // Violet-900
+    border-color: #c4b5fd;    // Violet-300
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    @apply outline-none ring-2;
+    --tw-ring-color: #{rgba(#8b5cf6, 0.3)}; // Violet-500
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    background-color: #ddd6fe;
+  }
+
+  &:disabled {
+    @apply bg-gray-50 text-gray-300 border-gray-100;
+  }
+}

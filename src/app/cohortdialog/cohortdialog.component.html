@@ -119,7 +119,24 @@
         'The fields must be 1. <b>Disease name (Phenotype)</b>, 2. <b>OMIM id</b>, 3. skipped, 4. skipped, 5. <b>Gene symbol</b>.',
         'For instance, the data from the Phenotype-Gene Relationships table in OMIM can be copied and pasted here.'
       ]" />
-    <button mat-button (click)="cancel()" class="btn-outline-cancel">Cancel</button>
-    <button mat-raised-button [disabled]="form.invalid" (click)="submit()" class="btn-primary" style="margin-left: 16px;">OK</button>
+    <div class="flex justify-end gap-2 mt-6">
+      <button type="button" class="btn-outline-cancel" (click)="cancel()">Cancel</button>
+      @if (data.isMelded) {
+        <button type="button" 
+                class="btn-secondary" 
+                (click)="submitAndAddNext()"
+                [disabled]="form.invalid">
+            <span class="text-lg leading-none">+</span>
+          Add Another Disease
+        </button>
+      }
+
+      <button type="submit" 
+              class="btn-primary" 
+              (click)="submit()"
+              [disabled]="form.invalid">
+        Finish
+      </button>
+    </div>
   </mat-dialog-actions>
 }

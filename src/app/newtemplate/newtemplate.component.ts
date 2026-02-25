@@ -69,67 +69,61 @@ export class NewTemplateComponent  {
   meldedTemplate = false;
   mendelianTemplate = false;
 
-  diseaseA = signal<CohortEntry | null>(null);
-  diseaseB = signal<CohortEntry | null>(null);
-  diseaseDataA = computed<DiseaseData | null>(() => {
-    const d = this.diseaseA();
-    if (!d) return null;
-    else return toDiseaseData(d);
+  diseases = signal<CohortEntry[]>([]);
+  diseasesData = computed<DiseaseData[]>(() => 
+    this.diseases().map(d => toDiseaseData(d))
+  );
+  mendelianDisease = computed<DiseaseData | null>(() => {
+    const list = this.diseasesData(); 
+    return list.length > 0 ? list[0] : null;
   });
-  diseaseDataB = computed<DiseaseData | null>(() => {
-    const d = this.diseaseB();
-    if (!d) return null;
-    else return toDiseaseData(d);
+  cohortAcronym = computed(() => {
+    const currentDiseases = this.diseases();
+    if (currentDiseases.length === 0) return '';
+    
+    return currentDiseases
+      .map(d => `${d.symbol}_${d.cohortAcronym}`)
+      .join("_");
   });
+
   thisCohortType = signal<CohortType | null>(null);
   pendingCohort = signal<CohortData | null>(null);
   showSuccessMessage = signal<boolean>(false);
 
 
-
-
-
  async melded(): Promise<void> {
-  this.mendelianTemplate = false;
-  this.meldedTemplate = true;
-  this.digenicTemplate = false;
-  this.resetCohort();
-    const first = this.dialog.open(CohortDialogComponent, {
-      width: '450px',
-      height: '550px',
-      data: { title: 'Enter Disease A Info' }
-    });
-    if (!first) return;
-    const rawValueA = await firstValueFrom(first.afterClosed());
-    if (rawValueA) {
-        const entryA: CohortEntry = {
-          ...rawValueA,
-          geneTranscriptList: [] // Ensure the optional list is initialized if needed
-        };
-        this.diseaseA.set(entryA);
-      } else {
-        this.notificationService.showError("Could not retrieve disease A");
-        return;
+    this.resetCohort();
+    this.mendelianTemplate = false;
+    this.meldedTemplate = true;
+    this.digenicTemplate = false;
+    const tempDiseases: CohortEntry[] = [];
+    let shouldContinue = true;
+    while (shouldContinue) {
+      const dialogRef = this.dialog.open(CohortDialogComponent, {
+        width: '450px',
+        height: '700px',
+        data: {
+          title: `Enter disease #${tempDiseases.length + 1} Info`,
+          isMelded: true
+        }
+      });
+      const result = await firstValueFrom(dialogRef.afterClosed());
+      if (! result) {
+        shouldContinue = false;
+        if (tempDiseases.length < 2) this.resetCohort();
       }
-
-    const second = await this.dialog.open(CohortDialogComponent, {
-      width: '450px',
-      height: '550px',
-      data: { title: 'Enter Disease B Info' }
-    });
-    if (!second) return;
-    const rawValueB = await firstValueFrom(second.afterClosed());
-    if (rawValueB) {
-      const entryB: CohortEntry = {
-        ...rawValueB,
-        geneTranscriptList: []
-      };
-      this.diseaseB.set(entryB);
+      if (result) {
+        tempDiseases.push({ ...result.entry, geneTranscriptList: []});
+        shouldContinue = result.keepGoing;
+      }
+    }
+    if (tempDiseases.length >= 2) {
+      this.diseases.set(tempDiseases);
+      this.createMeldedTemplate();
     } else {
-        this.notificationService.showError("Could not retrieve disease B");
-        return;
-      }
-    this.createMeldedTemplate();
+      this.notificationService.showError("Could not get >=2 diseases for melded cohort");
+      this.resetCohort();
+    }
   }
 
   async digenic(): Promise<void> {
@@ -138,7 +132,7 @@ export class NewTemplateComponent  {
     this.digenicTemplate = true;
     const dialogRef = this.dialog.open(CohortDialogComponent, {
       width: '450px',
-      height: '550px',
+      height: '700px',
       data: { title: 'Create Digenic Cohort', mode: 'digenic' }
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
@@ -155,7 +149,7 @@ async mendelian(): Promise<void> {
   
   const dialogRef = this.dialog.open(CohortDialogComponent, {
       width: '450px',
-      height: '650px',
+      height: '700px',
       data: { title: 'Create Mendelian Cohort', mode: 'mendelian' }
     });
     const rawValue = await firstValueFrom(dialogRef.afterClosed());
@@ -165,10 +159,10 @@ async mendelian(): Promise<void> {
     }
     if (rawValue) {
         const entryA: CohortEntry = {
-          ...rawValue,
+          ...rawValue.entry,
           geneTranscriptList: []
         };
-        this.diseaseA.set(entryA);
+        this.diseases.set([entryA]);
       } else {
         this.notificationService.showError("Could not retrieve disease");
         return;
@@ -178,43 +172,32 @@ async mendelian(): Promise<void> {
 }
 
   private async createMeldedTemplate(): Promise<void> {
-    const diseaseA = this.diseaseA();
-    const diseaseB = this.diseaseB();
-    if (!diseaseA) {
-      this.notificationService.showError("Could not retrieve disease A data for melded template");
+    const currentDiseases = this.diseases();
+    if (currentDiseases.length < 2) {
+      this.notificationService.showError(`Only ${currentDiseases.length} diseases but need at least 2 for melded cohort`);
       return;
     }
-    if (!diseaseB) {
-      this.notificationService.showError("Could not retrieve disease B data for melded template");
-      return;
-    }
-    
-      const acronymA = diseaseA.cohortAcronym;
-      const acronymB = diseaseB.cohortAcronym;
-      const geneA = diseaseA.symbol;
-      const geneB = diseaseB.symbol;
-      const acronym = `${geneA}_${acronymA}_${geneB}_${acronymB}`;
-      const cohort = await this.configService.createNewMeldedTemplate(toDiseaseData(diseaseA), toDiseaseData(diseaseB), acronym);
-       this.resetCohort();
-      this.pendingCohort.set(cohort);
-      this.thisCohortType.set("melded");
+
+  
+    const cohort = await this.configService.createNewMeldedTemplate(this.diseasesData(), this.cohortAcronym());
+      this.resetCohort();
+    this.pendingCohort.set(cohort);
+    this.thisCohortType.set("melded");
   }
 
 private async createMendelianTemplate(): Promise<void> {
   this.etl_service.clearEtlDto();
-  const diseaseA = this.diseaseA();
-  if (! diseaseA) {
-    this.notificationService.showError("Could not retrieve disease for Mendelian");
+  const diseases = this.diseases();
+  if (diseases.length != 1) {
+    this.notificationService.showError(`Expected to get one disease for Mendelian cohort, but got ${diseases.length}`);
     return;
   }
-  const acronym = diseaseA.cohortAcronym;
-  const gene = diseaseA.symbol;
-  const fullAcronym = `${gene}_${acronym}`;
+  const disease = diseases[0];
   const ctype: CohortType = "mendelian";
   const template = await this.configService.createNewTemplate(
-    toDiseaseData(diseaseA),
+    toDiseaseData(disease),
     ctype,
-    fullAcronym
+    this.cohortAcronym()
   );
   this.resetCohort();
   this.pendingCohort.set(template);

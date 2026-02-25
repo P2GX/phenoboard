@@ -71,16 +71,17 @@
 
         @switch (type) {
           @case ('mendelian') {
-            @if (diseaseDataA(); as data) {
+            @if (mendelianDisease(); as data) {
               <app-display-mendelian [disease]="data" [acronym]="cohort?.cohortAcronym ?? ''" />
             }
           }
           @case ('melded') {
-            @if (diseaseDataA(); as a) {
-              @if (diseaseDataB(); as b) {
-                <app-display-melded [diseaseA]="a" [diseaseB]="b" [acronym]="cohort?.cohortAcronym ?? ''" />
-              }
-            }
+            <div class="space-y-4">
+              <h3 class="text-md font-semibold text-gray-700">Melded diseases:</h3>
+              <app-display-melded 
+                [diseases]="diseasesData()" 
+                [acronym]="cohortAcronym()" />
+            </div>
           }
         }
 

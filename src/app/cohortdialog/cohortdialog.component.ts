@@ -9,6 +9,10 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { ConfigService } from '../services/config.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 
+export interface CohortDialogData {
+  title: string;
+  isMelded: boolean; // Add this
+}
 
 @Component({
   selector: 'app-cohort-dialog',
@@ -30,7 +34,7 @@ export class CohortDialogComponent {
   pastedText = signal<string | null>(null);
   private fb = inject(FormBuilder);
   public dialogRef = inject(MatDialogRef<CohortDialogComponent>);
-  public data = inject(MAT_DIALOG_DATA) as { title: string };
+  public data = inject(MAT_DIALOG_DATA) as CohortDialogData;
   private configService = inject(ConfigService);
  
   form: FormGroup = this.fb.group({
@@ -52,9 +56,28 @@ export class CohortDialogComponent {
     this.dialogRef.close(null);
   }
 
+
+
+  // For melded, submit but expect to add another disease
+  submitAndAddNext() {
+    if (this.form.valid) {
+      // We pass back the form value AND a flag to continue
+      this.dialogRef.close({ 
+        entry: this.form.value, 
+        keepGoing: true 
+      });
+    } else {
+      this.form.markAllAsTouched();
+    }
+  }
+
+
   submit() {
     if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
+      this.dialogRef.close({ 
+        entry: this.form.value, 
+        keepGoing: false 
+      });
     } else {
       this.form.markAllAsTouched();
     }

@@ -56,8 +56,7 @@ export class ConfigService {
     });
   }
 
-  async createNewMeldedTemplate(diseaseA: DiseaseData, diseaseB: DiseaseData, acronym: string): Promise<CohortData> {
-    const diseaseList = [diseaseA, diseaseB];
+  async createNewMeldedTemplate(diseaseList: DiseaseData[], acronym: string): Promise<CohortData> {
     return await invoke<CohortData>("create_new_melded_cohort",
       { 'diseases': diseaseList, 'acronym': acronym}
     )
