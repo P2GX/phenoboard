@@ -10,19 +10,6 @@ on:
 permissions:
   contents: write
 
-name: Build Tauri App for All Platforms
-
-on:
-  push:
-    # This will trigger on both 'v0.5.118' and '0.5.118'
-    tags:
-      - 'v*'
-      - '[0-9]*'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
 jobs:
   publish:
     name: Build and Release
