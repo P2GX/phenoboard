@@ -33,6 +33,11 @@ git tag
 git describe --tags --abbrev=0
 ``` 
 
+Note that we have run the following command
+```bash
+npm config set tag-version-prefix v
+```
+
 
 
 ### Manual release
