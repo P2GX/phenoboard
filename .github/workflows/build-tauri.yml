@@ -35,6 +35,11 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.platform }}
+
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-latest'
         run: |
@@ -49,6 +54,9 @@ jobs:
       - name: Build Frontend
         # Added --base-href ./ to match your package.json build script
         run: npm run build -- --configuration=production --base-href ./
+        env:
+          NX_NO_CLOUD: true
+          NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
 
       - name: Build and Publish
         uses: tauri-apps/tauri-action@v0
