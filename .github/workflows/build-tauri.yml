@@ -3,63 +3,51 @@ name: Build Tauri App for All Platforms
 on:
   push:
     tags:
-      - 'v*' # Build on version tags, e.g., v1.0.0
+      - 'v*' 
+      - '[0-9]*'
   workflow_dispatch:
 
 permissions:
   contents: write
-  
-jobs:
-  build:
-    name: Build on ${{ matrix.platform }}
-    runs-on: ${{ matrix.platform }}
-    strategy:
-      matrix:
-        platform: [ macos-latest, windows-latest, ubuntu-latest] #  - waiting for upstream ashpd (2025-01-13)
 
+name: Build Tauri App for All Platforms
+
+on:
+  push:
+    # This will trigger on both 'v0.5.118' and '0.5.118'
+    tags:
+      - 'v*'
+      - '[0-9]*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and Release
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ------------------------------------
-      # 1. Setup Environment (Rust & Node)
-      # ------------------------------------
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust build artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-    
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # ------------------------------------
-      # 2. Install Dependencies
-      # ------------------------------------
       - name: Install dependencies
         run: npm install
 
-      # ------------------------------------
-      # 3. Build Frontend (Angular / React / etc.)
-      # ------------------------------------
-      - name: Build Frontend
-        run: npm run build -- --configuration=production --skip-nx-cache
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      # ------------------------------------
-      # 4. Install platform-specific deps
-      # ------------------------------------
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-latest'
         run: |
@@ -71,54 +59,20 @@ jobs:
             librsvg2-dev \
             patchelf
 
+      - name: Build Frontend
+        # Added --base-href ./ to match your package.json build script
+        run: npm run build -- --configuration=production --base-href ./
 
-      - name: Install macOS dependencies
-        if: matrix.platform == 'macos-latest'
-        run: brew install osslsigncode || true
-
-      # ------------------------------------
-      # 5. Build Tauri App
-      # ------------------------------------
-      - name: Build Tauri app
+      - name: Build and Publish
         uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY || '' }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD || '' }}
-
-      # ------------------------------------
-      # 6. Upload Artifacts
-      # ------------------------------------
-      - name: Upload installer artifacts
-        uses: actions/upload-artifact@v4
         with:
-          name: installer-${{ matrix.platform }}
-          path: |
-            src-tauri/target/release/bundle/**/*
-          if-no-files-found: ignore
-
-  # ------------------------------------
-  # 7. Create Single Release
-  # ------------------------------------
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-
-      - name: Display structure
-        run: ls -R dist/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/**/*.dmg
-            dist/**/*.msi
-            dist/**/*.deb
-            dist/**/*.AppImage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This automatically creates/updates the release and uploads the .msi, .dmg, .deb, etc.
+          tagName: ${{ github.ref_name }}
+          releaseName: "Phenoboard v__VERSION__"
+          includeChangelog: true
+          releaseDraft: true
+          prerelease: false
