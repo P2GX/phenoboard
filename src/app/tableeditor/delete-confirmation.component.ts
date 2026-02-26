@@ -1,5 +1,5 @@
 // confirmation-dialog.component.ts
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 
 export interface ConfirmationDialogData {
@@ -43,10 +43,8 @@ export interface ConfirmationDialogData {
   imports: [MatDialogContent, MatDialogModule]
 })
 export class DeleteConfirmationDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<DeleteConfirmationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmationDialogData
-  ) {}
+  public dialogRef = inject(MatDialogRef<DeleteConfirmationDialogComponent>);
+  public data = inject(MAT_DIALOG_DATA) as ConfirmationDialogData;
 
   onCancel(): void {
     this.dialogRef.close(false);

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatInputModule } from "@angular/material/input";
 import { FormsModule } from '@angular/forms';
@@ -54,10 +54,8 @@ import { FormsModule } from '@angular/forms';
 })
 
 export class AddConstantColumnDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<AddConstantColumnDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { columnName: string; constantValue: string }
-  ) {}
+   public dialogRef = inject(MatDialogRef<AddConstantColumnDialogComponent>);
+   public data = inject(MAT_DIALOG_DATA) as { columnName: string; constantValue: string };
 
   onCancel(): void {
     this.dialogRef.close(null);

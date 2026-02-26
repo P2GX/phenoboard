@@ -1,5 +1,5 @@
-import { Component, Inject } from '@angular/core';
-import { FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -12,14 +12,12 @@ import { asciiValidator } from '../validators/validators';
   templateUrl: './demoformdialog.component.html',
 })
 export class DemoFormDialogComponent {
+  private dialogRef = inject(MatDialogRef<DemoFormDialogComponent>);
+  public data = inject(MAT_DIALOG_DATA) as { comment: string };
+
   commentControl = new FormControl<string>(this.data?.comment ?? '', [
     asciiValidator()
   ]);
-
-  constructor(
-    private dialogRef: MatDialogRef<DemoFormDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { comment: string }
-  ) {}
 
   save() {
     if (this.commentControl.valid) this.dialogRef.close(this.commentControl.value);
