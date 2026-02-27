@@ -237,7 +237,7 @@ readonly cohortModes = [
   },
   { 
     id: 'melded', 
-    label: 'Melded (Dual)', 
+    label: 'Melded (Multiple Genetic Diagnosis)', 
     action: () => this.melded(),
     disabled: false,
     helpTitle: 'Melded Diagnosis',

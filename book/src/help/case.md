@@ -15,7 +15,7 @@ Phenoboard is currently setup to curate published literature with a PubMed ident
 
 The app will warn users if it is attempted to enter a previously used PMID (perhaps because the same article is being mistakenly entered a second time). If you are entering multiple individuals from the same article, the warning can be ignored.
 
-## Add/Edit Age entries.
+## Add and Edit Age entries
 Enter the age entries needed to curate the case. See [GA4GH Phenopackets: A Practical Introduction](https://pubmed.ncbi.nlm.nih.gov/36910590/) and the [Phenopacket Schema documentation](https://phenopacket-schema.readthedocs.io/en/latest/) for information about how to represent ages. In brief, one case use one of three options:
 - [HPO Onset terms](https://hpo.jax.org/browse/term/HP:0003674), e.g., "Congenital onset"
 - [ISO 8601 Periods](https://en.wikipedia.org/wiki/ISO_8601#Durations), e.g., P3Y4M2D for 3 years, 4 months, and 2 days

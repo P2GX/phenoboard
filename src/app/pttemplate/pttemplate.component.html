@@ -244,7 +244,7 @@
       mat-flat-button 
       color="primary"
       [disabled]="hpoSearch.control.invalid" 
-      (click)="submitSelectedHpo(hpoSearch.control.value)"
+      (click)="submitSelectedHpo(hpoSearch.control.value); hpoSearch.control.reset()"
       class="btn-outline-primary">
       Submit
     </button>

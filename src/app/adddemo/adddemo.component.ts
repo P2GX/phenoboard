@@ -71,7 +71,7 @@ export class AdddemoComponent {
     return this.fb.group({
       individualId: [dto.individualId, [Validators.required, asciiValidator()]],
       ageOfOnset: [dto.ageOfOnset, [Validators.required, this.ageService.validator()]],
-      ageAtLastEncounter: [dto.ageAtLastEncounter, Validators.required],
+      ageAtLastEncounter: [dto.ageAtLastEncounter, [Validators.required, this.ageService.validator()]],
       sex: [dto.sex, Validators.required],
       deceased: [dto.deceased, Validators.required],
       comment: [dto.comment, asciiValidator()]
