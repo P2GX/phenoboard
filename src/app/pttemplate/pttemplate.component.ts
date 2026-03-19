@@ -27,6 +27,7 @@ import { RouterLink } from '@angular/router';
 import { HpoMatch } from '../models/hpo_mapping_result';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
+import { HelpService } from '../services/help.service';
 
 interface Option { label: string; value: string };
 
@@ -58,6 +59,7 @@ interface Option { label: string; value: string };
 export class PtTemplateComponent  {
 
   public cohortService = inject(CohortDtoService);
+  private helpService = inject(HelpService);
   cohortData = this.cohortService.cohortData; 
   hpoGroups = signal(new Map<string, HpoTermDuplet[]>());
   isLoadingHpo = signal(false);
@@ -81,6 +83,7 @@ export class PtTemplateComponent  {
         }
       }
     });
+    this.helpService.setHelpContext("cohort-editor");
   }
   /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
@@ -579,18 +582,18 @@ export class PtTemplateComponent  {
     this.contextMenuVisible = false;
   }
 
-  @HostListener('document:mousedown', ['$event'])
+  //@HostListener('document:mousedown', ['$event'])
+  @HostListener('document:click', ['$event'])
+  @HostListener('document:contextmenu', ['$event'])
   closeContextMenu(event: MouseEvent): void {
     const menu = this.contextMenuElement?.nativeElement;
     const individualMenu = this.individualContextMenuElement?.nativeElement;
     const target = event.target as Node;
-    if (menu && menu.contains(target)) {
+    if ((menu && menu.contains(target)) ||
+    (individualMenu && individualMenu.contains(target))) {
       return;
     } 
     this.contextMenuVisible = false;
-    if (individualMenu && individualMenu.contains(target)) {
-      return;
-    }
     this.individualContextMenuVisible = false;
   }
 
@@ -847,12 +850,12 @@ visibleColumnMask = computed<Uint8Array>(() => {
   /* right click on first column can focus on row or PMIDs */
   onIndividualRightClick(event: MouseEvent, rowId: string): void {
     event.preventDefault(); // stop default menu of browser
+    event.stopPropagation();
     this.contextRowId = rowId; 
     const {x, y} = this.configService.calculateMenuPosition(event.clientX, event.clientY);
     this.individualMenuX = x;
     this.individualMenuY = y;
     this.individualContextMenuVisible = true;
-    event.stopPropagation();
   }
 
 

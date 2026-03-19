@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CohortData, ModeOfInheritance } from '../../models/cohort_dto';
 import { MoiSelector } from "../../moiselector/moiselector.component";
+import { HelpButtonComponent } from "../helpbutton/help-button.component";
+
 
 @Component({
   selector: 'app-cohort-metadata',
   standalone: true,
-  imports: [CommonModule, FormsModule, MoiSelector],
+  imports: [CommonModule, FormsModule, MoiSelector, HelpButtonComponent],
   templateUrl: './cohort-metadata.component.html'
 })
 export class CohortMetadataComponent {

@@ -2,6 +2,8 @@
   <div class="flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200">
     <div class="flex items-center gap-2">
       <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cohort Configuration</span>
+      <div class="flex-shrink-0">
+  </div>
     </div>
     <button (click)="resetCohortMetadata.emit()" 
             class="text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
@@ -18,6 +20,8 @@
         </span>
         <button (click)="showCohortAcronym.set(true); acronymInput.set(cohortData().cohortAcronym || '')" 
                 class="hover:scale-110 transition-transform text-[10px]">✏️</button>
+                 
+              
       } @else {
         <div class="flex items-center gap-1">
           <input [(ngModel)]="acronymInput" 
@@ -26,8 +30,8 @@
           <button (click)="showCohortAcronym.set(false)" class="text-slate-400 px-1">✕</button>
         </div>
       }
+      
     </div>
-
     <div class="space-y-1.5">
       @for (disease of diseases(); track disease.diseaseId; let i = $index) {
         <div class="text-xs group">

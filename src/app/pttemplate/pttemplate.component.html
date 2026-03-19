@@ -93,44 +93,45 @@
           {{ row.individualId }}
           @if(!row.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
           <!-- Info popup for this row -->
-          @if (rowInfoVisible && row.id === rowInfoKey) {
-            @let currentRow = rowMapById().get(rowInfoKey);
+         @if (activeInfoRow(); as currentRow) {
             <div
-              class="fixed bg-white border border-gray-300 rounded shadow-md z-[999] text-sm"
-              [style.left.px]="individualMenuX"
-              [style.top.px]="individualMenuY"
+              class="fixed bg-white border border-gray-300 rounded shadow-md z-[999] text-sm p-4 w-72"
+              [style.left.px]="infoMenuPos()?.x"
+              [style.top.px]="infoMenuPos()?.y"
             >
               <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
-                <li><strong>{{ currentRow?.individualData?.individualId }}</strong></li>
-                <li>PMID: {{ currentRow?.individualData?.pmid }}</li>
-                <li>{{ currentRow?.individualData?.title }}</li>
-                @if(currentRow?.individualData?.comment; as comment){
+                <li><strong>{{ currentRow.individualData.individualId }}</strong></li>
+                <li>PMID: {{ currentRow.individualData.pmid }}</li>
+                <li>{{ currentRow.individualData.title }}</li>
+                @if(currentRow.individualData.comment; as comment){
                   <li><strong>Comment:</strong> {{ comment }}</li>
                 }
-                <li>onset: {{ currentRow?.individualData?.ageOfOnset }}</li>
-                <li>last encounter: {{ currentRow?.individualData?.ageAtLastEncounter }}</li>
-                <li>deceased: {{ currentRow?.individualData?.deceased }}</li>
-                <li>sex: {{ currentRow?.individualData?.sex }}</li>
+                <li>Onset: {{ currentRow.individualData.ageOfOnset }}</li>
+                <li>Age: {{currentRow.individualData.ageAtLastEncounter}}</li>
+                <li>Deceased: {{currentRow.individualData.deceased}}</li>
+                <li>Sex: {{ currentRow.individualData.sex }}</li>
               </ul>
 
-              <button
-                mat-stroked-button
-                color="primary"
-                class="text-xs py-0 px-2"
-                (click)="openIndividualEditor(rowInfoKey!); $event.stopPropagation();"
-              >
-                ✏️ Edit
-              </button>
-              <button
-                mat-stroked-button
-                color="warn"
-                class="text-xs py-0 px-2 ml-2"
-                (click)="closeRowInfo(); $event.stopPropagation();"
-              >
-                ✖️ Close
-              </button>
+              <div class="flex justify-end gap-2 mt-2">
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  class="text-xs"
+                  (click)="openIndividualEditor(row.id); closeRowInfo();"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="text-xs"
+                  (click)="closeRowInfo()"
+                >
+                  ✖️ Close
+                </button>
+              </div>
             </div>
-          } 
+          }
         </td>
 
         <!-- Second column for gene/allele -->
