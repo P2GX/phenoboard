@@ -14,24 +14,8 @@ jobs:
     name: Build on ${{ matrix.platform }}
     runs-on: ${{ matrix.platform }}
     strategy:
-      fail-fast: false
       matrix:
-        include:
-        # New Macs
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-            artifact-name: macos-arm64
-          # Old Macs
-          - platform: macos-latest
-            target: x86_64-apple-darwin
-            artifact-name: macos-x64
-          - platform: windows-latest
-            target: '' # default
-            artifact-name: windows
-          - platform: ubuntu-latest
-            target: '' 
-            artifact-name: linux
-          #platform: [ macos-latest, windows-latest, ubuntu-latest] # 
+        platform: [ macos-latest, windows-latest, ubuntu-latest] #  - waiting for upstream ashpd (2025-01-13)
 
     steps:
       - name: Checkout repository
@@ -42,8 +26,6 @@ jobs:
       # ------------------------------------
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
       - name: Cache Rust build artifacts
         uses: actions/cache@v4
@@ -102,8 +84,6 @@ jobs:
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY || '' }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD || '' }}
-        with:
-          args: ${{ matrix.target != '' && format('--target {0}', matrix.target) || '' }}
 
       # ------------------------------------
       # 6. Upload Artifacts
@@ -111,10 +91,9 @@ jobs:
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: installer-${{ matrix.artifact-name }}
+          name: installer-${{ matrix.platform }}
           path: |
             src-tauri/target/release/bundle/**/*
-            src-tauri/target/${{ matrix.target }}/release/bundle/**/*
           if-no-files-found: ignore
 
   # ------------------------------------
