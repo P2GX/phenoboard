@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RepoComponent } from './repo.component';
+import { QcComponent } from './qc.component';
 
 describe('StatusComponent', () => {
-  let component: RepoComponent;
-  let fixture: ComponentFixture<RepoComponent>;
+  let component: QcComponent;
+  let fixture: ComponentFixture<QcComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RepoComponent]
+      imports: [QcComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(RepoComponent);
+    fixture = TestBed.createComponent(QcComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

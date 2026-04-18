@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::repo_qc::RepoQc};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{ComparisonReport, repo_qc::RepoQc}};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
@@ -41,6 +41,7 @@ pub fn run() {
             load_ptools_json,
             load_hpo,
             map_text_to_annotations,
+            compare_two_phenopackets,
             create_new_cohort_data,
             create_new_melded_cohort,
             get_hp_json_path,
@@ -486,7 +487,7 @@ fn validate_template(
             return Err("Could not create CohortData because HPO was not initialized".to_string());
         },
     };
-    ga4ghphetools::factory::qc_assessment(hpo.clone(), &cohort_dto)
+    ga4ghphetools::factory::qc_assessment(hpo.clone(), &cohort_dto).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1031,5 +1032,23 @@ async fn fetch_hgnc_data(
     symbol: String
 ) -> Result<HgncBundle, String> {
     util::fetch_hgnc_data(&symbol).await
+}
+
+#[tauri::command]
+async fn compare_two_phenopackets(
+    state: tauri::State<'_, Arc<AppState>>,
+    path1: String,
+    path2: String
+) -> Result<ComparisonReport, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on phenoboard State".to_string())?;
+    match singleton.get_hpo() {
+        Some(hpo) => {
+            ga4ghphetools::repo::compare_two_phenopackets(path1, path2, hpo.clone())
+        },
+        None => {
+            Err(format!("Could not acquire HPO reference"))
+        },
+    } 
 }
 

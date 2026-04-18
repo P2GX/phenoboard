@@ -9,7 +9,7 @@ import { VariantListComponent } from './variant_list/variant_list.component';
 import { HelpComponent } from './help/help.component';
 import { StatusComponent } from './status/status.component';
 import { PhenopacketDetailComponent } from './phenopacketdetail/phenopacketdetail.component';
-import { RepoComponent } from './repo/repo.component';
+import { QcComponent as QcComponent } from './repo/qc.component';
 
 
 
@@ -23,7 +23,7 @@ export const appRoutes: Routes = [
   { path: 'pttemplate', component: PtTemplateComponent },
   { path: 'variant_list', component: VariantListComponent },
   { path: 'status', component: StatusComponent },
-  { path: 'repo', component: RepoComponent },
+  { path: 'qc', component: QcComponent },
   { path: 'help', component: HelpComponent },
   { path: 'phenopacket/:id', component: PhenopacketDetailComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' },

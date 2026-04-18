@@ -9,6 +9,7 @@ import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } fro
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
 import { HpoMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
+import { ComparisonReport } from '../models/comparison';
 
 
 @Injectable({
@@ -375,6 +376,10 @@ export class ConfigService {
 
   async fetchHgncData(symbol: string): Promise<{ hgncId: string, maneSelect: string}> {
     return await invoke<{ hgncId: string, maneSelect: string}>('fetch_hgnc_data', {symbol: symbol});
+  }
+
+  async compareTwoPhenopackets(path1: string, path2: string): Promise<ComparisonReport> {
+    return await invoke<ComparisonReport>('compare_two_phenopackets', {path1: path1, path2: path2});
   }
 
 /**
