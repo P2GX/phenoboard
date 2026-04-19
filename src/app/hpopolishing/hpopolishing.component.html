@@ -4,7 +4,7 @@
 
  
   <div class="whitespace-pre-wrap text-sm font-mono leading-relaxed">
-    @for (ann of annotations; track $index) {
+    @for (ann of annotations(); track $index) {
       @if (ann.isFenominalHit) {
           <span
             (click)="openPopup(ann, $event)"
@@ -52,50 +52,15 @@
       <tbody class="divide-y divide-gray-200">
         @for (annotation of hpoAnnotations(); track annotation.termId; let i = $index) {
           <tr class="hover:bg-blue-50/50 h-6 transition-colors">
-           <!-- <td class="p-2 font-mono text-blue-600">-->
               <td class="px-2 py-[1px] font-mono leading-none">
               <a (click)="onLinkClick($event, annotation.termId)" class="hover:underline cursor-pointer">
                 {{ annotation.termId }}
               </a>
             </td>
             <td class="p-2 relative">
-              <span (click)="showParentChildDropdown(annotation)" class="cursor-pointer font-medium flex items-center gap-1">
+              <span (click)="showParentChildDropdown(annotation, $event)" class="cursor-pointer font-medium flex items-center gap-1">
                 {{ annotation.label }} <span class="text-[8px] text-gray-400">▼</span>
               </span>
-               @if (showDropdownMap[annotation.termId]) {
-          <div class="absolute left-0 top-full z-50 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-max min-w-full shadow-lg">           
-            @if (!parentChildHpoTermMap[annotation.termId]) {
-              <div class="p-2 text-gray-500 text-sm italic">
-                Loading...
-              </div>
-            }
-            @if (parentChildHpoTermMap[annotation.termId]) {
-              <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
-              <ul>
-                @for (parent of parentChildHpoTermMap[annotation.termId].parents; track parent.termId) {
-                  <li
-                    (click)="replaceTerm(annotation, parent)"
-                    class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-                  >
-                    {{ parent.label }} ({{ parent.termId }})
-                  </li>
-                }
-              </ul>
-
-              <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
-              <ul>
-                @for (child of parentChildHpoTermMap[annotation.termId].children; track child.termId) {
-                  <li
-                    (click)="replaceTerm(annotation, child)"
-                    class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm"
-                  >
-                    {{ child.label }} ({{ child.termId }})
-                  </li>
-                }
-              </ul>
-            }
-          </div>
-        }
               </td>
             <td class="p-2">
                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
@@ -148,3 +113,33 @@
   </div>
 
 </div>
+
+@if (activeMenuAnnotation(); as active) {
+  
+  <div 
+    class="fixed z-[9999] bg-white border border-gray-300 shadow-xl rounded-md max-h-60 overflow-y-auto w-72"
+    [style.top.px]="dropdownY()"
+    [style.left.px]="dropdownX()"
+    (mouseleave)="closeMenu()"
+  >
+    <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
+    <ul>
+      @for (parent of parentChildHpoTermMap[active.termId].parents; track parent.termId) {
+        <li (click)="replaceTerm(active, parent); closeMenu()" 
+            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm">
+          {{ parent.label }} ({{ parent.termId }})
+        </li>
+      }
+    </ul>
+
+    <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
+    <ul>
+      @for (child of parentChildHpoTermMap[active.termId].children; track child.termId) {
+        <li (click)="replaceTerm(active, child); closeMenu()" 
+            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm">
+          {{ child.label }} ({{ child.termId }})
+        </li>
+      }
+    </ul>
+  </div>
+}

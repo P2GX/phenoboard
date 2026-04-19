@@ -1,7 +1,3 @@
-use fenominal::fenominal::FenominalHit;
-
-use crate::dto::text_annotation_dto::TextAnnotationDto;
-
 /// Converts a raw input string and a list of structural hits into a sequence of
 /// displayable text annotations, ensuring safe handling of Unicode character boundaries.
 ///
@@ -43,6 +39,11 @@ use crate::dto::text_annotation_dto::TextAnnotationDto;
 ///
 /// This function is designed not to panic, but relies on `html_escape::encode_text`
 /// and the internal logic of `TextAnnotationDto` and `FenominalHit` being correct.
+ 
+use fenominal::FenominalHit;
+use crate::dto::text_annotation_dto::TextAnnotationDto;
+
+
 pub fn text_to_annotations(
     input_text: &str,
     fenominal_hits: &[FenominalHit],

@@ -6,7 +6,7 @@
 //! generate content in the front end.
 //! A FenominalHit has term_id (String), label (String),span (Range<usize>), and is_observed (bool)
 
-use fenominal::fenominal::FenominalHit;
+use fenominal::FenominalHit;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

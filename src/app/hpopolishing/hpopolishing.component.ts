@@ -1,7 +1,7 @@
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto, textAnnotationToHpoAnnotation, to_annotation_dto } from '../models/text_annotation_dto';
 import { AgeInputService } from '../services/age_service';
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, inject, signal, ElementRef, ViewChild, HostListener, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { ConfigService } from '../services/config.service';
@@ -22,18 +22,18 @@ import { MatIcon } from "@angular/material/icon";
   imports: [CommonModule, FormsModule, HpoAutocompleteComponent, MatIcon]
 })
 export class HpoPolishingComponent implements OnInit {
-
   /** These are the raw textmining results and contain hits, in-between text, and may contain duplicates */
-  @Input() annotations: TextAnnotationDto[] = [];
+  annotations = input<TextAnnotationDto[]>([]);
+
   @Output() done = new EventEmitter<HpoTermData[]>();
   @Output() cancel = new EventEmitter<void>();
 
   @ViewChild(HpoAutocompleteComponent) hpoAutocomplete!: HpoAutocompleteComponent;
 
   private ageService = inject(AgeInputService);
-  private configService = inject(ConfigService);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
+  private configService = inject(ConfigService);
   @ViewChild('annotationTable') annotationTable!: ElementRef;
 
   availableOnsetTerms = this.ageService.selectedTerms;  
@@ -43,6 +43,11 @@ export class HpoPolishingComponent implements OnInit {
   selectedAnnotation: TextAnnotationDto | null = null;
   popupX = 0;
   popupY = 0;
+  // dropdown X and Y are for the parent/child HPO menu
+  dropdownX = signal<number>(0);
+  dropdownY = signal<number>(0);
+  // this is the current HPO we are clicking to get parent/child
+  activeMenuAnnotation = signal<any | null>(null);
   showDropdownMap: { [termId: string]: boolean } = {};
   parentChildHpoTermMap: { [termId: string]: ParentChildDto } = {};
    /* used for autocomplete widget */
@@ -99,7 +104,7 @@ export class HpoPolishingComponent implements OnInit {
   /** About half of the TextAnnotationDto objects represent the text between the fenominal hits
     Here, we get a list of the fenominal hits (representing the HPO terms) for display in the table */
   getFenominalAnnotations(): TextAnnotationDto[] {
-    return this.annotations.filter(a => a.isFenominalHit);
+    return this.annotations().filter(a => a.isFenominalHit);
   }
 
   onLinkClick(event: MouseEvent, termId: string): void {
@@ -113,16 +118,26 @@ export class HpoPolishingComponent implements OnInit {
     }
 
     /** This is called when the user clicks on a link in the menu of hits to see the parents and the children of the current HPO term */
-  showParentChildDropdown(annotation: HpoAnnotationDto) {
-    const termId = annotation.termId;
-
+  showParentChildDropdown(annotation: HpoAnnotationDto, event: MouseEvent) {
+    // If clicking the same one again, close it; otherwise, open the new one
+    const termId = annotation?.termId || "na";
     this.showDropdownMap[termId] = !this.showDropdownMap[termId];
-
-    if (this.showDropdownMap[termId] && !this.parentChildHpoTermMap[termId]) {
-      this.configService.getHpoParentAndChildTerms(annotation).then(relativeTermDtos => {
-        this.parentChildHpoTermMap[termId] = relativeTermDtos;
-      });
+    if (this.activeMenuAnnotation()?.termId === termId) {
+      this.activeMenuAnnotation.set(null);
+    } else {
+      this.activeMenuAnnotation.set(annotation);
+      if (this.showDropdownMap[termId] && !this.parentChildHpoTermMap[termId]) {
+        this.configService.getHpoParentAndChildTerms(annotation).then(relativeTermDtos => {
+          this.parentChildHpoTermMap[termId] = relativeTermDtos;
+        });
+      }
+      this.dropdownX.set(event.clientX);
+      this.dropdownY.set(event.clientY + 10);
     }
+  }
+
+  closeMenu() {
+    this.activeMenuAnnotation.set(null);
   }
 
   @HostListener('document:mousedown', ['$event']) // mousedown is often more reliable than click

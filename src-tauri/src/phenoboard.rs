@@ -7,9 +7,7 @@ use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ontolius::{TermId, common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm, Synonymous}};
-use fenominal::{
-    fenominal::{Fenominal, FenominalHit}
-};
+use fenominal::{Fenominal, FenominalHit};
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
 use ga4ghphetools;
 use rfd::FileDialog;
@@ -351,7 +349,7 @@ impl PhenoboardSingleton {
     /// 
     /// * Returns: A list of  representing the fenominal hits.
     pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
-         let deunicoded_text = fenominal::text_util::sanitize(input_text);
+         let deunicoded_text = fenominal::sanitize(input_text);
         match self.get_sorted_fenominal_hits(&deunicoded_text) {
             Ok(fenominal_hits) => {
                 return util::text_to_annotation::text_to_annotations(&deunicoded_text, &fenominal_hits);
@@ -368,7 +366,7 @@ impl PhenoboardSingleton {
     fn get_sorted_fenominal_hits(&self, input_text: &str) 
         -> Result<Vec<FenominalHit>, String>
     {
-        let deunicoded_text = fenominal::text_util::sanitize(input_text);
+        let deunicoded_text = fenominal::sanitize(input_text);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
@@ -394,7 +392,7 @@ impl PhenoboardSingleton {
     ///
     /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
     pub fn map_text_to_term_list(&mut self, input_text: &str) -> Vec<TermId> {
-        let deunicoded_text = fenominal::text_util::sanitize(input_text);
+        let deunicoded_text = fenominal::sanitize(input_text);
         match &self.ontology {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
