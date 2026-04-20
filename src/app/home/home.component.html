@@ -1,19 +1,19 @@
-<div class="max-w-4xl mx-auto mt-12 mb-12">
+<div class="home-page">
     
-    <div class="flex items-center gap-6 mb-8 p-6 bg-gradient-to-r from-blue-50 to-white rounded-xl border border-blue-100 shadow-sm">
-        <img src="assets/icon.png" alt="Phenoboard Logo" class="w-20 h-20 shadow-md rounded-lg" />
+    <div class="home-header">
+        <img src="assets/icon.png" alt="Phenoboard Logo" class="home-header__logo" />
         
-        <div>
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
-                GA4GH <span class="text-blue-600">Phenoboard</span>
+        <div class="home-header__titles">
+            <h1 class="home-header__h1">
+                GA4GH <span class="home-header__h1--accent">Phenoboard</span>
             </h1>
-            <p class="text-gray-500 text-lg">Biocuration suite for GA4GH Phenopackets</p>
+            <p class="home-header__subtitle">Biocuration suite for GA4GH Phenopackets</p>
         </div>
 
-        <div class="ml-auto text-right">
-            <div class="relative flex items-center gap-2">  
+        <div class="home-header__orcid">
+            <div class="action-with-help">  
             <button (click)="setBiocuratorOrcid()" 
-                class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                class="orcid-btn">
                     <mat-icon class="scale-75">account_circle</mat-icon>
                     {{ biocuratorOrcid() || 'Set ORCID' }}
             </button>
@@ -23,13 +23,13 @@
         </div>
     </div>
 
-    <div class="bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
+    <div class="home-card">
         
-        <div class="p-8 border-b border-gray-50 bg-gray-50/30">
-            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">Ontology Setup</h2>
-            <div class="flex items-center gap-4">
-                <div class="relative flex items-center gap-2">
-                    <button (click)="loadHpo()" [disabled]="statusService.hpoLoading()" class="btn-outline-primary w-[300px] bg-white">
+        <div class="home-card__section">
+            <h2 class="home-card__section-label">Ontology Setup</h2>
+            <div class="home-card__row">
+                <div class="action-with-help">
+                    <button (click)="loadHpo()" [disabled]="statusService.hpoLoading()" class="btn-outline-primary home-card__action-btn">
                        @if (statusService.hpoLoading()) {
                         <mat-spinner diameter="15"></mat-spinner>
                             <span>Loading...</span>
@@ -40,15 +40,18 @@
                     <app-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
                 </div>
                 
-                <div class="flex flex-col">
-                    <span [ngClass]="{'text-red-600 font-medium': statusService.hpoLoading(), 'text-green-600': statusService.hpoLoaded()}" class="text-sm">
+                <div class="hpo-status">
+                    <span [ngClass]="{
+                        'hpo-status__text--loading': statusService.hpoLoading(), 
+                        'hpo-status__text--loaded': statusService.hpoLoaded()}" 
+                        class="hpo-status__text">
                         @if(statusService.hpoLoaded()) {
-                          <mat-icon class="scale-75 align-middle">check_circle</mat-icon> 
+                          <mat-icon class="hpo-status__icon">check_circle</mat-icon> 
                         }
                         {{ hpoMessage() }}
                     </span>
                     @if(statusService.hpoLoaded()) {
-                      <span class="text-xs text-gray-400 italic">
+                      <span class="hpo-status__terms">
                         {{ statusService.state().nHpoTerms }} terms available
                       </span>
                     }
@@ -56,16 +59,14 @@
             </div>
         </div>
 
-        <div class="p-8 space-y-6">
-            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400">Curation Tools</h2>
-            
-            <div class="grid grid-cols-1 gap-4">   
+        <div class="home-card__section">
+            <h2 class="home-card__section-label">Curation Tools</h2>
                 <div class="tool-row">
-                  <div class="relative flex items-center gap-2">
+                  <div class="action-with-help">
                     <button 
                     (click)="createNewPhetoolsTemplate()" 
                     [disabled]="!statusService.hpoLoaded()" 
-                    class="btn-outline-primary w-[300px]">
+                    class="btn-outline-primary home-card__action-btn">
                           Create New Cohort
                       </button>
                       <app-help-button title="New phenoboard cohort" 
@@ -78,11 +79,11 @@
                 </div>
 
                 <div class="tool-row">
-                  <div class="relative flex items-center gap-2">
+                  <div class="action-with-help">
                     <button 
                     (click)="chooseJsonTemplateFile()" 
                     [disabled]="!statusService.hpoLoaded()" 
-                    class="btn-outline-primary w-[300px]">
+                    class="btn-outline-primary home-card__action-btn">
                         Open Cohort JSON
                     </button>
                      <app-help-button title="Open a phenoboard cohort" 
@@ -93,14 +94,6 @@
                         <span class="tool-description">{{ jsonTemplateFileMessage() || 'Select a .json file' }}</span>
                     </div>
                 </div>
-
-              <!-- <div class="flex items-center gap-4 p-4 opacity-60 hover:opacity-100 transition-opacity">
-                    <button (click)="chooseExistingTemplateFile()" [disabled]="!statusService.hpoLoaded()" class="btn-ghost w-[300px] border-dashed border-2">
-                        Legacy Excel Import
-                    </button>
-                    <span class="text-xs text-gray-400">Internal HPO team use only</span>
-                </div>--> 
-            </div>
         </div>
     </div>
 </div>

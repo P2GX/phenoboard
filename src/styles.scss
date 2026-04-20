@@ -16,10 +16,7 @@
 // 3. Then @import
 @import '@angular/cdk/overlay-prebuilt.css';
 
-// 4. Then Tailwind
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 // 5. Then any plain CSS rules
 .mat-mdc-dialog-container,

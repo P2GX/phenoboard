@@ -1,29 +1,148 @@
-.hpoloader-container {
-    width: 95%; /* 95% of the parent/container width */
-    /*max-width: 800px;  Optional: Set a max width to prevent it from being too wide on large screens */
-    margin: 0 auto; /* Centers the div horizontally */
-    border: 2px solid #888; /* Medium gray border */
-    border-radius: 10px; /* Rounded corners */
-    padding: 15px; /* Inner spacing */
-    background-color: #f8f8f8; /* Light gray background (optional) */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
-    margin-bottom: 15px;
+// Page wrapper
+.home-page {
+  max-width: 56rem;       // max-w-4xl
+  margin: 3rem auto;      // mt-12 mb-12
+}
+
+// Header banner
+.home-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(to right, #eff6ff, #ffffff);  // from-blue-50 to-white
+  border-radius: 0.75rem;
+  border: 1px solid #dbeafe;   // blue-100
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.home-header__logo {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.home-header__titles {
+  flex: 1;
+}
+
+.home-header__h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.25rem;
+}
+
+.home-header__h1--accent {
+  color: #2563eb;
+}
+
+.home-header__subtitle {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.home-header__orcid {
+  margin-left: auto;
+  text-align: right;
+}
+
+.orcid-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0;
+
+  mat-icon {
+    transform: scale(0.75);
   }
 
+  &:hover {
+    color: #2563eb;
+  }
+}
 
+// Main card
+.home-card {
+  background: white;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);  // shadow-xl
+  border-radius: 1rem;
+  border: 1px solid #f3f4f6;
+  overflow: hidden;
+}
 
-  .error-message {
-    background-color: #ffe6e6; /* light red background */
-    color: #a30000;            /* deep red text */
-    border: 1px solid #ff4d4d; /* red border */
-    padding: 1em;
-    margin-top: 1em;
-    border-radius: 8px;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px; 
+.home-card__section {
+  padding: 2rem;
+
+  & + & {
+    border-top: 1px solid #f9fafb;
+  }
+
+  &:first-child {
+    background-color: rgba(249, 250, 251, 0.3);
+  }
+}
+
+.home-card__section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.home-card__row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.home-card__action-btn {
+  width: 300px;
+  background: white;
+}
+
+// HPO status
+.hpo-status {
+  display: flex;
+  flex-direction: column;
+}
+
+.hpo-status__text {
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.hpo-status__text--loading {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.hpo-status__text--loaded {
+  color: #16a34a;
+}
+
+.hpo-status__icon {
+  transform: scale(0.75);
+  vertical-align: middle;
+}
+
+.hpo-status__terms {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-style: italic;
 }

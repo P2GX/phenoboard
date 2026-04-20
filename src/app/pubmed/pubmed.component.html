@@ -35,16 +35,10 @@
   @if (pmidDto().title) {
   <div class="form-group">
     <label>Retrieved:</label>
-    <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-      <div style="flex: 1;">
-        <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
-          {{ pmidDto().title }}
-        </div>
-        <div class="text-xs" style="color: #666;">
-          {{ pmidDto().pmid }}
-        </div>
+      <div class="title-display">
+        <div class="title-display__text">{{ pmidDto().title }}</div>
+        <div class="title-display__pmid">{{ pmidDto().pmid }}</div>
       </div>
-    </div>
   </div>
   }
 
@@ -55,18 +49,16 @@
   </div>
   }
 
-  <!-- Dialog Actions -->
-  <div class="dialog-actions flex items-center gap-2">
-    
-    <button (click)="accept()" [disabled]="!isReady()" class="btn btn-primary">
+  <div class="dialog-actions">
+    <button (click)="accept()" [disabled]="!isReady()" class="btn-primary">
       Accept
     </button>
 
-    <button (click)="cancel()" class="btn btn-outline">
+    <button (click)="cancel()" class="btn-outline-cancel">
       Cancel
     </button>
 
-    <button (click)="clearPmids()" class="btn btn-outline ml-auto">
+    <button (click)="clearPmids()" class="btn-outline-cancel dialog-actions__right">
       Clear PMIDs
     </button>
   </div>

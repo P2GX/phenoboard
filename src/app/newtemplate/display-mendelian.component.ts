@@ -8,7 +8,7 @@ import { DisplayDiseaseComponent } from "./display-disease.component";
   imports: [DisplayDiseaseComponent],
   template: `
     <div class="summary-card">
-      <p class="font-bold text-blue-700 mb-2">Acronym: {{ acronym() }}</p>
+      <p>Acronym: {{ acronym() }}</p>
       <app-display-disease [disease]="disease()" />
     </div>
   `

@@ -8,7 +8,7 @@ import { DiseaseData } from "../models/cohort_dto";
   imports: [DisplayDiseaseComponent],
   template: `
     <div class="summary-card">
-      <p class="font-bold text-purple-700 mb-2">Melded Cohort: {{ acronym() }}</p>
+      <p>Melded Cohort: {{ acronym() }}</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @for (disease of diseases(); track $index) {
           <div>
