@@ -1,0 +1,38 @@
+
+
+.mat-mdc-snack-bar-container {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.error-snackbar {
+  background-color: #1e1e1e !important;
+  color: #f44336 !important;
+  font-weight: bold !important;
+  border: 2px solid #f44336 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+.success-snackbar {
+  background-color: #1e1e1e !important;
+  color: #4caf50 !important;
+  font-weight: bold !important;
+  border: 2px solid #4caf50 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+::ng-deep .warning-snackbar {
+  background-color: #ffcc00;
+  color: #000;
+  font-weight: 500;
+}
+
+
+
+.mat-mdc-snack-bar-action button {
+  color: #ffffff !important;
+  font-weight: bold;
+  text-transform: uppercase;
+}

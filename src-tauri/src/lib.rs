@@ -86,11 +86,11 @@ pub fn run() {
         ])
         .setup(|app| {
             let win = app.get_webview_window("main").unwrap();
+            let app_handle = app.handle().clone();
             win.on_window_event(move |event| {
                 if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
-                    //app_handle.exit(0);
                     std::thread::sleep(std::time::Duration::from_millis(100));
-                    std::process::exit(0);
+                    app_handle.exit(0);
                 }
             });
             Ok(())
@@ -188,8 +188,7 @@ async fn load_hpo(
                         
                         let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::success(singleton.get_status()));
                     },
-                    Err(e) => { 
-                        let msg = format!("Failed to parse HPO: {}", e);
+                    Err(_) => { 
                         let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::cancel());
                      }
                 }
@@ -763,7 +762,7 @@ async fn process_allele_column<R>(
         let singleton = app_handle.phenoboard.lock()
             .map_err(|_| "Failed to acquire lock".to_string())?;
         let total_alleles = etl.table.columns[col].values.len() as u32;
-        let pb = |current: u32, q: u32| {
+        let pb = |current: u32, _: u32| {
             let _ = app.emit("progress-update", ProgressPayload { 
                 current, 
                 total: total_alleles 

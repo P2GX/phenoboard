@@ -1,54 +1,54 @@
 @if (showSuccessMessage()) {
-  <div class="max-w-2xl mx-auto p-8 text-center animate-in zoom-in duration-300">
-    <div class="mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-        <span class="text-green-600 text-3xl">✔</span>
+   <div class="success-panel">
+    <div class="success-panel__icon-wrap">
+      <div class="success-panel__icon">
+        <span class="success-panel__checkmark">✔</span>
       </div>
-      <h2 class="text-2xl font-bold text-gray-800">Template Created Successfully!</h2>
-      <p class="text-gray-600">Your cohort is ready. How would you like to proceed?</p>
+      <h2 class="success-panel__title">Template Created Successfully!</h2>
+      <p class="success-panel__subtitle">Your cohort is ready. How would you like to proceed?</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="flex flex-col p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-blue-400 transition-all group shadow-sm">
-        <h3 class="font-bold text-lg mb-2 group-hover:text-blue-600">Bulk Editing</h3>
-        <p class="text-sm text-gray-500 mb-6 flex-grow">Open the External Table Editor to manage multiple entries in a spreadsheet view.</p>
-        <a routerLink="/tableeditor" class="btn-outline-primary w-full no-underline py-3">
+    <div class="success-panel__cards">
+      <div class="action-card">
+        <h3 class="action-card__title">Bulk Editing</h3>
+        <p class="action-card__description">Open the External Table Editor to manage multiple entries in a spreadsheet view.</p>
+        <a routerLink="/tableeditor" class="btn-outline-primary action-card__btn">
           Go to Table Editor
         </a>
       </div>
 
-      <div class="flex flex-col p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-blue-400 transition-all group shadow-sm">
-        <h3 class="font-bold text-lg mb-2 group-hover:text-blue-600">Add Case</h3>
-        <p class="text-sm text-gray-500 mb-6 flex-grow">Add information about an individual (e.g., from a case report).</p>
-        <a routerLink="/addcase" class="btn-primary w-full no-underline py-3">
+      <div class="action-card">
+        <h3 class="action-card__title">Add Case</h3>
+        <p class="action-card__description">Add information about an individual (e.g., from a case report).</p>
+        <a routerLink="/addcase" class="btn-primary action-card__btn">
           Add Phenopacket
         </a>
       </div>
     </div>
 
-    <button (click)="showSuccessMessage.set(false)" class="mt-8 text-sm text-gray-400 hover:text-gray-600 underline">
+    <button (click)="showSuccessMessage.set(false)" class="link-subtle">
       Go back
     </button>
   </div>
 } 
 
 @else {
-  <div class="w-full px-[5%] p-6">
+  <div class="page-body">
     <h1 class="h1-primary">Create Phenopacket Cohort Template</h1>
     
     @if (!thisCohortType()) {
       @if (statusService.hpoLoaded()) {
-        <p class="text-gray-600 mb-8">Choose a cohort type to get started.</p>
+        <p class="p-hint">Choose a cohort type to get started.</p>
       } @else {
-        <p class="text-read-600 mb-8">Load the HPO from the Home page before creating cohort.</p>
+        <p class="p-hint">Load the HPO from the Home page before creating cohort.</p>
       }
       
-      <div class="flex flex-col items-center gap-4 mt-12">
+      <div class="mode-list">
         @for (mode of cohortModes; track mode.id) {
-          <div class="flex items-center gap-3">
+          <div class="mode-list__item">
             <button (click)="mode.action()" 
                     [disabled]="mode.disabled"
-                    class="btn-outline-primary w-[320px] py-3 text-lg">
+                    class="btn-outline-primary mode-list__btn">
               {{ mode.label }}
             </button>
             <app-help-button [title]="mode.helpTitle" [lines]="mode.helpLines" />
@@ -61,10 +61,10 @@
       @let type = thisCohortType();
       @let cohort = pendingCohort();
 
-      <div class="template-section mt-8 animate-in fade-in duration-500">
-        <div class="flex justify-between items-center border-b pb-4 mb-6">
-          <h2 class="text-xl font-bold text-gray-800">🧬 {{ type | titlecase }} Cohort</h2>
-          <button class="text-red-600 hover:text-red-800 text-sm font-medium" (click)="resetCohort()">
+      <div class="template-section section-animate">
+        <div class="template-section__header">
+          <h2 class="template-section__title">🧬 {{ type | titlecase }} Cohort</h2>
+          <button class="btn-danger-text" (click)="resetCohort()">
             ✕ Reset & Start Over
           </button>
         </div>
@@ -76,8 +76,8 @@
             }
           }
           @case ('melded') {
-            <div class="space-y-4">
-              <h3 class="text-md font-semibold text-gray-700">Melded diseases:</h3>
+            <div class="melded-list">
+              <h3 class="melded-list__title">Melded diseases:</h3>
               <app-display-melded 
                 [diseases]="diseasesData()" 
                 [acronym]="cohortAcronym()" />
@@ -85,7 +85,7 @@
           }
         }
 
-        <div class="flex justify-end gap-4 mt-8 pt-4 border-t">
+        <div class="template-section__actions">
           <button class="btn-outline-cancel" (click)="resetCohort()">Cancel</button>
           <button class="btn-outline-primary" (click)="onConfirm()">Next Step</button>
         </div>

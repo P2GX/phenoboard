@@ -1,303 +1,128 @@
+// 1. ALL @use rules must be first
 @use "@angular/material" as mat;
 @use 'styles/variables' as *;
 @use 'styles/buttons';
 @use 'styles/titles';
+@use 'styles/forms';
+@use 'styles/animations';
+@use 'styles/typography';
+@use 'styles/layout';
+@use 'styles/snackbars';
+@use 'styles/status';
 
+// 2. Then @include
 @include mat.core();
 
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+// 3. Then @import
 @import '@angular/cdk/overlay-prebuilt.css';
 
+// 4. Then Tailwind
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-.h1-primary {
-  @apply text-3xl md:text-4xl font-semibold text-gray-800 tracking-tight;
-   margin-bottom: 0.4rem; /* px */
+// 5. Then any plain CSS rules
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-surface {
+  background-color: white;
 }
 
-.h2-primary {
-  @apply text-2xl md:text-3xl font-semibold text-gray-800 tracking-tight;
-  margin-top: 1.0rem; /* 16px */
-  margin-bottom: 0.2rem; /* px */
+.cdk-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.32);
+}
+.cdk-overlay-transparent-backdrop {
+  background: transparent;
 }
 
-.p-primary {
-  @apply text-base md:text-lg text-gray-600 leading-relaxed;
+// Force dialog padding that build optimizer strips
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  padding: 24px;
 }
 
-.label-primary {
-  @apply text-sm md:text-base font-medium text-gray-700 tracking-wide;
+.mat-mdc-dialog-content {
+  padding: 0 24px;
 }
 
-.primary-divider {
-  @apply border-t border-gray-200 dark:border-gray-700 
-    mt-2
-    pt-1
-    px-5
-    text-sm text-gray-500 
+.mat-mdc-dialog-actions {
+  padding: 8px 24px 24px;
 }
-.primary-box {
-  /* Reduced vertical padding (p-4 -> py-2 px-4) for a thinner look */
-  @apply space-y-2 py-2 px-4 border rounded-md bg-white dark:bg-transparent shadow-sm;
 
-  /* Target headings anywhere inside the box */
-  .heading-with-help {
-    /* Ensure the help button doesn't add height */
-    min-height: unset; 
-    margin-bottom: 0; 
+.mat-mdc-dialog-title {
+  padding: 24px 24px 0;
+}
+
+
+
+
+
+
+
+.mat-chip-set mat-chip { font-size: 12px; }
+
+.edit-dialog .mat-mdc-dialog-container { z-index: 2001 !important; }
+
+
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: rgba(239, 246, 255, 0.5);  // blue-50/50
+    border-color: #dbeafe;                         // blue-100
   }
-
-  h1 { @apply text-center font-bold text-2xl; } /* Scaled down from 3xl for compactness */
-  h2 { @apply text-left font-bold text-xl mt-1; }
-  h3 { @apply text-left font-bold text-lg mt-1; }
-
-  p { @apply text-left mt-0 text-sm; } /* Smaller text for compact feel */
 }
 
-.primary-list {
-    @apply list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300;
-}
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
 
-.primary-list a {
-  @apply text-blue-600 hover:underline;
-}
-
-.scrollable-table-container {
-  overflow-x: scroll;     /* always show scrollbar */
-  overflow-y: auto;
-  scrollbar-gutter: stable; /* keeps space reserved for scrollbar */
-  width: 100%;
-}
-
-.scrollbar {
-  scrollbar-gutter: stable;
-}
-
-.pt-table-container {
-  overflow-x: scroll;        /* always show horizontal scrollbar */
-  overflow-y: scroll;
-  scrollbar-gutter: stable;  /* keeps layout stable even with scrollbar */
-  width: 95%;
-}
-
-/* Force custom scrollbar */
-.pt-table-container::-webkit-scrollbar {
-  height: 12px; /* height of horizontal scrollbar */
-}
-
-.pt-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1; 
-}
-
-.pt-table-container::-webkit-scrollbar-thumb {
-  background: #888; 
-  border-radius: 6px;
-}
-
-.pt-table-container::-webkit-scrollbar-thumb:hover {
-  background: #555; 
-}
-
-.pt-table {
-  border-collapse: collapse;
-  width: max-content;
-  font-size: 12px;
-  min-width: max-content; /* prevents table from shrinking */
-    margin-left: 20px;
-    margin-right: 40px;
-}
-
-
-.pt-table th {
-  border: none;
-  border-bottom: 1px solid #ccc; 
-  padding: 5px;
-}
-.pt-table td {
-  border: 1px solid #ccc;
-  padding: 5px;
-}
-
-
-
-  .error-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px; 
-  }
-
-  .error-message {
-    background-color: #ffe6e6; /* light red background */
-    color: #a30000;            /* deep red text */
-    border: 1px solid #ff4d4d; /* red border */
-    padding: 1em;
-    margin-top: 1em;
-    border-radius: 8px;
+  .tool-title {
+    font-size: 0.875rem;
+    color: #4b5563;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-}
-/* Base for all snackbars */
-.mat-mdc-snack-bar-container {
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
-  white-space: pre-line; /* preserve newlines */
-}
-
-/* Error snackbar */
-.error-snackbar {
-  background-color: #1e1e1e !important; /* dark background */
-  color: #f44336 !important;            /* bright red text */
-  font-weight: bold !important;
-  border: 2px solid #f44336 !important;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-}
-
-/* Success snackbar */
-.success-snackbar {
-  background-color: #1e1e1e !important; /* dark background */
-  color: #4caf50 !important;            /* green text */
-  font-weight: bold !important;
-  border: 2px solid #4caf50 !important;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-}
-
-::ng-deep .warning-snackbar {
-  background-color: #ffcc00; /* amber */
-  color: #000; /* readable text */
-  font-weight: 500;
-}
-
-/* Action button styling */
-.mat-mdc-snack-bar-action button {
-  color: #ffffff !important; /* white dismiss button */
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.status-toggles {
-  font-size: 10px;
-  height: 24px;
-}
-
-.status-toggles .mat-button-toggle {
-  height: 24px;
-  line-height: 24px;
-  min-width: 28px;
-}
-
-.status-text {
-  font-size: 10px;
-  font-weight: 600;
-}
-
-/* Color coding for different states */
-.status-observed.mat-button-toggle-checked {
-  background-color: #4caf50 !important;
-  color: white !important;
-}
-
-.status-excluded.mat-button-toggle-checked {
-  background-color: #f44336 !important;
-  color: white !important;
-}
-
-.status-na.mat-button-toggle-checked {
-  background-color: #9e9e9e !important;
-  color: white !important;
-}
-
-/* Hover effects */
-.status-observed:hover {
-  background-color: #66bb6a !important;
-  color: white !important;
-}
-
-.status-excluded:hover {
-  background-color: #ef5350 !important;
-  color: white !important;
-}
-
-.status-na:hover {
-  background-color: #bdbdbd !important;
-  color: white !important;
-}
-
-/* Chip styling */
-.mat-chip-set mat-chip {
-  font-size: 12px;
-}
-
-.edit-dialog .mat-mdc-dialog-container {
-  z-index: 2001 !important; /* default dialogs use around 1000–1050 */
-}
-
-@layer components {
-  /* The row container for each tool */
-  .tool-row {
-    @apply flex items-center gap-4 p-4 rounded-xl transition-all border border-transparent;
-    @apply hover:bg-blue-50/50 hover:border-blue-100;
   }
 
-  /* The container for the text next to the buttons */
-  .tool-info {
-    @apply flex flex-col ml-2;
-    
-    .tool-title {
-      @apply text-sm text-gray-600 font-medium;
-    }
-    
-    .tool-description {
-      @apply text-xs text-gray-400 italic;
-    }
-  }
-
-  /* Status message styles */
-  .status-text {
-    @apply text-sm font-medium transition-colors;
-    
-    &.loading { @apply text-amber-600; }
-    &.success { @apply text-green-600; }
-    &.error   { @apply text-red-600; }
+  .tool-description {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
   }
 }
 
-/* 1. The Container: Force a strict height */
+
 .global-action-bar {
   display: flex;
-  align-items: center; /* Vertical center */
+  align-items: center;
   gap: 4px;
   padding: 4px 8px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
-  height: 38px; /* Strict height to prevent expansion */
-  overflow: hidden; 
+  height: 38px;
+  overflow: hidden;
 }
 
-/* 2. The Button + Help Wrapper */
 .action-with-help {
   display: inline-grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: 2px; /* Small gap to prevent overlap */
+  gap: 2px;
 }
 
-/* 3. The Help Icon: Shrink it to non-existence until needed */
 .subtle-help {
-  width: 16px; 
+  width: 16px;
   height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 
   app-help-button {
-    /* Use ::ng-deep to override the internal Material button styles */
     ::ng-deep {
       .mat-mdc-icon-button {
         width: 16px !important;
@@ -312,7 +137,7 @@
         width: 14px !important;
         height: 14px !important;
         margin: 0 !important;
-        color: #94a3b8 !important; /* Light slate */
+        color: #94a3b8 !important;
         opacity: 0.6;
       }
     }
@@ -320,14 +145,5 @@
   }
 }
 
-/* 4. Fix Button Heights */
-.btn-sm {
-  height: 28px !important; /* Fixed height */
-  line-height: 28px !important;
-  padding: 0 8px !important;
-  font-size: 12px !important;
-}
 
-.cdk-overlay-transparent-backdrop {
-  background: transparent;
-}
+

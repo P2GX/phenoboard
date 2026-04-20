@@ -8,6 +8,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { ConfigService } from '../services/config.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatFormField } from "@angular/material/input";
 
 export interface CohortDialogData {
   title: string;
@@ -23,7 +24,7 @@ export interface CohortDialogData {
     MatDialogModule,
     MatMenuModule,
     ReactiveFormsModule,
-    HelpButtonComponent
+    HelpButtonComponent,
 ],
   templateUrl: './cohortdialog.component.html',
   styleUrls: ['./cohortdialog.component.css'],
@@ -140,5 +141,10 @@ export class CohortDialogComponent {
       // Optional: Toast or specific error handling if gene not found
       alert(`Could not find data for symbol: ${symbol}`);
     }
+  }
+
+  isInvalid(control: string): boolean {
+    const c = this.form.get(control);
+    return !!(c?.invalid && c?.touched);
   }
 }

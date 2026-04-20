@@ -19,4 +19,8 @@ bootstrapApplication(AppComponent, {
       ReactiveFormsModule,
     ),
   ],
+}).then(() => {
+  setTimeout(() => {
+    (window as any).__TAURI__?.webviewWindow?.getCurrent()?.openDevtools?.();
+  }, 300);
 }).catch(err => console.error(err));

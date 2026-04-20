@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>{{ data.title }}</h2>
 
 <mat-dialog-content>
-  <form [formGroup]="form" class="flex flex-col gap-3 mt-2">
+  <form [formGroup]="form" class="dialog-form">
 
     <!-- Disease section -->
      <div class="heading-with-help">
@@ -18,24 +18,31 @@
 
     <!-- OMIM ID -->
     <div class="form-field">
-      <input placeholder="e.g., OMIM:123456" formControlName="diseaseId" class="form-input" />
-      @if (form.get('diseaseId')?.invalid && form.get('diseaseId')?.touched) {
-        <p class="error-text">Please enter a valid OMIM ID (e.g. OMIM:123456)</p>
-      }
+        <input placeholder="e.g., OMIM:123456" 
+          formControlName="diseaseId" 
+          class="form-input"
+          [class.error]="isInvalid('diseaseId')" />
+            @if (form.get('diseaseId')?.invalid && form.get('diseaseId')?.touched) {
+              <p class="error-text">Please enter a valid OMIM ID (e.g. OMIM:123456)</p>
+            }
     </div>
 
     <!-- Disease name -->
     <div class="form-field">
-      <input placeholder="Disease label" formControlName="diseaseLabel" class="form-input" />
-      @if (form.get('diseaseLabel')?.invalid && form.get('diseaseLabel')?.touched) {
+      <input placeholder="Disease label" 
+      formControlName="diseaseLabel" 
+      class="form-input"
+      [class.error]="isInvalid('diseaseLabel')" />
+      @if (isInvalid('diseaseLabel')) {
         <p class="error-text">Disease name is required.</p>
       }
     </div>
 
     <!-- Cohort -->
     <div class="form-field">
-      <input placeholder="Cohort acronym" formControlName="cohortAcronym" class="form-input" />
-      @if (form.get('cohortAcronym')?.invalid && form.get('cohortAcronym')?.touched) {
+      <input placeholder="Cohort acronym" formControlName="cohortAcronym" class="form-input" 
+      [class.error]="isInvalid('cohortAcronym')"/>
+      @if (isInvalid('cohortAcronym')) {
         <p class="error-text">Cohort acronym is required.</p>
       }
     </div>
@@ -54,23 +61,27 @@
   
 
     <div class="form-field">
-      <input placeholder="e.g., HGNC:1234" formControlName="hgnc" class="form-input" />
-      @if (form.get('hgnc')?.invalid && form.get('hgnc')?.touched) {
+      <input placeholder="e.g., HGNC:1234" 
+      formControlName="hgnc" 
+      class="form-input" 
+      [class.error]="isInvalid('hgnc')"/>
+      @if (isInvalid('hgnc')) {
         <p class="error-text">Valid HGNC ID required (e.g., HGNC:1234)</p>
       }
     </div>
 
     <div class="form-field">
-    <div class="form-field flex gap-2">
+    <div class="form-input-row">
       <input 
       placeholder="Gene symbol (e.g. CFTR)" 
       formControlName="symbol" 
-      class="form-input flex-1" />
+      class="form-input flex-1"
+      [class.error]="isInvalid('symbol')" />
       <button
         type="button"
         [disabled]="!canFetch() || isLoading()"
         (click)="fetchAndFillHgnc()"
-        class="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100 disabled:opacity-50 transition-all flex items-center gap-2"
+        class="btn-fetch"
         >
         @if (isLoading()) {
           <span class="animate-spin">⏳</span>
@@ -79,14 +90,15 @@
         }
         </button>
     </div>
-      @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
+      @if (isInvalid('symbol')) {
         <p class="error-text">Gene symbol is required.</p>
       }
     </div>
 
     <div class="form-field">
-      <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript" class="form-input" />
-      @if (form.get('transcript')?.invalid && form.get('transcript')?.touched) {
+      <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript" class="form-input" 
+      [class.error]="isInvalid('transcript')"/>
+      @if (isInvalid('transcript')) {
         <p class="error-text">Transcript must be in format NM_000492.4</p>
       }
     </div>
@@ -94,22 +106,22 @@
 </mat-dialog-content>
 
 @if (showPasteArea()) {
-  <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
-    <label class="block text-sm font-medium text-gray-700 mb-2">
+  <div class="paste-area">
+    <label class="paste-area__label">
       Paste OMIM data here (from Phenotype-Gene Relationships table):
     </label>
     <textarea 
       [(ngModel)]="pastedText"
-      class="w-full h-32 border border-gray-300 rounded p-2 font-mono text-sm"
+      class="paste-area__textarea"
       placeholder="Paste here..."
     ></textarea>
-    <div class="flex gap-2 mt-2">
+    <div class="paste-area__actions">
       <button (click)="processPastedText()" class="btn-primary">Process</button>
       <button (click)="showPasteArea.set(false)" class="btn-cancel">Cancel</button>
     </div>
   </div>
 } @else {
-  <mat-dialog-actions align="end" class="mt-3">
+  <mat-dialog-actions align="end" class="dialog-actions">
     <button (click)="showPasteArea.set(true)" class="btn-outline-primary">📋 Paste tabular data</button>
    
     <app-help-button 
@@ -119,7 +131,7 @@
         'The fields must be 1. <b>Disease name (Phenotype)</b>, 2. <b>OMIM id</b>, 3. skipped, 4. skipped, 5. <b>Gene symbol</b>.',
         'For instance, the data from the Phenotype-Gene Relationships table in OMIM can be copied and pasted here.'
       ]" />
-    <div class="flex justify-end gap-2 mt-6">
+    <div class="dialog-actions__end">
       <button type="button" class="btn-outline-cancel" (click)="cancel()">Cancel</button>
       @if (data.isMelded) {
         <button type="button" 

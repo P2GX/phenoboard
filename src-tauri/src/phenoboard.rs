@@ -379,40 +379,6 @@ impl PhenoboardSingleton {
         }
     }
 
-    /// Get an ordered list of HPO terms ids
-    ///
-    /// The intended use case is when we are initializing a new Pyphetools template and we
-    /// want to prepopulate the template with HPO terms weare likely to curate.
-    ///
-    /// # Arguments
-    ///
-    /// * `input_text` - A string reference with clinical descriptions
-    ///
-    /// # Returns
-    ///
-    /// A vector of HPO TermIds (can be empty) that were mined from the text and arranged with DFS
-    pub fn map_text_to_term_list(&mut self, input_text: &str) -> Vec<TermId> {
-        let deunicoded_text = fenominal::sanitize(input_text);
-        match &self.ontology {
-            Some(hpo) => {
-                let hpo_arc = Arc::clone(hpo);
-                let fenominal = Fenominal::new(hpo_arc);
-                let fenom_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text);
-                let mut tid_list: Vec<TermId> = Vec::new();
-                for hit in fenom_hits {
-                    // Fenominal hit.term_id can be unwrapped
-                    let tid = TermId::from_str(&hit.term_id).unwrap();
-                    tid_list.push(tid);
-                }
-                let ordered_hpo_ids = ga4ghphetools::hpo::hpo_terms_to_dfs_order(hpo.clone(), &tid_list);
-                return ordered_hpo_ids;
-            }
-            None => {
-                return vec![];
-            }
-        }
-    }
-
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
     fn extract_template_name(&self, cohort_dto: &CohortData) -> Result<String, String> {
         ga4ghphetools::factory::extract_template_name(cohort_dto)

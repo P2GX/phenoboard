@@ -1,0 +1,43 @@
+
+.scrollable-table-container {
+  overflow-x: scroll;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  width: 100%;
+}
+
+.scrollbar {
+  scrollbar-gutter: stable;
+}
+
+.pt-table-container {
+  overflow-x: scroll;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  width: 95%;
+}
+
+.pt-table-container::-webkit-scrollbar { height: 12px; }
+.pt-table-container::-webkit-scrollbar-track { background: #f1f1f1; }
+.pt-table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 6px; }
+.pt-table-container::-webkit-scrollbar-thumb:hover { background: #555; }
+
+.pt-table {
+  border-collapse: collapse;
+  width: max-content;
+  font-size: 12px;
+  min-width: max-content;
+  margin-left: 20px;
+  margin-right: 40px;
+}
+
+.pt-table th {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 5px;
+}
+
+.pt-table td {
+  border: 1px solid #ccc;
+  padding: 5px;
+}

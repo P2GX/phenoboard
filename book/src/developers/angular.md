@@ -120,3 +120,23 @@ npm start
 ```
 Then we open the system browser to view the page (http://localhost:1420/home). If we change the CSS/SCSS file of the component, we
 should immediately see the effect. After we are finished, we can delete the mock data and revert the changes to the input of the component and to the main app.
+
+
+## Debugging if CSS classes are not being included in production builds.
+
+Check if the class itself is included in the production
+
+```bash
+ grep 'form-input' dist/phenoboard/browser/styles-OPWQKR5O.css
+ ```
+Then build the app locally
+```bash
+npm run build
+```
+
+Then start the app locally in a broweser
+```bash
+npx serve dist/phenoboard/browser
+```
+
+Here we can use dev tools to see if the class is being used correctly.
