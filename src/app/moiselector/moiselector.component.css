@@ -1,9 +1,67 @@
 
-button {
-    padding: 8px;
-    background: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
+.moi-container {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;  
 }
+
+
+.moi-title {
+  font-size: 1rem;        
+  font-weight: 600;           
+  color: #424242;            
+  margin-bottom: 12px;
+}
+
+
+.moi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+.moi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+
+.moi-checkbox-row {
+  display: flex;
+  align-items: center;
+}
+
+.moi-checkbox {
+  margin-right: 8px;
+}
+
+.moi-label {
+  color: #616161;              
+}
+
+
+.moi-pmid {
+  font-size: 0.75rem;          
+  color: #9e9e9e;              
+  margin: 0;
+}
+
+
+.moi-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+

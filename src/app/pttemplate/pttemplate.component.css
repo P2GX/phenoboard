@@ -180,14 +180,7 @@ button[mat-icon-button] {
   display: none; /* Webkit */
 }
 
-/* Ensure the sticky header has a background to cover the scrolling rows */
-.pt-table thead {
-  /* These should be set via Tailwind classes as discussed previously: sticky top-0 bg-white z-10 */
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white; 
-}
+
 
 .focused-row {
   background-color: #eef5ff;
@@ -365,9 +358,307 @@ button[mat-icon-button] {
   display: none !important;
 }
 
-/* Ensure the flex container is strictly centering items */
-.toolbar-row {
+// --- Page ---
+.page-container {
+  padding: 24px;
+  background-color: #fafafa;
+}
+
+.section-gap-top {
+  margin-top: 16px;
+}
+
+// --- HPO filter row ---
+.hpo-filter-row {
+  margin-top: 16px;
   display: flex;
-  align-items: center; /* This aligns the vertical centers */
+  align-items: center;
   gap: 8px;
+}
+
+.filter-select {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+}
+
+// --- Table ---
+.pt-table-scroll {
+  overflow-y: auto;
+  max-height: 600px;
+  max-width: 80rem;
+}
+
+.pt-table-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-spacer {
+  height: 40px;
+}
+
+.row-no-hpo {
+  background-color: #fff5f5;   // bg-red-50
+}
+
+// --- Individual ID cell ---
+.cell-error-label {
+  color: #e53935;
+  font-size: 0.75rem;
+}
+
+.row-info-popup {
+  position: fixed;
+  background: #fff;
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 999;
+  font-size: 0.875rem;
+  padding: 16px;
+  width: 288px;
+}
+
+.row-info-list {
+  list-style: disc;
+  list-style-position: inside;
+  font-size: 0.875rem;
+  color: #424242;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.row-info-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+// --- Alleles ---
+.allele-row {
+  display: flex;
+  align-items: center;
+  column-gap: 12px;
+}
+
+.allele-content {
+  display: flex;
+  align-items: center;
+  column-gap: 4px;
+}
+
+.allele-status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.allele-dot-valid   { background-color: #43a047; }
+.allele-dot-invalid { background-color: #e53935; }
+
+.allele-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 220px;
+}
+
+// --- HPO cell ---
+.cell-truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 4rem;
+}
+
+// --- Toolbar bar (HPO search + age) ---
+.toolbar-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.toolbar-search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 8px;
+  flex-grow: 1;
+}
+
+.toolbar-autocomplete-wrap {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 32px;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.toolbar-age-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+.toolbar-btn-group {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.toolbar-btn {
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 0.875rem !important;
+  gap: 4px; /* This replaces the need for ml-1 on the span */
+  &:hover { background-color: #f8fafc; }
+}
+
+.toolbar-btn-muted {
+  color: #64748b !important;
+}
+
+.toolbar-btn-icon {
+  transform: scale(0.75);
+  margin: 0 !important;
+}
+
+.toolbar-btn-inner-divider {
+  width: 1px;
+  height: 16px;
+  background-color: #e2e8f0;
+}
+
+// --- Age badge ---
+.age-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  background-color: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 9999px;
+}
+
+.age-badge-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #059669;
+}
+
+.age-badge-value {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #065f46;
+}
+
+.age-badge-count {
+  font-size: 10px;
+  color: #6ee7b7;
+  background-color: rgba(209, 250, 229, 0.5);
+  padding: 0 6px;
+  border-radius: 9999px;
+}
+
+// --- Action toolbar ---
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 16px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 12px;
+  border-right: 1px solid #bdbdbd;
+
+  &:last-child {
+    border-right: none;
+    padding-right: 0;
+  }
+}
+
+// --- Context menus ---
+.context-menu {
+  position: absolute;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid #bdbdbd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 8px;
+  font-size: 0.875rem;
+  min-width: 176px;
+}
+
+.context-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.context-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  background: none;
+
+  &:hover, &:focus {
+    background-color: #f5f5f5;
+    outline: none;
+  }
+}
+
+.context-menu-item--link {
+  color: #1565c0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.context-menu-item--danger {
+  border: 1px solid #e53935;
+  border-radius: 4px;
+}
+
+.context-menu-ext-icon {
+  font-size: 0.75rem;
 }

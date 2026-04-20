@@ -4,43 +4,65 @@
   color: #333;
 }
 
-h1[mat-dialog-title] {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  padding: 0.5rem 1rem;
-  text-align: center;       /* centers the title */
-  border-bottom: 1px solid #e0e0e0;
-}
-
-
-
-[mat-dialog-content] {
-  padding: 1rem 0;
-  min-height: 400px; /* already in your markup */
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 app-hpomining,
 app-hpopolishing {
   flex: 1;
   display: block;
 }
 
-[mat-dialog-actions] {
-  margin-top: 1rem;
+// --- Outer shell ---
+.dialog-shell {
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  min-height: 500px;
+  overflow: hidden;
+}
+
+// --- Title block ---
+.dialog-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 0 0 16px;
+}
+
+.dialog-title-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1565c0;        // blue-700
+  font-weight: 600;
+  font-size: 1.125rem;   // text-lg
+}
+
+// --- Step content ---
+.dialog-step-content {
+  min-height: 400px;
+}
+
+// --- Actions bar (reusable — same as dialog-actions-bar from before) ---
+.dialog-actions-bar {
+  margin: 0 !important;
+  padding: 16px;
   border-top: 1px solid #e0e0e0;
-  padding-top: 0.75rem;
+  background-color: #fafafa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: none;
 }
 
-button[mat-button] {
-  text-transform: none;
-  font-weight: 500;
-  color: #555;
+// --- Small icon inside a button ---
+.btn-icon-sm {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 18px !important;
 }
 
-button[mat-button]:hover {
-  background-color: #f5f5f5;
+// --- Button with icon + label ---
+.btn-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

@@ -1,5 +1,5 @@
 
-<div class="p-6 bg-gray-50">
+<div class="page-container">
   @if (cohortData(); as cohort) {
     <app-cohort-summary [cohort]="cohort"></app-cohort-summary>
   } @else {
@@ -7,7 +7,7 @@
   }
 
 <!-- String input section -->
-<div class="mt-4">
+<div class="section-gap-top">
  <app-cohort-metadata 
   [cohortData]="cohortData()!" 
   (resetCohortMetadata)="handleReset()"
@@ -15,11 +15,11 @@
   (updateMoi)="handleMoi($any($event))">
   </app-cohort-metadata>
 
-  <div class="mt-4 flex items-center gap-2">
-    <label for="hpoFilter" class="text-sm text-gray-700">Filter HPO columns:</label>
+  <div class="hpo-filter-row">
+    <label for="hpoFilter" class="hint-text">Filter HPO columns:</label>
     <select
     id="hpoFilter"
-    class="border rounded p-1 text-sm"
+    class="filter-select"
     [value]="selectedTopLevelHpo()"
     (change)="selectedTopLevelHpo.set($any($event.target).value)"
   >
@@ -40,12 +40,12 @@
   <!-- Table with one row per phenopacket -->
   @if (cohortData(); as cohort){
   <div class="pt-table-container">
-    <div class="top-scroll-mirror overflow-x-auto invisible-scrollbar">
-      <div class="h-1" [style.width]="tableWidth"></div>
+    <div class="top-scroll-mirror">
+      <div class="spacer-4px" [style.width]="tableWidth"></div>
     </div>
-    <div class="overflow-y-auto max-h-[600px] max-w-7xl">
+    <div class="pt-table-scroll">
     <table class="pt-table">
-      <thead class="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
+      <thead class="pt-table-head">
         <tr>
         <th class="narrow-column bottom-align">Individual ID</th>
 
@@ -85,21 +85,20 @@
       </thead>
       <tbody>
       @for (row of tableVM(); track row.id;  let rowIndex = $index) {
-      <tr [class.bg-red-50]="!row.hasObservedHpo">
-        <!-- First column: PMID/title/individual_id/comment -->
+      <tr [class.row-no-hpo]="!row.hasObservedHpo">
         <td class="relative narrow-column"
           (contextmenu)="onIndividualRightClick($event, row.id)"
           class="cursor-context-menu">
           {{ row.individualId }}
-          @if(!row.individualId){ <span class="text-red-500 text-xs">[ID is null/empty]</span> }
+          @if(!row.individualId){ <span class="cell-error-label">[ID is null/empty]</span> }
           <!-- Info popup for this row -->
          @if (activeInfoRow(); as currentRow) {
             <div
-              class="fixed bg-white border border-gray-300 rounded shadow-md z-[999] text-sm p-4 w-72"
+              class="row-info-popup"
               [style.left.px]="infoMenuPos()?.x"
               [style.top.px]="infoMenuPos()?.y"
             >
-              <ul class="list-disc list-inside text-sm text-gray-800 mb-2">
+              <ul class="row-info-list">
                 <li><strong>{{ currentRow.individualData.individualId }}</strong></li>
                 <li>PMID: {{ currentRow.individualData.pmid }}</li>
                 <li>{{ currentRow.individualData.title }}</li>
@@ -112,7 +111,7 @@
                 <li>Sex: {{ currentRow.individualData.sex }}</li>
               </ul>
 
-              <div class="flex justify-end gap-2 mt-2">
+              <div class="row-info-actions">
                 <button
                   mat-stroked-button
                   color="primary"
@@ -149,11 +148,11 @@
          </app-popover>
   }
   @for (allele of row.alleles; track allele.key) {
-    <div class="allele-row flex items-center gap-x-3">
-       <div class="flex items-center gap-x-1 allele-content">
+    <div class="allele-row">
+       <div class="allele-content">
             <span 
-              class="inline-block w-3 h-3 rounded-full"
-              [ngClass]="allele.validated ? 'bg-green-500' : 'bg-red-500'"
+              class="allele-status-dot"
+              [ngClass]="allele.validated ? 'allele-dot-valid' : 'allele-dot-invalid'"
               [title]="allele.validated ? 'Validated' : 'Not validated'"
             ></span>
             <span class="cursor-pointer">
@@ -181,7 +180,7 @@
   }
 
   <ng-template #alleleMenuContent>
-    <div class="grid grid-cols-2 gap-2 w-[220px]">
+    <div class="allele-menu-grid">
       <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.HGVS); openAddAlleleRowId = null">HGVS</button>
       <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null">SV</button>
       <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.INTERGENIC); openAddAlleleRowId = null">Intergenic</button>
@@ -198,15 +197,9 @@
           style="width: 2.5rem; height: 2.5rem;"
           (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row.id, cell.originalCell)">
           @switch (cell.originalCell.type) {
-            @case ('Observed') {
-              <span>✅</span>
-            }
-            @case ('Excluded') {
-              <span>❌</span>
-            }
-            @case ('Na') {
-              <span>n/a</span>
-            }
+            @case ('Observed') { <span>✅</span> }
+            @case ('Excluded') { <span>❌</span> }
+            @case ('Na') { <span>n/a</span> }
             @case ('OnsetAge') {
               <div class="onset-content" [title]="cell.displayValue">
                 <span class="onset-icon">🕒</span>
@@ -214,7 +207,7 @@
               </div>
             }
             @case ('Modifier') {
-             <div class="truncate max-w-[4rem] overflow-hidden whitespace-nowrap" [title]="cell.displayValue">
+             <div class="cell-truncate" [title]="cell.displayValue">
                   {{ cell.displayValue }}
                 </div>
             }
@@ -230,15 +223,14 @@
     </tbody>
   </table>
   </div>
-  <div style="height: 40px;"></div>
+  <div class="table-spacer"></div>
   </div>
 } <!-- close  @if (cohortData(); as cohort){ -->
 
 
-<div class="flex items-center gap-4 p-2 bg-slate-50 rounded-xl shadow-sm border border-slate-200">
-  
-  <div class="flex items-center gap-2 pl-2 flex-grow">
-    <div class="w-full max-w-md">
+<div class="toolbar-bar">
+  <div class="toolbar-search-group">
+    <div class="toolbar-autocomplete-wrap">
       <app-hpoautocomplete #hpoSearch></app-hpoautocomplete>
     </div>
     <button 
@@ -251,27 +243,28 @@
     </button>
   </div>
 
-  <div class="h-8 w-[1px] bg-slate-200"></div>
+  <div class="toolbar-divider"></div>
 
-  <div class="flex items-center gap-3 pr-2">
+  <div class="toolbar-age-group">
     
-    <div class="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 shadow-sm">
-      <button mat-button (click)="openAgeDialog()" class="!h-8 !px-3 !text-sm hover:bg-slate-50">
-        <mat-icon class="scale-75 !m-0">edit</mat-icon>
-        <span class="ml-1">Add onset age</span>
+    <div class="toolbar-btn-group">
+      <button mat-button (click)="openAgeDialog()" class="toolbar-btn">
+        <mat-icon class="toolbar-btn-icon">edit</mat-icon>
+        <span>Add onset age</span>
       </button>
-      <div class="w-[1px] h-4 bg-slate-200"></div>
-      <button mat-button (click)="addAllCohortAges()" class="!h-8 !px-3 !text-sm !text-slate-600 hover:bg-slate-50">
-        <mat-icon class="scale-75 !m-0">group_add</mat-icon>
-        <span class="ml-1">Add ages from cohort</span>
+      <div class="toolbar-btn-inner-divider"></div>
+      <button mat-button (click)="addAllCohortAges()" 
+            class="toolbar-btn toolbar-btn-muted">
+        <mat-icon class="toolbar-btn-icon">group_add</mat-icon>
+        <span>Add ages from cohort</span>
       </button>
     </div>
 
     @if (ageEntries().length > 0) {
-      <div class="flex items-center gap-2 h-8 px-3 bg-emerald-50 border border-emerald-100 rounded-full">
-        <span class="text-[10px] font-bold uppercase text-emerald-600">Latest:</span>
-        <span class="text-xs font-medium text-emerald-800">{{ ageEntries().at(-1) }}</span>
-        <span class="text-[10px] text-emerald-400 bg-emerald-100/50 px-1.5 rounded-full">{{ ageEntries().length }}</span>
+      <div class="age-badge">
+        <span class="age-badge-label">Latest:</span>
+        <span class="age-badge-value">{{ ageEntries().at(-1) }}</span>
+        <span class="age-badge-count">{{ ageEntries().length }}</span>
       </div>
     }
 
@@ -286,9 +279,9 @@
 </div>
 
 
-<div class="flex items-center flex-wrap gap-3 p-3 bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+<div class="action-toolbar">
   
-  <div class="flex items-center gap-2 border-r pr-3 border-gray-300">
+  <div class="action-group">
      <a routerLink="/addcase" class="tool-btn btn-workflow no-underline">
           Add Phenopacket
         </a>
@@ -308,7 +301,7 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-2 border-r pr-3 border-gray-300">
+  <div class="action-group">
     <button class="tool-btn btn-workflow" (click)="validateCohort()">
       <mat-icon>health_and_safety</mat-icon> Check & Fix
     </button>
@@ -328,7 +321,7 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-2">
+  <div class="action-group">
     <button class="tool-btn btn-success" (click)="saveCohort()">
       <mat-icon>save</mat-icon> Save
     </button>
@@ -365,14 +358,14 @@
 @if (contextMenuVisible) {
   <div
     [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
-    class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-md p-2 text-sm w-44"
+    class="context-menu"
     role="menu"
     aria-label="Annotation context menu"
     #contextMenu
   >
     @for (option of contextMenuOptions; track option) {
       <button
-        class="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 focus:outline-none focus:bg-gray-200 transition"
+        class="context-menu-item"
         role="menuitem"
         (click)="onMenuOptionClick(option.value)"
         type="button"
@@ -385,24 +378,24 @@
 <!-- Individual (row-level) context menu -->
  @if (individualContextMenuVisible) {
   <div
-    class="absolute bg-white border border-gray-300 rounded shadow-md z-50 text-sm"
+    class="context-menu"
     [style.left.px]="individualMenuX"
     [style.top.px]="individualMenuY"
     #individualContextMenu
   >
-    <ul>
-      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
+    <ul class="context-menu-list">
+      <li class="context-menu-item"
           (click)="focusOnSingleRow()">Focus on row</li>
-      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
+      <li class="context-menu-item"
           (click)="focusOnPmid(contextRowPmid)">Focus on PMID: {{ contextRowPmid ?? 'N/A' }}</li>
-      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100 text-blue-600 flex justify-between items-center"
+      <li class="context-menu-item"
       (click)="openPmidInBrowser(contextRowPmid)"> Open PMID in Browser<span class="text-xs">↗</span>
       </li>
-      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
+      <li class="context-menu-item"
           (click)="showAllRows()">Show all rows</li>
-      <li class="px-3 py-1 cursor-pointer hover:bg-gray-100"
+      <li class="context-menu-item"
           (click)="showInfoForRow(contextRowId, $event)">Show info</li>
-      <li class="px-3 py-1 cursor-pointer border border-red-500 rounded"
+      <li class="context-menu-item"
           (click)="deleteRow(contextRowId)">Delete row</li>
     </ul>
   </div>
