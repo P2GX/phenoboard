@@ -4,9 +4,9 @@
     <table class="custom-curation-table">
       <thead>
         <tr>
-          <th class="w-[30%]">Source Fragment</th>
-          <th class="w-[55%]">HPO Mappings</th>
-          <th class="w-[15%] text-right">Actions</th>
+          <th class="col-source-header">Source Fragment</th>
+          <th class="col-mapping-header">HPO Mappings</th>
+          <th class="col-actions-header">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -14,8 +14,8 @@
           <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
             
             <td class="col-source">
-              <div class="flex items-start gap-2">
-                <mat-icon class="text-gray-400 scale-75 mt-1">description</mat-icon>
+              <div class="source-cell-content">
+                <mat-icon class="source-icon">description</mat-icon>
                 <code class="source-code">"{{ c.originalText }}"</code>
                 <button mat-icon-button color="primary" class="split-btn" (click)="openSplitDialog(i)">
                   <mat-icon>content_cut</mat-icon>
@@ -24,17 +24,17 @@
             </td>
 
             <td class="col-mapping">
-              <div class="flex flex-wrap gap-2 items-center">
+              <div class="mapping-cell-content">
                 @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
                   <mat-chip-row (removed)="removeTerm(i, termIdx)" class="hpo-chip">
-                    <span class="font-mono font-bold mr-1 opacity-70">{{ term.id }}</span>
+                    <span class="hpo-chip-id">{{ term.id }}</span>
                     <span>{{ term.label }}</span>
                     <button matChipRemove><mat-icon>cancel</mat-icon></button>
                   </mat-chip-row>
                 }
 
                 @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
-                  <app-hpoautocomplete class="flex-grow" (selected)="addNewTerm(i, $event)"></app-hpoautocomplete>
+                  <app-hpoautocomplete class="autocomplete-grow" (selected)="addNewTerm(i, $event)"></app-hpoautocomplete>
                 } @else {
                   <button mat-icon-button (click)="startSearch(i)" class="add-btn">
                     <mat-icon>add_circle_outline</mat-icon>
@@ -44,7 +44,7 @@
             </td>
 
             <td class="col-actions">
-              <div class="flex justify-end gap-1">
+              <div class="actions-cell-content">
                 <button mat-icon-button (click)="toggleConfirm(i)" [color]="c.miningStatus === 'confirmed' ? 'primary' : ''">
                   <mat-icon>{{ c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                 </button>
@@ -61,7 +61,7 @@
     
   </div>
 </mat-dialog-content>
-<mat-dialog-actions align="end" class="p-4 border-t bg-gray-50">
+<mat-dialog-actions align="end" class="dialog-actions-bar">
   <button mat-button class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
   <button mat-raised-button color="primary" class="btn-outline-primary" (click)="save()" [disabled]="concepts().length === 0">
     <mat-icon class="mr-1">done_all</mat-icon>
