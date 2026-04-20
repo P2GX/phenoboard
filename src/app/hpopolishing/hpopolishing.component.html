@@ -1,36 +1,30 @@
- <!-- Annotation area -->
-<div class="flex flex-col h-full overflow-hidden">
-  <div class="flex-none p-4 overflow-y-auto max-h-60 bg-gray-50 border-b">
-
- 
-  <div class="whitespace-pre-wrap text-sm font-mono leading-relaxed">
+<div class="annotation-container">
+  <div class="annotation-header">
+    <div class="annotation-text-wrapper">
     @for (ann of annotations(); track $index) {
       @if (ann.isFenominalHit) {
           <span
             (click)="openPopup(ann, $event)"
-            class="cursor-pointer px-1 rounded transition-colors duration-200 border-b-2"
-            [ngClass]="{
-              'bg-green-100 border-green-400 hover:bg-green-200': ann.isObserved,
-              'bg-red-100 border-red-400 hover:bg-red-200': !ann.isObserved
-            }">
+            class="hit-span"
+            [ngClass]="ann.isObserved ? 'status-observed' : 'status-excluded'">
             {{ ann.originalText }}
           </span>
         } @else {
-          <span class="text-gray-700">{{ ann.originalText }}</span>
+          <span class="plain-text">{{ ann.originalText }}</span>
         }
     }
   </div>
-  </div>
+</div>
 
 <!-- Popup for one of the terms in the marked up text that will be activated if the user clicks on the colored text -->
 @if (showPopup) {
   <div
-      class="absolute z-50 bg-white border border-gray-300 shadow-md p-2 rounded"
+      class="info-popup"
       [ngStyle]="{ top: popupY + 'px', left: popupX + 'px' }"
       (mouseleave)="closePopup()"
     >
-      <div class="flex justify-between items-center mb-2">
-        <button (click)="closePopup()" class="text-gray-500 hover:text-black text-xs">✕</button>
+      <div class="popup-header">
+        <button (click)="closePopup()" class="close-btn">✕</button>
       </div>
       <p><strong>Label:</strong> {{ selectedAnnotation?.label }}</p>
       <p><strong>Term ID:</strong> {{ selectedAnnotation?.termId }}</p>
@@ -38,55 +32,56 @@
   </div>
 }
 
-<div class="flex-1 overflow-auto min-h-0 bg-white">
-    <table #annotationTable class="table-auto w-full border-collapse text-xs leading-tight">
-      <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
+<div class="table-viewport">
+    <table #annotationTable class="data-table">
+      <thead>
         <tr>
-          <th class="border-b p-2 text-left w-24">Term ID</th>
-          <th class="border-b p-2 text-left">Label</th>
-          <th class="border-b p-2 text-left w-16">Status</th>
-          <th class="border-b p-2 text-left w-24">Onset</th>
-          <th class="border-b p-2 text-right">Actions</th>
+          <th class="col-id">Term ID</th>
+          <th class="col-label">Label</th>
+          <th class="col-status">Status</th>
+          <th class="col-onset">Onset</th>
+          <th class="col-actions">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody>
         @for (annotation of hpoAnnotations(); track annotation.termId; let i = $index) {
-          <tr class="hover:bg-blue-50/50 h-6 transition-colors">
-              <td class="px-2 py-[1px] font-mono leading-none">
-              <a (click)="onLinkClick($event, annotation.termId)" class="hover:underline cursor-pointer">
+          <tr class="data-row">
+              <td class="font-mono">
+              <a (click)="onLinkClick($event, annotation.termId)" class="link-text">
                 {{ annotation.termId }}
               </a>
             </td>
-            <td class="p-2 relative">
-              <span (click)="showParentChildDropdown(annotation, $event)" class="cursor-pointer font-medium flex items-center gap-1">
-                {{ annotation.label }} <span class="text-[8px] text-gray-400">▼</span>
+            <td>
+              <span (click)="showParentChildDropdown(annotation, $event)" 
+              class="dropdown-trigger">
+                {{ annotation.label }} <span class="caret">▼</span>
               </span>
               </td>
-            <td class="p-2">
-               <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                 [ngClass]="annotation.isObserved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+            <td>
+               <span class="badge"
+                 [ngClass]="annotation.isObserved ? 'badge-green' : 'badge-red'">
                  {{ annotation.isObserved ? 'OBS' : 'EXC' }}
                </span>
             </td>
-            <td class="p-2 italic text-gray-600">{{ annotation.onsetString || '—' }}</td>
-            <td class="p-2 text-right">
-              <div class="flex justify-end gap-1">
-                <button (click)="toggleObserved(annotation)" class="p-1 hover:bg-gray-200 rounded">
-                  <mat-icon class="text-sm scale-75">swap_horiz</mat-icon>Toggle
+            <td class="onset-cell">{{ annotation.onsetString || '—' }}</td>
+            <td class="action-cell">
+              <div class="action-group">
+                <button (click)="toggleObserved(annotation)" class="btn-icon">
+                  <mat-icon>swap_horiz</mat-icon>Toggle
                 </button>
-                <button (click)="deleteAnnotation(i)" class="p-1 hover:bg-red-100 text-red-500 rounded">
-                  <mat-icon class="text-sm scale-75">delete</mat-icon>Delete
+                <button (click)="deleteAnnotation(i)" class="btn-icon btn-delete">
+                  <mat-icon>delete</mat-icon>Delete
                 </button>
                  <select 
           [(ngModel)]="annotation.onsetString"
           (ngModelChange)="updateOnset(annotation, $event)"
-          class="px-1 py-0.5 border rounded text-[10px] h-5"
+          class="onset-select"
           >
           @for (option of availableOnsetTerms(); track option) {  
             <option [value]="option">{{ option }}</option>
           }
         </select>
-        <button (click)="addOnsetString(annotation)" class="bg-green-500 text-white px-1 py-0.5 text-[10px] rounded">Add onset</button>
+        <button (click)="addOnsetString(annotation)" class="btn-add">Add onset</button>
               </div>
             </td>
           </tr>
@@ -95,18 +90,16 @@
     </table>
   </div>
 
-  <div class="p-3 bg-gray-50 border-t">
-    <div class="flex items-center gap-3">
-      <div class="flex-grow">
+  <div class="footer-bar">
+    <div class="autocomplete-wrapper">
         <app-hpoautocomplete
           [inputString]="hpoInputString"
           (selected)="handleSelection($event)"
         ></app-hpoautocomplete>
-      </div>
       <button 
         (click)="submitSelectedHpo()"
         [disabled]="!selectedHpoTerm"
-        class="bg-blue-600 text-white px-4 py-2 rounded shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium">
+        class="btn-primary">
         Add Term
       </button>
     </div>
@@ -117,26 +110,26 @@
 @if (activeMenuAnnotation(); as active) {
   
   <div 
-    class="fixed z-[9999] bg-white border border-gray-300 shadow-xl rounded-md max-h-60 overflow-y-auto w-72"
+    class="context-menu"
     [style.top.px]="dropdownY()"
     [style.left.px]="dropdownX()"
     (mouseleave)="closeMenu()"
   >
-    <div class="text-xs font-bold text-gray-500 px-2 pt-2">Parents</div>
+    <div class="menu-section-title">Parents</div>
     <ul>
       @for (parent of parentChildHpoTermMap[active.termId].parents; track parent.termId) {
         <li (click)="replaceTerm(active, parent); closeMenu()" 
-            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm">
+            class="menu-item">
           {{ parent.label }} ({{ parent.termId }})
         </li>
       }
     </ul>
 
-    <div class="text-xs font-bold text-gray-500 px-2 pt-2">Children</div>
+    <div class="menu-section-title">Children</div>
     <ul>
       @for (child of parentChildHpoTermMap[active.termId].children; track child.termId) {
         <li (click)="replaceTerm(active, child); closeMenu()" 
-            class="px-2 py-1 hover:bg-gray-100 cursor-pointer text-sm">
+            class="menu-item">
           {{ child.label }} ({{ child.termId }})
         </li>
       }
