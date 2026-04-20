@@ -41,3 +41,59 @@
   border: 1px solid #ccc;
   padding: 5px;
 }
+
+
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 6px;
+  overflow: hidden; /* Ensures corners look rounded */
+  margin-bottom: 1rem;
+}
+
+/* Remove border from the last row */
+.dashboard-table tr:last-child .label-cell,
+.dashboard-table tr:last-child .content-cell {
+  border-bottom: none;
+}
+
+.dashboard-table .label-cell {
+  font-weight: 600;
+  padding: 10px 12px;
+  background-color: #f9fafb; /* bg-gray-50 */
+  width: 30%;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+  vertical-align: top;
+}
+
+.dashboard-table .content-cell {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.dashboard-table .gene-item {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.dashboard-table .gene-item:last-child {
+  margin-bottom: 0;
+}
+
+.dashboard-table .gene-symbol {
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.dashboard-table .sub-text {
+  color: #6b7280; /* text-gray-500 */
+  font-size: 0.9em;
+}
+
+.dashboard-table .transcript-info {
+  color: #4b5563;
+}

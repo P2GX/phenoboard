@@ -8,21 +8,22 @@ import { CommonModule } from "@angular/common";
   standalone: true,
   imports: [CommonModule],
   template: `
-    <table class="min-w-full border border-gray-300 rounded-md mb-4">
+    <table class="dashboard-table">
       <tbody>
         <tr>
-          <td class="font-semibold p-2 bg-gray-50 w-1/3">Disease</td>
-          <td class="p-2">{{ disease().diseaseLabel }} - {{ disease().diseaseId }}</td>
+          <td class="label-cell">Disease</td>
+          <td class="content-cell">{{ disease().diseaseLabel }} - {{ disease().diseaseId }}</td>
         </tr>
         <tr>
-          <td class="font-semibold p-2 bg-gray-50">Gene(s)</td>
-          <td class="p-2">
+          <td class="label-cell">Gene(s)</td>
+          <td class="content-cell">
             @for (g of disease().geneTranscriptList; track g.geneSymbol){
-                <div  class="text-sm">
-                    <strong>{{ g.geneSymbol }}</strong> ({{ g.hgncId }}) — {{ g.transcript }}
+                <div class="gene-item">
+                    <span class="gene-symbol">{{ g.geneSymbol }}</span> 
+                    <span class="sub-text">({{ g.hgncId }})</span> 
+                    <span class="transcript-info">— {{ g.transcript }}</span>
                 </div>
             }
-           
           </td>
         </tr>
       </tbody>

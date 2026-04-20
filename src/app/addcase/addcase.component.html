@@ -1,28 +1,26 @@
-<div class="w-full px-[5%]">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6 mt-6">
+<div class="dashboard-container">
+  <h1 class="page-title">
   Add Case Data
 </h1>
-<div class="flex justify-start mb-4">
+<div class="status-wrapper">
   <div 
-    [class]="statusService.hpoLoaded() ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'"
-    class="flex items-center gap-2 px-3 py-1 border rounded-full shadow-sm transition-all"
+    class="status-badge"
+    [class.is-ready]="statusService.hpoLoaded()"
+    [class.is-missing]="!statusService.hpoLoaded()"
   >
-    <div class="relative flex h-2.5 w-2.5">
+    <div class="indicator">
       @if (!statusService.hpoLoaded()) {
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+        <span class="ping"></span>
       }
-      <span 
-        [class]="statusService.hpoLoaded() ? 'bg-green-500' : 'bg-red-500'"
-        class="relative inline-flex rounded-full h-2.5 w-2.5 border border-white">
-      </span>
+      <span class="dot"> </span>
     </div>
 
-    <div class="flex items-center gap-2 whitespace-nowrap">
-      <span class="text-xs font-bold text-gray-800">
+    <div class="status--text">
+      <span class="status-label">
         {{ statusService.hpoLoaded() ? 'HPO Ready' : 'HPO Missing' }}
       </span>
       
-      <span class="text-[11px] text-gray-500 border-l border-gray-300 pl-2">
+      <span class="status-details">
         @if (statusService.hpoLoaded()) {
           {{ statusService.state().hpoVersion }} ({{ statusService.state().nHpoTerms }} terms)
         } @else {
@@ -32,10 +30,7 @@
     </div>
   </div>
 </div>
-<div
-  class="flex items-center gap-4 p-3 border rounded"
-  style="border-color: #e9ecef; margin-bottom:10px;"
->
+<section class="action-row">
   @if (!pmidDto() || !pmidDto().title) {
     <!-- Show lookup button when no successful result -->
     <button (click)="openPubmedDialog()" class="btn-outline-primary" [disabled]="!hpoInitialized()">🔍 Lookup PubMed</button>
@@ -48,37 +43,32 @@
           ]" />
   } @else {
     <!-- Show result box with reset button when successful -->
-    <div style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div style="flex: 1;">
-          <div style="font-size: 14px; line-height: 1.4; margin-bottom: 4px;">
+    <div style="result-box">
+      <div style="result-info">
+          <div style="result-title">
             {{ pmidDto().title }}
           </div>
-          <div class="text-xs" style="color: #666;">
+          <div class="result-subtitle">
             {{ pmidDto().pmid }}
           </div>
-        </div>
         <button 
           (click)="resetPmidDto()" 
-          class="btn-outline-primary" 
-          style="margin-left: 12px; padding: 4px 8px; font-size: 12px;">
+          class="btn-outline-primary btn-small">
           Reset
         </button>
       </div>
     </div>
-  }
-</div>
+}
+</section>
+
 
 <!-- Demographic information-->
-<div
-  class="flex items-center gap-4 p-3 border rounded"
-  style="border-color: #e9ecef; margin-bottom:10px;"
->
+<section class="action-row">
   <button class="btn-outline-primary" (click)="openAddDemoDialog()" [disabled]="!hpoInitialized()">
   ➕ Add/edit Demographics
 </button>
   @if (demographicSummary) {
-      <div class="flex flex-wrap gap-2 text-xs text-gray-600">{{ demographicSummary }}</div>
+      <div class="summary-text">{{ demographicSummary }}</div>
   } @else {
   <app-help-button 
     title="Entering demographic data"
@@ -88,10 +78,9 @@
       'Enter age of onset and last encounter, sex, and desceased status from the original publication.'
     ]" />
   }
-</div>
+</section>
 
-
-<div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
+<section class="section-card">
  
   <div class="heading-with-help">
       <h3>HPO Annotations</h3>
@@ -113,8 +102,8 @@
       ➕ Add HPO Annotations
     </button>
   } @else {
-    <div class="flex items-center justify-between p-2 border rounded bg-gray-50">
-      <div class="flex flex-wrap gap-1 text-sm text-gray-500">
+    <div class="token-list">
+      <div class="tokens">
         @for (annot of hpoAnnotations(); track annot; let isLast = $last) {
           <span>
             {{ getEntryLabel(annot) }}@if (!isLast) {; }
@@ -123,18 +112,17 @@
       </div>
 
       <button
-        class="px-2 py-1 text-xs rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+        class="btn btn-ghost btn-small"
         (click)="resetAnnotations()"
       >
         Reset
       </button>
     </div>
   }
-</div>
-
+</section>
 
 <!-- Allele Section -->
-<div class="p-4 border rounded-lg bg-white shadow-sm space-y-3">
+<section class="section-card">
   <div class="heading-with-help">
       <h3>Alleles</h3>
         <app-help-button 
@@ -146,56 +134,37 @@
           ]" 
           helpUrl="https://p2gx.github.io/phenoboard/help/variant-data.html" />
       </div>
-   <button type="button"              
-        (click)="openVariantEditor(VariantKind.HGVS)"
-        class="my-2 mx-4 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">
-        + HGVS
-        </button>
-    <button type="button"        
-        (click)="openVariantEditor(VariantKind.SV)"
-        class="my-2 mx-4 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">+ SV
-        </button>
-      <button type="button"        
-        (click)="openVariantEditor(VariantKind.INTERGENIC)"
-        class="my-2 mx-4 px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">+ IG
-      </button>
+   <div class="button-group">
+      <button (click)="openVariantEditor(VariantKind.HGVS)" class="btn btn-primary">+ HGVS</button>
+      <button (click)="openVariantEditor(VariantKind.SV)" class="btn btn-primary">+ SV</button>
+      <button (click)="openVariantEditor(VariantKind.INTERGENIC)" class="btn btn-primary">+ IG</button>
+    </div>
 
 
   <!-- List of alleles -->
-  <ul class="mt-3 space-y-2">
+  <ul class="allele-list">
     @for (allele of alleles(); track allele) {
-      <li class="flex items-center justify-between text-sm bg-gray-50 px-3 py-2 rounded-md border">
-        <div class="flex items-center gap-2 text-gray-700">
-          <span 
-            class="inline-block w-2.5 h-2.5 rounded-full"
-            [ngClass]="{
-              'bg-green-500': true,
-              'bg-red-500': false
-            }">
-          </span>
-          {{ allele.variantString }} ({{ allele.geneSymbol }})
-        </div>
-        <button mat-icon-button 
-                (click)="removeAllele(allele)" 
-                aria-label="Remove allele"
-                class="text-gray-400 hover:text-red-600 transition">
-          <mat-icon>close</mat-icon>
-        </button>
-      </li>
+      <li class="allele-item">
+          <div class="allele-info">
+            <span class="status-dot green"></span>
+            {{ allele.variantString }} ({{ allele.geneSymbol }})
+          </div>
+          <button (click)="removeAllele(allele)" class="btn-icon-remove">
+            <mat-icon>close</mat-icon>
+          </button>
+        </li>
     } @empty {
-      <p class="text-gray-400 italic">No alleles added</p>
+      <p class="empty-text">No alleles added</p>
     }
   </ul>
-</div>
+</section>
 
 
-<div class="mt-6 flex justify-center">
+<div class="form-actions">
   <button
     (click)="submitNewRow()"
     [disabled]="!canSubmitRow()"
-    class="px-6 py-3 rounded-md text-white font-semibold shadow-md transition
-           disabled:opacity-50 disabled:cursor-not-allowed
-           bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
+    class="btn btn-submit"
   >
     🚀 Submit Case
   </button>

@@ -1,71 +1,115 @@
-/* Style the table */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  /* Style table headers and cells */
-  th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-  }
-  
-  /* Add background color to alternating rows */
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  /* Hover effect */
-  tr:hover {
-    background-color: #f1f1f1;
-    cursor: pointer;
-  }
-  
-  /* Header style */
-  th {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-.highlight {
-    background-color: #d4edda;
-  }  
-
-  button {
-    padding: 8px;
-    background: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-
-
-
-
-.hpo-hit {
-  cursor: pointer;
-  background-color: #f0faff;
-  border-bottom: 1px dotted #007acc;
-  padding: 0 2px;
-}
-.hpo-hit.observed {
-  background-color: #e0ffe0;
-}
-.hpo-hit.excluded {
-  background-color: #ffe0e0;
+.dashboard-container {
+  width: 100%;
+  padding: 0 5%;
+  max-width: 1200px; /* Standard dashboard width */
+  margin: 0 auto;
 }
 
-.annotation-popup {
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 1.5rem 0;
+}
+
+/* Status Badge Styles */
+.status-wrapper { margin-bottom: 1rem; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px;
+  border: 1px solid;
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+.status-badge.is-ready { background-color: #f0fdf4; border-color: #bbf7d0; }
+.status-badge.is-missing { background-color: #fef2f2; border-color: #fecaca; }
+
+.indicator { position: relative; display: flex; height: 10px; width: 10px; }
+.dot { height: 10px; width: 10px; border-radius: 50%; border: 1px solid white; }
+.status-badge.is-ready .dot { background-color: #22c55e; }
+.status-badge.is-missing .dot { background-color: #ef4444; }
+
+.ping {
   position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 8px;
-  z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  white-space: nowrap;
-  pointer-events: none;
+  height: 100%;
+  width: 100%;
+  background-color: #f87171;
+  border-radius: 50%;
+  opacity: 0.75;
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+@keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+
+.status-text { display: flex; align-items: center; gap: 8px; }
+.status-label { font-size: 12px; font-weight: 700; color: #1f2937; }
+.status-details { 
+  font-size: 11px; 
+  color: #6b7280; 
+  border-left: 1px solid #d1d5db; 
+  padding-left: 8px; 
+}
+
+/* Section Containers */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.section-card {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  margin-bottom: 1rem;
+}
+
+.heading-with-help {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.heading-with-help h3 { margin: 0; font-size: 1.1rem; }
+
+/* Buttons & Lists */
+.button-group { display: flex; gap: 12px; margin: 12px 0; }
+
+.allele-list { list-style: none; padding: 0; margin-top: 12px; }
+.allele-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.status-dot.green { background-color: #22c55e; }
+
+.btn-submit {
+  background-color: #2563eb;
+  color: white;
+  padding: 12px 24px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-actions { display: flex; justify-content: center; margin-top: 1.5rem; }
