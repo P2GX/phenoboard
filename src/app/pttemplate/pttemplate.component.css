@@ -358,7 +358,7 @@ button[mat-icon-button] {
   display: none !important;
 }
 
-// --- Page ---
+
 .page-container {
   padding: 24px;
   background-color: #fafafa;
@@ -368,7 +368,7 @@ button[mat-icon-button] {
   margin-top: 16px;
 }
 
-// --- HPO filter row ---
+
 .hpo-filter-row {
   margin-top: 16px;
   display: flex;
@@ -383,7 +383,7 @@ button[mat-icon-button] {
   font-size: 0.875rem;
 }
 
-// --- Table ---
+
 .pt-table-scroll {
   overflow-y: auto;
   max-height: 600px;
@@ -404,10 +404,10 @@ button[mat-icon-button] {
 }
 
 .row-no-hpo {
-  background-color: #fff5f5;   // bg-red-50
+  background-color: #fff5f5; 
 }
 
-// --- Individual ID cell ---
+
 .cell-error-label {
   color: #e53935;
   font-size: 0.75rem;
@@ -441,7 +441,6 @@ button[mat-icon-button] {
   margin-top: 8px;
 }
 
-// --- Alleles ---
 .allele-row {
   display: flex;
   align-items: center;
@@ -471,7 +470,7 @@ button[mat-icon-button] {
   width: 220px;
 }
 
-// --- HPO cell ---
+
 .cell-truncate {
   overflow: hidden;
   white-space: nowrap;
@@ -479,7 +478,7 @@ button[mat-icon-button] {
   max-width: 4rem;
 }
 
-// --- Toolbar bar (HPO search + age) ---
+
 .toolbar-bar {
   display: flex;
   align-items: center;
@@ -551,7 +550,6 @@ button[mat-icon-button] {
   background-color: #e2e8f0;
 }
 
-// --- Age badge ---
 .age-badge {
   display: flex;
   align-items: center;
@@ -584,7 +582,6 @@ button[mat-icon-button] {
   border-radius: 9999px;
 }
 
-// --- Action toolbar ---
 .action-toolbar {
   display: flex;
   align-items: center;
@@ -611,7 +608,7 @@ button[mat-icon-button] {
   }
 }
 
-// --- Context menus ---
+
 .context-menu {
   position: absolute;
   z-index: 50;

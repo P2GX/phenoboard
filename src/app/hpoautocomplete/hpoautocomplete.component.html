@@ -1,4 +1,4 @@
-<mat-form-field class="w-full" appearance="outline">
+<mat-form-field class="full-width-field" appearance="outline">
   <input type="text"
     #hpoInput
     [placeholder]="placeholder()"
@@ -14,15 +14,18 @@
     </button>
   }
   
-  <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="onOptionSelected($event)">
+  <mat-autocomplete 
+    #auto="matAutocomplete" 
+    [displayWith]="displayFn" 
+    (optionSelected)="onOptionSelected($event)">
     @for (option of options(); track $index) {
       <mat-option [value]="option">
-        <div class="flex flex-col leading-tight">
-          <span class="text-sm font-medium">{{ option.matchedText }}</span>
+        <div class="option-container">
+          <span class="option-matched-text">{{ option.matchedText }}</span>
           @if (option.matchedText !== option.label) {
-            <small class="opacity-70 italic">Primary: {{ option.label }}</small>
+            <small class="option-primary-label">Primary: {{ option.label }}</small>
           }
-          <small class="text-blue-600 text-xs">{{ option.id }}</small>
+          <small class="option-id">{{ option.id }}</small>
         </div>
       </mat-option>
     }

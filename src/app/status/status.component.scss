@@ -1,3 +1,104 @@
+/* Reuse your existing variables if available */
+$border-color: #e2e8f0;
+$primary-blue: #667eea;
+
+.cohort-status-card {
+  padding: 1.5rem;
+  border-bottom: 2px solid $border-color;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.disease-entry {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 3px solid $primary-blue;
+}
+
+.gene-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 0.5rem;
+}
+
+.status-anchor {
+  color: $primary-blue;
+  text-decoration: none;
+  font-weight: 600;
+  &:hover { text-decoration: underline; }
+}
+
+/* Stats Styling */
+.stats-container {
+  margin: 1.5rem 0;
+  .stats-title { font-weight: bold; margin-bottom: 0.5rem; }
+  .stats-list {
+    list-style: none;
+    padding: 0;
+    li { margin-bottom: 0.25rem; font-size: 0.95rem; }
+  }
+}
+
+/* Button toolbar replacing inline margins */
+.button-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1rem;
+  
+  &.secondary { margin-top: 0.5rem; }
+}
+
+/* Content Area Lists */
+.section-title {
+  font-size: 1.25rem;
+  margin: 2rem 0 1rem;
+  border-bottom: 1px solid $border-color;
+  padding-bottom: 0.5rem;
+}
+
+.pubmed-list, .individual-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+  
+  li {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.pmid-link, .individual-link {
+  color: #2563eb;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.pmid-id {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+/* JSON Viewer Styling */
+.code-block {
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  max-height: 500px;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+
 
 .status-anchor {
   display: inline-flex;

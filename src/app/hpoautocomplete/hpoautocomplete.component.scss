@@ -10,6 +10,43 @@
     margin-bottom: 15px;
   }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Ensure the form field takes up the full width */
+.full-width-field {
+  width: 100%;
+}
+
+/* Container inside the mat-option */
+.option-container {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2; /* leading-tight */
+  padding: 4px 0;   /* Gives a little breathing room for the 3 lines */
+}
+
+/* The main text displayed */
+.option-matched-text {
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500;    /* font-medium */
+}
+
+/* The italicized primary label */
+.option-primary-label {
+  opacity: 0.7;       /* opacity-70 */
+  font-style: italic; /* italic */
+  font-size: 0.75rem; /* small default */
+}
+
+/* The Blue HPO ID */
+.option-id {
+  color: #2563eb;     /* text-blue-600 */
+  font-size: 0.75rem; /* text-xs */
+}
+
+/* Optional: Increase mat-option height to accommodate 3 lines of text */
+::ng-deep .mat-mdc-option {
+  line-height: normal !important;
+  height: auto !important;
+  min-height: 48px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
