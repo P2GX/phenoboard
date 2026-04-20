@@ -1,13 +1,13 @@
-<div class="qc-container p-6">
-  <header class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Quality Control</h1>
-    <p class="text-gray-600">This page includes several Q/C functions.</p>
+<div class="qc-container">
+  <header class="qc-header">
+    <h1>Quality Control</h1>
+    <p>This page includes several Q/C functions.</p>
   </header>
 
- <div class="flex flex-col gap-4">
-    
-    <div class="flex items-center gap-3">
-      <button (click)="fetchRepoQc()" [disabled]="loading()" class="btn-action w-64">
+ <div class="qc-actions">
+  
+    <div class="action-row">
+      <button (click)="fetchRepoQc()" [disabled]="loading()" class="btn-primary-fixed">
         @if (loading()) {
           <span class="loader"></span>
         }
@@ -22,8 +22,8 @@
           ]" />
     </div>
 
-    <div class="flex items-center gap-3">
-      <button (click)="openCompareDialog()" class="btn-action bg-indigo-600 hover:bg-indigo-700 w-64">
+    <div class="action-row">
+      <button (click)="openCompareDialog()" class="btn-primary-fixed btn-indigo">
         Compare Phenopackets
       </button>
       <app-help-button 
@@ -38,14 +38,14 @@
   </div>
 
   @if (errorMessage()) {
-    <div class="error-banner mt-4">
+    <div class="error-message">
       {{ errorMessage() }}
     </div>
   }
 
   @if (repoQc) {
-    <div class="mt-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="qc-results-section">
+      <div class="stats-grid">
         <div class="stat-card">
           <span class="stat-label">Repository Path</span>
           <span class="stat-value truncate" [title]="repoQc.repoPath">{{ repoQc.repoPath }}</span>
@@ -58,13 +58,13 @@
           <span class="stat-label">Phenopackets</span>
           <span class="stat-value">{{ repoQc.phenopacketCount }}</span>
         </div>
-        <div class="stat-card border-l-4 border-red-500">
+        <div class="stat-card danger-accent">
           <span class="stat-label">Total Errors</span>
-          <span class="stat-value text-red-600">{{ repoQc.errors.length }}</span>
+          <span class="stat-value text-danger">{{ repoQc.errors.length }}</span>
         </div>
       </div>
 
-      <div class="table-wrapper shadow-sm">
+      <div class="table-wrapper">
         <table class="qc-table">
           <thead>
             <tr>
@@ -75,8 +75,8 @@
           </thead>
           <tbody>
             <tr *ngFor="let err of repoQc.errors">
-              <td class="font-medium text-gray-700">{{ err.cohortName }}</td>
-              <td class="text-gray-600 italic">"{{ err.message }}"</td>
+              <td class="font-bold">{{ err.cohortName }}</td>
+              <td class="message-cell">"{{ err.message }}"</td>
               <td class="text-center">
                 <span
                   class="status-pill"
@@ -93,13 +93,11 @@
   }
 
 @if (comparisonResult(); as report) {
-  <div class="mt-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm animate-in fade-in duration-300">
+  <div class="comparison-card">
     
-    <div class="flex items-center justify-between border-b pb-4 mb-6">
-      <h2 class="text-xl font-bold text-gray-800">Phenopacket Comparison</h2>
-      <button (click)="comparisonResult.set(null)" class="text-gray-400 hover:text-gray-600">
-        <span class="text-xs font-mono px-2 py-1 bg-gray-100 rounded">Clear Result</span>
-      </button>
+    <div class="card-header">
+      <h2>Phenopacket Comparison</h2>
+      <button (click)="comparisonResult.set(null)" class="btn-clear">Clear Result</button>
     </div>
     <pre 
       class="p-4 bg-gray-100 text-green-700 text-xs rounded-lg overflow-x-auto shadow-inner leading-relaxed font-mono">{{ comparisonResult() | json }}
@@ -130,39 +128,33 @@
     </button>
   </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-      <div class="p-4 rounded-lg border" [class.border-red-200]="!report.idMatch" [class.bg-red-50]="!report.idMatch" [class.bg-gray-50]="report.idMatch">
-        <span class="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-1">File A ID</span>
-        <code class="text-sm font-semibold">{{ report.idA }}</code>
+   <div class="comparison-ids-grid">
+        <div class="id-box" [class.mismatch]="!report.idMatch">
+          <span class="id-label">File A ID</span>
+          <code>{{ report.idA }}</code>
+        </div>
+        <div class="id-box" [class.mismatch]="!report.idMatch">
+          <span class="id-label">File B ID</span>
+          <code>{{ report.idB }}</code>
+          @if (!report.idMatch) { <span class="mismatch-badge">Mismatch</span> }
+        </div>
       </div>
-      <div class="p-4 rounded-lg border" [class.border-red-200]="!report.idMatch" [class.bg-red-50]="!report.idMatch" [class.bg-gray-50]="report.idMatch">
-        <span class="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-1">File B ID</span>
-        <code class="text-sm font-semibold">{{ report.idB }}</code>
-        @if (!report.idMatch) {
-          <span class="ml-2 text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Mismatch</span>
-        }
-      </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="diff-columns">
       
-      <div class="space-y-4">
-        <h3 class="flex items-center gap-2 font-bold text-gray-700">
-          <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+      <div class="diff-column">
+        <h3 class="diff-title blue-dot">
           Phenotypic Features (HPO)
         </h3>
-        
-        <div class="space-y-2">
+        <div class="diff-list">
           @for (hpo of report.addedHpo; track hpo) {
-            <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded border border-green-100">
-              <span class="font-bold">+</span>
-              <code>{{ hpo }}</code>
+            <div class="diff-entry added">
+              <span>+</span><code>{{ hpo }}</code>
             </div>
           }
           @for (hpo of report.removedHpo; track hpo) {
-            <div class="flex items-center gap-2 text-sm text-red-700 bg-red-50 px-3 py-2 rounded border border-red-100 line-through">
-              <span class="font-bold">-</span>
-              <code>{{ hpo }}</code>
+            <div class="diff-entry removed">
+              <span>-</span><code>{{ hpo }}</code>
             </div>
           }
           @if (report.addedHpo.length === 0 && report.removedHpo.length === 0) {
@@ -171,22 +163,21 @@
         </div>
       </div>
 
-      <div class="space-y-4">
-        <h3 class="flex items-center gap-2 font-bold text-gray-700">
-          <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
+      <div class="diff-column">
+        <h3 class="diff-title purple-dot">
           Genomic Interpretations
         </h3>
         
-        <div class="space-y-2">
+        <div class="diff-list">
           @for (variant of report.addedVariants; track variant) {
-            <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded border border-green-100">
-              <span class="font-bold">+</span>
+            <div class="diff-entry added">
+              <span>+</span>
               <span class="truncate" [title]="variant">{{ variant }}</span>
             </div>
           }
           @for (variant of report.removedVariants; track variant) {
-            <div class="flex items-center gap-2 text-sm text-red-700 bg-red-50 px-3 py-2 rounded border border-red-100 line-through">
-              <span class="font-bold">-</span>
+            <div class="diff-entry removed">
+              <span>-</span>
               <span class="truncate" [title]="variant">{{ variant }}</span>
             </div>
           }
