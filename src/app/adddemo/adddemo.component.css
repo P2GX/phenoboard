@@ -1,1 +1,123 @@
 
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-card {
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid Layout: Responsive without 50 breakpoints */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-group.flex-end {
+  justify-content: flex-end;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.label-with-help {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.compact-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.025em;
+}
+
+/* Age Display Pill */
+.age-slot { height: 40px; display: flex; align-items: center; }
+
+.age-display {
+  display: flex;
+  align-items: center;
+  background-color: #eff6ff; /* blue-50 */
+  border: 1px solid #bfdbfe; /* blue-200 */
+  border-radius: 8px;
+  padding: 4px 12px;
+}
+
+.age-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-right: 8px;
+}
+
+.age-actions {
+  display: flex;
+  gap: 4px;
+  border-left: 1px solid #bfdbfe;
+  padding-left: 8px;
+}
+
+.age-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.age-actions .edit-btn { color: #2563eb; }
+.age-actions .clear-btn { color: #9ca3af; }
+.age-actions .clear-btn:hover { color: #dc2626; }
+
+/* Radio Buttons */
+.radio-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.radio-item {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.radio-item input { margin-right: 8px; }
+
+/* Footer */
+.form-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-bottom: 6px;
+}

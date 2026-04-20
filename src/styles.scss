@@ -50,8 +50,46 @@
 
 
 
+/* Ensure the autocomplete panel has a solid background and shadow */
+.mat-mdc-autocomplete-panel {
+  background-color: #ffffff !important; /* Forces white background */
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 4px 0;
+}
 
+/* Style the individual options */
+.mat-mdc-option {
+  font-size: 14px !important;
+  color: #374151 !important; /* gray-700 */
+}
 
+/* Style the hover/focus state of options */
+.mat-mdc-option:hover, 
+.mat-mdc-option.mdc-list-item--selected {
+  background-color: #f3f4f6 !important; /* gray-100 */
+}
+
+/* Style the text inside the option */
+.mdc-list-item__primary-text {
+  font-weight: 400;
+}
+
+/* Targets the container that holds the input and the floating label */
+.mat-mdc-text-field-wrapper .mat-mdc-form-field-flex {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* Specifically ensures the input text isn't touching the walls */
+.mat-mdc-form-field-input-control {
+  padding-left: 4px !important;
+}
+
+/* Adjust the floating label so it stays aligned with the padded text */
+.mat-mdc-form-field-label-wrapper {
+  left: 12px !important;
+}
 
 
 .mat-chip-set mat-chip { font-size: 12px; }

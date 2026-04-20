@@ -1,16 +1,13 @@
-<form [formGroup]="demoForm" (ngSubmit)="submitDemo(true)" class="max-w-3xl mx-auto">
-  <!-- Title -->
-  <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
-    Demographic Information
-  </h2>
+<form 
+  [formGroup]="demoForm" 
+  (ngSubmit)="submitDemo(true)" 
+  class="form-container">
+  <h2 class="form-header">Demographic Information</h2>
 
-  <!-- Form content -->
-  <div class="space-y-4 p-6 border rounded-lg bg-white shadow-sm">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      <!-- 1. Individual ID -->
-      <div>
-        <label for="individualId" class="block text-sm font-medium text-gray-700 mb-1">Individual ID</label>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field-group">
+        <label for="individualId" class="field-label">Individual ID</label>
         <mat-form-field appearance="outline" class="w-full">
           <input matInput 
                  formControlName="individualId"
@@ -25,13 +22,10 @@
           }
         </mat-form-field>
       </div>
-
-      <!-- 2. Age of Onset -->
-    <div class="flex flex-col gap-1">
-      <div class="flex items-center gap-1">
-        <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">
-          Age of Onset</label>
-       <app-help-button 
+      <div class="field-group">
+        <div class="label-with-help">
+        <label class="compact-label">Age of Onset</label>
+        <app-help-button 
           title="Age of Onset"
           [lines]="[
             'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
@@ -39,85 +33,59 @@
             ]" 
           helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries" />
       </div>
-      
-      <div class="flex items-center gap-2 h-10">
-        @if (!demoForm.get('ageOfOnset')?.value) {
-          <button 
-            type="button" 
-            (click)="openAgeWizard('ageOfOnset')" 
-            class="btn-outline-primary !py-1 !px-3 text-xs flex items-center gap-1">
-            <mat-icon class="text-sm">add_circle_outline</mat-icon>
-            Set Age
-          </button>
-        } @else {
-          <div class="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-3 py-1 shadow-sm">
-            <span class="text-sm font-semibold text-blue-900 mr-2">
-              {{ demoForm.get('ageOfOnset')?.value }}
-            </span>
-            
-            <div class="flex border-l border-blue-200 pl-2 gap-1">
-              <button type="button" (click)="openAgeWizard('ageOfOnset')" title="Edit"
-                      class="text-blue-600 hover:text-blue-800 transition-colors">
-                <mat-icon class="text-[16px] w-[16px] h-[16px]">edit</mat-icon>
-              </button>
-              <button type="button" (click)="demoForm.get('ageOfOnset')?.setValue('')" title="Clear"
-                      class="text-gray-400 hover:text-red-600 transition-colors">
-                <mat-icon class="text-[16px] w-[16px] h-[16px]">close</mat-icon>
-              </button>
+      <div class="age-slot">
+          @if (!demoForm.get('ageOfOnset')?.value) {
+            <button type="button" (click)="openAgeWizard('ageOfOnset')" class="btn btn-outline btn-small">
+              <mat-icon>add_circle_outline</mat-icon> Set Age
+            </button>
+          } @else {
+            <div class="age-display">
+              <span class="age-value">{{ demoForm.get('ageOfOnset')?.value }}</span>
+              <div class="age-actions">
+                <button type="button" (click)="openAgeWizard('ageOfOnset')" class="edit-btn"><mat-icon>edit</mat-icon></button>
+                <button type="button" (click)="demoForm.get('ageOfOnset')?.setValue('')" class="clear-btn"><mat-icon>close</mat-icon></button>
+              </div>
             </div>
-          </div>
-        }
+          }
       </div>
     </div>
-
-      <!-- 3. Age at Last Encounter -->
-      <div class="flex flex-col gap-1">
-      <div class="flex items-center gap-1">
-        <label class="text-xs font-bold uppercase text-gray-500 tracking-tight">
-          Age at last encounter
-        </label>
+    <div class="field-group">
+        <div class="label-with-help">
+          <label class="compact-label">Age at last encounter</label>
         <app-help-button 
           title="Age at last encounter"
           [lines]="[
             'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
           ]"
           helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries" />
-      </div>
-      
-      <div class="flex items-center gap-2 h-10">
+        </div>
+       <div class="age-slot">
         @if (!demoForm.get('ageAtLastEncounter')?.value) {
           <button 
             type="button" 
             (click)="openAgeWizard('ageAtLastEncounter')" 
-            class="btn-outline-primary !py-1 !px-3 text-xs flex items-center gap-1">
-            <mat-icon class="text-sm">add_circle_outline</mat-icon>
+            class="btn-outline-primary">
+            <mat-icon>add_circle_outline</mat-icon>
             Set Age
           </button>
         } @else {
-          <div class="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-3 py-1 shadow-sm">
-            <span class="text-sm font-semibold text-blue-900 mr-2">
+          <div class="age-display">
+            <span class="age-value">
               {{ demoForm.get('ageAtLastEncounter')?.value }}
             </span>
-            
-            <div class="flex border-l border-blue-200 pl-2 gap-1">
-              <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" title="Edit"
-                      class="text-blue-600 hover:text-blue-800 transition-colors">
-                <mat-icon class="text-[16px] w-[16px] h-[16px]">edit</mat-icon>
-              </button>
-              <button type="button" (click)="demoForm.get('ageAtLastEncounter')?.setValue('')" title="Clear"
-                      class="text-gray-400 hover:text-red-600 transition-colors">
-                <mat-icon class="text-[16px] w-[16px] h-[16px]">close</mat-icon>
-              </button>
-            </div>
+             <div class="age-actions">
+                <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" class="edit-btn"><mat-icon>edit</mat-icon></button>
+                <button type="button" (click)="demoForm.get('ageAtLastEncounter')?.setValue('')" class="clear-btn"><mat-icon>close</mat-icon></button>
+              </div>
           </div>
         }
       </div>
     </div>
-
-      <!-- 4. Sex -->
+    </div>
       <div>
-         <div class="flex items-center gap-1">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Sex</label>
+         <div class="field-group">
+        <div class="label-with-help">
+          <label class="field-label">Sex</label>
           <app-help-button 
             title="Sex"
             [lines]="[
@@ -127,10 +95,10 @@
               '<b>U</b>: unknown or not recorded.',
             ]" />
           </div>
-        <div class="flex flex-col gap-1 text-sm">
+        <div class="radio-stack">
           @for (s of sexOptions; track s) {
-            <label class="inline-flex items-center">
-              <input type="radio" [value]="s" formControlName="sex" class="mr-2" />
+            <label class="radio-item">
+              <input type="radio" [value]="s" formControlName="sex" />
               {{ s }}
             </label>
           }
@@ -138,12 +106,12 @@
       </div>
 
       <!-- 5. Deceased -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Deceased</label>
-        <div class="flex flex-col gap-1 text-sm">
+      <div class="field-group">
+        <label class="field-label">Deceased</label>
+        <div class="radio-stack">
           @for (d of deceasedOptions; track d) {
-            <label class="inline-flex items-center">
-              <input type="radio" [value]="d" formControlName="deceased" class="mr-2" />
+            <label class="radio-item">
+              <input type="radio" [value]="d" formControlName="deceased"/>
               {{ d }}
             </label>
           }
@@ -151,10 +119,10 @@
       </div>
 
       <!-- 6. Comment -->
-      <div class="flex items-end">
+      <div class="field-group flex-end">
         <button type="button"
                 (click)="openCommentDialog()"
-                class="px-3 py-2 text-sm rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100">
+                class="btn btn-secondary">
           Add Comment
         </button>
       </div>
@@ -162,27 +130,10 @@
   </div>
 
   <!-- Action buttons -->
-  <div class="mt-6 flex justify-end gap-3 pb-[6px]">
-    <button 
-      type="button" 
-      (click)="cancel()"
-      class="btn-outline-cancel">
-      Cancel
-    </button>
-
-    <button 
-      type="button" 
-      (click)="reset()" 
-      class="btn-outline-primary">
-      Reset
-    </button>
-
-    <button 
-      type="submit" 
-      [disabled]="!demoForm.valid" 
-      class="btn-outline-primary">
-      Submit
-    </button>
+ <div class="form-footer">
+    <button type="button" (click)="cancel()" class="btn btn-outline">Cancel</button>
+    <button type="button" (click)="reset()" class="btn btn-outline">Reset</button>
+    <button type="submit" [disabled]="!demoForm.valid" class="btn btn-primary">Submit</button>
   </div>
 </form>
 
