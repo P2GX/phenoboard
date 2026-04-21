@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { MatCardModule } from '@angular/material/card';
@@ -49,9 +49,7 @@ type ValidatorFn = () => Promise<void>;
 @Component({
   selector: 'app-addvariant',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, 
-      MatCardModule,MatCheckboxModule, MatInputModule, MatFormFieldModule, 
-      MatOption, MatSelectModule],
+  imports: [FormsModule, MatButtonModule, MatCardModule, MatCheckboxModule, MatInputModule, MatFormFieldModule, MatOption, MatSelectModule],
   templateUrl: './addvariant.component.html',
   styleUrl: './addvariant.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,7 +1,7 @@
 import { Component, computed, inject,  signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
 import { MatMenuModule } from "@angular/material/menu";
@@ -19,12 +19,11 @@ export interface CohortDialogData {
   selector: 'app-cohort-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatDialogModule,
     MatMenuModule,
     ReactiveFormsModule,
-    HelpButtonComponent,
+    HelpButtonComponent
 ],
   templateUrl: './cohortdialog.component.html',
   styleUrls: ['./cohortdialog.component.css'],

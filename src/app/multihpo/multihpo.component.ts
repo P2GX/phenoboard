@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
@@ -47,7 +47,6 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
     MatButtonModule,
     MatTooltipModule,
     MatIconModule,
-    CommonModule,
     MatTableModule,
     MatCheckboxModule,
     MatButtonToggleModule,

@@ -3,13 +3,13 @@ import { ConfigService } from '../services/config.service';
 import { NotificationService } from '../services/notification.service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-hpomining',
   templateUrl: './hpomining.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
 })
 export class HpoMiningComponent {
   private configService = inject(ConfigService);

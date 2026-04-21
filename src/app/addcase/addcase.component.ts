@@ -1,5 +1,5 @@
 import { Component, inject, Input, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule} from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
@@ -33,7 +33,6 @@ import { AppStatusService } from '../services/app_status_service';
   selector: 'app-addcase',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatIconModule,
     HelpButtonComponent

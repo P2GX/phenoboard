@@ -1,6 +1,6 @@
 // etl-cell-edit-dialog.component.ts
 import { Component, Inject } from "@angular/core";
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { MatFormField } from "@angular/material/input";
@@ -18,7 +18,7 @@ import { MatFormField } from "@angular/material/input";
       <button mat-button color="primary" (click)="save()">Save</button>
     </div>
   `,
-  imports: [CommonModule, FormsModule, MatFormField],
+  imports: [FormsModule, MatFormField],
 })
 export class EtlCellEditDialogComponent {
   currentValue: string;

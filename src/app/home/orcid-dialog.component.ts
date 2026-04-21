@@ -4,7 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogContent, MatDialogModule } from
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
 import { MatIconModule } from "@angular/material/icon";
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 
 export interface OrcidDialogData {
@@ -20,17 +20,21 @@ export interface OrcidDialogData {
     <mat-dialog-content class="!pt-3">
       <form [formGroup]="orcidForm" class="mt-2">
         <mat-form-field appearance="outline" class="w-full">
-          
-          <input matInput 
-                 formControlName="orcid"
-                 placeholder="0000-0000-0000-0000"
-                 maxlength="19">
+    
+          <input matInput
+            formControlName="orcid"
+            placeholder="0000-0000-0000-0000"
+            maxlength="19">
           <mat-hint>Format: 0000-0000-0000-0000</mat-hint>
-          <mat-error *ngIf="orcidForm.get('orcid')?.hasError('required')">ORCID is required</mat-error>
-          <mat-error *ngIf="orcidForm.get('orcid')?.hasError('pattern')">Invalid ORCID format</mat-error>
+          @if (orcidForm.get('orcid')?.hasError('required')) {
+            <mat-error>ORCID is required</mat-error>
+          }
+          @if (orcidForm.get('orcid')?.hasError('pattern')) {
+            <mat-error>Invalid ORCID format</mat-error>
+          }
         </mat-form-field>
       </form>
-      
+    
       <div class="orcid-info">
         <mat-icon>info</mat-icon>
         <span>
@@ -41,19 +45,19 @@ export interface OrcidDialogData {
     </mat-dialog-content>
     
     <div class="p-4 flex justify-end gap-3">
-      <button type="button" 
-              (click)="onCancel()" 
-              class="btn-outline-primary px-6 py-2 min-w-[100px]">
+      <button type="button"
+        (click)="onCancel()"
+        class="btn-outline-primary px-6 py-2 min-w-[100px]">
         Cancel
       </button>
       <button type="button"
-              (click)="onSave()"
-              [disabled]="orcidForm.invalid"
-              class="btn-outline-primary px-6 py-2 min-w-[100px] disabled:opacity-50">
+        (click)="onSave()"
+        [disabled]="orcidForm.invalid"
+        class="btn-outline-primary px-6 py-2 min-w-[100px] disabled:opacity-50">
         Save
       </button>
     </div>
-  `,
+    `,
   styles: [`
     /* 1. Kill the ghost scrollbar/line */
     mat-dialog-content {
@@ -87,7 +91,7 @@ export interface OrcidDialogData {
     }
   `],
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatIconModule, ReactiveFormsModule, CommonModule]
+  imports: [MatDialogModule, MatInputModule, MatIconModule, ReactiveFormsModule]
 })
 export class OrcidDialogComponent {
     private fb = inject(FormBuilder);

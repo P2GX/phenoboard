@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +8,7 @@ import { MatRadioModule } from "@angular/material/radio";
 @Component({
   selector: 'app-split-column-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatRadioModule, MatButtonModule, FormsModule],
+  imports: [MatDialogModule, MatRadioModule, MatButtonModule, FormsModule],
   template: `
     <h2 mat-dialog-title class="!mb-0 text-slate-700">Split Column: {{data.originalHeader}}</h2>
     

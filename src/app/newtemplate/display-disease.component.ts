@@ -1,12 +1,12 @@
 import { Component, input } from "@angular/core";
 import { DiseaseData } from "../models/cohort_dto";
-import { CommonModule } from "@angular/common";
+
 
 
 @Component({
   selector: 'app-display-disease',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <table class="dashboard-table">
       <tbody>

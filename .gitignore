@@ -41,3 +41,5 @@ src-tauri/icons/.icon-square.png.swp
 
 src/app/sandbox/
 src/app/mocks/
+.claude/worktrees
+.claude/settings.local.json

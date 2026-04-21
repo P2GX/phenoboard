@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
@@ -37,7 +37,6 @@ const VALUE_TO_STATE: Record<string, HpoStatus> = {
     MatSelectModule,
     MatOptionModule,
     MatAutocompleteModule,
-    CommonModule,
     FormsModule,
     MatButtonToggleModule,
     MatTableModule

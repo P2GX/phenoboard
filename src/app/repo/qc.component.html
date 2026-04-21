@@ -4,8 +4,8 @@
     <p>This page includes several Q/C functions.</p>
   </header>
 
- <div class="qc-actions">
-  
+  <div class="qc-actions">
+
     <div class="action-row">
       <button (click)="fetchRepoQc()" [disabled]="loading()" class="btn-primary-fixed">
         @if (loading()) {
@@ -13,8 +13,8 @@
         }
         {{ loading() ? 'Analyzing...' : 'Fetch Repo QC' }}
       </button>
-      <app-help-button 
-          title="Repository QC"
+      <app-help-button
+        title="Repository QC"
           [lines]="[
             'This function performs a number of Q/C operations on a directory of cohort subdirectories.',
             'For instance, the GitHub repository of phenopacket store is structured in this way.',
@@ -26,8 +26,8 @@
       <button (click)="openCompareDialog()" class="btn-primary-fixed btn-indigo">
         Compare Phenopackets
       </button>
-      <app-help-button 
-          title="Compare Phenopackets"
+      <app-help-button
+        title="Compare Phenopackets"
           [lines]="[
             'Choose two phenopacket files for comparison.',
             'Alternatively, choose two phenoboard cohort files that contain one phenopacket each.',
@@ -74,61 +74,63 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let err of repoQc.errors">
-              <td class="font-bold">{{ err.cohortName }}</td>
-              <td class="message-cell">"{{ err.message }}"</td>
-              <td class="text-center">
-                <span
-                  class="status-pill"
-                  [ngClass]="errorTypeClass(err.errorType)"
-                >
-                  {{ errorTypeLabel(err.errorType) }}
-                </span>
-              </td>
-            </tr>
+            @for (err of repoQc.errors; track err) {
+              <tr>
+                <td class="font-bold">{{ err.cohortName }}</td>
+                <td class="message-cell">"{{ err.message }}"</td>
+                <td class="text-center">
+                  <span
+                    class="status-pill"
+                    [ngClass]="errorTypeClass(err.errorType)"
+                    >
+                    {{ errorTypeLabel(err.errorType) }}
+                  </span>
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
     </div>
   }
 
-@if (comparisonResult(); as report) {
-  <div class="comparison-card">
-    
-    <div class="card-header">
-      <h2>Phenopacket Comparison</h2>
-      <button (click)="comparisonResult.set(null)" class="btn-clear">Clear Result</button>
-    </div>
-    <pre 
-      class="p-4 bg-gray-100 text-green-700 text-xs rounded-lg overflow-x-auto shadow-inner leading-relaxed font-mono">{{ comparisonResult() | json }}
-    </pre>
-    <div class="flex gap-2">
-    <button 
-      (click)="copyReportToClipboard()"
-      class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-all"
-      [class.bg-green-600]="copySuccess()"
-      [class.text-white]="copySuccess()"
-      [class.border-green-600]="copySuccess()"
-      [class.bg-white]="!copySuccess()"
-      [class.text-gray-700]="!copySuccess()"
-      [class.hover:bg-gray-50]="!copySuccess()">
-      
-      @if (copySuccess()) {
-        <span>✓ Copied JSON</span>
-      } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-        </svg>
-        <span>Copy to Clipboard</span>
-      }
-    </button>
+  @if (comparisonResult(); as report) {
+    <div class="comparison-card">
 
-    <button (click)="comparisonResult.set(null)" class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1">
-      Clear
-    </button>
-  </div>
+      <div class="card-header">
+        <h2>Phenopacket Comparison</h2>
+        <button (click)="comparisonResult.set(null)" class="btn-clear">Clear Result</button>
+      </div>
+      <pre
+        class="p-4 bg-gray-100 text-green-700 text-xs rounded-lg overflow-x-auto shadow-inner leading-relaxed font-mono">{{ comparisonResult() | json }}
+      </pre>
+      <div class="flex gap-2">
+        <button
+          (click)="copyReportToClipboard()"
+          class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-all"
+          [class.bg-green-600]="copySuccess()"
+          [class.text-white]="copySuccess()"
+          [class.border-green-600]="copySuccess()"
+          [class.bg-white]="!copySuccess()"
+          [class.text-gray-700]="!copySuccess()"
+          [class.hover:bg-gray-50]="!copySuccess()">
 
-   <div class="comparison-ids-grid">
+          @if (copySuccess()) {
+            <span>✓ Copied JSON</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <span>Copy to Clipboard</span>
+          }
+        </button>
+
+        <button (click)="comparisonResult.set(null)" class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1">
+          Clear
+        </button>
+      </div>
+
+      <div class="comparison-ids-grid">
         <div class="id-box" [class.mismatch]="!report.idMatch">
           <span class="id-label">File A ID</span>
           <code>{{ report.idA }}</code>
@@ -140,60 +142,60 @@
         </div>
       </div>
 
-    <div class="diff-columns">
-      
-      <div class="diff-column">
-        <h3 class="diff-title blue-dot">
-          Phenotypic Features (HPO)
-        </h3>
-        <div class="diff-list">
-          @for (hpo of report.addedHpo; track hpo) {
-            <div class="diff-entry added">
-              <span>+</span><code>{{ hpo }}</code>
-            </div>
-          }
-          @for (hpo of report.removedHpo; track hpo) {
-            <div class="diff-entry removed">
-              <span>-</span><code>{{ hpo }}</code>
-            </div>
-          }
-          @if (report.addedHpo.length === 0 && report.removedHpo.length === 0) {
-            <p class="text-sm italic text-gray-400 py-2">No phenotypic differences found.</p>
-          }
+      <div class="diff-columns">
+
+        <div class="diff-column">
+          <h3 class="diff-title blue-dot">
+            Phenotypic Features (HPO)
+          </h3>
+          <div class="diff-list">
+            @for (hpo of report.addedHpo; track hpo) {
+              <div class="diff-entry added">
+                <span>+</span><code>{{ hpo }}</code>
+              </div>
+            }
+            @for (hpo of report.removedHpo; track hpo) {
+              <div class="diff-entry removed">
+                <span>-</span><code>{{ hpo }}</code>
+              </div>
+            }
+            @if (report.addedHpo.length === 0 && report.removedHpo.length === 0) {
+              <p class="text-sm italic text-gray-400 py-2">No phenotypic differences found.</p>
+            }
+          </div>
         </div>
+
+        <div class="diff-column">
+          <h3 class="diff-title purple-dot">
+            Genomic Interpretations
+          </h3>
+
+          <div class="diff-list">
+            @for (variant of report.addedVariants; track variant) {
+              <div class="diff-entry added">
+                <span>+</span>
+                <span class="truncate" [title]="variant">{{ variant }}</span>
+              </div>
+            }
+            @for (variant of report.removedVariants; track variant) {
+              <div class="diff-entry removed">
+                <span>-</span>
+                <span class="truncate" [title]="variant">{{ variant }}</span>
+              </div>
+            }
+            @if (report.addedVariants.length === 0 && report.removedVariants.length === 0) {
+              <p class="text-sm italic text-gray-400 py-2">No variant differences found.</p>
+            }
+          </div>
+        </div>
+
       </div>
 
-      <div class="diff-column">
-        <h3 class="diff-title purple-dot">
-          Genomic Interpretations
-        </h3>
-        
-        <div class="diff-list">
-          @for (variant of report.addedVariants; track variant) {
-            <div class="diff-entry added">
-              <span>+</span>
-              <span class="truncate" [title]="variant">{{ variant }}</span>
-            </div>
-          }
-          @for (variant of report.removedVariants; track variant) {
-            <div class="diff-entry removed">
-              <span>-</span>
-              <span class="truncate" [title]="variant">{{ variant }}</span>
-            </div>
-          }
-          @if (report.addedVariants.length === 0 && report.removedVariants.length === 0) {
-            <p class="text-sm italic text-gray-400 py-2">No variant differences found.</p>
-          }
+      @if (isIdentical()) {
+        <div class="mt-8 p-4 bg-green-100 border border-green-200 rounded-lg text-center">
+          <p class="text-green-800 font-medium">✨ These phenopackets are semantically identical!</p>
         </div>
-      </div>
-
+      }
     </div>
-
-    @if (isIdentical()) {
-      <div class="mt-8 p-4 bg-green-100 border border-green-200 rounded-lg text-center">
-        <p class="text-green-800 font-medium">✨ These phenopackets are semantically identical!</p>
-      </div>
-    }
-  </div>
-}
+  }
 </div>

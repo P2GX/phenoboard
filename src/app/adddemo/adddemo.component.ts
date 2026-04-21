@@ -1,6 +1,6 @@
 import { Component, inject, output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { AgeInputService } from '../services/age_service';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
@@ -18,7 +18,6 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
   selector: 'app-adddemo',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatFormFieldModule,
     MatInputModule,

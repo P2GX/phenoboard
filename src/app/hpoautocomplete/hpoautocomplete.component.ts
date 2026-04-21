@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core'; 
-import { CommonModule } from '@angular/common'; 
+ 
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
 import { HpoMatch } from '../models/hpo_mapping_result';
@@ -32,7 +32,6 @@ export function hpoMatchValidator(): ValidatorFn {
   standalone: true,
   templateUrl: './hpoautocomplete.component.html',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 
 
@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
   templateUrl: './help.component.html',
   styleUrls: ['./help.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
 })
 export class HelpComponent {
   

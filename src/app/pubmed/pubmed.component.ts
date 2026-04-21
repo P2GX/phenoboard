@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { PmidService } from '../services/pmid_service';
@@ -9,7 +9,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 @Component({
   selector: 'app-pubmed',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './pubmed.component.html',
   styleUrls: ['./pubmed.component.css']
 })

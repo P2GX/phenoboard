@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';  
-import { CommonModule } from '@angular/common';
+
 import { AgeInputService } from '../services/age_service' 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
@@ -16,7 +16,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
   selector: 'app-individual-edit',
   standalone: true,
   imports: [
-    CommonModule,
     MatAutocompleteModule,
     MatButtonModule,
     MatDialogModule,
@@ -24,8 +23,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatInputModule,
     MatOptionModule,
     MatSelectModule,
-    ReactiveFormsModule,
-  ],
+    ReactiveFormsModule
+],
   templateUrl: './individual_edit.component.html',
 })
 export class IndividualEditComponent {

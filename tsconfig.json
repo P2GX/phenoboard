@@ -1,4 +1,3 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
@@ -17,10 +16,15 @@
     "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "preserve",
     "useDefineForClassFields": false,
-    "lib": ["ES2022", "dom"],
-    "types": ["@tauri-apps/api"],
+    "lib": [
+      "ES2022",
+      "dom"
+    ],
+    "types": [
+      "@tauri-apps/api"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

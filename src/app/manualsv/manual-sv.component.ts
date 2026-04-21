@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-manualsv-dialog',
@@ -16,7 +16,6 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./manual-sv.component.scss'],
   standalone: true,
    imports: [
-    CommonModule,
     MatAutocompleteModule,
     MatButtonModule,
     MatDialogModule,
@@ -24,8 +23,8 @@ import { CommonModule } from '@angular/common';
     MatInputModule,
     MatOptionModule,
     MatSelectModule,
-    ReactiveFormsModule,
-  ],
+    ReactiveFormsModule
+],
 })
 export class ManualStructuralVariantDialog  {
   form: FormGroup;

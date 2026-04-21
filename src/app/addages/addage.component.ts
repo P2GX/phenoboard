@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -12,8 +12,7 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
 @Component({
   selector: 'app-addages',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule,
-    MatInputModule, MatFormFieldModule, MatSelectModule, MatAutocompleteModule],
+  imports: [FormsModule, MatDialogModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatAutocompleteModule],
   templateUrl: './addage.component.html',
   styleUrl: './addage.component.css'
 })

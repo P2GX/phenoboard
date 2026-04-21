@@ -1,5 +1,5 @@
 import { Component, computed, HostListener, inject, OnDestroy, OnInit, signal, Signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
@@ -31,7 +31,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 @Component({
   selector: 'app-table-editor-header',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, HelpButtonComponent],
+  imports: [MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, HelpButtonComponent],
   templateUrl: './table-editor-header.html',
   styleUrls: ['./table-editor-header.scss'],
 })

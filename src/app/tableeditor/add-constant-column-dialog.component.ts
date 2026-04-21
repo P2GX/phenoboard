@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatInputModule } from "@angular/material/input";
@@ -50,7 +50,7 @@ import { FormsModule } from '@angular/forms';
       margin-bottom: 16px;
     }
   `],
-  imports: [MatInputModule, CommonModule, FormsModule]
+  imports: [MatInputModule, FormsModule]
 })
 
 export class AddConstantColumnDialogComponent {

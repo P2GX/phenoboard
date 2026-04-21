@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, input } from '@angular/core';
 import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dto';
 
@@ -8,7 +8,7 @@ import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dt
   templateUrl: './cohortsummary.component.html',
   styleUrls: ['./cohortsummary.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
 })
 export class CohortSummaryComponent {
   cohort = input.required<CohortData>(); 
