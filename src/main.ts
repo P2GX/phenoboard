@@ -11,7 +11,7 @@ import { appRoutes } from './app/app-routing.module'
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(appRoutes), // <-- Add this
+    provideRouter(appRoutes), 
     importProvidersFrom(
       BrowserAnimationsModule,
       MatMenuModule,

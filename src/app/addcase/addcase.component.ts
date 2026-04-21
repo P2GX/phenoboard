@@ -373,7 +373,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   openHpoTwoStepDialog() {
     console.log("openHpoTwoStepDialog")
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
-      width: '90vw',
+      width: '1000px',
       height: '90vh',
       maxWidth: '1200px',
       panelClass: 'full-bleed-dialog',

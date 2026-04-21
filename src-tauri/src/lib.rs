@@ -36,7 +36,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             emit_backend_status,
             get_ppkt_store_json,
-            hpo_can_be_updated,
             load_phetools_excel_template,
             load_ptools_json,
             load_hpo,
@@ -85,23 +84,14 @@ pub fn run() {
             fetch_hgnc_data
         ])
         .setup(|app| {
-            let win = app.get_webview_window("main").unwrap();
-            let app_handle = app.handle().clone();
-            win.on_window_event(move |event| {
-                if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                    app_handle.exit(0);
-                }
-            });
+        println!("Frontend dist path: {:?}", app.path().resource_dir());
+
             Ok(())
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                // Prevent the default close behavior
                 api.prevent_close();
-                // TODO -- CHECK IF THERE IS UNSAVE WORK ETC.
-                // Then close the window manually
-                window.close().unwrap_or_default();
+                window.emit("close-requested", ()).unwrap_or_default();
             }
         })
         .run(tauri::generate_context!())
@@ -301,18 +291,6 @@ fn map_text_to_annotations(
     return singleton.map_text_to_annotations(input_text);
 }
 
-
-
-/// Check whether the HPO version we are using is the latest version
-/// by comparing the latest version online
-#[tauri::command]
-fn hpo_can_be_updated(
-    state: tauri::State<'_, Arc<AppState>>,
-) ->Result<bool, String> {
-    let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    singleton.hpo_can_be_updated()
-}
 
 /// Get a JSON object that represents the directory and file structure of the Phenopacket Store
 #[tauri::command]

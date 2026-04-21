@@ -1,0 +1,76 @@
+ <div class="heading-with-help">
+        <h1>External Table Editor</h1>
+        <app-help-button 
+          title="External tables"
+          [lines]="[
+            'This page is for importing Supplemental tables (excel files) in which each row or column represents an individual.',
+            'Users should transform the table column by column.',
+            'You can save and load the external templates in multiple sessions. These JSON files should not be stored long-term (or checked into GitHub).'
+          ]"
+          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#excel-import" />
+</div>
+
+@if (statusService.hpoLoaded()) {
+  <div class="global-action-bar">
+  
+  <div class="action-group divider-right">
+    <div class="action-with-help">
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(false)" [disabled]="!diseaseDataSignal()">📂 Excel (Cols)</button>
+    <div class="subtle-help">
+        <app-help-button title="Excel (column-based)" 
+        [lines]="['Import an excel file in which each individual is represented by a column.']" />
+      </div>
+    </div>
+    <div class="action-with-help">
+    <button class="btn-sm btn-outline-primary" (click)="loadExcel(true)" [disabled]="!diseaseDataSignal()">📂 Excel (Rows)</button>
+ <div class="subtle-help">
+        <app-help-button title="Excel (row-based)" 
+        [lines]="['Import an excel file in which each individual is represented by a row.']" />
+      </div>
+    </div>
+  </div>
+
+  <div class="action-group divider-right">
+     <div class="action-with-help">
+    <button class="btn-sm btn-outline-primary" (click)="saveExternalTemplateJson()" [disabled]="!etl_service.etlDto()">💾 Save ETL</button>
+        <div class="subtle-help">
+        <app-help-button title="Save ETL file" 
+        [lines]="['Save the current extract-transform-load (ETL) file as JSON.']" 
+        helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#saving-and-loading-etl-files"/>
+      </div>
+    </div>
+    
+    <div class="action-with-help">
+      <button class="btn-sm btn-outline-primary" (click)="loadExternalTemplateJson()">📥 Load ETL</button>
+      <div class="subtle-help">
+        <app-help-button title="Load" [lines]="['Load an extract-transform-load (ETL) JSON file']"
+         helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#saving-and-loading-etl-files" />
+      </div>
+    </div>
+  </div>
+  <div class="action-group">
+      <div class="action-with-help">
+    <button class="btn-sm btn-outline-primary" (click)="openPubmedDialog()" [disabled]="!etl_service.etlDto()">🔍 PubMed</button>
+      <div class="subtle-help">
+        <app-help-button title="Load" [lines]="['Assign the PMID of the article from which the ETL data came.']"
+          helpUrl="https://p2gx.github.io/phenoboard/help/table-editor.html#pmid" /> />
+      </div>
+    </div>
+    <div class="action-with-help">
+    <button class="btn-outline-primary btn-sm" 
+      (click)="addToCohortData()" [disabled]="!etl_service.etlDto()">✨ Add to Cohort</button>
+        <div class="subtle-help">
+          <app-help-button title="Load" [lines]="['Add data from the ETL file to current cohort']" />
+      </div>
+    </div>
+  </div>
+</div>
+} @else {
+  <div class="status-alert warning">
+    <mat-icon>warning</mat-icon>
+    <div class="alert-content">
+      <span class="alert-title">HPO Not Loaded</span>
+      <span class="text-xs">The Table Editor requires the HPO ontology to validate terms. Please load HPO on the Home page to proceed.</span>
+    </div>
+  </div>
+}

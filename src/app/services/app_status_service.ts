@@ -4,6 +4,8 @@ import { StatusDto, defaultStatusDto } from '../models/status_dto';
 import { NotificationService } from './notification.service';
 import { ConfigService } from './config.service';
 import { invoke } from '@tauri-apps/api/core';
+import { ask } from '@tauri-apps/plugin-dialog';
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 @Injectable({ providedIn: 'root' })
 export class AppStatusService {
@@ -18,12 +20,16 @@ export class AppStatusService {
   readonly hpoLoading = signal<boolean>(false);
   readonly hpoLoaded = computed(() => this.state().hpoLoaded);
   progress = signal<number>(0);
+  hasUnsavedWork = signal(false);
+  private readonly appWindow = getCurrentWindow();
+
   
 
   constructor() {
     this.init();
     this.setupListeners();
     this.listen_alleles();
+    this.listen_close();
   }
 
   private async init() {
@@ -43,6 +49,21 @@ export class AppStatusService {
         this.progress.set(percent)
       });
        ;
+    });
+  }
+
+
+  private async listen_close() {
+    await listen("close-requested", async() => {
+      console.log("Listen close");
+      if (this.hasUnsavedWork()) {
+        const confirmed = await ask("You have unsaved changes. Quit anyway?", {
+          title: "Unsaved work",
+          kind: "warning"
+        });
+        if (!confirmed) return;
+      }
+      await this.appWindow.destroy();
     });
   }
 

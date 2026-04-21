@@ -96,6 +96,10 @@
 
 .edit-dialog .mat-mdc-dialog-container { z-index: 2001 !important; }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 
 .tool-row {
   display: flex;

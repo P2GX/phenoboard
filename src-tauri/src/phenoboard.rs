@@ -2,7 +2,7 @@
 //!
 
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MiningConcept, hpo_version_checker::{HpoVersionChecker, OntoliusHpoVersionChecker}}, settings::HpoCuratorSettings, util::{self, pubmed_retrieval::PubmedRetriever}};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::MiningConcept, settings::HpoCuratorSettings, util::{pubmed_retrieval::PubmedRetriever, text_to_annotation}};
 use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
@@ -315,17 +315,6 @@ impl PhenoboardSingleton {
         return status;
     }
 
-    pub fn hpo_can_be_updated(&self) -> Result<bool, String> {
-        match &self.ontology {
-            Some(hpo) => {
-                let hpo_arc = hpo.clone();
-                let hpo_update_checker = OntoliusHpoVersionChecker::new(&hpo_arc)?;
-                let updatable = hpo_update_checker.hp_json_can_be_updated();
-                return Ok(updatable);
-            },
-            None => Err(format!("Phetools template not initialized"))
-        }
-    }
 
     pub fn get_ppkt_store_json(&self) ->  Result<serde_json::Value, String> {
         let file_path = match &self.pt_template_path {
@@ -352,7 +341,7 @@ impl PhenoboardSingleton {
          let deunicoded_text = fenominal::sanitize(input_text);
         match self.get_sorted_fenominal_hits(&deunicoded_text) {
             Ok(fenominal_hits) => {
-                return util::text_to_annotation::text_to_annotations(&deunicoded_text, &fenominal_hits);
+                return text_to_annotation::text_to_annotations(&deunicoded_text, &fenominal_hits);
             },
             Err(e) => {return Err(e.to_string()); },
         }
@@ -482,7 +471,7 @@ impl PhenoboardSingleton {
     -> Result<String, String> {
         let out_dir = self.get_phenopackets_output_dir()?;
         let orcid = match self.settings.get_biocurator_orcid() {
-            Ok(orcid_id) => orcid_id,
+            Ok(orcid_id) => orcid_id.to_string(),
             Err(e) => { return Err(format!("Cannot save HPOA without ORCID id: {}", e)); }
         };
         match &self.ontology {

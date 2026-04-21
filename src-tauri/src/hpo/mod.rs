@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::phenoboard::HpoMatch;
 pub mod hpo_etl;
-pub mod hpo_version_checker;
 pub mod ontology_loader;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]

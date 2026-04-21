@@ -50,7 +50,8 @@
               "inlineCritical": false
             },
             "fonts": true
-          }
+          },
+           "baseHref": "./"
         },
         "development": {
           "optimization": false,

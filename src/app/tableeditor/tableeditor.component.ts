@@ -5,10 +5,10 @@ import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
 import { HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
-import { ColumnDto, ColumnTableDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType, EtlDto, fromColumnDto } from '../models/etl_dto';
+import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
@@ -20,13 +20,11 @@ import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { removeAllWhitespace, sanitizeString } from '../validators/validators';
-import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
-import { PubmedComponent } from '../pubmed/pubmed.component';
-import { Router } from '@angular/router';
+import { defaultPmidDto } from '../models/pmid_dto';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
-import { HgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
@@ -37,6 +35,7 @@ import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
+import { TableEditorHeader } from "./table-editor-header";
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -56,15 +55,12 @@ interface OverlayPosition {
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, HelpButtonComponent],
+  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, TableEditorHeader],
   templateUrl: './tableeditor.component.html',
   styleUrls: ['./tableeditor.component.scss'],
 })
-export class TableEditorComponent implements OnInit {
+export class TableEditorComponent  {
   constructor() {
-    this.pmidForm = this.fb.group({
-      pmid: [defaultPmidDto()],
-    });
     this.helpService.setHelpContext("table-editor");
   }
   Object = Object;
@@ -77,7 +73,6 @@ export class TableEditorComponent implements OnInit {
   private fb = inject(FormBuilder);
   private variantDialog = inject(VariantDialogService);
   private svDialog = inject(SvDialogService);
-  private router = inject(Router);
   private helpService = inject(HelpService);
   private cohortService = inject(CohortDtoService);
   public statusService = inject(AppStatusService);
@@ -85,8 +80,6 @@ export class TableEditorComponent implements OnInit {
   public readonly TransformType = TransformType;
   diseaseDataSignal = signal<DiseaseData | null>(null);
   readonly isProcessing = signal<boolean>(false);
-
-  pmidForm: FormGroup;
 
   diseaseData: DiseaseData | null = null;
 
@@ -216,14 +209,6 @@ export class TableEditorComponent implements OnInit {
 
 
 
-   ngOnInit(): void {
-    this.pmidForm.valueChanges.subscribe(value => {
-      console.log('Form value:', value);
-    });
-    this.importCohortDiseaseData();
-    
-  }
-
   /** Reset if user clicks outside of defined elements. */
   @HostListener('document:click')
   onClickAnywhere(): void {
@@ -231,34 +216,6 @@ export class TableEditorComponent implements OnInit {
     this.editModalVisible = false;
   }
 
- 
-  /* Load an external Excel file (e.g., supplemental table from a publication). 
-   * We support column (individuals incolumns) or row (individuals iun rows) and normalize such that the 
-   * individuals are in rows. */
-  async loadExcel(rowBased: boolean = false) {
-    this.errorMessage = null;
-    const diseaseData = this.diseaseDataSignal();
-    if (! diseaseData) {
-      this.notificationService.showError("COuld not retrieve disease data. Have you loaded a cohort?");
-      return;
-    }
-    try {
-      const table: ColumnTableDto | null = rowBased
-        ? await this.configService.loadExternalExcelRowBased()
-        : await this.configService.loadExternalExcel();
-
-      if (!table) {
-        this.notificationService.showError("Could not retrieve external table");
-        return;
-      }
-      const dto = fromColumnDto(table);
-      this.etl_service.setEtlDto(dto);
-      this.etl_service.setDisease(diseaseData);
-    } catch (error) {
-      this.errorMessage = String(error);
-      this.notificationService.showError("Could not retrieve external table");
-    }
-  }
 
 
   
@@ -756,7 +713,6 @@ export class TableEditorComponent implements OnInit {
     }
 
     this.editModalVisible = true;
-   
   }
 
 
@@ -770,73 +726,6 @@ export class TableEditorComponent implements OnInit {
   }
 
 
-  /**
-   * Save the current template data to file
-   */
-  async saveExternalTemplateJson(): Promise<void> {
-    this.errorMessage = null;
-    const etlDto = this.etl_service.etlDto();
-    if (! etlDto) {
-      this.notificationService.showError("Could not save JSON because data table is not initialized");
-      return;
-    }
-    if (etlDto.disease == null) {
-      this.notificationService.showError("Could not save JSON because disease data is not initialized");
-      return;
-    }
-    if (etlDto.disease.geneTranscriptList.length == 0) {
-      this.notificationService.showError("Empty geneTranscriptList");
-      return;
-    }
-    if (etlDto.disease.geneTranscriptList.length > 1) {
-      this.notificationService.showError("Unexpected length of geneTranscriptList > 1");
-      return;
-    }
-    const gt = etlDto.disease.geneTranscriptList[0];
-    if (gt == null) {
-      this.notificationService.showError("geneTranscript. was null");
-      return;
-    }
-    const validationError = this.etl_service.validateEtlDto(etlDto);
-    if (validationError) {
-      this.notificationService.showError(`Validation failed: ${validationError}`);
-      return;
-    }
-    this.configService.saveJsonExternalTemplate(etlDto)
-  }
-
-  /**
-   * Load a template data from file (usually this means we previously 
-   * saved an intermediate result and now want to continue work)
-   */
-  async loadExternalTemplateJson(): Promise<void> {
-    this.errorMessage = null;
-    try {
-      const dto: EtlDto = await this.configService.loadJsonExternalTemplate();
-      if (dto == null) {
-        this.notificationService.showError("Could not retrieve external template json");
-        return;
-      }
-      this.etl_service.setEtlDto(dto);
-      // edge case: User has loaded a disease for another disease, and then they decide to 
-      // process a previous ETL file that has a disease. In this case, we want to update our disease
-      // object and reset the GUI
-      const etlHasDisease = !!dto.disease;
-      if (etlHasDisease) {
-        this.diseaseDataSignal.set(dto.disease);
-        this.cohortService.clearCohortData();
-      } else {
-        const d = this.diseaseDataSignal();
-        if (d) {
-          this.notificationService.showWarning(`Using disease data from session ${d?.diseaseLabel} (${d?.diseaseId})`);
-        } else {
-          this.notificationService.showWarning("Missing disease data. Create the cohort and reload the ETL file");
-        }
-      }
-    } catch (error) {
-      this.errorMessage = String(error);
-    }
-  }
 
 
   /**
@@ -1852,82 +1741,14 @@ export class TableEditorComponent implements OnInit {
   }
 
 
-  importCohortDiseaseData(): void {
-    const cohort = this.cohortService.getCohortData();
-    if (cohort == null) {
-      return;
-    }
-    if (cohort.cohortType != 'mendelian') {
-      this.notificationService.showError(`External ETL only available for mendelian but you tried ${cohort.cohortType}`);
-      return;
-    }
-    if (cohort.diseaseList.length != 1) {
-      this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
-      return;
-    }
-    const ddata = cohort.diseaseList[0];
-    this.diseaseDataSignal.set(ddata);
-    this.notificationService.showSuccess("Imported cohort data");
-  }
+
 
   /** Indexing for rows in template forloops. row identity is its index */
   trackRow(index: number, cell: unknown): number {
     return index;
   }
 
-
-  /** Add the PMID to the ETL DTO; open a modal dialog with our PMID widget */
-  openPubmedDialog(): void {
-    const dto = this.etl_service.etlDto();
-    const dialogRef = this.dialog.open(PubmedComponent, {
-      width: '600px',
-      data: { pmidDto: null } // optional initial data
-    });
-
-    dialogRef.afterClosed().subscribe((result: PmidDto | null) => {
-      if (result && dto ) {
-        const pmidDto = result;
-        this.etl_service.setPmidData(pmidDto);
-      } else {
-        console.log('User cancelled');
-      }
-    });
-  }
-  /** Add the data from the external data to the current CohortData object. If there is no
-     * current CohortData object, then initialize it. If there is an error in the ETL data, do nothing
-     * except for showing the error.
-     */
-  async addToCohortData(): Promise<void> {
-    const dto = this.etl_service.etlDto();
-    if (dto == null) {
-      this.notificationService.showError("Could not create CohortData because etlDto was not initialized");
-      return;
-    }
-    const cohort_previous = this.cohortService.getCohortData();
-   
-    try { 
-      const cohort_dto_new = await this.configService.transformToCohortData(dto);
-      // i.e., the previous cohort has patient data
-      if (cohort_previous && cohort_previous.rows.length > 0) {
-        const merged_cohort = await this.configService.mergeCohortData(cohort_previous, cohort_dto_new);
-        this.cohortService.setCohortData(merged_cohort);
-      } else {
-        // If we are creating a new cohort, the previous cohort will be empty (zero rows)
-        // but it should still contain the cohort acronym
-        if (cohort_previous?.cohortAcronym) {
-          const acronym = cohort_previous.cohortAcronym ?? '';
-          cohort_dto_new.cohortAcronym = acronym;
-        }
-        this.cohortService.setCohortData(cohort_dto_new);
-      }
-      this.etl_service.clearEtlDto();
-      this.router.navigate(['/pttemplate']);
-    } catch (err: unknown) {
-      this.notificationService.showError(
-        `addToCohortData-error-Could not create CohortData: ${err instanceof Error ? err.message : err}`
-      );
-    }
-  }
+  
 
   async processVariantColumn(index: number): Promise<void> {
     const dto = this.etl_service.etlDto();
