@@ -1,1 +1,85 @@
 
+.dialog-hint {
+  font-size: 0.75rem;       /* text-xs */
+  color: #6b7280;           /* text-gray-500 */
+  margin-top: 0.5rem;       /* mt-2 */
+
+
+}
+
+mat-card {
+  padding: 1rem;            /* p-4 */
+
+  mat-card-title {
+    font-size: 1.125rem;    /* text-lg */
+    margin-bottom: 1rem;    /* mb-4 */
+  }
+}
+
+.variant-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;                /* gap-4 */
+
+  mat-form-field {
+    width: 100%;            /* w-full */
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: row;    /* md:flex-row */
+
+    mat-form-field {
+      flex: 1;              /* md:flex-1 */
+    }
+  }
+}
+
+.variant-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;                /* gap-4 */
+  margin-top: 1.5rem;       /* mt-6 */
+
+  @media (min-width: 768px) {
+    flex-direction: row;    /* md:flex-row */
+    align-items: center;    /* md:items-center */
+    justify-content: space-between;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;                /* gap-4 */
+  flex-wrap: wrap;
+}
+
+.edit-variant-btn {
+  color: #6b7280;           /* text-gray-500 */
+}
+
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;              /* gap-2 */
+
+  .status-dot {
+    display: inline-block;
+    width: 0.75rem;         /* w-3 */
+    height: 0.75rem;        /* h-3 */
+    border-radius: 50%;     /* rounded-full */
+
+    &.validated {
+      background-color: #22c55e;  /* bg-green-500 */
+    }
+  }
+
+  .status-text {
+    font-size: 0.875rem;    /* text-sm */
+    font-weight: 500;       /* font-medium */
+
+    &.validated {
+      color: #16a34a;       /* text-green-600 */
+    }
+  }
+}

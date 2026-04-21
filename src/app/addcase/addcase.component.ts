@@ -20,7 +20,7 @@ import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
 import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
-import { ConfirmDialogComponent } from '../util/confirmdialog.component';
+import { ConfirmDialogComponent } from '../util/confirm/confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";

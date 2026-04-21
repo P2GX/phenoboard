@@ -1,0 +1,27 @@
+.dialog-hint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.file-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-path {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #2563eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}

@@ -134,3 +134,13 @@
 .spacer-4px {
   height: 4px; /* Equivalent to Tailwind's h-1 */
 }
+
+.popover-panel {
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;   /* border-gray-300 */
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+              0 8px 10px -6px rgb(0 0 0 / 0.1);  /* shadow-xl */
+  border-radius: 0.5rem;        /* rounded-lg */
+  padding: 0.5rem;              /* p-2 */
+  z-index: 50;                  /* z-50 */
+}

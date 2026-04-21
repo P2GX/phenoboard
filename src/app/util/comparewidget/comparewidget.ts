@@ -2,6 +2,7 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { NotificationService } from '../../services/notification.service';
+import { MatDialogModule } from "@angular/material/dialog";
 
 export interface CompareFiles {
   path1: string;
@@ -11,41 +12,38 @@ export interface CompareFiles {
 @Component({
   selector: 'app-compare-dialog',
   template: `
-    <div class="p-6 bg-white rounded-lg shadow-xl">
-      <h2 class="text-xl font-bold mb-4">Compare Phenopackets</h2>
-      <p class="mb-4 text-sm text-gray-600">Select two JSON phenopackets to find differences.</p>
-      
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <button (click)="selectFile(1)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded border">
+    <h2 mat-dialog-title>Compare Phenopackets</h2>
+    <mat-dialog-content>
+    <p class="dialog-hint">Select two JSON phenopackets to find differences.</p>  
+    <div class="file-selectors">
+        <div class="file-row">
+          <button mat-stroked-button  (click)="selectFile(1)">
             Select File 1
           </button>
-          <span class="text-xs truncate max-w-[200px] text-blue-600 italic">
+          <span class="file-path">
             {{ file1() || 'No file selected' }}
           </span>
         </div>
-
-        <div class="flex items-center gap-3">
-          <button (click)="selectFile(2)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded border">
+        <div class="file-row">
+          <button mat-stroked-button  (click)="selectFile(2)">
             Select File 2
           </button>
-          <span class="text-xs truncate max-w-[200px] text-blue-600 italic">
+          <span class="file-path">
             {{ file2() || 'No file selected' }}
           </span>
         </div>
       </div>
-
-      <div class="mt-6 flex justify-end gap-2">
-        <button (click)="onCancel()" class="px-4 py-2 text-gray-500">Cancel</button>
-        <button 
-          [disabled]="!file1() || !file2()"
-          (click)="compare()" 
-          class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
-          Compare
-        </button>
-      </div>
-    </div>
-  `
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="onCancel()">Cancel</button>
+      <button mat-raised-button color="primary"
+              [disabled]="!file1() || !file2()"
+              (click)="compare()">
+        Compare
+      </button>
+    </mat-dialog-actions>
+  `,
+  imports: [MatDialogModule]
 })
 export class CompareDialogComponent {
   file1 = signal<string | null>(null);

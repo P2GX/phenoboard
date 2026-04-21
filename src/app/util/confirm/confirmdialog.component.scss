@@ -1,0 +1,90 @@
+.warn-banner {
+      background-color: #fff3cd;
+      color: #856404;
+      border-left: 4px solid #ff9800;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .warn-message {
+      color: #5c0000;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    mat-dialog-actions {
+      gap: 0.75rem;             /* was !gap-3 */
+      padding: 0 1rem 1rem;     /* was px-4 pb-4 */
+    }
+
+    .help-trigger-btn {
+      all: unset;
+      box-sizing: border-box;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      cursor: pointer;
+      color: #856404;
+      background: rgba(133, 100, 4, 0.1);
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: rgba(133, 100, 4, 0.25);
+      }
+
+      mat-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+        line-height: 1;
+        display: block;
+        margin: 0;
+        animation: help-pulse 2s infinite ease-in-out;
+      }
+    }
+
+    .help-content {
+      padding: 1rem;            /* p-4 */
+      max-width: 20rem;         /* max-w-xs */
+    }
+
+    .help-title {
+      font-weight: 700;         /* font-bold */
+      color: #1e40af;           /* text-blue-800 */
+      margin-bottom: 0.5rem;    /* mb-2 */
+    }
+
+    .help-line {
+      font-size: 0.875rem;      /* text-sm */
+      margin-bottom: 0.25rem;   /* mb-1 */
+    }
+
+    .help-divider {
+      margin: 0.5rem 0;         /* my-2 */
+      border-color: #e5e7eb;    /* border-gray-200 */
+    }
+
+    .help-docs-btn {
+      width: 100%;              /* w-full */
+      justify-content: flex-start; /* justify-start */
+      padding-left: 0;          /* px-0 */
+
+      mat-icon {
+        transform: scale(0.9);  /* scale-90 */
+      }
+
+      span {
+        font-size: 0.75rem;     /* text-xs */
+      }
+    }

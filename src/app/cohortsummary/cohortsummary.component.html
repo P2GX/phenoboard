@@ -1,8 +1,8 @@
- <div class="text-sm text-gray-700 space-y-2">
+ <div class="disease-summary">
         <ul>@for (disease of cohort().diseaseList; track disease.diseaseId; let i = $index) {
           <li> <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" 
-              target="_blank" class="text-blue-600 underline">
-            <h2 class="text-xl font-semibold text-gray-800"> <strong> {{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
+              target="_blank">
+            <h2> <strong> {{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
             </a>
             @if (disease.geneTranscriptList.length) {
               <span class="gene-links">
@@ -10,8 +10,8 @@
                 @for (gene of getGeneLinks(disease); let i = $index; track gene.symbol) {
                   <i>{{ gene.symbol }}</i>
                   [
-                    <a [href]="gene.hgncUrl" target="_blank" rel="noopener">HGNC</a> |
-                    <a [href]="gene.ncbiUrl" target="_blank" rel="noopener">NCBI</a>
+                    <a [href]="gene.hgncUrl" target="_blank" rel="noopener" class="bluelink">HGNC</a> |
+                    <a [href]="gene.ncbiUrl" target="_blank" rel="noopener" class="bluelink">NCBI</a>
                   ]
                   {{ i < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
                 }

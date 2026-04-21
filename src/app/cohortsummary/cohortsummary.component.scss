@@ -1,0 +1,19 @@
+.disease-summary {
+  font-size: 0.875rem;        /* text-sm */
+  color: #374151;             /* text-gray-700 */
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;              /* space-y-2 */
+    padding-left: 0;
+    list-style: none;
+    margin: 0;
+  }
+
+
+.gene-links {
+    font-size: 0.875rem;
+    color: #374151;
+  }
+}

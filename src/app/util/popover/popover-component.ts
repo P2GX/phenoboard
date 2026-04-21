@@ -20,7 +20,7 @@ import { CdkOverlayOrigin, ConnectedPosition, OverlayModule } from '@angular/cdk
       (backdropClick)="isOpen.set(false)"
       (overlayOutsideClick)="isOpen.set(false)"
     >
-      <div class="bg-white border border-gray-300 shadow-xl rounded-lg p-2 z-50">
+      <div class="popover-panel">
         <ng-content></ng-content>
       </div>
     </ng-template>
