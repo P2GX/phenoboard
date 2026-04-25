@@ -33,7 +33,7 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
   selector: 'app-multihpo',
   standalone: true,
   templateUrl: './multihpo.component.html',
-  styleUrls: ['./multihpo.component.scss'],
+  styleUrl: './multihpo.component.scss',
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -240,13 +240,13 @@ removeConcept(index: number) {
   async openSplitDialog(index: number) {
     const concept = this.concepts()[index];
     
-    const dialogRef = this.dialog.open(SplitDialogComponent, {
+    const splitDialogRef = this.dialog.open(SplitDialogComponent, {
       width: '400px',
       data: { text: concept.originalText }
     });
 
     // Wait for the delimiter (e.g., ",", ".", or a custom string)
-    const resultDelimiter = await firstValueFrom(dialogRef.afterClosed());
+    const resultDelimiter = await firstValueFrom(splitDialogRef.afterClosed());
     
     if (resultDelimiter) {
       this.executeSplit(index, resultDelimiter);

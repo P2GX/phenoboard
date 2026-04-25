@@ -32,7 +32,6 @@ import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
 import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from './etl-metadata';
 import { CellReviewComponent } from '../cellreview/cellreview.component';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
 import { TableEditorHeader } from "./table-editor-header";
@@ -57,7 +56,7 @@ interface OverlayPosition {
   standalone: true,
   imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, TableEditorHeader],
   templateUrl: './tableeditor.component.html',
-  styleUrls: ['./tableeditor.component.scss'],
+  styleUrl: './tableeditor.component.scss',
 })
 export class TableEditorComponent  {
   constructor() {
@@ -70,7 +69,6 @@ export class TableEditorComponent  {
   private dialog = inject(MatDialog);
   public etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
-  private fb = inject(FormBuilder);
   private variantDialog = inject(VariantDialogService);
   private svDialog = inject(SvDialogService);
   private helpService = inject(HelpService);
@@ -156,20 +154,8 @@ export class TableEditorComponent  {
   /** A right click on a cell will open a modal dialog and allow us to change the value, which is stored here */
   editingValue: EtlCellValue | null = null;
   editingString  = '';
-  editModalVisible = false;
+  editModalVisible = signal(false);
 
-  // Which column is being previewed
-  previewColumnIndex: number | null = null;
-  // Data shown in preview modal
-  previewOriginal: string[] = [];
-  previewTransformed: string[] = [];
-  // Name of the transform for modal header
-  previewTransformName = "";
-  // Pending metadata to apply if user confirms
-  pendingHeader: EtlColumnHeader | null = null;
-  pendingHeaderName: string | null = null;
-  pendingColumnType: EtlColumnType | null = null;
-  pendingColumnTransformed = false;
 
   transformationMap: { [original: string]: string } = {};
   uniqueValuesToMap: string[] = [];
@@ -213,10 +199,8 @@ export class TableEditorComponent  {
   @HostListener('document:click')
   onClickAnywhere(): void {
     this.columnContextMenuVisible = false;
-    this.editModalVisible = false;
+    this.editModalVisible.set(false);
   }
-
-
 
   
   // Row-oriented data for template iteration
@@ -560,7 +544,8 @@ export class TableEditorComponent  {
     const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
     const uniqueDictionary: MiningConcept[] = await this.configService.create_canonical_dictionary(initialConcepts);
     const globalRef = this.dialog.open(MultiHpoComponent, {
-      width: '1100px',
+      width: '1200px',
+      maxWidth: '95vw',
       data: { concepts: uniqueDictionary, title: col.header.original }
     });
     const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
@@ -696,7 +681,7 @@ export class TableEditorComponent  {
       x: safePos.x + window.scrollX, 
       y: safePos.y + window.scrollY 
     };
-    this.editModalVisible = true;
+    this.editModalVisible.set(true);
 
     const cell = this.contextMenuCellValue;
     this.editingValue = cell;
@@ -712,7 +697,7 @@ export class TableEditorComponent  {
       return;
     }
 
-    this.editModalVisible = true;
+    this.editModalVisible.set(true);
   }
 
 
@@ -964,9 +949,8 @@ export class TableEditorComponent  {
         });
     
     this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
-    this.editModalVisible = false;
+    this.editModalVisible.set(false);
     this.etl_service.updateColumns(newColumns);
-    this.editModalVisible = false;
   }
 
 
@@ -1072,7 +1056,7 @@ export class TableEditorComponent  {
         });
     
       this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
-      this.editModalVisible = false;
+      this.editModalVisible.set(false);
       this.etl_service.updateColumns(newColumns);
     
     

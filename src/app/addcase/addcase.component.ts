@@ -38,7 +38,7 @@ import { AppStatusService } from '../services/app_status_service';
     HelpButtonComponent
 ],
   templateUrl: './addcase.component.html', 
-  styleUrl: './addcase.component.css'
+  styleUrl: './addcase.component.scss'
 })
 export class AddcaseComponent {
   constructor() {}

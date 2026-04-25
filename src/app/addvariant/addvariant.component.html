@@ -49,12 +49,12 @@
         
         <div class="action-buttons">
             @if (!variantValidated) {
-                <button mat-raised-button color="accent" (click)="submit()" 
+                <button class="btn-primary" (click)="submit()" 
                         [disabled]="!selectedGene || isSubmitting">
                     {{ isSubmitting ? 'Validating...' : getSubmitLabel() }}
                 </button>
             } @else {
-                <button mat-raised-button color="primary" (click)="addVariantToPpkt()">
+                <button  class="btn-primary" (click)="addVariantToPpkt()">
                     Add variant to case
                 </button>
                 
@@ -62,12 +62,12 @@
                     Biallelic
                 </mat-checkbox>
 
-                <button mat-button (click)="resetVars()" class="text-gray-500">
+                <button class="btn-primary-outline" (click)="resetVars()" class="text-gray-500">
                     Edit Variant
                 </button>
             }
             
-            <button mat-raised-button color="warn" (click)="cancel()">Cancel</button>
+            <button class="btn-outline-cancel" (click)="cancel()">Cancel</button>
         </div>
 
         <div class="validation-status">

@@ -54,7 +54,7 @@ export interface CohortDialogResult {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, HelpButtonComponent, DisplayMendelianComponent, DisplayMeldedComponent],
   templateUrl: './newtemplate.component.html',
-  styleUrls: ['./newtemplate.component.scss'],
+  styleUrl: './newtemplate.component.scss',
 })
 export class NewTemplateComponent  {
 

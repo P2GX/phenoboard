@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, ViewEncapsulation } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -51,12 +51,12 @@ type ValidatorFn = () => Promise<void>;
   standalone: true,
   imports: [FormsModule, MatButtonModule, MatCardModule, MatCheckboxModule, MatInputModule, MatFormFieldModule, MatOption, MatSelectModule],
   templateUrl: './addvariant.component.html',
-  styleUrl: './addvariant.component.css',
+  styleUrl: './addvariant.component.scss',
+  encapsulation: ViewEncapsulation.None,  
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddVariantComponent implements OnInit{
   
-
   private configService = inject(ConfigService); 
   private cohortService= inject(CohortDtoService);
   private dialogRef= inject(MatDialogRef<AddVariantComponent, VariantDto | null>);

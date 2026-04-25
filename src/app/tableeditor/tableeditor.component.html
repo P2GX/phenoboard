@@ -282,11 +282,11 @@
   }
 
 
-@if(editModalVisible) {
+@if(editModalVisible()) {
   <div class="edit-modal"
         [style.top.px]="contextMenuPosition?.y" 
         [style.left.px]="contextMenuPosition?.x"
-        (mousedown)="editModalVisible = false"
+        (mousedown)="editModalVisible.set(false)"
     >
     <div style="padding: 8px; font-size: 13px; line-height: 1.5;" (mousedown)="$event.stopPropagation()">
     <header>
@@ -312,7 +312,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn-secondary" (click)="editModalVisible = false">Cancel</button>
+      <button class="btn-secondary" (click)="editModalVisible.set(false)">Cancel</button>
       <button class="btn-primary" (click)="saveManualEdit()">Save Changes</button>
     </div>
   </div>
