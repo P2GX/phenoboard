@@ -31,6 +31,7 @@ export function hpoMatchValidator(): ValidatorFn {
   selector: 'app-hpoautocomplete',
   standalone: true,
   templateUrl: './hpoautocomplete.component.html',
+  styleUrl: './hpoautocomplete.component.scss',
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,

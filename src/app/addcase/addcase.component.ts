@@ -375,7 +375,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       width: '1000px',
       height: '90vh',
       maxWidth: '1200px',
-      panelClass: 'full-bleed-dialog',
+      panelClass: 'full-width-dialog',
       disableClose: true,
     });
 

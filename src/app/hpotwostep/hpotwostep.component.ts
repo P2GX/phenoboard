@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, HostListener, inject, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { HpoMiningComponent } from '../hpomining/hpomining.component';
@@ -11,6 +11,7 @@ import { MatIcon } from "@angular/material/icon";
   selector: 'app-hpotwostep',
   standalone: true,
   templateUrl: './hpotwostep.component.html',
+  styleUrl: './hpotwostep.component.scss',
   imports: [HpoMiningComponent, HpoPolishingComponent, MatIcon],
 })
 export class HpoTwostepComponent {
@@ -32,6 +33,15 @@ export class HpoTwostepComponent {
   /** return result to parent */
   onPolishingDone(result: HpoTermData[]) {
     this.dialogRef.close(result);  
+  }
+
+  onBackdropClick(event: MouseEvent) {
+    this.close();
+  }
+
+  @HostListener('document:keydown.escape')
+  onKeydownHandler() {
+    this.close();
   }
 
   close() {

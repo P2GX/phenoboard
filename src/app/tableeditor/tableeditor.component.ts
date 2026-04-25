@@ -1993,6 +1993,8 @@ export class TableEditorComponent  {
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
       width: '1200px',
       height: '900px',
+      maxWidth: '95vw',   
+      panelClass: 'full-width-dialog' ,
       disableClose: true,
     });
 

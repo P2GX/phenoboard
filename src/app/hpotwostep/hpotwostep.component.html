@@ -1,35 +1,34 @@
-<div class="dialog-shell">
-<div mat-dialog-title class="dialog-title-block">
-  <div class="dialog-title-heading">
-    <mat-icon>science</mat-icon>
-    HPO Text Mining
-  </div>
-</div>
-
-<div mat-dialog-content class="dialog-step-content">
-  @if(step === 1) {
-    <app-hpomining
-      (success)="onTextMiningSuccess($event)"
-      (error)="onTextMiningError($event)"
-      (cancel)="close()">
-    </app-hpomining>
-  } @else if (step === 2) {
-    <app-hpopolishing
-      [annotations]="annotations"
-      (done)="onPolishingDone($event)"
-      (cancel)="close()">
-    </app-hpopolishing>
-  }
-</div>
-
-  <div mat-dialog-actions class="dialog-actions-bar">
-    <button class="btn-outline-cancel" (click)="close()">Cancel</button>
+<div class="native-modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="native-modal-container" (click)="$event.stopPropagation()">
     
-    @if (step === 2) {
-      <button class="btn-primary btn-with-icon" (click)="polishingComp.finish()">
-      <mat-icon class="btn-icon-sm">check</mat-icon>
-        Finish
-      </button>
-    }
-</div>
+    <header class="modal-header">
+      <div class="header-title">
+        <mat-icon>science</mat-icon>
+        <span>HPO Text Mining</span>
+      </div>
+      <button class="close-icon-btn" (click)="close()">×</button>
+    </header>
+
+    <main class="modal-body">
+      @if(step === 1) {
+        <app-hpomining
+          (success)="onTextMiningSuccess($event)"
+          (cancel)="close()">
+        </app-hpomining>
+      } @else if (step === 2) {
+        <app-hpopolishing
+          [annotations]="annotations"
+          (done)="onPolishingDone($event)">
+        </app-hpopolishing>
+      }
+    </main>
+
+    <footer class="modal-footer">
+      <button class="btn-secondary" (click)="close()">Cancel</button>
+      @if (step === 2) {
+        <button class="btn-primary" (click)="polishingComp.finish()">Finish</button>
+      }
+    </footer>
+    
+  </div>
 </div>

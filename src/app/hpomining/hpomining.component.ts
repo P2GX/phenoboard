@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-hpomining',
   templateUrl: './hpomining.component.html',
+  styleUrl: './hpomining.component.scss',
   standalone: true,
   imports: [FormsModule],
 })

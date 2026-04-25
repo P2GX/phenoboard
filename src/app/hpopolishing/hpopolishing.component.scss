@@ -259,9 +259,12 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  
+ 
   app-hpoautocomplete {
     flex-grow: 1;
+  }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
   }
 }
 
