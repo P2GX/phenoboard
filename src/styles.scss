@@ -1,14 +1,16 @@
 // 1. ALL @use rules must be first
 @use "@angular/material" as mat;
-@use 'styles/variables' as *;
-@use 'styles/buttons';
-@use 'styles/titles';
-@use 'styles/forms';
 @use 'styles/animations';
-@use 'styles/typography';
+@use 'styles/buttons';
+@use 'styles/forms';
 @use 'styles/layout';
+@use 'styles/modals';
 @use 'styles/snackbars';
 @use 'styles/status';
+@use 'styles/titles';
+@use 'styles/typography';
+@use 'styles/variables' as *;
+
 
 // 2. Then @include
 @include mat.core();

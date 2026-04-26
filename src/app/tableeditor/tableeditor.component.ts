@@ -35,6 +35,7 @@ import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
 import { TableEditorHeader } from "./table-editor-header";
+import { EtlCellEditDialogComponent } from '../etl_cell/etl-cell-edit-dialog.component';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -100,10 +101,11 @@ export class TableEditorComponent  {
   columnBeingTransformed: number | null = null;
 
   contextMenuCellVisible = false;
-  contextMenuPosition: OverlayPosition | null = null;
+  contextMenuPosition = signal<{ x: number, y: number }>({ x: 200, y: 200 });
+  editModalPosition = signal<{ x: number, y: number }>({ x: 200, y: 200 });
   contextMenuAnchor?: HTMLElement;
 
-  editModalPosition: OverlayPosition | null = null;
+
 
   // The following mark columns for merging 
   colAforMerge = signal<number | null>(null);
@@ -637,45 +639,6 @@ export class TableEditorComponent  {
 
 
 
-  /**
-   * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function
-   * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
-   */
-  async editCellValueManually() {
-    this.contextMenuCellVisible = false;
-    if (! this.contextMenuAnchor) return;
-    const dto = this.etl_service.etlDto();
-    if (! dto) return;
-    const rect = this.contextMenuAnchor.getBoundingClientRect();
-    const safePos = this.configService.calculateMenuPosition(
-      rect.left, 
-      rect.top, 
-      250, // Estimated Modal Width
-      300  // Estimated Modal Height
-    );
-    this.editModalPosition = { 
-      x: safePos.x + window.scrollX, 
-      y: safePos.y + window.scrollY 
-    };
-    this.editModalVisible.set(true);
-
-    const cell = this.contextMenuCellValue;
-    this.editingValue = cell;
-    const colIndex = this.contextMenuCellCol;
-    if (!cell || colIndex == null) {
-      this.notificationService.showError("Could not edit cell: missing context.");
-      return;
-    }
-    this.editingString = cell.original;
-    const col = dto.table.columns[colIndex];
-    if (!col) {
-      this.notificationService.showError("Could not edit cell because we could not get context menu cell column.");
-      return;
-    }
-
-    this.editModalVisible.set(true);
-  }
-
 
 
   /**
@@ -930,44 +893,6 @@ export class TableEditorComponent  {
   }
 
 
-  /* Get positions for the context menu */
-  private calculateContextMenuPosition(
-    anchor: HTMLElement,
-    menuWidth = 260,
-    menuHeight = 240,
-    margin = 6
-  ): OverlayPosition {
-    const rect = anchor.getBoundingClientRect();
-
-    const viewportTop = window.scrollY;
-    const viewportBottom = viewportTop + window.innerHeight;
-    const viewportLeft = window.scrollX;
-    const viewportRight = viewportLeft + window.innerWidth;
-
-    // Default: below, left-aligned to cell
-    let top = rect.bottom + window.scrollY + margin;
-    let left = rect.left + window.scrollX;
-
-    // Flip vertically if overflowing bottom
-    if (top + menuHeight > viewportBottom) {
-      top = rect.top + window.scrollY - menuHeight - margin;
-    }
-
-    // Clamp vertically
-    if (top < viewportTop + margin) {
-      top = viewportTop + margin;
-    }
-
-    // Clamp horizontally
-    if (left + menuWidth > viewportRight) {
-      left = viewportRight - menuWidth - margin;
-    }
-    if (left < viewportLeft + margin) {
-      left = viewportLeft + margin;
-    }
-
-    return { y:top, x: left };
-  }
   /* Activated by a right click on a table cell */
   onCellContextMenu(event: {
     event: MouseEvent;
@@ -975,68 +900,105 @@ export class TableEditorComponent  {
     rowIndex: number;
     colIndex: number;
   }) {
-   
-    const mouseEvent = event.event;
-    this.contextMenuAnchor = mouseEvent.currentTarget as HTMLElement;
+    event.event.preventDefault();
+    event.event.stopPropagation();
+    //  Capture coordinates relative to the VIEWPORT (client)
+    const mousePos = {
+      x: event.event.clientX,
+      y: event.event.clientY
+    };
+    this.contextMenuPosition.set(mousePos);
+    this.editModalPosition.set(mousePos);
     this.contextMenuCellVisible = true;
-     // Position the context menu
-    this.contextMenuPosition = this.calculateContextMenuPosition(this.contextMenuAnchor);
 
     this.contextMenuCellRow = event.rowIndex;
     this.contextMenuCellCol = event.colIndex;
     this.contextMenuCellValue = event.cell;
 
-    // Determine the type / other data from parent state
     const headers = this.displayHeaders();
     const header = headers[event.colIndex];
     this.contextMenuCellType = header.columnType;
   }
+  
+  /* for the right-click context menu on edit cells */
+  handleMenuAction(action: () => void) {
+    action();
+    setTimeout(() => {
+    this.contextMenuCellVisible = false;
+    console.log("Menu closed after action");
+  }, 0);
+    console.log("handle menu")
+  }
 
 
   /**
-   * Save a manual edit to a table cell. Note that we assume that any manual
-   * edit is correct and apply the "TRANSFORMED" state. Everything will be Q/C'd
-   * one more time with the conversion to CohortData as well!
+   * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function
+   * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
-  async saveManualEdit(): Promise<void> {
+  async editCellValueManually(): Promise<void> {
     const dto = this.etl_service.etlDto();
-    if (! dto) return;
+    const cell = this.contextMenuCellValue;
     const colIndex = this.contextMenuCellCol;
-    const rowIndex = this.contextMenuCellRow;
-    if (colIndex == null || rowIndex == null) {
-      this.notificationService.showError("Could not save value: missing row or column index");
+    if (!cell || colIndex == null || !dto) {
+      this.notificationService.showError("Could not edit cell: missing context.");
+      this.contextMenuCellVisible = false; // Close it anyway since we can't act
       return;
     }
-    const col = dto.table.columns[colIndex];
-    if (! col) return;
-      const oldCell = col.values[rowIndex];
-      if (!oldCell) return;
-      if (! this.editingValue) {
-        this.notificationService.showError("Could not find edit value");
-        return;
-      }
-    const newColumns = dto.table.columns.map((col, i) => {
-      if (i !== colIndex) return col; // leave other columns unchanged
-      // Update the specific cell immutably
-      const newValues = col.values.map((cell, j) => {
-            if (j !== rowIndex) return cell;
-            return {
-              ...cell,
-              original: this.editingString.trim(),
-              current: this.editingString.trim(),
-              status: TRANSFORMED, // assume manual edit is correct
-              errorMessage: undefined
-            };
-          });
-          return { ...col, values: newValues };
-        });
-    
-      this.contextMenuCellValue = newColumns[colIndex].values[rowIndex];
-      this.editModalVisible.set(false);
-      this.etl_service.updateColumns(newColumns);
-    
-    
+
+    const dialogRef = this.dialog.open(EtlCellEditDialogComponent, {
+        data: { original: cell.original, current: cell.current },
+        width: '400px'
+      });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result !== undefined) {
+      this.saveManualEdit(result);
+    }
+  
+
+    this.contextMenuCellVisible = false;
   }
+
+
+ /**
+ * Save a manual edit to a table cell.
+ * @param newValue The string returned from the dialog or input
+ */
+async saveManualEdit(newValue: string): Promise<void> {
+  const dto = this.etl_service.etlDto();
+  if (!dto) return;
+
+  const colIndex = this.contextMenuCellCol;
+  const rowIndex = this.contextMenuCellRow;
+
+  if (colIndex == null || rowIndex == null) {
+    this.notificationService.showError("Could not save value: missing row or column index");
+    return;
+  }
+
+  const newColumns = dto.table.columns.map((col, i) => {
+    if (i !== colIndex) return col;
+
+    const newValues = col.values.map((cell, j) => {
+      if (j !== rowIndex) return cell;
+      
+      return {
+        ...cell,
+        // We update 'current' primarily. 
+        // Note: Deciding whether to overwrite 'original' depends on if you 
+        // ever want to "Reset" to the file's literal text.
+        current: newValue.trim(),
+        status: EtlCellStatus.Transformed, 
+        errorMessage: undefined
+      };
+    });
+    return { ...col, values: newValues };
+  });
+
+  this.etl_service.updateColumns(newColumns);
+
+  this.editModalVisible.set(false);
+  this.contextMenuCellVisible = false;
+}
 
 
   // Structure to be used in the context menu

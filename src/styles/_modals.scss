@@ -1,0 +1,97 @@
+/* Full screen overlay */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.2); /* Subtle dimming */
+  z-index: 2000; /* Higher than context menu */
+  display: flex; /* Helps with centering if you don't use X/Y */
+}
+
+/* The Modal Card */
+.modal-card {
+  position: fixed;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 320px;
+  border: 1px solid var(--app-border-color);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.modal-header {
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Body & Badges */
+.modal-body {
+  padding: 16px;
+}
+
+.info-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.badge-item {
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.badge-label {
+  color: #6b7280;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge-value {
+  color: #111827;
+  font-family: monospace;
+}
+
+/* Input */
+.app-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  font-size: 13px;
+}
+
+.app-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Footer */
+.modal-footer {
+  padding: 12px 16px;
+  background: #f9fafb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

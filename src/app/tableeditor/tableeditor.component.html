@@ -130,7 +130,7 @@
     @for (col of columnsToRender(); track trackColumn($index, col); let colIndex = $index) {
         @if (isHpoTextMiningColumn(colIndex)) {
           <!-- HPO Text Mining Cell -->
-            <td>
+          <td>
           <button
             class="hpo-button"
             [class.has-terms]="getHpoTermCount(colIndex, rowIndex) > 0"
@@ -230,90 +230,43 @@
   </ul>
 </div>
 }
-  @if (contextMenuCellVisible) {
-    <!-- activate by OnCellContextMenu -->
+
+@if (contextMenuCellVisible) {
+  <div class="menu-overlay-backdrop" (click)="contextMenuCellVisible = false" (contextmenu)="$event.preventDefault(); contextMenuCellVisible = false">
+    
     <div class="context-menu-visible"
-        [style.top.px]="contextMenuPosition?.y" 
-        [style.left.px]="contextMenuPosition?.x"
-        (click)="contextMenuCellVisible = false"
-    >
-    <div style="padding: 8px; font-size: 13px; line-height: 1.5;">
-      
-      <div><strong>Original:</strong> {{ contextMenuCellValue?.original }}</div>
-      <div><strong>Current:</strong> {{ contextMenuCellValue?.current }}</div>
-      <div style="border-bottom: 1px solid #ccc; margin-bottom: 5px; padding-bottom: 5px;">
-        <strong>Status:</strong> {{ getStatusSymbol(contextMenuCellValue) }} 
-        <span style="text-transform: capitalize;">{{ contextMenuCellValue?.status }}</span>
-      </div>
-      </div>
-      <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
-        <li
-          style="padding: 4px 8px; cursor: pointer;"
-          (click)="editCellValueManually()"
-        >
-           <mat-icon>edit</mat-icon> Edit cell contents
+         [style.top.px]="contextMenuPosition().y" 
+         [style.left.px]="contextMenuPosition().x"
+         (click)="$event.stopPropagation()"> <header class="menu-header">
+        <div class="header-row">
+          <span class="label">Original:</span>
+          <span class="value">{{ contextMenuCellValue?.original }}</span>
+        </div>
+        <div class="header-row secondary-text">
+          Status: {{ getStatusSymbol(contextMenuCellValue) }} {{ contextMenuCellValue?.status }}
+        </div>
+      </header>
+
+      <ul class="menu-list">
+        <li (click)="handleMenuAction(() => editCellValueManually()); $event.stopPropagation()">
+          <mat-icon>edit</mat-icon> <span>Edit cell contents</span>
         </li>
-        <li
-          style="padding: 4px 8px; cursor: pointer;"
-          (click)="deleteRow()"
-        >
-           <mat-icon>delete</mat-icon> Delete row
+        <li (click)="handleMenuAction(() => deleteRow()); $event.stopPropagation()">
+          <mat-icon>delete</mat-icon> <span>Delete row</span>
         </li>
-       @if (hasValueAbove()) {
-          <li (click)="useValueFromAbove()">
-            <mat-icon>content_copy</mat-icon> Copy value from above
+        @if (hasValueAbove()) {
+          <li (click)="handleMenuAction(() => useValueFromAbove()); $event.stopPropagation()">
+            <mat-icon>content_copy</mat-icon> <span>Copy value from above</span>
           </li>
         }
-        <li
-          style="padding: 4px 8px; cursor: pointer;"
-          (click)="openHgvsEditor()"
-        >
-           <mat-icon>science</mat-icon>Manually add HGVS
+        <hr class="menu-divider" />
+        <li (click)="handleMenuAction(() =>openHgvsEditor()); $event.stopPropagation()">
+          <mat-icon>science</mat-icon> <span>Manually add HGVS</span>
         </li>
-         <li
-          style="padding: 4px 8px; cursor: pointer;"
-          (click)="openSvEditor()"
-        >
-           <mat-icon>account_tree</mat-icon>Manually add Structural Variant
+        <li (click)="handleMenuAction(() =>openSvEditor()); $event.stopPropagation()">
+          <mat-icon>account_tree</mat-icon> <span>Manually add SV</span>
         </li>
       </ul>
     </div>
-  }
-
-
-@if(editModalVisible()) {
-  <div class="edit-modal"
-        [style.top.px]="contextMenuPosition?.y" 
-        [style.left.px]="contextMenuPosition?.x"
-        (mousedown)="editModalVisible.set(false)"
-    >
-    <div style="padding: 8px; font-size: 13px; line-height: 1.5;" (mousedown)="$event.stopPropagation()">
-    <header>
-      <mat-icon>edit</mat-icon>
-      <h3>Edit Cell Value</h3>
-    </header>
-    
-    <div class="modal-body">
-      <label>
-        <span class="value-badge original">Original: {{ editingValue?.original || "n/a" }}</span>
-        <span class="value-badge transformed">Transformed: {{ editingValue?.current || "n/a" }}</span>
-      </label>
-      <input
-        id="cell-edit"
-        [(ngModel)]="editingString"
-        (keyup.enter)="saveManualEdit()"
-        placeholder="Enter new value..."
-        autofocus
-        autocapitalize="none"
-        spellcheck="false"
-        autocomplete="off"
-      />
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="editModalVisible.set(false)">Cancel</button>
-      <button class="btn-primary" (click)="saveManualEdit()">Save Changes</button>
-    </div>
   </div>
-</div>
 }

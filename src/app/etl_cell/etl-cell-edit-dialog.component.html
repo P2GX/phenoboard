@@ -1,0 +1,39 @@
+<div class="dialog-header">
+  <div class="dialog-icon">
+    <mat-icon>edit</mat-icon>
+  </div>
+  <div>
+    <h3 class="dialog-title">Edit cell value</h3>
+    <p class="dialog-subtitle">Overrides the transformed output</p>
+  </div>
+</div>
+
+<div class="dialog-body">
+  <div class="value-grid">
+    <div class="value-card">
+      <span class="value-label">Original</span>
+      <span class="value-text">{{ data.original || "n/a" }}</span>
+    </div>
+    <div class="value-card">
+      <span class="value-label">Transformed</span>
+      <span class="value-text">{{ data.current || "n/a" }}</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="cell-edit">New value</label>
+    <input
+      id="cell-edit"
+      class="field-input"
+      [(ngModel)]="currentValue"
+      (keyup.enter)="save()"
+      placeholder="Enter new value…"
+      cdkFocusInitial
+    />
+  </div>
+</div>
+
+<div class="dialog-footer">
+  <button class="btn-cancel" (click)="cancel()">Cancel</button>
+  <button class="btn-save" (click)="save()">Save changes</button>
+</div>

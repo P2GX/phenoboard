@@ -1,7 +1,6 @@
 <div
   class="etl-cell"
   [ngClass]="cellClass()"
-  [matTooltip]="tooltipText()"
   (contextmenu)="onRightClick($event)"
 >
   {{ current() || original() }}

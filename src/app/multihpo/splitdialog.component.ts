@@ -28,7 +28,7 @@ import { MatRadioModule } from "@angular/material/radio";
       border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
-      min-width: 60px
+      min-width: 60px;
       background: white;
       transition: all 0.2s ease;
 
