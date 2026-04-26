@@ -10,7 +10,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
   imports: [MatMenuModule, MatButtonModule, MatIconModule],
   encapsulation: ViewEncapsulation.None, // Allows us to style the overlay menu
   templateUrl: './help-button.component.html',
-  styleUrls: [ './help-button.component.scss']
+  styleUrl: './help-button.component.scss'
 })
 export class HelpButtonComponent {
   title = input.required<string>();

@@ -162,10 +162,9 @@ $border-light: #e2e8f0;
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* OLDOLDOLD */
 
 
-/* 2. The Container */
+
 .pt-table-container {
   width: 100%;
   max-height: 70vh;
@@ -176,10 +175,21 @@ $border-light: #e2e8f0;
   position: relative;
 }
 
-/* 3. The Table - Back to Basics */
-.pt-table {
+.table-viewport {
   width: 100%;
-  border-collapse: separate; /* Keep this for sticky headers */
+  overflow-x: auto;   /* Allows horizontal scroll */
+  overflow-y: auto;   /* Allows vertical scroll if height is restricted */
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+}
+
+
+.pt-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate; 
   border-spacing: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
@@ -355,7 +365,7 @@ td.table-cell {
 
 .context-menu li:hover,
 .context-menu-visible li:hover {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
   color: white;
 }
 
@@ -367,16 +377,14 @@ td.table-cell {
 /* ===== SUBMENU STYLES ===== */
 
 .has-submenu {
-  position: relative;
+  display: flex;
+  justify-content: space-between; /* Pushes text to left, arrow to right */
+  align-items: center;
+  gap: 12px; /* Ensures text doesn't run into the arrow */
+  padding: 8px 12px;
 }
 
-.has-submenu::after {
-  content: "▸"; /* arrow indicator */
-  position: absolute;
-  right: 12px;
-  color: inherit;
-  font-size: 0.8rem;
-}
+
 
 .submenu {
   display: none;

@@ -26,7 +26,7 @@ export interface CohortDialogData {
     HelpButtonComponent
 ],
   templateUrl: './cohortdialog.component.html',
-  styleUrls: ['./cohortdialog.component.css'],
+  styleUrl: './cohortdialog.component.scss',
 })
 export class CohortDialogComponent {
   

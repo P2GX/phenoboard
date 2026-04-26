@@ -100,13 +100,47 @@
   box-sizing: border-box;
 }
 
-/* Add a border to material dialogs */
-.mat-mdc-dialog-surface {
-  border: 1px solid #e2e8f0 !important;
-  border-top: 3px solid #3f51b5 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
+:root {
+  /* Borders & Shadows */
+  --app-border-color: #d1d5db;
+  --app-border-radius: 8px;
+  --app-dialog-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Spacing */
+  --dialog-padding: 1.5rem;
+
+  /* Backgrounds */
+  --dialog-bg: #ffffff;
+  --dialog-header-bg: #ffffff;
+  --dialog-footer-bg: #f9fafb;
 }
+
+.dialog-container-base {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--dialog-bg);
+  border: 1px solid var(--app-border-color);
+  border-radius: var(--app-border-radius);
+  box-shadow: var(--app-dialog-shadow);
+  overflow: hidden; /* Clips children to the border radius */
+}
+
+/* Use this for the scrollable content area */
+.dialog-body-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--dialog-padding);
+}
+
+/* Helper to remove Material's default styling */
+.custom-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 
 .tool-row {
   display: flex;

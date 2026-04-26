@@ -30,3 +30,65 @@
 .status-observed:hover { background-color: #66bb6a !important; color: white !important; }
 .status-excluded:hover { background-color: #ef5350 !important; color: white !important; }
 .status-na:hover       { background-color: #bdbdbd !important; color: white !important; }
+
+/* This is for our help button dialog (HelpButtonComponent) */
+.help-bubble-menu {
+  /* Material surface -> white and opaque */
+  background-color: #ffffff !important; 
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #d1d5db;
+  opacity: 1 !important; /* Force full visibility */
+}
+
+/*  MDC inner container  */
+.help-bubble-menu .mat-mdc-menu-panel {
+  background-color: #ffffff !important;
+  border-radius: 8px !important;
+}
+
+/* content inside HelpButtonComponent */
+.help-content {
+  background-color: #ffffff; 
+  padding: 16px;
+  max-width: 350px;
+  color: #1f2937;
+}
+
+.help-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.help-text {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.help-divider {
+  border: 0;
+  border-top: 1px solid var(--app-border-color);
+  margin: 8px 0;
+}
+
+.btn-docs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.btn-docs:hover {
+  background: #eff6ff;
+}

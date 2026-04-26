@@ -62,7 +62,7 @@ export class NewTemplateComponent  {
   private configService = inject(ConfigService);
   private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
-  private dialog= inject(MatDialog);
+  private dialog = inject(MatDialog);
   public statusService = inject(AppStatusService);
 
   digenicTemplate = false;
@@ -100,7 +100,7 @@ export class NewTemplateComponent  {
     let shouldContinue = true;
     while (shouldContinue) {
       const dialogRef = this.dialog.open(CohortDialogComponent, {
-        width: '450px',
+        width: '550px',
         height: '700px',
         data: {
           title: `Enter disease #${tempDiseases.length + 1} Info`,
@@ -131,7 +131,7 @@ export class NewTemplateComponent  {
     this.meldedTemplate = false;
     this.digenicTemplate = true;
     const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '450px',
+      width: '550px',
       height: '700px',
       data: { title: 'Create Digenic Cohort', mode: 'digenic' }
     });
@@ -148,7 +148,7 @@ async mendelian(): Promise<void> {
   this.digenicTemplate = false;
   
   const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '450px',
+      width: '550px',
       height: '700px',
       data: { title: 'Create Mendelian Cohort', mode: 'mendelian' }
     });

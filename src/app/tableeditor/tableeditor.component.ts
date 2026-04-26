@@ -391,14 +391,6 @@ export class TableEditorComponent  {
     this.columnContextMenuVisible = true;
   }
 
-  /**
-   * Show all columns again (after editing a specific column)
-   */
-  clearColumnFilter(): void {
-    this.editModeActive = false;
-    this.visibleColIndex = -1;
-    this.columnContextMenuVisible = false;
-  }
 
   /**
    * Returns the unique, trimmed, non-empty values from a column
@@ -437,22 +429,6 @@ export class TableEditorComponent  {
     if (!column) return [];
     return this.extractUniqueValues(column.values);
   }
-
-
-  /**
-   * This method will cause just the left-most column (with the individual identifiers)
-   * and the column to be edited to be visible. The user clicks on the column header
-   * to edit the specific column
-   * @param index - index of the column to be edited
-   */
-  startEditColumn(index: number) {
-    const dto = this.etl_service.etlDto();
-    if (! dto) return;
-    this.editModeActive = true;
-    this.visibleColIndex = index;
-  }
-
-
 
   async applySingleHpoTransform(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();

@@ -84,6 +84,7 @@
   }
 </div>
 </div>
+<div class="table-viewport">
 <table class="pt-table">
    <!-- ===== HEADER ROW ===== -->
   <tr>
@@ -166,6 +167,7 @@
  </tr>
 }
 </table>
+</div>
 <div style="height: 40px;"></div>
 
 }
@@ -179,14 +181,13 @@
 >
   <div style="padding: 5px 12px; font-weight: bold;">
     Column: {{ contextMenuColHeader?.original }}<br />
+  </div>
+    <div style="padding: 5px 12px; font-weight: normal; font-size: 10px;">
     Type: {{ contextMenuColType }}
   </div>
   <ul>
-    @if(contextMenuColIndex !== null) {
-      <li (click)="startEditColumn(contextMenuColIndex); columnContextMenuVisible = false">Focus on Column</li>
-      <li (click)="clearColumnFilter(); columnContextMenuVisible = false">Show All Columns</li>
       <li class="has-submenu">
-        Set Column Type ▸
+        Reset column 
         <ul class="submenu">
           @for (category of simpleColumnOperations; track category) {
             <li (click)="simpleColumnOp(contextMenuColIndex, category); columnContextMenuVisible = false">
@@ -194,41 +195,39 @@
             </li>
           }
         </ul>
-     </li>
-    }
-    <li class="has-submenu">
-  Transform Column ▸
-  <ul class="submenu">
-    @for (category of transformCategories; track category.label) {
-      <li class="has-submenu">
-        {{ category.label }} ▸
-        <ul class="submenu">
-          @for (t of category.transforms; track t) {
-            <li (click)="applyNamedTransform(contextMenuColIndex, t); columnContextMenuVisible = false">
-              {{ getTransformDisplayName(t) }}
-            </li>
-          }
-        </ul>
       </li>
-    }
+    <li class="has-submenu">
+      Transform Column 
+      <ul class="submenu">
+        @for (category of transformCategories; track category.label) {
+          <li class="has-submenu">
+            {{ category.label }} 
+            <ul class="submenu">
+              @for (t of category.transforms; track t) {
+                <li (click)="applyNamedTransform(contextMenuColIndex, t); columnContextMenuVisible = false">
+                  {{ getTransformDisplayName(t) }}
+                </li>
+              }
+            </ul>
+          </li>
+        }
+      </ul>
+    </li>
+    <li class="has-submenu">
+      Merge Columns
+      <ul class="submenu">
+        <li (click)="colAforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
+          Mark as Column A (Merge)
+        </li>
+        <li (click)="colBforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
+          Mark as Column B (Merge)
+        </li>
+        <li (click)="executeMerge(); columnContextMenuVisible = false">
+          Merge columns A and B
+        </li>
+      </ul>
+    </li>
   </ul>
-</li>
-<li class="has-submenu">
-  Merge Columns ▸
-   <ul class="submenu">
-    <li (click)="colAforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
-      Mark as Column A (Merge)
-    </li>
-    <li (click)="colBforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
-      Mark as Column B (Merge)
-    </li>
-     <li (click)="executeMerge(); columnContextMenuVisible = false">
-      Merge columns A and B
-    </li>
-   </ul>
-</li>
-  </ul>
-
 </div>
 }
   @if (contextMenuCellVisible) {
