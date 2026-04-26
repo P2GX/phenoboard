@@ -26,6 +26,8 @@ jobs:
       # ------------------------------------
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Cache Rust build artifacts
         uses: actions/cache@v4
@@ -84,6 +86,8 @@ jobs:
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY || '' }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD || '' }}
+        with:
+          args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
 
       # ------------------------------------
       # 6. Upload Artifacts
@@ -94,6 +98,7 @@ jobs:
           name: installer-${{ matrix.platform }}
           path: |
             src-tauri/target/release/bundle/**/*
+            src-tauri/target/universal-apple-darwin/release/bundle/**/*
           if-no-files-found: ignore
 
   # ------------------------------------
