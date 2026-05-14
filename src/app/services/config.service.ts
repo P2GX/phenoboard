@@ -25,11 +25,6 @@ export class ConfigService {
     return await invoke<string | null>('select_hp_json_download_path');
   }
 
-  /*
-  async loadHumanPhenotypeOntology(hpJsonPath: string): Promise<void> {
-    return await invoke("load_hpo_from_hp_json", { hpoJsonPath:  hpJsonPath });
-  }*/
-
   async loadHPO(): Promise<void> {
     return await invoke("load_hpo");
   }
@@ -295,9 +290,6 @@ export class ConfigService {
 
   /* Here, we map each individual string to a MiningConcept. */
   async mapColumnToMiningConcepts(cellValues: string[]): Promise<MiningConcept[]> {
-    const uniqueFragments = Array.from(new Set(
-      cellValues.flatMap(val => val.split(/[;\n]/).map(f => f.trim()).filter(f => f.length > 0))
-    ));
     return await invoke<MiningConcept[]>('mine_multi_hpo_column', { cellValues });
   }
 

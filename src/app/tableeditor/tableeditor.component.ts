@@ -518,7 +518,7 @@ export class TableEditorComponent  {
    * ancestorString field, and this allows us to distribute the mappings back the each specific row.
    */
   private async getInitialMultipleHpoMapping(col: ColumnDto): Promise<MinedCell[]> {
-    const originalEntries = col.values.map(v => v.original);
+    const originalEntries = col.values.map(v => v.current || v.original ); // Use the current value if available (this means the user update the original value)
     const initialConcepts: MiningConcept[] = await this.configService.mapColumnToMiningConcepts(originalEntries);
     const uniqueDictionary: MiningConcept[] = await this.configService.create_canonical_dictionary(initialConcepts);
     const globalRef = this.dialog.open(MultiHpoComponent, {

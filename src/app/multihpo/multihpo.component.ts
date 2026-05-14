@@ -62,6 +62,7 @@ export class MultiHpoComponent {
   private dialog = inject(MatDialog);
   public data = inject(MAT_DIALOG_DATA) as { concepts: MiningConcept[], title: string };
   title: string = this.data.title;
+  
   constructor() {
     const processed = (this.data.concepts ?? [])
       .filter(c => {
@@ -85,7 +86,6 @@ updateMapping(index: number, newTerm: HpoTermDuplet) {
     const cloned = [...list];
     const concept = cloned[index];
 
-    // Push the new term into the suggestedTerms array
     concept.suggestedTerms.push({
       id: newTerm.hpoId,
       label: newTerm.hpoLabel,
@@ -142,13 +142,10 @@ removeConcept(index: number) {
   prepareConcepts() {
     const processed = this.data.concepts.map(c => ({
       ...c,
-      // Note: If you added 'isSearching' to your interface, 
-      // it helps track local UI state for the search box
       isSearching: false,
       suggestedTerms: Array.isArray(c.suggestedTerms) ? [...c.suggestedTerms] : []
     }));
     
-    // Use .set() for a full replacement
     this.concepts.set(processed);
   }
 
