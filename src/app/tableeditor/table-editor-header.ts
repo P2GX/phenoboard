@@ -61,16 +61,14 @@ export class TableEditorHeader implements OnInit {
 
     importCohortDiseaseData(): void {
         const cohort = this.cohortService.getCohortData();
-        if (cohort == null) {
-        return;
-        }
+        if (cohort == null) return;
         if (cohort.cohortType != 'mendelian') {
-        this.notificationService.showError(`External ETL only available for mendelian but you tried ${cohort.cohortType}`);
-        return;
+            this.notificationService.showError(`External ETL only available for mendelian but you tried ${cohort.cohortType}`);
+            return;
         }
         if (cohort.diseaseList.length != 1) {
-        this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
-        return;
+            this.notificationService.showError(`External ETL only available for mendelian but you had ${cohort.diseaseList.length} DiseaseData objects`);
+            return;
         }
         const ddata = cohort.diseaseList[0];
         this.diseaseDataSignal.set(ddata);
@@ -84,23 +82,23 @@ export class TableEditorHeader implements OnInit {
     async loadExcel(rowBased: boolean = false) {
         const diseaseData = this.diseaseDataSignal();
         if (! diseaseData) {
-        this.notificationService.showError("COuld not retrieve disease data. Have you loaded a cohort?");
-        return;
-        }
-        try {
-        const table: ColumnTableDto | null = rowBased
-            ? await this.configService.loadExternalExcelRowBased()
-            : await this.configService.loadExternalExcel();
-
-        if (!table) {
-            this.notificationService.showError("Could not retrieve external table");
+            this.notificationService.showError("Could not retrieve disease data. Have you loaded a cohort?");
             return;
         }
-        const dto = fromColumnDto(table);
-        this.etl_service.setEtlDto(dto);
-        this.etl_service.setDisease(diseaseData);
+        try {
+            const table: ColumnTableDto | null = rowBased
+                ? await this.configService.loadExternalExcelRowBased()
+                : await this.configService.loadExternalExcel();
+
+            if (!table) {
+                this.notificationService.showError("Could not retrieve external table");
+                return;
+            }
+            const dto = fromColumnDto(table);
+            this.etl_service.setEtlDto(dto);
+            this.etl_service.setDisease(diseaseData);
         } catch (error) {
-        this.notificationService.showError(`Could not retrieve external table: ${error}.`);
+            this.notificationService.showError(`Could not retrieve external table: ${error}.`);
         }
     }
 
@@ -111,33 +109,34 @@ export class TableEditorHeader implements OnInit {
     async saveExternalTemplateJson(): Promise<void> {
         const etlDto = this.etl_service.etlDto();
         if (! etlDto) {
-        this.notificationService.showError("Could not save JSON because data table is not initialized");
-        return;
+            this.notificationService.showError("Could not save JSON because data table is not initialized");
+            return;
         }
         if (etlDto.disease == null) {
-        this.notificationService.showError("Could not save JSON because disease data is not initialized");
-        return;
+            this.notificationService.showError("Could not save JSON because disease data is not initialized");
+            return;
         }
         if (etlDto.disease.geneTranscriptList.length == 0) {
-        this.notificationService.showError("Empty geneTranscriptList");
-        return;
+            this.notificationService.showError("Empty geneTranscriptList");
+            return;
         }
         if (etlDto.disease.geneTranscriptList.length > 1) {
-        this.notificationService.showError("Unexpected length of geneTranscriptList > 1");
-        return;
+            this.notificationService.showError("Unexpected length of geneTranscriptList > 1");
+            return;
         }
         const gt = etlDto.disease.geneTranscriptList[0];
         if (gt == null) {
-        this.notificationService.showError("geneTranscript. was null");
-        return;
+            this.notificationService.showError("geneTranscript. was null");
+            return;
         }
         const validationError = this.etl_service.validateEtlDto(etlDto);
         if (validationError) {
-        this.notificationService.showError(`Validation failed: ${validationError}`);
-        return;
+            this.notificationService.showError(`Validation failed: ${validationError}`);
+            return;
         }
         this.configService.saveJsonExternalTemplate(etlDto)
     }
+
 
 
     /**
@@ -146,29 +145,48 @@ export class TableEditorHeader implements OnInit {
      */
     async loadExternalTemplateJson(): Promise<void> {
         try {
-        const dto: EtlDto = await this.configService.loadJsonExternalTemplate();
-        if (dto == null) {
-            this.notificationService.showError("Could not retrieve external template json");
-            return;
-        }
-        this.etl_service.setEtlDto(dto);
-        // edge case: User has loaded a disease for another disease, and then they decide to 
-        // process a previous ETL file that has a disease. In this case, we want to update our disease
-        // object and reset the GUI
-        const etlHasDisease = !!dto.disease;
-        if (etlHasDisease) {
-            this.diseaseDataSignal.set(dto.disease);
-            this.cohortService.clearCohortData();
-        } else {
-            const d = this.diseaseDataSignal();
-            if (d) {
-            this.notificationService.showWarning(`Using disease data from session ${d?.diseaseLabel} (${d?.diseaseId})`);
-            } else {
-            this.notificationService.showWarning("Missing disease data. Create the cohort and reload the ETL file");
+            const dto: EtlDto = await this.configService.loadJsonExternalTemplate();
+            
+            if (!dto) {
+                this.notificationService.showError("Could not retrieve external template json");
+                return;
             }
-        }
+
+            this.etl_service.setEtlDto(dto);
+            this.validateDiseaseContext(dto);
+
         } catch (error) {
             this.notificationService.showError(`Could not load external JSON template: ${error}.`);
+        }
+    }
+
+    /**
+     * Handles the edge-case validation between the loaded ETL data and the current session/cohort state.
+     */
+    private validateDiseaseContext(dto: EtlDto): void {
+        const etlDiseaseId = dto.disease?.diseaseId;
+        const previousCohort = this.cohortService.getCohortData();
+
+        // Case 1: ETL file contains disease data
+        if (etlDiseaseId) {
+            const previousDiseaseId = previousCohort?.diseaseList?.[0]?.diseaseId;
+            
+            if (previousDiseaseId && previousDiseaseId !== etlDiseaseId) {
+                this.notificationService.showError(
+                    `ETL disease ${etlDiseaseId} differs from current cohort disease ${previousDiseaseId}`
+                );
+            }
+            return;
+        }
+
+        // Case 2: ETL file is missing disease data
+        const currentDisease = this.diseaseDataSignal();
+        if (currentDisease) {
+            this.notificationService.showWarning(
+                `Using disease data from session ${currentDisease.diseaseLabel} (${currentDisease.diseaseId})`
+            );
+        } else {
+            this.notificationService.showWarning("Missing disease data. Create the cohort and reload the ETL file");
         }
     }
 
@@ -188,7 +206,7 @@ export class TableEditorHeader implements OnInit {
             const pmidDto = result;
             this.etl_service.setPmidData(pmidDto);
         } else {
-            console.log('User cancelled');
+            this.notificationService.showWarning("PMID import cancelled");
         }
         });
     }
@@ -205,7 +223,6 @@ export class TableEditorHeader implements OnInit {
       return;
     }
     const cohort_previous = this.cohortService.getCohortData();
-   
     try { 
       const cohort_dto_new = await this.configService.transformToCohortData(dto);
       // i.e., the previous cohort has patient data

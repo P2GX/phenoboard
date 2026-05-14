@@ -16,7 +16,6 @@ export interface EtlCellValue {
   error?: string;
 }
 
-// --- EtlColumnType ---
 export enum EtlColumnType {
   Raw = "raw",
   FamilyId = "familyId",
@@ -34,7 +33,7 @@ export enum EtlColumnType {
   Ignore = "ignore",
 }
 
-// --- SexCode (UPPERCASE) ---
+
 export enum SexCode {
   M = "M",
   F = "F",
@@ -42,17 +41,12 @@ export enum SexCode {
   O = "O",
 }
 
-// --- DeceasedCode (snake_case) ---
 export enum DeceasedCode {
   Yes = "yes",
   No = "no",
   Na = "na",
 }
 
-
-
-
-// --- EtlColumnHeader ---
 export interface EtlColumnHeader {
   original: string;
   current?: string;
@@ -89,7 +83,7 @@ export interface ColumnTableDto {
   columns: ColumnDto[];
 }
 
-// --- EtlDto ---
+
 export interface EtlDto {
   table: ColumnTableDto;
   disease: DiseaseData | null;
@@ -101,8 +95,11 @@ export interface EtlDto {
 }
 
 /**
- * 
- * @param dto Our excel loading function returns a ColumnTableDto object. Everything else in our EtlDto object is optional
+ * The ColumnTableDto is created by our excel loading function are represents the contents of an external
+ * Excel file (usually, a supplemental file from a publication about a cohort of individuals). The EtlDto
+ * object stores this information and adds new data to be able to transform the DTO into a CohortData object.
+ * We initial the other data as null/empty here.
+ * @param dto A ColumnTableDto object. Everything else in our EtlDto object is optional
  * @returns Default EtlDto with the data from the ColumnTableDto
  */
 export function fromColumnDto(dto: ColumnTableDto): EtlDto {

@@ -1,4 +1,4 @@
-import { Component, inject, input, output, viewChild, effect } from '@angular/core';
+import { Component, inject, input, output, viewChild, effect, ElementRef } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { debounceTime, switchMap, of, map, startWith } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -74,14 +74,21 @@ export class HpoAutocompleteComponent {
   constructor() {
     effect(() => {
       const val = this.inputString();
-      if (val) {
-        this.control.setValue(val, {emitEvent: true});
-        setTimeout(() => this.inputElement()?.focus(), 0);
-        this.inputElement()?.select();
+      const inputRef = this.inputElement(); // This is likely an ElementRef
+
+      if (val && inputRef) {
+        this.control.setValue(val, { emitEvent: true });
+
+        setTimeout(() => {
+          // Access the underlying DOM element
+          const el = inputRef instanceof ElementRef ? inputRef.nativeElement : inputRef;
+          
+          el.focus();
+          el.select();
+        }, 0);
       }
     });
-  }
-  
+}
   
 
   // turn an HpoMatch object into a string for the input box

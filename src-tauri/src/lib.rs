@@ -84,8 +84,6 @@ pub fn run() {
             fetch_hgnc_data
         ])
         .setup(|app| {
-        println!("Frontend dist path: {:?}", app.path().resource_dir());
-
             Ok(())
         })
         .on_window_event(|window, event| {

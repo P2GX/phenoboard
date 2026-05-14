@@ -25,9 +25,10 @@ export class ConfigService {
     return await invoke<string | null>('select_hp_json_download_path');
   }
 
+  /*
   async loadHumanPhenotypeOntology(hpJsonPath: string): Promise<void> {
     return await invoke("load_hpo_from_hp_json", { hpoJsonPath:  hpJsonPath });
-  }
+  }*/
 
   async loadHPO(): Promise<void> {
     return await invoke("load_hpo");

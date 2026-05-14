@@ -1,3 +1,17 @@
+/* This targets the CDK overlay wrapper directly */
+.custom-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  height: auto; /* Let the content define the height */
+  max-height: 90vh; 
+}
+
+/* Ensure the component container inside takes the full width */
+.custom-dialog-container {
+  width: 100%;
+  height: 100%;
+}
+
 .success-panel {
   max-width: 42rem;         // max-w-2xl
   margin: 0 auto;

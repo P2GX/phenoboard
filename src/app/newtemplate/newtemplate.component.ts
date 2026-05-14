@@ -100,8 +100,8 @@ export class NewTemplateComponent  {
     let shouldContinue = true;
     while (shouldContinue) {
       const dialogRef = this.dialog.open(CohortDialogComponent, {
-        width: '550px',
-        height: '700px',
+        width: '750px',
+        height: '90vw',
         data: {
           title: `Enter disease #${tempDiseases.length + 1} Info`,
           isMelded: true
@@ -131,8 +131,8 @@ export class NewTemplateComponent  {
     this.meldedTemplate = false;
     this.digenicTemplate = true;
     const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '550px',
-      height: '700px',
+      width: '750px',
+      height: '90vw',
       data: { title: 'Create Digenic Cohort', mode: 'digenic' }
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
@@ -148,8 +148,8 @@ async mendelian(): Promise<void> {
   this.digenicTemplate = false;
   
   const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '550px',
-      height: '700px',
+      width: '700px',
+      height: '90vw',
       data: { title: 'Create Mendelian Cohort', mode: 'mendelian' }
     });
     const rawValue = await firstValueFrom(dialogRef.afterClosed());

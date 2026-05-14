@@ -67,12 +67,20 @@
     </form>
 
     @if (showPasteArea()) {
-      <div class="paste-overlay">
-        <label>Paste OMIM data here:</label>
-        <textarea [(ngModel)]="pastedText" class="form-textarea" placeholder="Paste here..."></textarea>
-        <div class="paste-actions">
-          <button (click)="processPastedText()" class="btn-primary">Process</button>
-          <button (click)="showPasteArea.set(false)" class="btn-cancel">Cancel</button>
+      <div class="paste-line-container">
+        <div class="paste-input-wrapper">
+          <span class="paste-icon">📋</span>
+          <input 
+            type="text"
+            [(ngModel)]="pastedText" 
+            (keyup.enter)="processPastedText()"
+            class="form-input paste-input" 
+            placeholder="Paste tabular data and press Enter..." 
+            autofocus />
+        </div>
+        <div class="paste-actions-inline">
+          <button (click)="processPastedText()" class="btn-primary-sm">Process</button>
+          <button (click)="showPasteArea.set(false)" class="btn-icon-cancel">✕</button>
         </div>
       </div>
     }
