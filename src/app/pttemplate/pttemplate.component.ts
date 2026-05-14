@@ -628,8 +628,8 @@ export class PtTemplateComponent  {
       return;
     }
     try {
-      const res = await this.configService.exportPpkt(cohort_dto);
-      this.notificationService.showSuccess(res);
+      const n_exported = await this.configService.exportPpkt(cohort_dto);
+      this.notificationService.showSuccess(`Exported ${n_exported} phenopackets.`);
     } catch (err) {
       this.notificationService.showError(String(err));
     }
@@ -805,6 +805,16 @@ openAgeDialog(): void {
     const biocurationEvent = createCurationEvent(orcid);
     if (! biocurationEvent) {
       this.notificationService.showError("Could not create biocuration event");
+      return;
+    }
+    const history = this.cohortService.getCurationHistory();
+    console.log("History:", history);
+    const alreadyExists = this.cohortService.getCurationHistory().some(event => 
+      event.orcid === biocurationEvent.orcid && 
+        event.date === biocurationEvent.date
+    );
+    if (alreadyExists) {
+      this.notificationService.showWarning("This curation event has already been recorded.");
       return;
     }
     this.cohortService.addBiocuration(biocurationEvent);

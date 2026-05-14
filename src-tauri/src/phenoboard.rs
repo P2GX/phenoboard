@@ -425,7 +425,7 @@ impl PhenoboardSingleton {
     /// Export a list of phenopackets derived from the cohort.
     pub fn export_ppkt(
         &mut self,
-        cohort_dto: CohortData) -> Result<String, String> {
+        cohort_dto: CohortData) -> Result<usize, String> {
         let out_dir = match self.get_phenopackets_output_dir() {
             Ok(dir) => dir,
             Err(e) =>  { return Err(e);},

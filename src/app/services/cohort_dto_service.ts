@@ -291,4 +291,12 @@ export class CohortDtoService {
         });
     }
 
+    getCurationHistory(): CurationEvent[] {
+        const cohort = this.cohortData();
+        if (cohort) {
+            return cohort.curationHistory || [];
+        }
+        return [];
+    }
+
 }

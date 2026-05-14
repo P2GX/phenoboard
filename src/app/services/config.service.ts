@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
-import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap } from '../models/cohort_dto';
+import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap, CurationEvent } from '../models/cohort_dto';
 import { HpoTermData } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
@@ -186,8 +186,8 @@ export class ConfigService {
     return invoke<CohortData>('sanitize_cohort_data',  {cohortDto: cohort_data});
   }
 
-  async exportPpkt(cohort_dto: CohortData): Promise<string> {
-    return invoke<string>('export_ppkt', {cohortDto: cohort_dto});
+  async exportPpkt(cohort_dto: CohortData): Promise<number> {
+    return invoke<number>('export_ppkt', {cohortDto: cohort_dto});
   }
 
    async exportHpoa(cohort_dto: CohortData): Promise<string> {
@@ -266,6 +266,8 @@ export class ConfigService {
   async getCurrentOrcid(): Promise<string> {
     return await invoke<string>('get_biocurator_orcid');
   }
+
+
 
   async saveCurrentOrcid(orcid: string): Promise<StatusDto> {
     return await invoke<StatusDto>('save_biocurator_orcid',{

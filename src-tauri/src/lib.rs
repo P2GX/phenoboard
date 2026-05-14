@@ -9,7 +9,7 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
-use tauri::{AppHandle, Emitter, Manager, Runtime, WindowEvent};
+use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
@@ -34,54 +34,54 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(init())     
         .invoke_handler(tauri::generate_handler![
+            add_hpo_term_to_cohort,
+            add_new_row_to_cohort,
+            compare_two_phenopackets,
+            create_canonical_dictionary,
+            create_cell_mappings,
+            create_new_cohort_data,
+            create_new_melded_cohort,
             emit_backend_status,
+            expand_dictionary_to_rows,
+            export_hpoa,
+            export_ppkt,
+            fetch_hgnc_data,
+            fetch_pmid_title,
+            fetch_repo_qc,
+            get_best_hpo_match,
+            get_biocurator_orcid,
+            get_cohort_age_strings,
+            get_cohort_data_from_etl_dto,
+            get_hp_json_path,
+            get_hpo_autocomplete,
+            get_hpo_parent_and_children_terms,
+            get_hpo_terms_by_toplevel,
+            get_multi_hpo_strings,
+            get_status_dto,
             get_ppkt_store_json,
+            get_pt_template_path,
+            get_variant_analysis,
+            load_external_excel,
+            load_external_template_json,
             load_phetools_excel_template,
             load_ptools_json,
             load_hpo,
             map_text_to_annotations,
-            compare_two_phenopackets,
-            create_new_cohort_data,
-            create_new_melded_cohort,
-            get_hp_json_path,
-            get_pt_template_path,
-            reset_pt_template_path,
-            fetch_pmid_title,
-            get_hpo_parent_and_children_terms,
-            get_hpo_autocomplete,
-            get_best_hpo_match,
-            submit_autocompleted_hpo_term,
-            validate_template,
-            sanitize_cohort_data,
-            save_cohort_data,
-            sort_cohort_by_rows,
-            export_hpoa,
-            add_hpo_term_to_cohort,
-            add_new_row_to_cohort,
-            validate_hgvs_variant,
-            validate_structural_variant,
-            validate_intergenic_variant,
-            export_ppkt,
-            load_external_excel,
-            load_external_template_json,
-            save_external_template_json,
-            get_biocurator_orcid,
-            save_biocurator_orcid,
-            process_allele_column,
-            get_variant_analysis,
-            get_cohort_data_from_etl_dto,
             merge_cohort_data_from_etl_dto,
-            get_hpo_terms_by_toplevel,
-            save_html_report,
-            fetch_repo_qc,
             mine_multi_hpo_column,
-            create_canonical_dictionary,
-            expand_dictionary_to_rows,
-            create_cell_mappings,
-            get_multi_hpo_strings,
-            get_cohort_age_strings,
-            get_status_dto,
-            fetch_hgnc_data
+            process_allele_column,
+            reset_pt_template_path,
+            sanitize_cohort_data,
+            save_biocurator_orcid,
+            save_cohort_data,
+            save_external_template_json,
+            save_html_report,
+            sort_cohort_by_rows,
+            submit_autocompleted_hpo_term,
+            validate_hgvs_variant,
+            validate_intergenic_variant,
+            validate_structural_variant,
+            validate_template,    
         ])
         .setup(|app| {
             Ok(())
@@ -502,7 +502,7 @@ fn sort_cohort_by_rows(dto: CohortData)
 #[tauri::command]
 fn export_ppkt(
     state: tauri::State<'_, Arc<AppState>>,
-    cohort_dto: CohortData) -> Result<String, String> {
+    cohort_dto: CohortData) -> Result<usize, String> {
     let mut singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.export_ppkt(cohort_dto)
