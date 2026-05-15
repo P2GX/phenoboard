@@ -34,6 +34,7 @@ export class AddageComponent {
   /* User chooses an existing string from the list */
   selectExisting(term: string): void {
     if (term) {
+      this.ageService.addSelectedTerm(term); // Add to the service pool for future use
       this.dialogRef.close(term);
     }
   }
@@ -45,9 +46,8 @@ export class AddageComponent {
     const val = this.customAge().trim();
     if (!val) return;
     if (this.ageService.validateAgeInput(val)) {
-      // Side effect: Add to the service pool for future use
+      // Add to the service pool for future use
       this.ageService.addSelectedTerm(val);
-      // Close and return the new string
       this.dialogRef.close(val);
     } else {
       alert('Invalid format. Please use ISO8601 (e.g. P1Y) or Gestational (e.g. G20w).');

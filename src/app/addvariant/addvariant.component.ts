@@ -69,11 +69,8 @@ export class AddVariantComponent implements OnInit{
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
     if (this.geneOptions && this.geneOptions.length === 1) {
-        // Set the selectedGene model property to the only entry in the list
         this.selectedGene = this.geneOptions[0];
-        console.log("addvariant init options=", this.geneOptions);
     }
-    
   }
 
   

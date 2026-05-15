@@ -115,22 +115,24 @@ impl PhenoboardSingleton {
     pub fn search_hpo(&self, query: &str, limit: usize) -> Vec<HpoMatch> {
         let matcher = SkimMatcherV2::default();
         let query_lower = query.to_lowercase();
-
-        let mut matches: Vec<(i64, &HpoMatch)> = self.hpo_auto_complete
+        // get fuzzy matches to query
+        let mut matches: Vec<_> = self.hpo_auto_complete
             .iter()
             .filter_map(|item| {
-                // Fuzzy match against the matched_text (synonym or label)
                 matcher.fuzzy_match(&item.matched_text, &query_lower)
                     .map(|score| (score, item))
             })
             .collect();
-
-        // Sort by score descending
-        matches.sort_by(|a, b| b.0.cmp(&a.0));
-
-        matches.into_iter()
+        // sort by score
+        matches.sort_unstable_by_key(|&(score, _)| std::cmp::Reverse(score));
+        // return best hits, but only one hit per HPO id (avoid duplicates because of synonym matches)
+        let mut seen = std::collections::HashSet::new();
+        matches
+            .into_iter()
+            .map(|(_, item)| item)
+            .filter(|item| seen.insert(&item.id))
             .take(limit)
-            .map(|(_, item)| item.clone())
+            .cloned()
             .collect()
     }
 

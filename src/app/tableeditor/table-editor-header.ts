@@ -61,7 +61,11 @@ export class TableEditorHeader implements OnInit {
 
     importCohortDiseaseData(): void {
         const cohort = this.cohortService.getCohortData();
-        if (cohort == null) return;
+        console.log("importCohortDiseaseData")
+        if (cohort == null) {
+            this.notificationService.showError("Could not initialize cohort/disease data");
+            return;
+        }
         if (cohort.cohortType != 'mendelian') {
             this.notificationService.showError(`External ETL only available for mendelian but you tried ${cohort.cohortType}`);
             return;
@@ -72,6 +76,7 @@ export class TableEditorHeader implements OnInit {
         }
         const ddata = cohort.diseaseList[0];
         this.diseaseDataSignal.set(ddata);
+        console.log("dds", this.diseaseDataSignal())
         this.notificationService.showSuccess("Imported cohort data");
     }
 

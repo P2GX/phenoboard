@@ -48,6 +48,9 @@ export class AdddemoComponent {
   /* Open dialog to enter ageOfOnset or ageAtLastEncounter */
   openAgeWizard(controlName: string) {
     const control = this.demoForm.get(controlName);
+    if (! control) {
+      return;
+    }
     
     const dialogRef = this.dialog.open(AddageComponent, {
       width: '450px',
@@ -56,10 +59,9 @@ export class AdddemoComponent {
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {
       if (result) {
-        // Update the specific control passed in
-        control?.patchValue(result);
-        control?.markAsDirty();
-        control?.markAsTouched();
+        control.patchValue(result);
+        control.markAsDirty();
+        control.markAsTouched();
       }
     });
   }
