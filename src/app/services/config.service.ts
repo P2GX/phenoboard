@@ -299,13 +299,6 @@ export class ConfigService {
     return await invoke<MiningConcept[]>("create_canonical_dictionary", {miningResults: mining_results});
   }
 
-  async expandDictionaryToRows(confirmedDict: MiningConcept[], rawResults: MiningConcept[]): Promise<MiningConcept[]> {
-   return await invoke<MiningConcept[]>('expand_dictionary_to_rows', {
-        dictionary: confirmedDict,
-        rawResults: rawResults
-    });
-  }
-
   async createCellMappings(
     miningResults: MiningConcept[],
     cellValues:string[],

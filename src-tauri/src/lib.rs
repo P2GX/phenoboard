@@ -42,7 +42,6 @@ pub fn run() {
             create_new_cohort_data,
             create_new_melded_cohort,
             emit_backend_status,
-            expand_dictionary_to_rows,
             export_hpoa,
             export_ppkt,
             fetch_hgnc_data,
@@ -957,37 +956,6 @@ async fn get_multi_hpo_strings(mined_cells: Vec<MinedCell>) -> Result<Vec<String
     crate::hpo::hpo_etl::get_multi_hpo_strings(mined_cells)
 }
   
-
-
-
-#[tauri::command]
-async fn expand_dictionary_to_rows(
-    dictionary: Vec<MiningConcept>,
-    raw_results: Vec<MiningConcept>
-) -> Result<Vec<MiningConcept>, String> {
-    // 1. Create a lookup map from the confirmed dictionary
-    let dict_map: std::collections::HashMap<String, MiningConcept> = dictionary
-        .into_iter()
-        .map(|c| (c.original_text.clone(), c))
-        .collect();
-
-    // 2. Map the raw results back to the confirmed versions while preserving row_index
-    let expanded: Vec<MiningConcept> = raw_results
-        .into_iter()
-        .map(|mut raw| {
-            if let Some(confirmed) = dict_map.get(&raw.original_text) {
-                // Apply the user's choices from Phase 1 to this specific row
-                raw.suggested_terms = confirmed.suggested_terms.clone();
-                raw.mining_status = confirmed.mining_status.clone();
-                // We do NOT overwrite row_index; we keep the raw one
-            }
-            raw
-        })
-        .collect();
-
-    Ok(expanded)
-}
-
 
 /// get list of Mining concepts for each cell
 #[tauri::command]
