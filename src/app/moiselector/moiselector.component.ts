@@ -21,7 +21,7 @@ interface MoiTerm {
   standalone: true,
   imports: [FormsModule],
 })
-export class MoiSelector implements OnChanges{
+export class MoiSelector {
   private dialog = inject(MatDialog);
   private pmidService = inject(PmidService);
 
@@ -29,6 +29,7 @@ export class MoiSelector implements OnChanges{
 
   showMoi: WritableSignal<boolean> = signal(true);
   pmidDto: WritableSignal<PmidDto> = signal(defaultPmidDto());
+
   moiTerms: WritableSignal<MoiTerm[]> = signal([
     { id: 'HP:0000006', label: 'Autosomal dominant inheritance', selected: false },
     { id: 'HP:0000007', label: 'Autosomal recessive inheritance', selected: false },
@@ -42,24 +43,21 @@ export class MoiSelector implements OnChanges{
     { id: 'HP:0034341', label: 'Pseudoautosomal recessive inheritance', selected: false },
   ]);
 
-  // Watch for changes to pmidDto
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['pmidDto'] && changes['pmidDto'].currentValue) {
-      this.confirmSelection();
-    }
-  }
-
+  existingPmids = computed(() => {
+    const allDtos = this.pmidService.pmidsSignal();
+    const stringIds = allDtos.map(dto => dto.pmid).filter(id => !!id);
+    return [...new Set(stringIds)];
+  });
 
   selectedMoiWithPmids = computed(() =>
     this.moiTerms().filter(m => m.selected)
   );
-  
 
   confirmSelection(): void {
     const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map(m => ({
       hpoId: m.id,
       hpoLabel: m.label,
-      citation: m.pmid!   // `!` safe because confirmDisabled prevents empty pmid
+      citation: m.pmid!  
     }));
     this.moiChange.emit(moiList);
     this.showMoi.set(false);
@@ -77,9 +75,23 @@ export class MoiSelector implements OnChanges{
     return selected.length === 0 || selected.some(m => !m.pmid);
   }
 
+  // Explicitly assign an existing PMID to an inheritance term
+  selectExistingPmid(moi: MoiTerm, pmid: string): void {
+    this.moiTerms.update(current =>
+      current.map(m => m.id === moi.id ? { ...m, selected: true, pmid: pmid } : m)
+    );
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map(m => ({
+      hpoId: m.id,
+      hpoLabel: m.label,
+      citation: m.pmid!  
+    }));
+    this.moiChange.emit(moiList);
+    this.showMoi.set(false);
+  }
+
   private async selectPmid(): Promise<PmidDto | null> {
       const dialogRef = this.dialog.open(PubmedComponent, {
-        width: '600px',
+        width: '700px',
         data: { pmidDto: this.pmidDto() }
       });
   

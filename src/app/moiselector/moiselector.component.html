@@ -6,7 +6,7 @@
 
     <!-- MOI checkboxes and PubMed inputs -->
     <div class="moi-grid">
-      @for (moi of moiTerms(); track moi; let moiIdx = $index) {
+      @for (moi of moiTerms(); track moi.id) {
         <div class="moi-item">
           <!-- Checkbox -->
           <div class="moi-checkbox-row">
@@ -22,12 +22,30 @@
           </div>
 
           @if (moi.selected) { 
-            <button (click)="openPubmedDialog(moi)" class="btn-outline-primary">🔍 Lookup PubMed</button>
-            <
+            <div class="pmid-selection-zone">
+              <!-- Show existing PMIDs if available -->
+              @if (existingPmids().length > 0) {
+                <span class="pmid-label">Reuse:</span>
+                @for (existing of existingPmids(); track existing) {
+                  <button 
+                    type="button"
+                    (click)="selectExistingPmid(moi, existing)" 
+                    class="btn-outline-primary">
+                    {{ existing }}
+                  </button>
+                }
+              }
+
+              <!-- Always provide the Lookup option -->
+              <button (click)="openPubmedDialog(moi)" class="btn-outline-primary" style="margin-left: 8px;">
+                🔍 Lookup New PubMed
+              </button>
+            </div>
+
             @if (moi.pmid != null) {
-              <p class="moi-pmid">{{ moi.pmid }}</p>
+              <p class="moi-pmid">Selected PMID: <strong>{{ moi.pmid }}</strong></p>
             } @else {
-              <p class="moi-pmid">PMID (required)</p>
+              <p class="moi-pmid text-danger">PMID (required)</p>
             }
           }
         </div>
@@ -50,21 +68,20 @@
       </button>
     </div>
   </div>
+
   <!-- Selected summary -->
-    <div class="hint-text">
-    @if (selectedMoiWithPmids.length > 0) {
+  <div class="hint-text">
+    @if (selectedMoiWithPmids().length > 0) {
         <p>
         Selected:
-        @for (moi of selectedMoiWithPmids(); track moi; let last = $last) {
-            {{ moi.label }} @if(moi.pmid) {. ({{ moi.pmid }}) }{{ !last ? ', ' : '' }}
+        @for (moi of selectedMoiWithPmids(); track moi.id; let last = $last) {
+            {{ moi.label }} @if(moi.pmid) { ({{ moi.pmid }}) }{{ !last ? ', ' : '' }}
         }
         </p>
     }
 
-    @if (selectedMoiWithPmids.length === 0) {
+    @if (selectedMoiWithPmids().length === 0) {
         <p class="hint-text-empty">No inheritance mode selected</p>
     }
-    </div>
+  </div>
 }
-
-
