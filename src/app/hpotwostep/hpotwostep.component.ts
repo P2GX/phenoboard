@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, ViewChild } from '@angular/core';
+import { Component, HostListener, inject, OnDestroy, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { HpoMiningComponent } from '../hpomining/hpomining.component';
@@ -14,7 +14,10 @@ import { MatIcon } from "@angular/material/icon";
   styleUrl: './hpotwostep.component.scss',
   imports: [HpoMiningComponent, HpoPolishingComponent, MatIcon],
 })
-export class HpoTwostepComponent {
+export class HpoTwostepComponent implements OnDestroy {
+  ngOnDestroy(): void {
+    console.trace("HpoTwostepComponent is destroying! Triggered by:");
+  }
   step = 1;
   annotations: TextAnnotationDto[] = [];
 
@@ -33,10 +36,6 @@ export class HpoTwostepComponent {
   /** return result to parent */
   onPolishingDone(result: HpoTermData[]) {
     this.dialogRef.close(result);  
-  }
-
-  onBackdropClick(event: MouseEvent) {
-    this.close();
   }
 
   @HostListener('document:keydown.escape')
