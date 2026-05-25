@@ -65,12 +65,9 @@ export class PtTemplateComponent  {
   isLoadingHpo = signal(false);
 
   constructor() {
-  // Use an effect to watch ONLY the acronym
     effect(async () => {
       const acronym = this.cohortData()?.cohortAcronym;
       const cohort = this.cohortData();
-
-      // Only fetch if we have a cohort and the acronym isn't empty
       if (cohort && acronym) {
         this.isLoadingHpo.set(true);
         try {
@@ -87,8 +84,6 @@ export class PtTemplateComponent  {
   }
   /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
-
-  private cdRef = inject(ChangeDetectorRef);
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private dialog = inject(MatDialog);
@@ -127,7 +122,9 @@ export class PtTemplateComponent  {
   hoveredHpoHeader: number | null = null;
   // corresponds to the + sighn for adding a new allele on a row
   openAddAlleleRowId: string | null = null;
-
+  
+  infoMenuPos = signal<{ x: number, y: number } | null>(null);
+  activeInfoRow = signal<RowData | null>(null); // Use your RowData interface
 
 
   // the following determine which rows are shown in the GUI
@@ -258,16 +255,13 @@ export class PtTemplateComponent  {
   async loadTemplate(): Promise<void> {
     const existing = this.cohortData();
     if (!existing) {
-      console.log("🏗️ Loading template from backend...");
       try {
         const data = await this.configService.getPhetoolsTemplate();
         this.cohortService.setCohortData(data); 
       } catch (error) {
         this.notificationService.showError(`❌ Failed to load template: ${error}`);
       }
-    } else {
-      console.log("✅ Template already loaded");
-    }
+    } 
   }
 
   async loadTemplateFromBackend(): Promise<void> {
@@ -277,10 +271,11 @@ export class PtTemplateComponent  {
   }
 
 
-  openIndividualEditor(rowId: string): void {
+  openIndividualEditor(): void {
     this.individualContextMenuVisible = false;
-    const row = this.rowMapById().get(rowId);
+    const row = this.activeInfoRow()
     if (!row) return; 
+    const rowId = getRowId(row.individualData);
     const individualCopy = { ...row.individualData };
 
     const dialogRef = this.dialog.open(IndividualEditComponent, {
@@ -468,7 +463,7 @@ export class PtTemplateComponent  {
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {
     const template = this.cohortData();
     if (template == null) {
-      console.error("Attempt to add HPO Term to cohort but template is null");
+      this.notificationService.showError("Attempt to add HPO Term to cohort but template is null");
       return;
     }
     if (autocompletedTerm) {
@@ -569,7 +564,6 @@ export class PtTemplateComponent  {
         this.notificationService.showError("Cohort object is null (should never happen, please report to developers).");
         return;
       }
-      console.log(currentDto)
       const cellValue: CellValue = getCellValue(option);
       const updatedCohort: CohortData = this.updateHpoCell(currentDto, this.pendingRow, this.pendingHpoColumnIndex, cellValue);
       this.cohortService.setCohortData(updatedCohort);
@@ -807,8 +801,6 @@ openAgeDialog(): void {
       this.notificationService.showError("Could not create biocuration event");
       return;
     }
-    const history = this.cohortService.getCurationHistory();
-    console.log("History:", history);
     const alreadyExists = this.cohortService.getCurationHistory().some(event => 
       event.orcid === biocurationEvent.orcid && 
         event.date === biocurationEvent.date
@@ -911,12 +903,9 @@ visibleColumnMask = computed<Uint8Array>(() => {
     return new Set(frows);
  });
 
-  
 
 
-  // One signal for position, one for the data
-  infoMenuPos = signal<{ x: number, y: number } | null>(null);
-  activeInfoRow = signal<RowData | null>(null); // Use your RowData interface
+
 
   showInfoForRow(rowId: string | null, event: MouseEvent): void {
     this.individualContextMenuVisible = false;
@@ -933,8 +922,8 @@ visibleColumnMask = computed<Uint8Array>(() => {
     const pos = this.configService.calculateMenuPosition(event.clientX, event.clientY, 280, 350);
     
     this.infoMenuPos.set(pos);
-    this.activeInfoRow.set(row); // This is your "Source of Truth"
-    this.rowInfoKey = rowId;      // Keep this if you still need the ID for the editor
+    this.activeInfoRow.set(row); 
+    this.rowInfoKey = rowId; 
   }
 
   closeRowInfo(): void {

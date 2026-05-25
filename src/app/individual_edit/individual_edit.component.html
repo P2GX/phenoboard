@@ -90,6 +90,7 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">Save</button>
+  <button class="btn-outline-cancel" (click)="cancel()">Cancel</button>
+  <span style="width: 8px;"></span>
+  <button class="btn-outline-primary" (click)="save()" [disabled]="form.invalid">Save</button>
 </mat-dialog-actions>

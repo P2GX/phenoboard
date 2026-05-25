@@ -25,8 +25,9 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="next()">
+    <button class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
+    <span style="width: 8px;"></span>
+    <button class="btn-outline-primary" (click)="next()">
       {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
     </button>
   </mat-dialog-actions>

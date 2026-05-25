@@ -30,6 +30,10 @@
                     <span class="hpo-chip-id">{{ term.id }}</span>
                     <span>{{ term.label }}</span>
                     <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                    <button mat-icon-button 
+                      [cdkCopyToClipboard]="term.label" class="chip-copy-btn">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
                   </mat-chip-row>
                 }
 

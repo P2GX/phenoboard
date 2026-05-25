@@ -26,7 +26,7 @@ import { HpoMatch } from '../models/hpo_mapping_result';
           {{data.title}}
         </h2>
         <p class="text-xs text-slate-500 mt-1 uppercase tracking-tight font-medium">
-          Confirm or refine the Phenotype Term
+          Confirm or refine the HPO Term
         </p>
       </div>
 
@@ -39,20 +39,14 @@ import { HpoMatch } from '../models/hpo_mapping_result';
             </app-hpoautocomplete>
           </div>
           
-          <div class="flex items-center gap-2 px-1">
-            <mat-icon class="text-slate-400 !w-4 !h-4 !text-[16px]">help_outline</mat-icon>
-            <span class="text-[11px] text-slate-400 italic">
-              Results are pulled directly from the Human Phenotype Ontology.
-            </span>
-          </div>
+         
         </div>
       </mat-dialog-content>
 
       <mat-dialog-actions align="end" class="!px-6 !pb-6 !pt-2">
         <button 
-          mat-button 
           (click)="dialogRef.close()" 
-          class="!text-slate-500 hover:!bg-slate-100 !px-4 !rounded-lg">
+          class="btn-outline-cancel">
           Cancel
         </button>
       </mat-dialog-actions>

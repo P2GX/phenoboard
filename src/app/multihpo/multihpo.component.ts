@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
-
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
@@ -21,7 +20,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '../services/config.service';
-
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 /// symbols for not applicable or unknown status
 const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown"]);
@@ -35,6 +34,7 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
   templateUrl: './multihpo.component.html',
   styleUrl: './multihpo.component.scss',
   imports: [
+    ClipboardModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
