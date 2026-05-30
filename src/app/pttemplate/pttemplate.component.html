@@ -206,15 +206,14 @@
                 <span class="onset-text"></span>
               </div>
             }
-            @case ('Modifier') {
-             <div class="cell-truncate" [title]="cell.displayValue">
-                  {{ cell.displayValue }}
-                </div>
-            }
+            
             @default {
                 <span>Unknown</span>
             }
           }
+          @if (cell.originalCell.modifiers?.length) {
+              <span class="modifier-indicator-dot" title="Has clinical modifiers">⚙️</span>
+            }
         </td>
       }
     }
@@ -355,24 +354,17 @@
 </div>
 
 <!-- Context Menu (appears after right-click on HPO cell)-->
-@if (contextMenuVisible) {
+@if (contextMenuVisible && selectedCellContents) {
   <div
     [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
-    class="context-menu"
-    role="menu"
-    aria-label="Annotation context menu"
+    class="context-menu-position-wrapper"
     #contextMenu
   >
-    @for (option of contextMenuOptions; track option) {
-      <button
-        class="context-menu-item"
-        role="menuitem"
-        (click)="onMenuOptionClick(option.value)"
-        type="button"
-      >
-        {{ option.label }}
-      </button>
-    }
+    <app-hpo-annotation-panel
+      [cellData]="selectedCellContents"
+      [columnTitle]="currentHpoLabel()"
+      (dataChanged)="handleTableDataUpdate($event, pendingHpoColumnIndex!)">
+    </app-hpo-annotation-panel>
   </div>
 }
 <!-- Individual (row-level) context menu -->

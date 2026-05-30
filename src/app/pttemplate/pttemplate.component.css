@@ -659,3 +659,14 @@ button[mat-icon-button] {
 .context-menu-ext-icon {
   font-size: 0.75rem;
 }
+
+.modifier-indicator-dot { font-size: 10px; vertical-align: super; opacity: 0.7; }
+
+.context-menu-position-wrapper {
+  position: fixed; /* CRITICAL: Matches the coordinate space of event.clientX/Y */
+  z-index: 1000;   /* Keeps the menu floating on top of your data table */
+  
+  /* Optional: Ensure it doesn't accidentally stretch across the page */
+  display: block;
+  width: max-content; 
+}

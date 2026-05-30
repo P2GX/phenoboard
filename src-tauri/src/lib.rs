@@ -55,6 +55,7 @@ pub fn run() {
             get_hpo_autocomplete,
             get_hpo_parent_and_children_terms,
             get_hpo_terms_by_toplevel,
+            get_modifiers,
             get_multi_hpo_strings,
             get_status_dto,
             get_ppkt_store_json,
@@ -967,6 +968,14 @@ async fn get_cohort_age_strings(
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     singleton.get_all_cohort_age_strings(dto)
 }
+
+#[tauri::command]
+async fn get_modifiers(state: tauri::State<'_, Arc<AppState>>) 
+    -> Result<Vec<HpoTermDuplet>, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    singleton.get_modifiers()
+    }
 
 
 /// Get HGNC data related to a gene symbol

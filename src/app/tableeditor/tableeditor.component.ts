@@ -983,9 +983,8 @@ async saveManualEdit(newValue: string): Promise<void> {
       
       return {
         ...cell,
-        // We update 'current' primarily. 
-        // Note: Deciding whether to overwrite 'original' depends on if you 
-        // ever want to "Reset" to the file's literal text.
+        // Overwrite original value
+        original: newValue.trim(),
         current: newValue.trim(),
         status: EtlCellStatus.Transformed, 
         errorMessage: undefined
@@ -1891,17 +1890,24 @@ async saveManualEdit(newValue: string): Promise<void> {
     return cellData
       .map(term => {
         const value = term.entry;
+        const hpoLabel = term.termDuplet.hpoLabel;
+        const modifierStr = value.modifiers && value.modifiers.length > 0
+          ? ` [${value.modifiers.join(', ')}]`
+          : '';
+        let baseContent = '';
         switch (value.type) {
           case 'Observed':
           case 'Excluded':
           case 'Na':
-            return `${term.termDuplet.hpoLabel}: ${value.type}`;
+            baseContent = `${hpoLabel}: ${value.type}`;
+            break;
           case 'OnsetAge':
-          case 'Modifier':
-            return `${term.termDuplet.hpoLabel}: ${value.data} (${value.type})`;
+            baseContent = `${hpoLabel}: ${value.data} (${value.type})`;
+            break;
           default:
-            return `${term.termDuplet.hpoLabel}: unknown`;
+            baseContent = `${hpoLabel}: unknown`;
         }
+        return `${baseContent}${modifierStr}`;
       })
       .join('\n');
   }

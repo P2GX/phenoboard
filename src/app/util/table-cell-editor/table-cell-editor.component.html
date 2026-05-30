@@ -1,0 +1,67 @@
+<div class="hpo-panel" (click)="$event.stopPropagation()">
+  
+  <header class="panel-header">
+    <h3>{{ columnTitle }}</h3>
+  </header>
+
+  <hr class="panel-divider" />
+
+  <section class="panel-section">
+    <label class="section-label">Clinical Status</label>
+    <div class="status-toggle-group">
+      <button 
+        type="button"
+        [class.active]="cellData.type === 'Observed'"
+        (click)="updateStatus('Observed')"
+        class="btn-toggle status-observed">
+        Observed
+      </button>
+      <button 
+        type="button"
+        [class.active]="cellData.type === 'Excluded'"
+        (click)="updateStatus('Excluded')"
+        class="btn-toggle status-excluded">
+        Excluded
+      </button>
+       <button 
+        type="button"
+        [class.active]="cellData.type === 'Na'"
+        (click)="updateStatus('Na')"
+        class="btn-toggle status-unspecified">
+        Excluded
+      </button>
+    </div>
+  </section>
+
+  <section class="panel-section">
+    <label class="section-label">
+      Active Modifiers 
+      <span class="badge-count">{{ cellData.modifiers?.length || 0 }}</span>
+    </label>
+    
+    <div class="modifiers-list">
+      @for (mod of cellData.modifiers; track mod) {
+        <span class="modifier-chip">
+          {{ mod }}
+          <button 
+            type="button" 
+            class="btn-remove-modifier" 
+            aria-label="Remove modifier"
+            (click)="removeModifier(mod)">
+            &times;
+          </button>
+        </span>
+      } @empty {
+        <p class="empty-state">No modifiers applied to this term.</p>
+      }
+    </div>
+  </section>
+
+  <section class="panel-section add-modifiers-section">
+    <label class="section-label">Add Modifiers</label>
+    <app-hpo-modifier-menu 
+      [cellData]="cellData"
+      (modifierSelected)="addModifier($event)">
+    </app-hpo-modifier-menu>
+  </section>
+</div>

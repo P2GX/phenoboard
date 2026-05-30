@@ -13,13 +13,23 @@ export interface HpoTermDuplet {
 }
 
 
-export type CellValue =
+export type CellValueInner =
   | { type: "Observed" }
   | { type: "Excluded" }
   | { type: "Na" }
-  | { type: "OnsetAge"; data: string }
-  | { type: "Modifier"; data: string };
+  | { type: "OnsetAge"; data: string };
 
+/*
+ * Corresponds to JSON like this:
+ * const example: CellValue = {
+ *   type: "OnsetAge",
+ *   data: "P10Y",
+ *   modifiers: ["HP:0000123"]
+ * };
+ */
+export type CellValue = CellValueInner & {
+  modifiers?: string[]; 
+};
 
 export function renderCellValue(cell: CellValue): string {
   switch (cell.type) {
@@ -31,8 +41,6 @@ export function renderCellValue(cell: CellValue): string {
       return "Not available";
     case "OnsetAge":
       return `Onset at ${cell.data}`;
-    case "Modifier":
-      return `Modifier: ${cell.data}`;
     default: {
       const _exhaustive: never = cell;
       return _exhaustive;

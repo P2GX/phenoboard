@@ -1,0 +1,45 @@
+<div class="modifier-menu-card">
+  <div class="quick-select-row">
+    @for (mod of quickModifiers; track mod) {
+      <button mat-stroked-button color="primary" size="small" (click)="selectQuickModifier(mod)">
+        {{ mod }}
+      </button>
+    }
+  </div>
+
+  <div class="separator-text">or search full hierarchy</div>
+
+  <mat-form-field class="full-width-field" appearance="outline">
+    <input type="text"
+      #hpoInput
+      [placeholder]="placeholder()"
+      matInput
+      [formControl]="control"
+      [matAutocomplete]="auto"
+      spellcheck="false"
+      autocomplete="off">
+
+    @if (control.value) {
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    
+    <mat-autocomplete 
+      #auto="matAutocomplete" 
+      [displayWith]="displayFn" 
+      (optionSelected)="onOptionSelected($event)">
+      @for (option of options(); track $index) {
+        <mat-option [value]="option">
+          <div class="option-container">
+            <span class="option-matched-text">{{ option.hpoLabel }}</span>
+            <small class="option-id">{{ option.hpoId }}</small>
+          </div>
+        </mat-option>
+      }
+    </mat-autocomplete>
+    @if (control.hasError('invalidSelection') && control.touched) {
+      <mat-error>Please select a term from the list</mat-error>
+    }
+  </mat-form-field>
+</div>

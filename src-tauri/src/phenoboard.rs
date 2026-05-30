@@ -8,7 +8,7 @@ use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ontolius::{TermId, common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm, Synonymous}};
 use fenominal::{Fenominal, FenominalHit};
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{CellValue, CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -135,6 +135,12 @@ impl PhenoboardSingleton {
             .cloned()
             .collect()
     }
+
+    pub fn get_modifiers(&self) -> Result<Vec<HpoTermDuplet>, String> {
+        let hpo = self.ontology.as_ref().ok_or_else(|| "HPO not initialized".to_string())?;
+        ga4ghphetools::hpo::get_modifiers(hpo.clone())
+    }
+
 
     /// We want to get the single best match of any HPO term label to the query string
     pub fn get_best_hpo_match(&self, query: String) -> Option<HpoMatch> {
@@ -660,8 +666,8 @@ pub fn get_all_cohort_age_strings(
         .rows
         .iter()
         .flat_map(|row| &row.hpo_data)
-        .filter_map(|entry| match entry {
-            ga4ghphetools::dto::hpo_term_dto::CellValue::OnsetAge(onset) => Some(onset.to_string()),
+        .filter_map(|entry| match &entry.entry {
+            CellValueInner::OnsetAge(onset) => Some(onset.to_string()),
             _ => None,
         })
         .collect();

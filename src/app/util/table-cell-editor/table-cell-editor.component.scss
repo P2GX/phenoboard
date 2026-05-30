@@ -1,0 +1,129 @@
+/* hpo-annotation-panel.component.scss */
+.hpo-panel {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  width: 280px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+
+  .panel-header {
+    h3 {
+      margin: 0 0 2px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .term-id {
+      font-size: 11px;
+      color: #64748b;
+      font-family: monospace;
+    }
+  }
+
+  .panel-divider {
+    border: 0;
+    border-top: 1px solid #f1f5f9;
+    margin: 12px 0;
+  }
+
+  .panel-section {
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .section-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 8px;
+
+    .badge-count {
+      background: #e2e8f0;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+  }
+
+  /* Status Toggle Button styles */
+  .status-toggle-group {
+    display: flex;
+    gap: 4px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 6px;
+
+    .btn-toggle {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &.active {
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+    }
+
+    .status-observed.active { color: #16a34a; font-weight: 600; }
+    .status-excluded.active { color: #dc2626; font-weight: 600; }
+  }
+
+  /* Modifiers list styling */
+  .modifiers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 24px;
+
+    .empty-state {
+      font-size: 12px;
+      color: #94a3b8;
+      font-style: italic;
+      margin: 4px 0;
+    }
+
+    .modifier-chip {
+      display: inline-flex;
+      align-items: center;
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+      padding: 2px 6px 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+
+      .btn-remove-modifier {
+        background: transparent;
+        border: none;
+        color: #1e40af;
+        margin-left: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+        padding: 0 2px;
+        border-radius: 50%;
+
+        &:hover {
+          background: #dbeafe;
+          color: #b91c1c;
+        }
+      }
+    }
+  }
+}

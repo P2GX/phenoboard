@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -28,6 +28,8 @@ import { HpoMatch } from '../models/hpo_mapping_result';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
+import { HpoModifierMenuComponent } from "../util/modifier/hpo-modifier-menu";
+import { TableCellEditorComponent } from "../util/table-cell-editor/table-cell-editor.component";
 
 interface Option { label: string; value: string };
 
@@ -50,7 +52,8 @@ interface Option { label: string; value: string };
     HelpButtonComponent,
     CohortMetadataComponent,
     RouterLink,
-    PopoverComponent
+    PopoverComponent,
+    TableCellEditorComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -132,6 +135,9 @@ export class PtTemplateComponent  {
   filterMode = signal<'all' | 'single' | 'pmid'>('all');
   focusedRow = signal<RowData | null>(null);
   focusedPmid = signal<string | null>(null);
+  currentHpoLabel = signal<string>('');
+
+
   /* Extract the filtered rows from our model after any change. */
   filteredRows = computed(() => {
     const cohort = this.cohortData();
@@ -485,7 +491,7 @@ export class PtTemplateComponent  {
     event.stopPropagation(); 
     this.contextMenuVisible = true; 
     this.contextMenuX = event.clientX;
-    this.contextMenuY = event.clientY;
+    this.contextMenuY = event.clientY - 100; // the menu is rather tall --  have it appear 100px above the click
     this.pendingHpoColumnIndex = hpoColumnIndex;
     this.pendingHpoRowIndex = hpoRowIndex;
     this.pendingRowId = rowId;
@@ -498,7 +504,79 @@ export class PtTemplateComponent  {
           label: term,
           value: term
         })),
-  ];
+      ];
+    this.setCurrentColumnLabel(hpoColumnIndex);
+  }
+
+   
+
+    private setCurrentColumnLabel(hpoColIdx: number) : void {
+      const cohort = this.cohortData();
+      if (! cohort) return;
+      if (hpoColIdx >= cohort.hpoHeaders.length) {
+        this.notificationService.showError(`Attempt to get HPO column index ${hpoColIdx} but table has ${cohort.hpoHeaders.length} columns`);
+        return;
+      }
+      const header = cohort.hpoHeaders[hpoColIdx];
+      this.currentHpoLabel.set(`header.hpoLabel (${header.hpoId})`)
+      
+    }
+
+    /* Called when the user has changed something following a right-click on
+      * an HPO cell. */
+    handleTableDataUpdate(
+      updatedCellData: CellValue, 
+      columnIndex: number,
+    ): void {
+      const currentDto = this.cohortData();
+      if (!currentDto || !this.pendingRow) {
+        this.notificationService.showError("Cohort data or row context missing.");
+        return;
+      }
+      const updatedCohort = this.updateHpoCell(currentDto, this.pendingRow, columnIndex, updatedCellData);
+      this.cohortService.setCohortData(updatedCohort);
+      
+      this.notificationService.showSuccess(`Added cell "${updatedCellData}"`);
+      this.pendingHpoColumnIndex = null;
+      this.pendingHpoRowIndex = null;
+      this.pendingRowId = null;
+      this.contextMenuVisible = false;
+
+    }
+
+    /* If the user adds a modifier term to an HPO cell */
+  handleModifierAdded(
+    newModifier: string, 
+    hpoColumnIndex: number, 
+    hpoRowIndex: number, 
+    rowId: string, 
+    cell: CellValue
+  ): void {
+    const currentDto = this.cohortData();
+    if (!currentDto || !this.pendingRow) {
+      this.notificationService.showError("Cohort data or row context missing.");
+      return;
+    }
+    if (!cell.modifiers) {
+      cell.modifiers = [];
+    }
+    if (!cell.modifiers.includes(newModifier)) {
+      const updatedModifiers = [...cell.modifiers, newModifier];
+      const updatedCell: CellValue = {
+        ...cell,
+        modifiers: updatedModifiers
+      };
+      const updatedCohort = this.updateHpoCell(currentDto, this.pendingRow, hpoColumnIndex, updatedCell);
+      this.cohortService.setCohortData(updatedCohort);
+      
+      this.notificationService.showSuccess(`Added modifier "${newModifier}"`);
+    }
+
+    // 4. Reset menu state parameters to automatically drop the menu out of the view
+    this.pendingHpoColumnIndex = null;
+    this.pendingHpoRowIndex = null;
+    this.pendingRowId = null;
+    this.contextMenuVisible = false;
   }
 
   shouldDisplayHpoColumn(index: number): boolean {
