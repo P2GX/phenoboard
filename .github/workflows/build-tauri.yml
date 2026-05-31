@@ -101,8 +101,11 @@ jobs:
         with:
           name: installer-${{ matrix.platform }}
           path: |
-            src-tauri/target/release/bundle/**/*
-          if-no-files-found: ignore
+            src-tauri/target/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
 
   # ------------------------------------
   # 7. Create Single Release
