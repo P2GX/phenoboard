@@ -65,12 +65,12 @@ import { MatRadioModule } from "@angular/material/radio";
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="!pb-4 !px-6">
-      <button mat-button (click)="cancel()" class="text-slate-500 font-medium">Cancel</button>
+      <button mat-button (click)="cancel()" class="btn-outline-cancel" style="margin-right: 4px;">Cancel</button>
       <button 
-        mat-flat-button 
+        class="btn-outline-primary"
         (click)="confirm()" 
         [disabled]="!finalDelimiter()"
-        class="!rounded-md !bg-indigo-600 shadow-md !text-white disabled:!bg-slate-200">
+        >
         Apply Split
       </button>
     </mat-dialog-actions>

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
@@ -24,8 +24,24 @@ const VALUE_TO_STATE: Record<string, HpoStatus> = {
   '-': 'excluded',
   '–': 'excluded', // en dash
   '—': 'excluded', // em dash
-  'na': 'na'
+  'na': 'na',
+  'Mild': 'observed;HP:0012825', // Mild (HP:0012825)
+  'mild': 'observed;HP:0012825',
+  'Moderate': 'observed;HP:0012826', // Moderate (HP:0012826)
+  'moderate': 'observed;HP:0012826',
+  'Mod.': 'observed;HP:0012826',
+  'mod.': 'observed;HP:0012826',
+  'Severe': "observed;HP:0012828",// Severe (HP:0012828)
+  'severe': "observed;HP:0012828",
+  'Sev.': "observed;HP:0012828",
+  'sev.': "observed;HP:0012828",
 };
+
+export interface ValueMappingData {
+  header: string;
+  hpoTerm: HpoTermDuplet;
+  uniqueValues: string[];
+}
 
 @Component({
   selector: 'app-value-mapping',
@@ -44,32 +60,22 @@ const VALUE_TO_STATE: Record<string, HpoStatus> = {
   templateUrl: './valuemapping.component.html',
   styleUrls: ['./valuemapping.component.css']
 })
-export class ValueMappingComponent {
-  header!: string;
-  hpoId!: string;
-  hpoLabel!: string;
-  uniqueValues: string[] = [];
+export class ValueMappingComponent implements OnInit {
+ 
+  /* key: An entry in a column, e.g., 'yes'; value: corresponding phenoboard value, e.g., 'observed' */
   valueToStateMap: { [key: string]: HpoStatus } = {};
 
-  predefinedStates = ['observed', 'excluded', 'na'];
+  public data = inject<ValueMappingData>(MAT_DIALOG_DATA);
+  public dialogRef = inject(MatDialogRef<ValueMappingComponent>);
+  public hpoId = signal(this.data.hpoTerm.hpoId);
+  public hpoLabel = signal(this.data.hpoTerm.hpoLabel);
+  public header = signal(this.data.header);
+  public uniqueValues = signal(this.data.uniqueValues);
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { 
-      header: string;
-      hpoTerm: HpoTermDuplet;
-      uniqueValues: string[];
-    },
-    public dialogRef: MatDialogRef<ValueMappingComponent>
-  ) {
-    this.hpoId = data.hpoTerm.hpoId;
-    this.hpoLabel = data.hpoTerm.hpoLabel;
-    this.uniqueValues = data.uniqueValues;
-    this.header = data.header;
-
-    // Initialize each value with default mapping
-    data.uniqueValues.forEach(val => {
-      this.valueToStateMap[val] = this.normalizeValue(val);
-    });
+  ngOnInit(): void {
+    this.data.uniqueValues.forEach(val => {
+      this.valueToStateMap[val] = VALUE_TO_STATE[val.trim()] ?? 'na';
+    })
   }
 
   onSave(): void {
@@ -81,6 +87,7 @@ export class ValueMappingComponent {
     this.dialogRef.close(hpoMapResult);
   }
 
+  /* Add a new entry to the map to relate an entry in the column (e.g. 'y') to a phenoboard value (e.g., 'observed'). */
   onInput(val: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     this.valueToStateMap[val] = input.value as HpoStatus;
@@ -90,7 +97,4 @@ export class ValueMappingComponent {
     this.dialogRef.close();
   }
 
-  normalizeValue(val: string): HpoStatus {
-    return VALUE_TO_STATE[val.trim()] ?? 'na';
-  }
 }

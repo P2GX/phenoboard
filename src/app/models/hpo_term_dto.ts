@@ -67,8 +67,12 @@ export interface  HpoTermData {
     entry: CellValue, 
 }
 
-/** Possible values for HPO cells in the columns */
-export type HpoStatus = 'observed' | 'excluded' | 'na';
+/** Possible values for HPO cells in the columns
+ * observed:HP:0012825 -> Mild
+ * observed:HP:0012826 -> Moderate 
+ * observed:HP:0012828 -> Severe 
+ */
+export type HpoStatus = 'observed' | 'excluded' | 'na'| 'observed;HP:0012825' | 'observed;HP:0012826' | 'observed;HP:0012828';
 /** Mapping entry: a term + its current status */
 export interface HpoMappingEntry {
   term: HpoTermDuplet;

@@ -438,7 +438,6 @@ export class TableEditorComponent  {
     const column = dto.table.columns[colIndex];
     const columnTitle = column.header.original || "n/a";
 
-    // Get the best HPO match
     let bestHpoMatch: HpoMatch | null = null;
     try {
       bestHpoMatch = (await this.configService.getBestHpoMatch(columnTitle)) ?? "";
@@ -466,6 +465,8 @@ export class TableEditorComponent  {
     const uniqueValues = Array.from(new Set(column.values.map(v => v.original.trim())));
     const mapping: HpoMappingResult | undefined = await firstValueFrom(
       this.dialog.open(ValueMappingComponent, {
+        width: '75vw', // 75% of the viewport width
+        maxWidth: '90vw',
         data: {
           header: column.header.original,
           hpoTerm: selectedTerm,
@@ -474,6 +475,7 @@ export class TableEditorComponent  {
         },
       }).afterClosed()
     );
+    console.log("mapping", mapping)
     this.updateColumnWithMap(colIndex, mapping);
   }
 

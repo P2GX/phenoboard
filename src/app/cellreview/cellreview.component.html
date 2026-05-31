@@ -26,9 +26,11 @@
 
   <mat-dialog-actions align="end">
     <button class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
-    <span style="width: 8px;"></span>
-    <button class="btn-outline-primary" (click)="next()">
-      {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
-    </button>
+    @if (allMinedCells().length > 0) {
+      <span style="width: 8px;"></span>
+      <button class="btn-outline-primary" (click)="next()">
+        {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
+      </button>
+    }
   </mat-dialog-actions>
 </div>
