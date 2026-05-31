@@ -1,0 +1,17 @@
+.quick-select-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.quick-select-row .btn-small {
+  /* Material 15+ relies heavily on these CSS variables */
+  --mdc-button-label-text-size: 12px;
+  
+  /* Manual overrides for tight constraints */
+  height: 28px; 
+  line-height: 28px;
+  padding: 0 10px;
+  min-width: auto; /* Prevents Material from enforcing a wide default width */
+}

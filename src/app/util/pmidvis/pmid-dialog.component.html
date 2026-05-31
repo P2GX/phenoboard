@@ -1,0 +1,25 @@
+<div class="citations-modal-container">
+  <h2 mat-dialog-title class="dialog-title">PubMed Citations</h2>
+
+  <mat-dialog-content>
+    <div class="pmid-list">
+      @for (item of data.citations; track item.pmid) {
+        <div class="pmid-item">
+          <div class="pmid-title">{{ item.title }}</div>
+          <div class="pmid-meta">
+            <a [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmid(item)" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="pmid-link">
+              <strong>{{ item.pmid }}</strong> ↗
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-flat-button color="primary" mat-dialog-close class="btn-close">Close</button>
+  </mat-dialog-actions>
+</div>

@@ -1,6 +1,14 @@
 
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input, OnInit } from '@angular/core';
 import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dto';
+import { CohortDtoService } from '../services/cohort_dto_service';
+import { SourcePmid } from '../models/cohort_description_dto';
+import { PmidDialogComponent } from '../util/pmidvis/pmid-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+
+
+
+
 
 /* Display a summary of the salient characteristics of the Cohort */
 @Component({
@@ -10,8 +18,16 @@ import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dt
   standalone: true,
   imports: [],
 })
-export class CohortSummaryComponent {
+export class CohortSummaryComponent implements OnInit{
+  
   cohort = input.required<CohortData>(); 
+  private cohortService = inject(CohortDtoService);
+  private dialog = inject(MatDialog);
+  citations: SourcePmid[] = [];
+
+  ngOnInit(): void {
+    this.citations = this.cohortService.getAllPmids();
+  }
 
 
   /* return the total count of distinct variants */
@@ -47,5 +63,12 @@ export class CohortSummaryComponent {
         ncbiUrl: `https://www.ncbi.nlm.nih.gov/nuccore/${gene.transcript}`
       }));
     }
+
+  openPmidDialog(): void {
+    this.dialog.open(PmidDialogComponent, {
+      width: '500px',
+      data: { citations: this.citations } 
+    });
+  }
 
 }

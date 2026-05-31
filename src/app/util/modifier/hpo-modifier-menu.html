@@ -1,13 +1,14 @@
 <div class="modifier-menu-card">
+  <label class="section-label">Severity</label>
   <div class="quick-select-row">
     @for (mod of quickModifiers; track mod) {
-      <button mat-stroked-button color="primary" size="small" (click)="selectQuickModifier(mod)">
+      <button mat-stroked-button color="primary" class="btn-small" (click)="selectQuickModifier(mod)">
         {{ mod }}
       </button>
     }
   </div>
 
-  <div class="separator-text">or search full hierarchy</div>
+  <div class="separator-text">Clinical modifiers</div>
 
   <mat-form-field class="full-width-field" appearance="outline">
     <input type="text"
@@ -33,7 +34,7 @@
         <mat-option [value]="option">
           <div class="option-container">
             <span class="option-matched-text">{{ option.hpoLabel }}</span>
-            <small class="option-id">{{ option.hpoId }}</small>
+            <small class="option-id"> ({{ option.hpoId }})</small>
           </div>
         </mat-option>
       }

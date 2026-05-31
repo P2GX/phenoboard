@@ -518,7 +518,7 @@ export class PtTemplateComponent  {
         return;
       }
       const header = cohort.hpoHeaders[hpoColIdx];
-      this.currentHpoLabel.set(`header.hpoLabel (${header.hpoId})`)
+      this.currentHpoLabel.set(`${header.hpoLabel} (${header.hpoId})`)
       
     }
 

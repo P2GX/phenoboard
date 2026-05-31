@@ -178,7 +178,7 @@ export class CohortDtoService {
 
 
 
-    /** Return a list of all variant strings for structural variants */
+    /** Return a list of all PMIDs */
     getAllPmids(): SourcePmid[] {
         const cohort = this.getCohortData();
         if (! cohort) {
