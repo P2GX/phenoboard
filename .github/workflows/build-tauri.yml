@@ -81,7 +81,7 @@ jobs:
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
-          p12-password: ${{ secretes.APPLE_CERTIFICATE_PASSWORD}}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD}}
       # ------------------------------------
       # 5. Build Tauri App
       # ------------------------------------
