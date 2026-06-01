@@ -170,9 +170,9 @@
                 <button 
                   class="allele-btn allele-btn-delete" 
                   (click)="onAlleleCountChange(allele.key, row.id, 0)">🗑️</button>
-         <button cdkOverlayOrigin #originList="cdkOverlayOrigin"
-                 class="allele-btn allele-btn-add" (click)="openAddAlleleRowId = row.id">+</button>
-          <app-popover [trigger]="originList" [isOpen]="openAddAlleleRowId === row.id">
+                  <button cdkOverlayOrigin #originList="cdkOverlayOrigin"
+                 class="allele-btn allele-btn-add" (click)="setActivePopover(row.id, allele.key)">+</button>
+          <app-popover [trigger]="originList" [isOpen]="isPopoverOpen(row.id, allele.key)">
            <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
          </app-popover>
       </div>

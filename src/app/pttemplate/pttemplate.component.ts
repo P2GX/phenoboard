@@ -28,7 +28,6 @@ import { HpoMatch } from '../models/hpo_mapping_result';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
-import { HpoModifierMenuComponent } from "../util/modifier/hpo-modifier-menu";
 import { TableCellEditorComponent } from "../util/table-cell-editor/table-cell-editor.component";
 
 interface Option { label: string; value: string };
@@ -66,6 +65,8 @@ export class PtTemplateComponent  {
   cohortData = this.cohortService.cohortData; 
   hpoGroups = signal(new Map<string, HpoTermDuplet[]>());
   isLoadingHpo = signal(false);
+  // the id of the allele popover that is open - use to prevent duplicates
+  readonly activePopoverId = signal<string | null>(null);
 
   constructor() {
     effect(async () => {
@@ -337,6 +338,19 @@ export class PtTemplateComponent  {
 
   onMouseLeave(): void {
     this.hoveredCell = null;
+  }
+
+  // The following control the allele popover
+  readonly activePopoverTarget = signal<{ rowId: string; alleleId: string } | null>(null);
+
+
+  setActivePopover(rowId: string, alleleId: string) {
+    this.activePopoverTarget.set({ rowId, alleleId });
+  }
+
+  isPopoverOpen(rowId: string, alleleId: string): boolean {
+    const current = this.activePopoverTarget();
+    return current !== null && current.rowId === rowId && current.alleleId === alleleId;
   }
 
   async addAllele(rowId: string, varKind: VariantKind): Promise<void> {
