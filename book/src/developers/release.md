@@ -49,3 +49,5 @@ npm run tauri build
 ```
 
 This will create an installer under ``src-tauri/target/release/bundle/``.
+
+

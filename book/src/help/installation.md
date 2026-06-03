@@ -11,27 +11,10 @@ Because this application is open-source and distributed for free, it is not sign
 
 1. Download the `.dmg` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
 2. Open the DMG and drag the app into your Applications folder
-3. When you try to open it, macOS may show an error message:  
-   *"App can't be opened because it is from an unidentified developer"*
-   or
-   *“phenoboard is damaged and can’t be opened. You should move it to the Trash"*
-
-This error happens because macOS applies strict security checks for programs downloaded from the Web that are not signed with a paid Apple Developers account. 
-There are at least two ways of dealing with this. (Of course, do not move the app to the trash!)
-
-
-**1) xattr**
-> **Terminal Command:** Fix "App is Damaged" or "Unverified Developer" errors
->
-> ```bash
-> xattr -cr /Applications/phenoboard.app
-> ```
-
-(to open the Terminal, search for Terminal in Spotlight and then paste the above text into it and press Enter)
-
-**2) System Settings**
-Depending on our OS version, you may also be able to do the following:
--  go to System Settings → Privacy & Security → click "Open Anyway"
+3. When you try to open it, macOS will show the message:  
+   *"'phenoboard' is an app downloaded from the Internet. Are you sure you want to open it?"*
+ 
+If you confirm, the app will be installed into your `Àpplications``folder and started. From now one you can open phenoboard like any other application (e.g., using the Spotlight searchbar).
 
 
 ## Installing on Windows

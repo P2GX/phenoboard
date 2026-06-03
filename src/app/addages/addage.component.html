@@ -27,11 +27,15 @@
       <mat-form-field appearance="outline" class="flex-grow dense-field">
         <mat-label>New Age String</mat-label>
         <input matInput 
-               [ngModel]="customAge()" 
-               (ngModelChange)="customAge.set($event)"
-               [matAutocomplete]="auto"
-               (keyup.enter)="createNewAge()"
-               placeholder="e.g. P35Y">
+              [ngModel]="customAge()" 
+              (ngModelChange)="customAge.set($event)"
+              [matAutocomplete]="auto"
+              (keyup.enter)="createNewAge()"
+              autofocus
+              autocapitalize="none"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="e.g. P35Y">
       </mat-form-field>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectExisting($event.option.value)">
             @for (term of filteredTerms(); track term) {
