@@ -188,8 +188,8 @@ impl PhenoboardSingleton {
                                 let label = synonym.name.clone();
                                 self.hpo_auto_complete.push(HpoMatch {
                                     id: id_str.clone(),
-                                    label: label,
-                                    matched_text: primary_label.clone(),
+                                    label: primary_label.clone(),
+                                    matched_text: label,
                                 });
                             }
                         },

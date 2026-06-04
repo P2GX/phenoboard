@@ -76,12 +76,12 @@
     </div>
     <mat-menu #helpMenu="matMenu" class="help-bubble">
       <div class="help-content" (click)="$event.stopPropagation()">
-        <h3>About "Other Terms"</h3>
+        <h3>About Other Terms</h3>
         <p>These HPO terms were annotated for other individuals (rows in the current column), but haven't been assigned to this specific cell yet.</p>
         <p>Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if appropriate. Alternatively, click on individual terms (below) to mark only specific terms as excluded.</p>
       </div>
     </mat-menu>
-    <span class="shelf-title">Other terms ({{ toExclude().length }})</span>
+    <span class="shelf-title">Other terms ({{ toExclude().length || 0 }})</span>
     @if (toExclude().length > 0) {
       <button class="shelf-badge bulk-action"  
               [disabled]="toExclude().length === 0"

@@ -65,48 +65,48 @@ export class MinedCellEditorComponent {
   }
 
 
-    get availableOnsetTerms(): string[] {
-      return this.ageService.selectedTerms();
-    }
+  get availableOnsetTerms(): string[] {
+    return this.ageService.selectedTerms();
+  }
   
   
-    /* Set the onset of the indicated HPO term */
-    updateOnset(term: MappedTerm, newOnset: string): void {
-      console.log("updateOnset term=", term, "newOnset=", newOnset);
-      const updatedCell: MinedCell = {
-        ...this.cell(),
-        mappedTermList: this.cell().mappedTermList.map(t => 
-          t.hpoId === term.hpoId ? { ...t, onset: newOnset } : t
-        )
-      };
-      this.cellChange.emit(updatedCell);
-    }
+  /* Set the onset of the indicated HPO term */
+  updateOnset(term: MappedTerm, newOnset: string): void {
+    console.log("updateOnset term=", term, "newOnset=", newOnset);
+    const updatedCell: MinedCell = {
+      ...this.cell(),
+      mappedTermList: this.cell().mappedTermList.map(t => 
+        t.hpoId === term.hpoId ? { ...t, onset: newOnset } : t
+      )
+    };
+    this.cellChange.emit(updatedCell);
+  }
 
-      addOnsetString(term: MappedTerm): void {
-          const dialogRef = this.dialog.open(AddageComponent, {
-            width: '400px',
-            data: {  data: { existingAges: this.ageService.selectedTerms() } }
-            });
-        
-          dialogRef
-            .afterClosed()
-            .subscribe(result => {
-              if (!result) return;
-              if (typeof result !== 'string') {
-                // should never happen...
-                alert(`Addagecomponent did not return a string but instead: ${result} `);
-                return;
-              }
-              this.ageService.addSelectedTerm(result);
-              const updatedCell: MinedCell = {
-                ...this.cell(),
-                mappedTermList: this.cell().mappedTermList.map(t => 
-                  t.hpoId === term.hpoId ? { ...t, onset: result } : t
-                )
-              };
-              this.cellChange.emit(updatedCell);
-            });
-      }
+  addOnsetString(term: MappedTerm): void {
+    const dialogRef = this.dialog.open(AddageComponent, {
+      width: '400px',
+      data: {  data: { existingAges: this.ageService.selectedTerms() } }
+      });
+  
+    dialogRef
+      .afterClosed()
+      .subscribe(result => {
+        if (!result) return;
+        if (typeof result !== 'string') {
+          // should never happen...
+          alert(`Addagecomponent did not return a string but instead: ${result} `);
+          return;
+        }
+        this.ageService.addSelectedTerm(result);
+        const updatedCell: MinedCell = {
+          ...this.cell(),
+          mappedTermList: this.cell().mappedTermList.map(t => 
+            t.hpoId === term.hpoId ? { ...t, onset: result } : t
+          )
+        };
+        this.cellChange.emit(updatedCell);
+      });
+  }
 
    
  

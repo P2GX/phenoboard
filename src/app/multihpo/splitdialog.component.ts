@@ -90,7 +90,7 @@ import { MatRadioModule } from "@angular/material/radio";
       </div>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end" class="pt-2">
+    <mat-dialog-actions align="end">
       <button class="btn-primary-cancel" style="margin-right: 8px;">Cancel</button>
       <button class="btn-primary-outline"
               [mat-dialog-close]="getFinalDelimiter()"

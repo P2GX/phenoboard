@@ -100,6 +100,7 @@ export class HpoAutocompleteComponent {
 
   onOptionSelected(event: MatAutocompleteSelectedEvent) {
     const selection = event.option.value as HpoMatch;
+    console.log("onOptionSelected", selection)
     this.selected.emit(selection);
   }
   

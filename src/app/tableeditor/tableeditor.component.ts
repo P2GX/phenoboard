@@ -5,7 +5,7 @@ import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
-import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
 import { HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
@@ -20,7 +20,6 @@ import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { removeAllWhitespace, sanitizeString } from '../validators/validators';
-import { defaultPmidDto } from '../models/pmid_dto';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
@@ -41,11 +40,6 @@ export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
 export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 
-/* Used to hold the context menu x and y position */
-interface OverlayPosition {
-  x: number;
-  y: number;
-}
 
 /**
  * Component for editing external Excel tables (e.g., supplemental files). The external tables are assumed to have lines or columns
@@ -558,8 +552,6 @@ export class TableEditorComponent  {
       /// Assign the concepts to the corresponding rows
       const rowMultiHpoStrings = await this.configService.getMultiHpoStrings(finalResults);
       
-
-      // --- STAGE 3: DATA APPLICATION ---
       const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
         if (i !== colIndex) return column;
         const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
