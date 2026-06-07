@@ -26,6 +26,11 @@ NG05100: Providers from the BrowserModule have already been loaded.
 ```
 
 ## Linting
+The Angular team maintains an official schematic that configures ESLint for you automatically. Run this command at the root of the project (angular 22):
+```bash
+npm install --save-dev eslint @angular-eslint/eslint-plugin @angular-eslint/eslint-plugin-template prettier eslint-config-prettier eslint-plugin-prettier typescript-eslint
+```
+
 
 ```bash
 npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-import eslint-plugin-jsdoc eslint-plugin-prefer-arrow
@@ -40,6 +45,17 @@ Linting can now be performed with the followinh commands
 npx eslint src/app/my-component/*.ts
 npx eslint src/app/my-component/*.html
 ```
+
+## Pretty formatting
+Create the two files .prettierignore and .prettierrc, and add commands for lint and pretty to the project.json.
+Then run
+```bash
+npx prettier --check src/app/app.component.ts # check one file
+npx prettier --write src/app/app.component.ts # fix one file
+npm run format:check # check entire repo
+```
+
+
 
 ## Polishing CSS
 

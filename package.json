@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.5.151",
+  "version": "0.5.152",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -12,7 +12,11 @@
     "tauri:dev:fresh": "npm run clean && npm run tauri dev",
     "clean": "rimraf dist && rimraf src-tauri/target && rimraf node_modules/.cache",
     "version:sync": "sed -i '' 's/^version = \".*\"/version = \"'${npm_package_version}'\"/' src-tauri/Cargo.toml",
-    "version": "npm run version:sync && git add src-tauri/Cargo.toml && git add package.json"
+    "version": "npm run version:sync && git add src-tauri/Cargo.toml && git add package.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,html,scss}\""
   },
   "private": true,
   "dependencies": {
@@ -41,7 +45,8 @@
     "@angular-devkit/build-angular": "21.2.7",
     "@angular-devkit/core": "21.2.7",
     "@angular-devkit/schematics": "21.2.7",
-    "@angular-eslint/eslint-plugin-template": "21.3.1",
+    "@angular-eslint/eslint-plugin": "^21.4.0",
+    "@angular-eslint/eslint-plugin-template": "^21.3.1",
     "@angular-eslint/template-parser": "21.3.1",
     "@angular/cli": "21.2.7",
     "@angular/compiler-cli": "21.2.9",
@@ -54,10 +59,12 @@
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
     "angular-eslint": "21.3.1",
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^61.5.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
+    "eslint-plugin-prettier": "^5.5.6",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -66,8 +73,9 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "nx": "22.6.5",
     "postcss": "^8.5.6",
+    "prettier": "^3.8.3",
     "sass": "^1.89.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.51.0"
+    "typescript-eslint": "^8.60.1"
   }
 }

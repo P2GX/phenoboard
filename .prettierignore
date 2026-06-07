@@ -1,0 +1,11 @@
+# Dependencies and Builds
+node_modules/
+dist/
+.angular/
+
+# Rust Backend (Tauri)
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# System files
+.DS_Store
