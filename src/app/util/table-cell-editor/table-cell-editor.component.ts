@@ -5,8 +5,6 @@ import { HpoModifierMenuComponent } from '../modifier/hpo-modifier-menu';
 import { CellValue } from '../../models/hpo_term_dto';
 import { NotificationService } from '../../services/notification.service';
 import { AgeInputService } from '../../services/age_service';
-import { MatDialog } from '@angular/material/dialog';
-import { AddageComponent } from '../../addages/addage.component';
 
 
 @Component({
@@ -22,9 +20,10 @@ export class TableCellEditorComponent {
   dataChanged = output<CellValue>();
   private notificationService = inject(NotificationService);
   private ageService = inject(AgeInputService);
-  private dialog = inject(MatDialog);
+  
 
   hasOnset = computed(() => this.cellData()?.type === 'OnsetAge');
+  availableOnsetTerms = this.ageService.selectedTerms; 
   onsetText = computed(() => {
     const current = this.cellData();
     return current.type === 'OnsetAge' ? current.data : '';
@@ -35,7 +34,7 @@ isSelectingOnset = false;
 // this avoids race condition with closing the dialog and transmitting a new CellValue
 requestNewOnset = output<void>();
 
-toggleOnsetSelection() {
+toggleOnsetSelection(): void {
   // If it's already OnsetAge, clicking toggles the dropdown visibility view
   if (this.cellData().type === 'OnsetAge') {
     // Optional: add logic here if you want it to revert to 'Na' or 'Observed' on toggle-off
@@ -44,7 +43,7 @@ toggleOnsetSelection() {
   this.isSelectingOnset = !this.isSelectingOnset;
 }
 
-updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString?: string) {
+updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString?: string): void {
   const currentData = this.cellData();
   
   if (newStatus === 'OnsetAge') {
@@ -52,8 +51,6 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
       this.notificationService.showError("Could not set onset because no onset string was found");
       return;
     }
-    
-    // Successfully updating data! We can close our temporary UI selector state
     this.isSelectingOnset = false;
 
     this.dataChanged.emit({
@@ -64,8 +61,6 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
   } else {
     // If they switch to Observed/Excluded/Na, reset our temporary selector state
     this.isSelectingOnset = false;
-
-    // Standard status update (Observed, Excluded, N/A)
     this.dataChanged.emit({
       ...currentData,
       type: newStatus
@@ -73,9 +68,9 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
   }
 }
 
-  availableOnsetTerms = this.ageService.selectedTerms;  
+ 
 
-  addModifier(newModifier:  string ) {
+  addModifier(newModifier:  string): void {
    const currentData = this.cellData();
    const currentModifiers = currentData.modifiers || [];
    if (!currentModifiers.includes(newModifier)) {
@@ -87,7 +82,7 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
   }
 }
 
-  removeModifier(modiferIdToRemove:  string ) {
+  removeModifier(modiferIdToRemove: string): void {
    const currentData = this.cellData();
     if (!currentData.modifiers) return;
 
@@ -100,7 +95,7 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
   }
 
   /* THe parent component will receive this signal and then open the new Age Dialog itself */
-  openAddAgeDialog() {
+  openAddAgeDialog(): void {
     this.requestNewOnset.emit();
   }
 }

@@ -1,20 +1,24 @@
 /* hpo-annotation-panel.component.scss */
 .hpo-panel {
-  background: #ffffff;
+  background: #fff;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 15%);
   border: 1px solid #e2e8f0;
   padding: 16px;
   width: 400px;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: #1e293b;
 
   .panel-header {
     h3 {
-      margin: 0 0 2px 0;
+      margin: 0 0 2px;
       font-size: 14px;
       font-weight: 600;
     }
+
     .term-id {
       font-size: 11px;
       color: #64748b;
@@ -74,19 +78,30 @@
       transition: all 0.15s ease;
 
       &.active {
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        background: #fff;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
       }
 
       &.scant-padding {
-        padding: 2px 2px; 
+        padding: 2px;
       }
     }
 
     /* FIX: Changed 'columns' to 'color' and picked an accessible text color */
-    .status-observed.active { color: #16a34a; font-weight: 600; }
-    .status-excluded.active { color: #dc2626; font-weight: 600; }
-    .status-na.active       { color: #475569; font-weight: 600; } 
+    .status-observed.active {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .status-excluded.active {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .status-na.active {
+      color: #475569;
+      font-weight: 600;
+    }
   }
 
   /* Modifiers list styling */
@@ -137,7 +152,7 @@
   .add-modifiers-section {
     margin-top: 12px;
   }
-} 
+}
 
 .onset-select-container {
   margin-top: 8px;
@@ -156,7 +171,7 @@
     padding: 0 8px;
     font-size: 12px;
     color: #1e293b;
-    background-color: #ffffff;
+    background-color: #fff;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     outline: none;
@@ -167,7 +182,6 @@
     }
   }
 
- 
   .btn-add-onset {
     height: 30px;
     padding: 0 10px;

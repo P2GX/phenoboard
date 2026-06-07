@@ -44,9 +44,13 @@ module.exports = tseslint.config(
       ...angular.configs.templateAccessibility,
     ],
     rules: {
-      // ⚡ Disables the HTML <label> association warning for Angular Material
+      // Disables the HTML <label> association warning for Angular Material
       "@angular-eslint/template/label-has-associated-control": "off",
-      "@angular-eslint/template/no-autofocus": "off"
+      "@angular-eslint/template/no-autofocus": "off",
+      // allow click handlers on plain containers- no plans to make this app for phones!
+      "@angular-eslint/template/click-events-have-key-events": "off",
+      // allow click handlers on non-focusable elements
+      "@angular-eslint/template/interactive-supports-focus": "off"
     },
   },
   
