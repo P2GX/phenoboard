@@ -44,10 +44,9 @@ module.exports = tseslint.config(
       ...angular.configs.templateAccessibility,
     ],
     rules: {
-      // The specific 'accessible-name' rule was deprecated/renamed.
-      // templateAccessibility (above) already covers modern ARIA and label checks.
-      // If you need a specific label check, use:
-      // "@angular-eslint/template/label-has-associated-control": "warn"
+      // ⚡ Disables the HTML <label> association warning for Angular Material
+      "@angular-eslint/template/label-has-associated-control": "off",
+      "@angular-eslint/template/no-autofocus": "off"
     },
   },
   

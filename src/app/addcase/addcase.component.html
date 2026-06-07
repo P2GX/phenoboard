@@ -1,150 +1,156 @@
 <div class="dashboard-container">
-  <h1 class="page-title">
-  Add Case Data
-</h1>
-<div class="status-wrapper">
-  <div 
-    class="status-badge"
-    [class.is-ready]="statusService.hpoLoaded()"
-    [class.is-missing]="!statusService.hpoLoaded()"
-  >
-    <div class="indicator">
-      @if (!statusService.hpoLoaded()) {
-        <span class="ping"></span>
-      }
-      <span class="dot"> </span>
-    </div>
-
-    <div class="status--text">
-      <span class="status-label">
-        {{ statusService.hpoLoaded() ? 'HPO Ready' : 'HPO Missing' }}
-      </span>
-      
-      <span class="status-details">
-        @if (statusService.hpoLoaded()) {
-          {{ statusService.state().hpoVersion }} ({{ statusService.state().nHpoTerms }} terms)
-        } @else {
-          Please load HPO on Home page to proceed
+  <h1 class="page-title">Add Case Data</h1>
+  <div class="status-wrapper">
+    <div
+      class="status-badge"
+      [class.is-ready]="statusService.hpoLoaded()"
+      [class.is-missing]="!statusService.hpoLoaded()"
+    >
+      <div class="indicator">
+        @if (!statusService.hpoLoaded()) {
+          <span class="ping"></span>
         }
-      </span>
+        <span class="dot"> </span>
+      </div>
+
+      <div class="status--text">
+        <span class="status-label">
+          {{ statusService.hpoLoaded() ? 'HPO Ready' : 'HPO Missing' }}
+        </span>
+
+        <span class="status-details">
+          @if (statusService.hpoLoaded()) {
+            {{ statusService.state().hpoVersion }} ({{ statusService.state().nHpoTerms }} terms)
+          } @else {
+            Please load HPO on Home page to proceed
+          }
+        </span>
+      </div>
     </div>
   </div>
-</div>
-<section class="action-row">
-  @if (!pmidDto() || !pmidDto().title) {
-    <!-- Show lookup button when no successful result -->
-    <button (click)="openPubmedDialog()" class="btn-outline-primary" [disabled]="!hpoInitialized()">🔍 Lookup PubMed</button>
-     <app-help-button 
-          title="Entering PMID data"
-          [lines]="[
-            'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identifier (PMID).',
-            'Enter either the number (e.g., 39233737) or the entire PMID (e.g., PMID: 39233737).',
-            'Whitespace characters are removed automatically.'
-          ]" />
-  } @else {
-    <!-- Show result box with reset button when successful -->
-    <div style="result-box">
-      <div style="result-info">
+  <section class="action-row">
+    @if (!pmidDto() || !pmidDto().title) {
+      <!-- Show lookup button when no successful result -->
+      <button
+        (click)="openPubmedDialog()"
+        class="btn-outline-primary"
+        [disabled]="!hpoInitialized()"
+      >
+        🔍 Lookup PubMed
+      </button>
+      <app-help-button
+        title="Entering PMID data"
+        [lines]="[
+          'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identifier (PMID).',
+          'Enter either the number (e.g., 39233737) or the entire PMID (e.g., PMID: 39233737).',
+          'Whitespace characters are removed automatically.',
+        ]"
+      />
+    } @else {
+      <!-- Show result box with reset button when successful -->
+      <div style="result-box">
+        <div style="result-info">
           <div style="result-title">
             {{ pmidDto().title }}
           </div>
           <div class="result-subtitle">
             {{ pmidDto().pmid }}
           </div>
-        <button 
-          (click)="resetPmidDto()" 
-          class="btn-outline-primary btn-small">
-          Reset
-        </button>
+          <button (click)="resetPmidDto()" class="btn-outline-primary btn-small">Reset</button>
+        </div>
       </div>
-    </div>
-}
-</section>
+    }
+  </section>
 
-
-<!-- Demographic information-->
-<section class="action-row">
-  <button class="btn-outline-primary" (click)="openAddDemoDialog()" [disabled]="!hpoInitialized()">
-  ➕ Add/edit Demographics
-</button>
-  @if (demographicSummary) {
-      <div class="summary-text">{{ demographicSummary }}</div>
-  } @else {
-  <app-help-button 
-    title="Entering demographic data"
-    [lines]="[
-      'Enter the identifier of the original being curated (as used in the original publication)',
-      'For instance, <i>Patient 1</i> or <i>Individual A</i>. If no identifier is provided and only one individual is described, use <i>proband</i> or the title of the clinical description section in the publication (e.g., <i>Case report</i>).',
-      'Enter age of onset and last encounter, sex, and desceased status from the original publication.'
-    ]" />
-  }
-</section>
-
-<section class="section-card">
- 
-  <div class="heading-with-help">
-      <h3>HPO Annotations</h3>
-        <app-help-button 
-          title="Entering HPO data"
-          [lines]="[
-            'Copy text describing the clinical manifestations of the individual and paste it into the dialog that will appear upon clicking <b>+ Add HPO Annotations</b>.',
-            'Enter only text that is specific to the individual. The text mining dialog will allow you to add additional HPO terms as required.',
-          ]" 
-          helpUrl="https://obophenotype.github.io/human-phenotype-ontology/clinicians/HPO_term_selection/"/>
-      </div>
-      
-  @if (showTwoStepHpoButton()) {
-    <button 
-      type="button"
-      (click)="openHpoTwoStepDialog()"
+  <!-- Demographic information-->
+  <section class="action-row">
+    <button
       class="btn-outline-primary"
-      [disabled]="!hpoInitialized()">
-      ➕ Add HPO Annotations
+      (click)="openAddDemoDialog()"
+      [disabled]="!hpoInitialized()"
+    >
+      ➕ Add/edit Demographics
     </button>
-  } @else {
-    <div class="token-list">
-      <div class="tokens">
-        @for (annot of hpoAnnotations(); track annot; let isLast = $last) {
-          <span>
-            {{ getEntryLabel(annot) }}@if (!isLast) {; }
-          </span>
-        }
-      </div>
+    @if (demographicSummary) {
+      <div class="summary-text">{{ demographicSummary }}</div>
+    } @else {
+      <app-help-button
+        title="Entering demographic data"
+        [lines]="[
+          'Enter the identifier of the original being curated (as used in the original publication)',
+          'For instance, <i>Patient 1</i> or <i>Individual A</i>. If no identifier is provided and only one individual is described, use <i>proband</i> or the title of the clinical description section in the publication (e.g., <i>Case report</i>).',
+          'Enter age of onset and last encounter, sex, and desceased status from the original publication.',
+        ]"
+      />
+    }
+  </section>
 
-      <button
-        class="btn btn-ghost btn-small"
-        (click)="resetAnnotations()"
-      >
-        Reset
-      </button>
+  <section class="section-card">
+    <div class="heading-with-help">
+      <h3>HPO Annotations</h3>
+      <app-help-button
+        title="Entering HPO data"
+        [lines]="[
+          'Copy text describing the clinical manifestations of the individual and paste it into the dialog that will appear upon clicking <b>+ Add HPO Annotations</b>.',
+          'Enter only text that is specific to the individual. The text mining dialog will allow you to add additional HPO terms as required.',
+        ]"
+        helpUrl="https://obophenotype.github.io/human-phenotype-ontology/clinicians/HPO_term_selection/"
+      />
     </div>
-  }
-</section>
 
-<!-- Allele Section -->
-<section class="section-card">
-  <div class="heading-with-help">
-      <h3>Alleles</h3>
-        <app-help-button 
-          title="Entering variant data"
-          [lines]="[
-            'Enter HGVS, (symbolic) structural variants, intergenic variants, or mitochondrial variants',
-            'The variants will be validated using the VariantValidator API.',
-            'For homozygous variants, choose <b>biallelic</b> following validation of the variant string.'
-          ]" 
-          helpUrl="https://p2gx.github.io/phenoboard/help/variant-data.html" />
+    @if (showTwoStepHpoButton()) {
+      <button
+        type="button"
+        (click)="openHpoTwoStepDialog()"
+        class="btn-outline-primary"
+        [disabled]="!hpoInitialized()"
+      >
+        ➕ Add HPO Annotations
+      </button>
+    } @else {
+      <div class="token-list">
+        <div class="tokens">
+          @for (annot of hpoAnnotations(); track annot; let isLast = $last) {
+            <span>
+              {{ getEntryLabel(annot) }}
+              @if (!isLast) {
+                ;
+              }
+            </span>
+          }
+        </div>
+
+        <button class="btn btn-ghost btn-small" (click)="resetAnnotations()">Reset</button>
       </div>
-   <div class="button-group">
+    }
+  </section>
+
+  <!-- Allele Section -->
+  <section class="section-card">
+    <div class="heading-with-help">
+      <h3>Alleles</h3>
+      <app-help-button
+        title="Entering variant data"
+        [lines]="[
+          'Enter HGVS, (symbolic) structural variants, intergenic variants, or mitochondrial variants',
+          'The variants will be validated using the VariantValidator API.',
+          'For homozygous variants, choose <b>biallelic</b> following validation of the variant string.',
+        ]"
+        helpUrl="https://p2gx.github.io/phenoboard/help/variant-data.html"
+      />
+    </div>
+    <div class="button-group">
       <button (click)="openVariantEditor(VariantKind.HGVS)" class="btn btn-primary">+ HGVS</button>
       <button (click)="openVariantEditor(VariantKind.SV)" class="btn btn-primary">+ SV</button>
-      <button (click)="openVariantEditor(VariantKind.INTERGENIC)" class="btn btn-primary">+ IG</button>
+      <button (click)="openVariantEditor(VariantKind.INTERGENIC)" class="btn btn-primary">
+        + IG
+      </button>
     </div>
 
-
-  <!-- List of alleles -->
-  <ul class="allele-list">
-    @for (allele of alleles(); track allele) {
-      <li class="allele-item">
+    <!-- List of alleles -->
+    <ul class="allele-list">
+      @for (allele of alleles(); track allele) {
+        <li class="allele-item">
           <div class="allele-info">
             <span class="status-dot green"></span>
             {{ allele.variantString }} ({{ allele.geneSymbol }})
@@ -153,20 +159,15 @@
             <mat-icon>close</mat-icon>
           </button>
         </li>
-    } @empty {
-      <p class="empty-text">No alleles added</p>
-    }
-  </ul>
-</section>
+      } @empty {
+        <p class="empty-text">No alleles added</p>
+      }
+    </ul>
+  </section>
 
-
-<div class="form-actions">
-  <button
-    (click)="submitNewRow()"
-    [disabled]="!canSubmitRow()"
-    class="btn btn-submit"
-  >
-    🚀 Submit Case
-  </button>
-</div>
+  <div class="form-actions">
+    <button (click)="submitNewRow()" [disabled]="!canSubmitRow()" class="btn btn-submit">
+      🚀 Submit Case
+    </button>
+  </div>
 </div>

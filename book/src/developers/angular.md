@@ -46,6 +46,28 @@ npx eslint src/app/my-component/*.ts
 npx eslint src/app/my-component/*.html
 ```
 
+## Linting SCSS files
+
+Install styleLint
+```bash
+npm install --save-dev stylelint stylelint-config-standard-scss stylelint-config-prettier-scss
+```
+Add the `.stylelintrc.json` at the top level
+Add the following to the package.json file
+```json
+"lint:styles": "stylelint \"src/**/*.scss\"",
+"lint:styles-fix": "stylelint \"src/**/*.scss\" --fix",
+```
+Run the style linter
+```bash
+npx stylelint src/app/app.component.scss
+```
+To fix
+```bash
+npx prettier --write src/app/your-component.component.scss
+```
+
+
 ## Pretty formatting
 Create the two files .prettierignore and .prettierrc, and add commands for lint and pretty to the project.json.
 Then run

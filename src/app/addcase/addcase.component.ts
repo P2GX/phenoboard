@@ -1,18 +1,18 @@
 import { Component, inject, Input, NgZone } from '@angular/core';
 
-import { FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
-import { PubmedComponent } from "../pubmed/pubmed.component";
-import { AddageComponent } from "../addages/addage.component";
-import { AdddemoComponent } from "../adddemo/adddemo.component";
+import { PubmedComponent } from '../pubmed/pubmed.component';
+import { AddageComponent } from '../addages/addage.component';
+import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
 import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { AddVariantComponent, VariantKind } from "../addvariant/addvariant.component";
+import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { VariantDto, VariantType } from '../models/variant_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
@@ -23,7 +23,7 @@ import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from '../util/confirm/confirmdialog.component';
 import { signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
 import { AppStatusService } from '../services/app_status_service';
 
 /**
@@ -32,16 +32,11 @@ import { AppStatusService } from '../services/app_status_service';
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatIconModule,
-    HelpButtonComponent
-],
-  templateUrl: './addcase.component.html', 
-  styleUrl: './addcase.component.scss'
+  imports: [FormsModule, MatIconModule, HelpButtonComponent],
+  templateUrl: './addcase.component.html',
+  styleUrl: './addcase.component.scss',
 })
 export class AddcaseComponent {
-  constructor() {}
   @Input() annotations: TextAnnotationDto[] = [];
   private configService = inject(ConfigService);
   public ageService = inject(AgeInputService);
@@ -51,7 +46,6 @@ export class AddcaseComponent {
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
 
-
   readonly pmidDto = signal<PmidDto>(defaultPmidDto());
   readonly demographData = signal<DemographDto>(defaultDemographDto());
   readonly hpoAnnotations = signal<HpoTermData[]>([]);
@@ -59,38 +53,32 @@ export class AddcaseComponent {
   public statusService = inject(AppStatusService);
 
   public VariantKind = VariantKind;
-    
 
-  pastedText: string = '';
-  showTextArea: boolean = true;
-  showDataEntryArea: boolean = false;
-  showAgeEntryArea: boolean = true;
-  showCollapsed: boolean = true;
-  showAnnotationTable: boolean = false;
-  showPopup: boolean = false;
-  showHoverPopup: boolean = false;
+  pastedText = '';
+  showTextArea = true;
+  showDataEntryArea = false;
+  showAgeEntryArea = true;
+  showCollapsed = true;
+  showAnnotationTable = false;
+  showPopup = false;
+  showHoverPopup = false;
   selectedAnnotation: TextAnnotationDto | null = null;
 
   readonly hpoInitialized = computed(() => this.statusService.state().hpoLoaded);
 
-
   /* Once we have annotations from the first step, show the second step! */
-  readonly showTwoStepHpoButton = computed(
-    () => this.hpoAnnotations().length === 0
-  );
- 
+  readonly showTwoStepHpoButton = computed(() => this.hpoAnnotations().length === 0);
 
   selectionRange: Range | null = null;
-  showDropdownMap: { [termId: string]: boolean } = {};
+  showDropdownMap: Record<string, boolean> = {};
   rightClickOptions: string[] = [];
-  predefinedOptions: string[] = ["observed", "excluded", "na"];
+  predefinedOptions: string[] = ['observed', 'excluded', 'na'];
   selectedOptions: string[] = []; //  selected radio button values
   customOptions: string[] = []; // manually entered custom options
   errorString: string | null = null;
-  hasError: boolean = false;
+  hasError = false;
 
-
-  selectedText: string = '';
+  selectedText = '';
   popupX = 0;
   popupY = 0;
   uniqueAnnotatedTerms: string[] = [];
@@ -98,10 +86,8 @@ export class AddcaseComponent {
   backend_status: StatusDto = defaultStatusDto();
 
   /* used for autocomplete widget */
-  hpoInputString: string = '';
+  hpoInputString = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
-
-
 
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
@@ -113,11 +99,13 @@ export class AddcaseComponent {
     const hpoAnn = this.hpoAnnotations();
     const allelesArr = this.alleles();
     if (!pmid.pmid) {
-      this.notificationService.showError("Cannot submit new row without PMID");
+      this.notificationService.showError('Cannot submit new row without PMID');
       return;
     }
     if (!demo) {
-      this.notificationService.showError("Cannot submit row unless demographic information is initialized");
+      this.notificationService.showError(
+        'Cannot submit row unless demographic information is initialized',
+      );
       return;
     }
     // combine PMID and Demographic data DTOs to create an individual
@@ -129,33 +117,30 @@ export class AddcaseComponent {
       ageOfOnset: demo.ageOfOnset,
       ageAtLastEncounter: demo.ageAtLastEncounter,
       deceased: demo.deceased,
-      sex: demo.sex
+      sex: demo.sex,
     };
-    const allele_keys: string[] = allelesArr
-      .filter(a => a.variantKey)
-      .map(a => a.variantKey!);
+    const allele_keys: string[] = allelesArr.filter((a) => a.variantKey).map((a) => a.variantKey!);
     const cohort_dto = this.cohortService.getCohortData();
     if (cohort_dto != null) {
       try {
         const updated_dto: CohortData = await this.configService.addNewRowToCohort(
-            individual_dto, 
-            hpoAnn, 
-            allele_keys,
-            cohort_dto);
+          individual_dto,
+          hpoAnn,
+          allele_keys,
+          cohort_dto,
+        );
         this.cohortService.setCohortData(updated_dto);
       } catch (error) {
         this.errorString = `Could not add new row: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
         this.notificationService.showError(this.errorString);
       }
     } else {
-      this.notificationService.showError("Attempt to add new row with null template_dto")
+      this.notificationService.showError('Attempt to add new row with null template_dto');
     }
     this.resetAllInputVars();
     /* After creating a new row, we jump to the template editor component. */
     await this.router.navigate(['/pttemplate']);
   }
-
-
 
   setError(errMsg: string): void {
     this.errorString = errMsg;
@@ -167,45 +152,40 @@ export class AddcaseComponent {
     this.hasError = false;
   }
 
-
-  addCustomOption(index: number) {
+  addCustomOption(index: number): void {
     const customValue = this.customOptions[index]?.trim();
     if (customValue && !this.predefinedOptions.includes(customValue)) {
-      this.predefinedOptions.push(customValue); 
+      this.predefinedOptions.push(customValue);
       this.selectedOptions[index] = customValue;
     }
   }
 
-  getObjectKeys(obj: any): string[] {
+  getObjectKeys(obj: Record<string, unknown> | null | undefined): string[] {
     return obj ? Object.keys(obj) : [];
   }
 
-  resetWindow() {
+  resetWindow(): void {
     this.ngZone.run(() => {
       this.showTextArea = true;
     });
   }
 
- 
+  closePopup(): void {
+    this.showPopup = false;
+    this.selectedAnnotation = null;
+  }
 
-
-closePopup(): void {
-  this.showPopup = false;
-  this.selectedAnnotation = null;
-}
-
-
-openPopup(ann: TextAnnotationDto, event: MouseEvent) {
-  this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.selectedTerms()];
-  this.selectedAnnotation = ann;
-  this.showPopup = true;
-  // Get the clicked element's bounding box
-  const target = event.target as HTMLElement;
-  const rect = target.getBoundingClientRect();
-  // Position relative to the page
-  this.popupX = rect.left + window.scrollX;
-  this.popupY = rect.bottom + window.scrollY;
-} 
+  openPopup(ann: TextAnnotationDto, event: MouseEvent): void {
+    this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.selectedTerms()];
+    this.selectedAnnotation = ann;
+    this.showPopup = true;
+    // Get the clicked element's bounding box
+    const target = event.target as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    // Position relative to the page
+    this.popupX = rect.left + window.scrollX;
+    this.popupY = rect.bottom + window.scrollY;
+  }
   toggleObserved(annot: TextAnnotationDto | null): void {
     if (annot == null) {
       return;
@@ -214,13 +194,13 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   /* The following commands deal with the table of annotated terms */
-  annotateSelectedText() {
+  annotateSelectedText(): void {
     throw new Error('Method not implemented.');
   }
 
   /* This is called by the button to submit the annotations obtained by fenominal text mining
     of an input text. */
-  submitAnnotations() {
+  submitAnnotations(): void {
     this.rightClickOptions = [...this.predefinedOptions, ...this.ageService.selectedTerms()];
     this.showAnnotationTable = true;
     this.showCollapsed = false;
@@ -230,7 +210,7 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   /* About half of the TextAnnotationDto objects represent the text between the fenominal hits
     Here, we get a list of the fenominal hits (representing the HPO terms) for display in the table */
   getFenominalAnnotations(): TextAnnotationDto[] {
-    return this.annotations.filter(a => a.isFenominalHit);
+    return this.annotations.filter((a) => a.isFenominalHit);
   }
 
   /* Remove an annotation from the HTML table. */
@@ -242,69 +222,69 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     annotation.onsetString = newValue;
   }
 
-  openVariantEditor(varKind: VariantKind) {
+  openVariantEditor(varKind: VariantKind): void {
     const dialogRef = this.dialog.open(AddVariantComponent, {
-      data: {  kind: varKind},  width: '600px' });
-    
-      dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
-        if (! result) return;
-        const { variantKey, count: alleleCount, isValidated } = result;
-        if ( variantKey == null) {
-          this.notificationService.showError("Could not retrieve variantKey");
-          return;
-        }
-        if (! isValidated) {
-          this.notificationService.showError("Variant could not be validated");
-          return;
-        }
-        const typeMapping: Record<VariantKind, string> = {
-          [VariantKind.HGVS]: 'HGVS',
-          [VariantKind.SV]: 'SV',
-          [VariantKind.INTERGENIC]: 'INTERGENICHGVS'
-        };
-        const variantType = typeMapping[varKind];      
-         if (!variantType) {
-          return this.notificationService.showError(`Could not identify variant kind ${varKind}`);
-        }
-      let dto: VariantDto = {
-           ...result,
-           variantType: variantType as VariantType,
-           transcript: variantType === "INTERGENIC" ? '' : result.transcript,
-            isValidated: false,
-          };
-       
-          const entriesToAdd = alleleCount === 2 ? [dto, dto] : [dto];
-          this.alleles.update(current => [...current, ...entriesToAdd]);
-      });
-    }
+      data: { kind: varKind },
+      width: '600px',
+    });
 
+    dialogRef.afterClosed().subscribe((result: VariantDto | undefined) => {
+      if (!result) return;
+      const { variantKey, count: alleleCount, isValidated } = result;
+      if (variantKey == null) {
+        this.notificationService.showError('Could not retrieve variantKey');
+        return;
+      }
+      if (!isValidated) {
+        this.notificationService.showError('Variant could not be validated');
+        return;
+      }
+      const typeMapping: Record<VariantKind, string> = {
+        [VariantKind.HGVS]: 'HGVS',
+        [VariantKind.SV]: 'SV',
+        [VariantKind.INTERGENIC]: 'INTERGENICHGVS',
+      };
+      const variantType = typeMapping[varKind];
+      if (!variantType) {
+        return this.notificationService.showError(`Could not identify variant kind ${varKind}`);
+      }
+      const dto: VariantDto = {
+        ...result,
+        variantType: variantType as VariantType,
+        transcript: variantType === 'INTERGENIC' ? '' : result.transcript,
+        isValidated: false,
+      };
 
-  removeAllele(allele: any) {
-    this.alleles.update(list => list.filter(a => a !== allele));
+      const entriesToAdd = alleleCount === 2 ? [dto, dto] : [dto];
+      this.alleles.update((current) => [...current, ...entriesToAdd]);
+    });
   }
 
+  removeAllele(allele: VariantDto): void {
+    this.alleles.update((list) => list.filter((a) => a !== allele));
+  }
 
   createGeneVariantBundleDto(): GeneVariantData | null {
-    if (this.alleles.length == 0 ) {
-      this.notificationService.showError("allele 1 was null, cannot create GeneVariant bundle");
+    if (this.alleles.length == 0) {
+      this.notificationService.showError('allele 1 was null, cannot create GeneVariant bundle');
       return null; // need at least allele1 to move forward
     }
     const allele1 = this.alleles()[0];
-    let allele2_string = "na";
+    let allele2_string = 'na';
     if (this.alleles.length == 2) {
-      allele2_string = this.alleles()[1].variantString
+      allele2_string = this.alleles()[1].variantString;
     }
-    return  {
+    return {
       hgncId: allele1.hgncId,
       geneSymbol: allele1.geneSymbol,
-      transcript: allele1.transcript || "na",
+      transcript: allele1.transcript || 'na',
       allele1: allele1.variantString,
       allele2: allele2_string,
       variantComment: '',
-    }
+    };
   }
-  
-  resetAllInputVars() {
+
+  resetAllInputVars(): void {
     this.resetWindow();
     this.alleles.set([]);
     this.annotations = [];
@@ -313,10 +293,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.pmidDto.set(defaultPmidDto());
   }
 
- private async selectPmid(): Promise<PmidDto | null> {
+  private async selectPmid(): Promise<PmidDto | null> {
     const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
-      data: { pmidDto: this.pmidDto() }
+      data: { pmidDto: this.pmidDto() },
     });
 
     return firstValueFrom(dialogRef.afterClosed());
@@ -334,10 +314,10 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
         helpLines: [
           'Duplicate entries should be avoided!.',
           'Only one entry per PMID/individual is allowed.',
-          '<strong>Proceed only</strong> if you are sure this PMID/individual has not been previously entered.'
+          '<strong>Proceed only</strong> if you are sure this PMID/individual has not been previously entered.',
         ],
-        helpUrl: 'https://p2gx.github.io/phenoboard/help/case.html#lookup-pubMed'
-      }
+        helpUrl: 'https://p2gx.github.io/phenoboard/help/case.html#lookup-pubMed',
+      },
     });
 
     return firstValueFrom(ref.afterClosed());
@@ -364,13 +344,12 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     this.pmidDto.set(result);
   }
 
-
-  resetPmidDto() {
+  resetPmidDto(): void {
     this.pmidDto.set(defaultPmidDto());
   }
 
-  openHpoTwoStepDialog() {
-    console.log("openHpoTwoStepDialog")
+  openHpoTwoStepDialog(): void {
+    console.log('openHpoTwoStepDialog');
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
       width: '1000px',
       height: '90vh',
@@ -383,46 +362,45 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
       if (result) {
         console.log('Final annotations:', result);
         this.hpoAnnotations.set(result);
-        
       }
     });
   }
 
-  resetAnnotations() {
+  resetAnnotations(): void {
     this.hpoAnnotations.set([]);
   }
 
   openAgeDialog(): void {
     const dialogRef = this.dialog.open(AddageComponent, {
       width: '400px',
-      data: { /* pass inputs if needed */ }
+      data: {
+        /* pass inputs if needed */
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.notificationService.showSuccess(`Added age "${result}"`);
       }
     });
   }
 
-  openAddDemoDialog() {
+  openAddDemoDialog(): void {
     const dialogRef = this.dialog.open(AdddemoComponent, {
       width: '1000px',
-      data: { demoDto: this.demographData() }
+      data: { demoDto: this.demographData() },
     });
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.demographData.set(result.dto);
         this.showAgeEntryArea = !result.hideDemo;
       } else {
-        this.notificationService.showError("Could not get demographic data");
+        this.notificationService.showError('Could not get demographic data');
       }
     });
   }
 
-  readonly ageEntries = computed(
-    () => this.ageService.selectedTerms()
-  );
+  readonly ageEntries = computed(() => this.ageService.selectedTerms());
 
   get demographicSummary(): string | null {
     const value = this.demographData();
@@ -439,13 +417,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
   }
 
   /** Do we have all of the information needed to submit a row? */
-  readonly canSubmitRow = computed(() =>
-    !!(
-      this.pmidDto().pmid &&
-      this.demographData() &&
-      this.hpoAnnotations().length > 0 &&
-      this.alleles().length > 0
-    )
+  readonly canSubmitRow = computed(
+    () =>
+      !!(
+        this.pmidDto().pmid &&
+        this.demographData() &&
+        this.hpoAnnotations().length > 0 &&
+        this.alleles().length > 0
+      ),
   );
 
   /* Show the HPO terms retrieved from text mining */
@@ -453,11 +432,14 @@ openPopup(ann: TextAnnotationDto, event: MouseEvent) {
     const entry = annot.entry;
     const label = annot.termDuplet.hpoLabel;
     switch (entry.type) {
-      case 'Observed': return `${label}: Observed`;
-      case 'Excluded': return `${label}: Excluded`;
-      case 'OnsetAge': return `${label}: ${entry.data}`; // the actual age string
-      default: return label; // should never get here, actually.
+      case 'Observed':
+        return `${label}: Observed`;
+      case 'Excluded':
+        return `${label}: Excluded`;
+      case 'OnsetAge':
+        return `${label}: ${entry.data}`; // the actual age string
+      default:
+        return label; // should never get here, actually.
     }
   }
-
 }
