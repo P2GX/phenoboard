@@ -5,7 +5,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid #e2e8f0;
   padding: 16px;
-  width: 280px;
+  width: 400px;
   font-family: system-ui, -apple-system, sans-serif;
   color: #1e293b;
 
@@ -83,9 +83,10 @@
       }
     }
 
+    /* FIX: Changed 'columns' to 'color' and picked an accessible text color */
     .status-observed.active { color: #16a34a; font-weight: 600; }
     .status-excluded.active { color: #dc2626; font-weight: 600; }
-    .status-na.active {columns: #dcdcdc; font-weight: 600;}
+    .status-na.active       { color: #475569; font-weight: 600; } 
   }
 
   /* Modifiers list styling */
@@ -129,6 +130,60 @@
           color: #b91c1c;
         }
       }
+    }
+  }
+
+  /* Placeholder for your unfinished bottom section */
+  .add-modifiers-section {
+    margin-top: 12px;
+  }
+} 
+
+.onset-select-container {
+  margin-top: 8px;
+  animation: fadeIn 0.15s ease-out;
+
+  /* ⚡ Side-by-side row wrapper */
+  .onset-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .onset-select {
+    flex: 1;
+    height: 30px;
+    padding: 0 8px;
+    font-size: 12px;
+    color: #1e293b;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: #2563eb;
+    }
+  }
+
+ 
+  .btn-add-onset {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.1s ease;
+
+    &:hover {
+      background: #dbeafe;
+      border-color: #3b82f6;
     }
   }
 }

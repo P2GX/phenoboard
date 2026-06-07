@@ -28,7 +28,7 @@ import { HpoMatch } from '../models/hpo_mapping_result';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
-import { TableCellEditorComponent } from "../util/table-cell-editor/table-cell-editor.component";
+import { formatCellValue, TableCellEditorComponent } from "../util/table-cell-editor/table-cell-editor.component";
 
 interface Option { label: string; value: string };
 
@@ -550,7 +550,7 @@ export class PtTemplateComponent  {
       const updatedCohort = this.updateHpoCell(currentDto, this.pendingRow, columnIndex, updatedCellData);
       this.cohortService.setCohortData(updatedCohort);
       
-      this.notificationService.showSuccess(`Added cell "${updatedCellData}"`);
+      this.notificationService.showSuccess(`Added cell "${formatCellValue(updatedCellData)}"`);
       this.pendingHpoColumnIndex = null;
       this.pendingHpoRowIndex = null;
       this.pendingRowId = null;
@@ -1184,4 +1184,28 @@ visibleColumnMask = computed<Uint8Array>(() => {
     }
   }
 
+  /* This is opened if the user has open the dialog to modify one cell to add Onset/Modifer/Change status*/
+  openGlobalAgeDialog() {
+    const dialogRef = this.dialog.open(AddageComponent, {
+      width: '400px'
+    });
+    
+    dialogRef.afterClosed().subscribe((newOnset: string | undefined) => {
+      if (newOnset && this.selectedCellContents) {
+        this.ageService.addSelectedTerm(newOnset);
+        const updatedData: CellValue = {
+          ...this.selectedCellContents,
+          type: 'OnsetAge',
+          data: newOnset
+        };
+        this.notificationService.showSuccess(`Updated cell to "${formatCellValue(updatedData)}"`);
+        this.handleTableDataUpdate(updatedData, this.pendingHpoColumnIndex!);
+        this.contextMenuVisible = false;
+      }
+    });
+  }
+
 }
+
+
+

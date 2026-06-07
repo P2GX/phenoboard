@@ -1,4 +1,7 @@
-<div class="hpo-panel" (click)="$event.stopPropagation()">
+
+
+<div class="dialog-frame" >
+  <div class="hpo-panel" (click)="$event.stopPropagation()">
   
   <header class="panel-header">
     <h3>{{ columnTitle }}</h3>
@@ -11,36 +14,66 @@
     <div class="status-toggle-group">
       <button 
         type="button"
-        [class.active]="cellData.type === 'Observed'"
+        [class.active]="cellData().type === 'Observed'"
         (click)="updateStatus('Observed')"
         class="btn-toggle status-observed">
         Observed
       </button>
       <button 
         type="button"
-        [class.active]="cellData.type === 'Excluded'"
+        [class.active]="cellData().type === 'Excluded'"
         (click)="updateStatus('Excluded')"
         class="btn-toggle status-excluded">
         Excluded
       </button>
        <button 
         type="button"
-        [class.active]="cellData.type === 'Na'"
+        [class.active]="cellData().type === 'Na'"
         (click)="updateStatus('Na')"
         class="btn-toggle status-na">
         na
       </button>
+      <button 
+      type="button"
+      [class.active]="cellData().type === 'OnsetAge' || isSelectingOnset"
+      (click)="toggleOnsetSelection()"
+      class="btn-toggle status-onset">
+      Onset
+    </button>
     </div>
+    @if (cellData().type === 'OnsetAge' || isSelectingOnset) {
+   <div class="onset-select-container">
+    <div class="onset-input-row">
+      <select 
+        [ngModel]="onsetText()"
+        (ngModelChange)="updateStatus('OnsetAge', $event)"
+        class="onset-select">
+        <option value="" disabled selected hidden>Select onset age...</option>
+        @for (option of availableOnsetTerms(); track option) {  
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+
+      <button 
+        type="button" 
+        class="btn-add-onset" 
+        (click)="openAddAgeDialog()" 
+        title="Create new age term">
+        + New
+      </button>
+    </div>
+  </div>
+  }
   </section>
 
   <section class="panel-section">
     <label class="section-label">
       Active Modifiers 
-      <span class="badge-count">{{ cellData.modifiers?.length || 0 }}</span>
+      <span class="badge-count">{{ cellData().modifiers?.length || 0 }}</span>
     </label>
     
     <div class="modifiers-list">
-      @for (mod of cellData.modifiers; track mod) {
+      @for (mod of cellData().modifiers; track mod) {
         <span class="modifier-chip">
           {{ mod }}
           <button 
@@ -63,4 +96,5 @@
       (modifierSelected)="addModifier($event)">
     </app-hpo-modifier-menu>
   </section>
+</div>
 </div>

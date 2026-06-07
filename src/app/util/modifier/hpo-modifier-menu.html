@@ -8,39 +8,42 @@
     }
   </div>
 
-  <div class="separator-text">Clinical modifiers</div>
-
-  <mat-form-field class="full-width-field" appearance="outline">
-    <input type="text"
-      #hpoInput
-      [placeholder]="placeholder()"
-      matInput
-      [formControl]="control"
-      [matAutocomplete]="auto"
-      spellcheck="false"
-      autocomplete="off">
-
-    @if (control.value) {
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
+  <div class="inline-modifier-header">
+    <span class="inline-label">Modifiers</span>
     
-    <mat-autocomplete 
-      #auto="matAutocomplete" 
-      [displayWith]="displayFn" 
-      (optionSelected)="onOptionSelected($event)">
-      @for (option of options(); track $index) {
-        <mat-option [value]="option">
-          <div class="option-container">
-            <span class="option-matched-text">{{ option.hpoLabel }}</span>
-            <small class="option-id"> ({{ option.hpoId }})</small>
-          </div>
-        </mat-option>
+    <mat-form-field class="compact-form-field" appearance="outline">
+      <input type="text"
+        #hpoInput
+        [placeholder]="placeholder()"
+        matInput
+        [formControl]="control"
+        [matAutocomplete]="auto"
+        spellcheck="false"
+        autocomplete="off">
+
+      @if (control.value) {
+        <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
+          <mat-icon>close</mat-icon>
+        </button>
       }
-    </mat-autocomplete>
-    @if (control.hasError('invalidSelection') && control.touched) {
-      <mat-error>Please select a term from the list</mat-error>
-    }
-  </mat-form-field>
+      
+      <mat-autocomplete 
+        #auto="matAutocomplete" 
+        [displayWith]="displayFn" 
+        (optionSelected)="onOptionSelected($event)">
+        @for (option of options(); track $index) {
+          <mat-option [value]="option">
+            <div class="option-container">
+              <span class="option-matched-text">{{ option.hpoLabel }}</span>
+              <small class="option-id"> ({{ option.hpoId }})</small>
+            </div>
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  @if (control.hasError('invalidSelection') && control.touched) {
+    <div class="error-text-fallback">Please select a term from the list</div>
+  }
 </div>

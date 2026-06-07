@@ -363,6 +363,7 @@
     <app-hpo-annotation-panel
       [cellData]="selectedCellContents"
       [columnTitle]="currentHpoLabel()"
+      (requestNewOnset)="openGlobalAgeDialog()"
       (dataChanged)="handleTableDataUpdate($event, pendingHpoColumnIndex!)">
     </app-hpo-annotation-panel>
   </div>

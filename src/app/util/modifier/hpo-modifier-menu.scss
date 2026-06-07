@@ -1,17 +1,46 @@
-.quick-select-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 4px 0;
-}
-
-.quick-select-row .btn-small {
-  /* Material 15+ relies heavily on these CSS variables */
-  --mdc-button-label-text-size: 12px;
+/* Compacting Angular Material Form Field even further */
+.compact-form-field {
+  flex: 1; 
+  width: 100%;
   
-  /* Manual overrides for tight constraints */
-  height: 28px; 
-  line-height: 28px;
-  padding: 0 10px;
-  min-width: auto; /* Prevents Material from enforcing a wide default width */
+  --mdc-outlined-text-field-container-height: 28px; 
+  font-size: 11px; 
+
+  ::ng-deep {
+    // Hide the built-in padding area meant for error messages beneath the input
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none !important; 
+    }
+    
+
+    .mat-mdc-text-field-wrapper {
+      padding-left: 8px;
+      padding-right: 2px;
+    }
+
+    .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-form-field-infix {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      display: flex;
+      align-items: center;
+    }
+
+    .mat-mdc-form-field-icon-suffix {
+      display: flex;
+      align-items: center;
+      
+      .mat-mdc-icon-button {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        
+        .mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          line-height: 14px;
+        }
+      }
+    }
+  }
 }

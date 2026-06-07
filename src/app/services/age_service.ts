@@ -77,9 +77,7 @@ export class AgeInputService {
     }
 
     addSelectedTerm(term: string) {
-        console.log("addSelectedTerm", this._selectedTerms)
         this._selectedTerms.update(current => Array.from(new Set([...current, term])));
-         console.log("+", this._selectedTerms)
     }
 
     removeSelectedTerm(term: string) {
