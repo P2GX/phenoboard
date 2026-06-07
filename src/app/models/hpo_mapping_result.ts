@@ -8,7 +8,7 @@ export interface HpoMappingResult {
   valueToStateMap: { [key: string]: string };
 }
 
-/* A match for the HPO autocomplete function */
+/* A match for the HPO autocomplete function (Rust version from the fenominal library)*/
 export interface HpoMatch {
   id: string;
   label: string;

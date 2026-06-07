@@ -24,8 +24,11 @@ export class AddageComponent {
 
   readonly existingTerms = this.ageService.allAvailableTerms;
   filteredTerms = computed(() => {
-    const typed = this.customAge().toLowerCase();
-    if (!typed) return this.existingTerms();
+    const typed = this.customAge().trim().toLowerCase();
+    if (!typed) {
+      return []; /* this is returned if the user hasn't entered anything yet */
+   }
+
     return this.existingTerms().filter(t => t.toLowerCase().includes(typed));
   });
 

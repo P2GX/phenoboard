@@ -5,22 +5,15 @@
 use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::MiningConcept, settings::HpoCuratorSettings, util::{pubmed_retrieval::PubmedRetriever, text_to_annotation}};
 use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
 
-use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
-use ontolius::{TermId, common::hpo::PHENOTYPIC_ABNORMALITY, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm, Synonymous}};
-use fenominal::{Fenominal, FenominalHit};
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{CellValue, CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
+
+use ontolius::{TermId, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm}};
+use fenominal::{AutoCompleter, Fenominal, FenominalHit, HpoMatch};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::{EtlDto}, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
 
-/// We use this to support autocomplete matching in the front end
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct HpoMatch {
-    pub id: String,
-    pub label: String,
-    pub matched_text: String,
-}
+
 
 /// A singleton that coordinates all interactions with the backend (including GA4GH Phenoboard)
 pub struct PhenoboardSingleton {
@@ -31,8 +24,8 @@ pub struct PhenoboardSingleton {
     pt_template_path: Option<String>,
     /// Path to the directory where we store the template and the phenopackets
     pt_template_dir_path: Option<PathBuf>,
-    /// Strings for autocompletion
-    hpo_auto_complete: Vec<HpoMatch>,
+    ///  Autocompletion from fenominal library
+    autocompleter: Option<AutoCompleter>,
 }
 
 impl PhenoboardSingleton {
@@ -52,7 +45,7 @@ impl PhenoboardSingleton {
         if let Some(hpo) = ontology_opt {
             let hpo_arc = Arc::new(hpo);
             singleton.ontology = Some(hpo_arc.clone());
-            singleton.initialize_hpo_autocomplete();
+            singleton.autocompleter = Some(AutoCompleter::new(hpo_arc.clone()));
             singleton.set_hpo(hpo_arc.clone(), &hpo_json);
         }           
         return singleton;
@@ -61,7 +54,8 @@ impl PhenoboardSingleton {
 
 
     pub fn set_hpo(&mut self, ontology: Arc<FullCsrOntology>, hpo_json_path: &str) {
-        self.ontology = Some(ontology);
+        self.ontology = Some(ontology.clone());
+        self.autocompleter = Some(AutoCompleter::new(ontology.clone()));
         let _ = self.settings.set_hp_json_path(hpo_json_path);
     }
 
@@ -112,28 +106,12 @@ impl PhenoboardSingleton {
 
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
+    /// fenominal functionality
     pub fn search_hpo(&self, query: &str, limit: usize) -> Vec<HpoMatch> {
-        let matcher = SkimMatcherV2::default();
-        let query_lower = query.to_lowercase();
-        // get fuzzy matches to query
-        let mut matches: Vec<_> = self.hpo_auto_complete
-            .iter()
-            .filter_map(|item| {
-                matcher.fuzzy_match(&item.matched_text, &query_lower)
-                    .map(|score| (score, item))
-            })
-            .collect();
-        // sort by score
-        matches.sort_unstable_by_key(|&(score, _)| std::cmp::Reverse(score));
-        // return best hits, but only one hit per HPO id (avoid duplicates because of synonym matches)
-        let mut seen = std::collections::HashSet::new();
-        matches
-            .into_iter()
-            .map(|(_, item)| item)
-            .filter(|item| seen.insert(&item.id))
-            .take(limit)
-            .cloned()
-            .collect()
+        self.autocompleter
+            .as_ref()
+            .map(|ac| ac.search_hpo(query, limit))
+            .unwrap_or_default()
     }
 
     pub fn get_modifiers(&self) -> Result<Vec<HpoTermDuplet>, String> {
@@ -143,63 +121,14 @@ impl PhenoboardSingleton {
 
 
     /// We want to get the single best match of any HPO term label to the query string
+    /// using the fenominal autocompletion functionality
     pub fn get_best_hpo_match(&self, query: String) -> Option<HpoMatch> {
-        let matcher = SkimMatcherV2::default();
-        let query_lower = query.to_lowercase();
-        // First, prioritize exact matches
-        let exact_match = self.hpo_auto_complete
-            .iter()
-            .find(|item| item.matched_text.to_lowercase() == query_lower);
-
-        if let Some(item) = exact_match {
-            return Some(item.clone());
-        }
-        // Otherwise, try to get a good fuzzy match
-        self.hpo_auto_complete
-            .iter()
-            .filter_map(|item| {
-                // We score based on the matched_text (could be a synonym or primary label)
-                matcher.fuzzy_match(&item.matched_text, &query)
-                    .map(|score| (item, score))
-            })
-            // Get the highest scoring match
-            .max_by_key(|(_, score)| *score)
-            // Return the whole object so you have the ID and Label immediately
-            .map(|(item, _)| item.clone())
+        self.autocompleter
+            .as_ref()
+            .map(|ac| ac.get_best_hpo_match(query))
+            .unwrap_or_default()
     }
 
-    /// Set up autocomplete functionality that returns string with form HP:0000123 - Label
-    pub(crate) fn initialize_hpo_autocomplete(&mut self) {
-        // let phenotypic_abnormality: TermId = "HP:0000118".parse().unwrap();
-        match &self.ontology {
-            Some(hpo) => {
-                self.hpo_auto_complete.clear();
-                for tid in  hpo.iter_descendant_ids(&PHENOTYPIC_ABNORMALITY) {
-                    match hpo.term_by_id(tid) {
-                        Some(term) => {
-                            let id_str = tid.to_string();
-                            let primary_label = term.name().to_string();
-                            self.hpo_auto_complete.push(HpoMatch {
-                                id: id_str.clone(),
-                                label: primary_label.clone(),
-                                matched_text: primary_label.clone(),
-                            });
-                            for synonym in term.synonyms() {
-                                let label = synonym.name.clone();
-                                self.hpo_auto_complete.push(HpoMatch {
-                                    id: id_str.clone(),
-                                    label: primary_label.clone(),
-                                    matched_text: label,
-                                });
-                            }
-                        },
-                        None => { eprintln!("Could not retrieve term for {}", tid); } // should never happen
-                    }
-                }
-            },
-            None => { eprintln!("Could not init HPO - should never happen")},
-        }
-    }
 
     pub fn hp_json_path(&self) -> Result<String, String> {
         match &self.settings.get_hp_json_path() {
@@ -685,7 +614,7 @@ impl Default for PhenoboardSingleton {
             ontology: None, 
             pt_template_path: None, 
             pt_template_dir_path: None,
-            hpo_auto_complete: vec![],
+            autocompleter: None,
         }
     }
 }

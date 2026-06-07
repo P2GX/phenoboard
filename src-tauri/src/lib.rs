@@ -13,9 +13,10 @@ use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
+use fenominal::HpoMatch;
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, phenoboard::HpoMatch, util::HgncBundle};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -172,8 +173,6 @@ async fn load_hpo(
                     Ok(ontology) => {
                         let mut singleton = state_handle.phenoboard.lock().unwrap();
                         singleton.set_hpo(Arc::new(ontology), &hp_json_path);
-                        singleton.initialize_hpo_autocomplete();
-                        
                         let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::success(singleton.get_status()));
                     },
                     Err(_) => { 

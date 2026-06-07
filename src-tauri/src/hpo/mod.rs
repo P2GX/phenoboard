@@ -1,6 +1,7 @@
-use serde::{Deserialize, Serialize};
 
-use crate::phenoboard::HpoMatch;
+use serde::{Deserialize, Serialize};
+use fenominal::HpoMatch;
+
 pub mod hpo_etl;
 pub mod ontology_loader;
 
