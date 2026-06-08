@@ -10,10 +10,8 @@
       [formControl]="commentControl"
       placeholder="Enter your comment"
     ></textarea>
-    @if(commentControl.hasError('ascii')){
-        <mat-error>
-        Only ASCII characters are allowed
-        </mat-error>
+    @if (commentControl.hasError('ascii')) {
+      <mat-error> Only ASCII characters are allowed </mat-error>
     }
   </mat-form-field>
 </mat-dialog-content>

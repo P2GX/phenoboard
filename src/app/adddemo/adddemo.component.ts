@@ -1,5 +1,11 @@
 import { Component, inject, output } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { AgeInputService } from '../services/age_service';
@@ -10,9 +16,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { DemoFormDialogComponent } from './demoformdialog.component';
-import { MatIcon } from "@angular/material/icon";
+import { MatIcon } from '@angular/material/icon';
 import { AddageComponent } from '../addages/addage.component';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
 
 @Component({
   selector: 'app-adddemo',
@@ -25,36 +31,36 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
     MatSelectModule,
     ReactiveFormsModule,
     MatIcon,
-    HelpButtonComponent
-],
+    HelpButtonComponent,
+  ],
   templateUrl: './adddemo.component.html',
-  styleUrls: ['./adddemo.component.css']
+  styleUrls: ['./adddemo.component.css'],
 })
 export class AdddemoComponent {
-  private fb =inject(FormBuilder);
-  private dialog =inject(MatDialog);
+  private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
   private ageService = inject(AgeInputService);
 
   private dialogRef = inject(MatDialogRef<AdddemoComponent>, { optional: true });
   private data = inject<{ demoDto?: DemographDto }>(MAT_DIALOG_DATA, { optional: true });
   readonly ageStrings = this.ageService.selectedTerms;
   demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();
-  
-  deceasedOptions: string[] = ["yes", "no", "na"];
+
+  deceasedOptions: string[] = ['yes', 'no', 'na'];
   sexOptions: string[] = ['M', 'F', 'O', 'U'];
 
   demoForm: FormGroup = this.initForm();
-  
+
   /* Open dialog to enter ageOfOnset or ageAtLastEncounter */
-  openAgeWizard(controlName: string) {
+  openAgeWizard(controlName: string): void {
     const control = this.demoForm.get(controlName);
-    if (! control) {
+    if (!control) {
       return;
     }
-    
+
     const dialogRef = this.dialog.open(AddageComponent, {
       width: '450px',
-      data: { current: control?.value }
+      data: { current: control?.value },
     });
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {
@@ -68,14 +74,17 @@ export class AdddemoComponent {
 
   private initForm(): FormGroup {
     const dto = this.data?.demoDto ?? defaultDemographDto();
-    
+
     return this.fb.group({
       individualId: [dto.individualId, [Validators.required, asciiValidator()]],
       ageOfOnset: [dto.ageOfOnset, [Validators.required, this.ageService.validator()]],
-      ageAtLastEncounter: [dto.ageAtLastEncounter, [Validators.required, this.ageService.validator()]],
+      ageAtLastEncounter: [
+        dto.ageAtLastEncounter,
+        [Validators.required, this.ageService.validator()],
+      ],
       sex: [dto.sex, Validators.required],
       deceased: [dto.deceased, Validators.required],
-      comment: [dto.comment, asciiValidator()]
+      comment: [dto.comment, asciiValidator()],
     });
   }
 
@@ -84,7 +93,7 @@ export class AdddemoComponent {
 
     const result = {
       dto: this.demoForm.value as DemographDto,
-      hideDemo: hideDemographic
+      hideDemo: hideDemographic,
     };
 
     if (this.dialogRef) {
@@ -101,12 +110,12 @@ export class AdddemoComponent {
 
     const dialogRef = this.dialog.open(DemoFormDialogComponent, {
       width: '400px',
-      data: { comment: currentValue }
+      data: { comment: currentValue },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result !== undefined) {
-        this.demoForm.patchValue({'comment':result});
+        this.demoForm.patchValue({ comment: result });
       }
     });
   }
@@ -118,16 +127,13 @@ export class AdddemoComponent {
       ageAtLastEncounter: 'na',
       sex: null,
       deceased: null,
-      comment: ''
+      comment: '',
     });
   }
 
-  cancel() {
+  cancel(): void {
     if (this.dialogRef) {
-      this.dialogRef.close(null); 
+      this.dialogRef.close(null);
     }
   }
-
-  
-
 }

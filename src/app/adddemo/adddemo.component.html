@@ -1,7 +1,4 @@
-<form 
-  [formGroup]="demoForm" 
-  (ngSubmit)="submitDemo(true)" 
-  class="form-container">
+<form [formGroup]="demoForm" (ngSubmit)="submitDemo(true)" class="form-container">
   <h2 class="form-header">Demographic Information</h2>
 
   <div class="form-card">
@@ -9,10 +6,7 @@
       <div class="field-group">
         <label for="individualId" class="field-label">Individual ID</label>
         <mat-form-field appearance="outline" class="w-full">
-          <input matInput 
-                 formControlName="individualId"
-                 id="individualId"
-                 placeholder="Enter ID">
+          <input matInput formControlName="individualId" id="individualId" placeholder="Enter ID" />
           <mat-hint>As used in published source</mat-hint>
           @if (demoForm.get('individualId')?.hasError('required')) {
             <mat-error>Individual ID is required</mat-error>
@@ -24,77 +18,105 @@
       </div>
       <div class="field-group">
         <div class="label-with-help">
-        <label class="compact-label">Age of Onset</label>
-        <app-help-button 
-          title="Age of Onset"
-          [lines]="[
-            'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
-            'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.'
-            ]" 
-          helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries" />
-      </div>
-      <div class="age-slot">
+          <label class="compact-label">Age of Onset</label>
+          <app-help-button
+            title="Age of Onset"
+            [lines]="[
+              'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
+              'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.',
+            ]"
+            helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
+          />
+        </div>
+        <div class="age-slot">
           @if (!demoForm.get('ageOfOnset')?.value) {
-            <button type="button" (click)="openAgeWizard('ageOfOnset')" class="btn btn-outline btn-small">
+            <button
+              type="button"
+              (click)="openAgeWizard('ageOfOnset')"
+              class="btn btn-outline btn-small"
+            >
               <mat-icon>add_circle_outline</mat-icon> Set Age
             </button>
           } @else {
             <div class="age-display">
               <span class="age-value">{{ demoForm.get('ageOfOnset')?.value }}</span>
               <div class="age-actions">
-                <button type="button" (click)="openAgeWizard('ageOfOnset')" class="edit-btn"><mat-icon>edit</mat-icon></button>
-                <button type="button" (click)="demoForm.get('ageOfOnset')?.setValue('')" class="clear-btn"><mat-icon>close</mat-icon></button>
+                <button type="button" (click)="openAgeWizard('ageOfOnset')" class="edit-btn">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  (click)="demoForm.get('ageOfOnset')?.setValue('')"
+                  class="clear-btn"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
               </div>
             </div>
           }
+        </div>
       </div>
-    </div>
-    <div class="field-group">
+      <div class="field-group">
         <div class="label-with-help">
           <label class="compact-label">Age at last encounter</label>
-        <app-help-button 
-          title="Age at last encounter"
-          [lines]="[
-            'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
-          ]"
-          helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries" />
+          <app-help-button
+            title="Age at last encounter"
+            [lines]="[
+              'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
+            ]"
+            helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
+          />
         </div>
-       <div class="age-slot">
-        @if (!demoForm.get('ageAtLastEncounter')?.value) {
-          <button 
-            type="button" 
-            (click)="openAgeWizard('ageAtLastEncounter')" 
-            class="btn-outline-primary">
-            <mat-icon>add_circle_outline</mat-icon>
-            Set Age
-          </button>
-        } @else {
-          <div class="age-display">
-            <span class="age-value">
-              {{ demoForm.get('ageAtLastEncounter')?.value }}
-            </span>
-             <div class="age-actions">
-                <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" class="edit-btn"><mat-icon>edit</mat-icon></button>
-                <button type="button" (click)="demoForm.get('ageAtLastEncounter')?.setValue('')" class="clear-btn"><mat-icon>close</mat-icon></button>
+        <div class="age-slot">
+          @if (!demoForm.get('ageAtLastEncounter')?.value) {
+            <button
+              type="button"
+              (click)="openAgeWizard('ageAtLastEncounter')"
+              class="btn-outline-primary"
+            >
+              <mat-icon>add_circle_outline</mat-icon>
+              Set Age
+            </button>
+          } @else {
+            <div class="age-display">
+              <span class="age-value">
+                {{ demoForm.get('ageAtLastEncounter')?.value }}
+              </span>
+              <div class="age-actions">
+                <button
+                  type="button"
+                  (click)="openAgeWizard('ageAtLastEncounter')"
+                  class="edit-btn"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  (click)="demoForm.get('ageAtLastEncounter')?.setValue('')"
+                  class="clear-btn"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
               </div>
-          </div>
-        }
+            </div>
+          }
+        </div>
       </div>
     </div>
-    </div>
-      <div>
-         <div class="field-group">
+    <div>
+      <div class="field-group">
         <div class="label-with-help">
           <label class="field-label">Sex</label>
-          <app-help-button 
+          <app-help-button
             title="Sex"
             [lines]="[
               '<b>M</b>: male.',
               '<b>F</b>: male.',
               '<b>O</b>: other.',
               '<b>U</b>: unknown or not recorded.',
-            ]" />
-          </div>
+            ]"
+          />
+        </div>
         <div class="radio-stack">
           @for (s of sexOptions; track s) {
             <label class="radio-item">
@@ -111,7 +133,7 @@
         <div class="radio-stack">
           @for (d of deceasedOptions; track d) {
             <label class="radio-item">
-              <input type="radio" [value]="d" formControlName="deceased"/>
+              <input type="radio" [value]="d" formControlName="deceased" />
               {{ d }}
             </label>
           }
@@ -120,9 +142,7 @@
 
       <!-- 6. Comment -->
       <div class="field-group flex-end">
-        <button type="button"
-                (click)="openCommentDialog()"
-                class="btn btn-secondary">
+        <button type="button" (click)="openCommentDialog()" class="btn btn-secondary">
           Add Comment
         </button>
       </div>
@@ -130,10 +150,9 @@
   </div>
 
   <!-- Action buttons -->
- <div class="form-footer">
+  <div class="form-footer">
     <button type="button" (click)="cancel()" class="btn btn-outline">Cancel</button>
     <button type="button" (click)="reset()" class="btn btn-outline">Reset</button>
     <button type="submit" [disabled]="!demoForm.valid" class="btn btn-primary">Submit</button>
   </div>
 </form>
-

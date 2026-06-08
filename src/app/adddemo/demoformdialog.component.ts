@@ -15,14 +15,12 @@ export class DemoFormDialogComponent {
   private dialogRef = inject(MatDialogRef<DemoFormDialogComponent>);
   public data = inject(MAT_DIALOG_DATA) as { comment: string };
 
-  commentControl = new FormControl<string>(this.data?.comment ?? '', [
-    asciiValidator()
-  ]);
+  commentControl = new FormControl<string>(this.data?.comment ?? '', [asciiValidator()]);
 
-  save() {
+  save(): void {
     if (this.commentControl.valid) this.dialogRef.close(this.commentControl.value);
   }
-  cancel() {
+  cancel(): void {
     this.dialogRef.close(undefined);
   }
 }

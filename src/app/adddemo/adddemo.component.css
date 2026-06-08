@@ -18,7 +18,7 @@
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 1%);
 }
 
 /* Grid Layout: Responsive without 50 breakpoints */
@@ -59,7 +59,11 @@
 }
 
 /* Age Display Pill */
-.age-slot { height: 40px; display: flex; align-items: center; }
+.age-slot { 
+  height: 40px; 
+  display: flex; 
+  align-items: center; 
+}
 
 .age-display {
   display: flex;
