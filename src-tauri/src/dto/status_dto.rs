@@ -42,3 +42,10 @@ impl ProgressDto {
         Self { current, total }
     }
 }
+
+
+#[derive(serde::Serialize)]
+pub struct PpktSaveCheckResult {
+    pub selected_dir: String,
+    pub existing_ppkt_file_count: usize,
+}

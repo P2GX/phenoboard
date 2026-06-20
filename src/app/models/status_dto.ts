@@ -23,3 +23,8 @@ export function defaultStatusDto(): StatusDto {
         errorMessage: ""
     };
 }
+
+export interface PpktSaveCheckResult {
+  selected_dir: string;
+  existing_ppkt_file_count: number;
+}

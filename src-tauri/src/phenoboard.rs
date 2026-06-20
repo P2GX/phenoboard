@@ -350,7 +350,7 @@ impl PhenoboardSingleton {
         Ok(PathBuf::from(home_dir))
     }
 
-    fn get_phenopackets_output_dir(&self) -> Result<PathBuf, String> {
+    pub fn get_phenopackets_output_dir(&self) -> Result<PathBuf, String> {
         let default_dir = self.get_default_dir()?;
         FileDialog::new()
             .set_directory(default_dir)
@@ -362,20 +362,22 @@ impl PhenoboardSingleton {
     /// Export a list of phenopackets derived from the cohort.
     pub fn export_ppkt(
         &mut self,
-        cohort_dto: CohortData) -> Result<usize, String> {
-        let out_dir = match self.get_phenopackets_output_dir() {
-            Ok(dir) => dir,
-            Err(e) =>  { return Err(e);},
-        };
+        directory: String, 
+        cohort: CohortData, 
+        overwrite: bool) 
+        -> Result<usize, String> 
+    {
+        let path = PathBuf::from(&directory);
         let orcid = match self.settings.get_biocurator_orcid() {
             Ok(orcid_id) => orcid_id,
             Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
         };
         match &self.ontology {
-            Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort_dto, out_dir, orcid, hpo.clone()),
+            Some(hpo) =>  ga4ghphetools::ppkt::write_phenopackets(cohort, path, orcid, hpo.clone(), overwrite),
             None => Err("Cannot export phenopackets because HPO not initialized".to_string()),
         }
     }
+
 
     pub fn get_repo_qc(&self) -> Result<RepoQc, String> {
         let out_dir = match self.get_phenopackets_output_dir() {

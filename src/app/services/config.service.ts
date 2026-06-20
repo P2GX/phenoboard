@@ -10,7 +10,8 @@ import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
 import { HpoMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
 import { ComparisonReport } from '../models/comparison';
-
+import {  PpktSaveCheckResult } from '../models/status_dto'
+import { ask } from '@tauri-apps/plugin-dialog';
 
 @Injectable({
   providedIn: 'root'
@@ -186,9 +187,28 @@ export class ConfigService {
     return invoke<CohortData>('sanitize_cohort_data',  {cohortDto: cohort_data});
   }
 
-  async exportPpkt(cohort_dto: CohortData): Promise<number> {
-    return invoke<number>('export_ppkt', {cohortDto: cohort_dto});
+  async checkExistingPhenopackets(): Promise<PpktSaveCheckResult> {
+    return invoke('check_existing_phenopackets');
+  } 
+
+  async exportCohortWorkflow(cohortDto: any): Promise<number> {
+    const checkResult = await this.checkExistingPhenopackets();
+    let overwrite = false;
+
+    if (checkResult.existing_ppkt_file_count > 0) {
+      overwrite = await ask(
+        `This folder already contains ${checkResult.existing_ppkt_file_count} JSON file(s). Overwrite?`,
+        { title: 'Overwrite?', kind: 'warning', okLabel: 'Overwrite', cancelLabel: 'Save New Only' }
+      );
+    }
+
+    return this.savePhenopackets(checkResult.selected_dir, cohortDto, overwrite);
   }
+  async savePhenopackets(directory: string, cohort: any, overwrite: boolean): Promise<number> {
+    return invoke('export_ppkt', { directory, cohort, overwrite });
+  }
+
+ 
 
    async exportHpoa(cohort_dto: CohortData): Promise<string> {
     return invoke<string>('export_hpoa', {cohortDto: cohort_dto});
@@ -397,7 +417,6 @@ export class ConfigService {
 
   async getModifiers(): Promise<HpoTermDuplet[]> {
         return await invoke<HpoTermDuplet[]>('get_modifiers');
-
   }
 
 }

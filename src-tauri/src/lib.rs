@@ -16,7 +16,7 @@ use tauri_plugin_fs::{init};
 use fenominal::HpoMatch;
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -37,6 +37,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             add_hpo_term_to_cohort,
             add_new_row_to_cohort,
+            check_existing_phenopackets,
             compare_two_phenopackets,
             create_canonical_dictionary,
             create_cell_mappings,
@@ -499,12 +500,45 @@ fn sort_cohort_by_rows(dto: CohortData)
 
 
 #[tauri::command]
-fn export_ppkt(
-    state: tauri::State<'_, Arc<AppState>>,
-    cohort_dto: CohortData) -> Result<usize, String> {
+async fn check_existing_phenopackets(state: tauri::State<'_, Arc<AppState>>) -> Result<PpktSaveCheckResult, String> {
     let mut singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    singleton.export_ppkt(cohort_dto)
+     let out_dir = match singleton.get_phenopackets_output_dir() {
+            Ok(dir) => dir,
+            Err(e) =>  { return Err(e);},
+        };
+    let path = std::path::PathBuf::from(&out_dir);
+
+    if !path.exists() {
+        return Err(format!("Could not find directory at {:?}", path));
+    }
+    let n_existing_files = fs::read_dir(&path)
+        .map_err(|e| format!("Failed to read directory: {}", e))?
+        .filter_map(|entry| entry.ok()) // Ignore unreadable entries safely
+        .filter(|entry| {
+            let p = entry.path();
+            // Ensure it's a file (not a folder) and ends with .json
+            p.is_file() && p.extension().map_or(false, |ext| ext == "json")
+        })
+        .count();
+
+    let check = PpktSaveCheckResult{ 
+        selected_dir: out_dir.to_string_lossy().to_string(), 
+        existing_ppkt_file_count: n_existing_files};
+
+    Ok(check)
+}
+
+#[tauri::command]
+fn export_ppkt(
+    state: tauri::State<'_, Arc<AppState>>,
+    directory: String, 
+    cohort: CohortData, 
+    overwrite: bool
+) -> Result<usize, String> {
+       let mut singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    singleton.export_ppkt(directory, cohort, overwrite)
 }
 
 #[tauri::command]

@@ -714,7 +714,7 @@ export class PtTemplateComponent  {
       return;
     }
     try {
-      const n_exported = await this.configService.exportPpkt(cohort_dto);
+      const n_exported = await this.configService.exportCohortWorkflow(cohort_dto);
       this.notificationService.showSuccess(`Exported ${n_exported} phenopackets.`);
     } catch (err) {
       this.notificationService.showError(String(err));
