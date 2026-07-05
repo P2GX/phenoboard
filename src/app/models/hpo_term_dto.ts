@@ -6,7 +6,6 @@ export interface HpoAnnotationDto {
 }
 
 
-
 export interface HpoTermDuplet {
     hpoLabel: string;
     hpoId: string;
