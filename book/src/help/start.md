@@ -13,9 +13,9 @@ Before using Phenoboard for the first time, the user needs to enter an [ORCID](h
 ## Load the HPO
 Before curation, the user needs to load the ``hp.json`` file. We recommend always using the latest version, which can be found in the [Download](https://hpo.jax.org/data/ontology) section of the HPO website. The path to this file is always stored in the settings directory, and the ontology will be loaded automatically upon program start. Users should check if an update is available and if so, download the new ``hp.json`` file and load it in Phenoboard.
 
-## Create a pheboard cohort file
-This option creates a new pheboard cohort (JSON) file. 
+## Create a Phenoboard cohort file
+This option creates a new Phenoboard cohort (JSON) file. 
 
-## Select pheboard cohort file
-This option selects a Pheboard JSON file that is used to store data about a cohort and which Pheboard uses to create a collection of phenopackets representing the cohort. TOO
+## Select Phenoboard cohort file
+This option selects a Phenoboard JSON file that is used to store data about a cohort and which Phenoboard uses to create a collection of phenopackets representing the cohort. TOO
 
