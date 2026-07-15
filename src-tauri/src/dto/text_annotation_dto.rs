@@ -9,6 +9,7 @@
 use fenominal::FenominalHit;
 use serde::{Deserialize, Serialize};
 
+#[deprecated="Moving to FenominalSentence"]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TextAnnotationDto {

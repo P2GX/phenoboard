@@ -86,7 +86,7 @@ export class NewTemplateComponent  {
       .join("_");
   });
 
-  thisCohortType = signal<CohortType | null>(null);
+  cohortType = signal<CohortType | null>(null);
   pendingCohort = signal<CohortData | null>(null);
   showSuccessMessage = signal<boolean>(false);
 
@@ -182,7 +182,7 @@ async mendelian(): Promise<void> {
     const cohort = await this.configService.createNewMeldedTemplate(this.diseasesData(), this.cohortAcronym());
       this.resetCohort();
     this.pendingCohort.set(cohort);
-    this.thisCohortType.set("melded");
+    this.cohortType.set("melded");
   }
 
 private async createMendelianTemplate(): Promise<void> {
@@ -201,7 +201,7 @@ private async createMendelianTemplate(): Promise<void> {
   );
   this.resetCohort();
   this.pendingCohort.set(template);
-  this.thisCohortType.set("mendelian");
+  this.cohortType.set("mendelian");
 }
    
   
@@ -211,7 +211,7 @@ private async createMendelianTemplate(): Promise<void> {
     this.meldedTemplate = false;
     this.digenicTemplate = false;
     this.pendingCohort.set(null);
-    this.thisCohortType.set(null);
+    this.cohortType.set(null);
     this.cohortService.clearCohortData();
     this.showSuccessMessage.set(false);
   }

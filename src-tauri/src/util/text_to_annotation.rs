@@ -43,7 +43,7 @@
 use fenominal::FenominalHit;
 use crate::dto::text_annotation_dto::TextAnnotationDto;
 
-
+#[deprecated="Replaced by more modern fenominal function"]
 pub fn text_to_annotations(
     input_text: &str,
     fenominal_hits: &[FenominalHit],

@@ -81,7 +81,7 @@ pub fn run() {
             save_external_template_json,
             save_html_report,
             sort_cohort_by_rows,
-            submit_autocompleted_hpo_term,
+           // submit_autocompleted_hpo_term,
             validate_hgvs_variant,
             validate_intergenic_variant,
             validate_structural_variant,
@@ -194,6 +194,7 @@ async fn load_hpo(
 
 
 /// Allow the user to choose an existing PheTools template file from the file system and load it
+#[deprecated="We have finish migration from excel pyphetools files"]
 #[tauri::command]
 async fn load_phetools_excel_template(
     app: AppHandle,
@@ -471,7 +472,7 @@ fn get_best_hpo_match(
 
 
 
-
+/*
 #[tauri::command]
 fn submit_autocompleted_hpo_term(
     state: tauri::State<'_, Arc<AppState>>,
@@ -485,7 +486,7 @@ fn submit_autocompleted_hpo_term(
         let _ = app.emit("autocompletion", dto);
         Ok(())
     }
-
+ */
 
 
 

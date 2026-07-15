@@ -2,7 +2,9 @@
    <div class="success-panel">
     <div class="success-panel__icon-wrap">
       <div class="success-panel__icon">
-        <span class="success-panel__checkmark">✔</span>
+        <svg class="success-panel__checkmark w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
       </div>
       <h2 class="success-panel__title">Template Created Successfully!</h2>
       <p class="success-panel__subtitle">Your cohort is ready. How would you like to proceed?</p>
@@ -36,11 +38,11 @@
   <div class="page-body">
     <h1 class="h1-primary">Create Phenopacket Cohort Template</h1>
     
-    @if (!thisCohortType()) {
+    @if (!cohortType()) {
       @if (statusService.hpoLoaded()) {
-        <p class="p-hint">Choose a cohort type to get started.</p>
+        <p class="mode-list__subtext">Choose a cohort type to get started.</p>
       } @else {
-        <p class="p-hint">Load the HPO from the Home page before creating cohort.</p>
+        <p class="mode-list__subtext mode-list__subtext--warning">Load the HPO from the Home page before creating cohort.</p>
       }
       
       <div class="mode-list">
@@ -58,7 +60,7 @@
     }
 
     @else {
-      @let type = thisCohortType();
+      @let type = cohortType();
       @let cohort = pendingCohort();
 
       <div class="template-section section-animate">
