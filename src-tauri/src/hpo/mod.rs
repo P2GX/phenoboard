@@ -1,6 +1,6 @@
 
 use serde::{Deserialize, Serialize};
-use fenominal::HpoMatch;
+use fenominal::OntologyMatch;
 
 pub mod hpo_etl;
 pub mod ontology_loader;
@@ -38,7 +38,7 @@ impl ClinicalStatus {
 pub struct MiningConcept {
   pub(crate) original_text: String,
   pub(crate) row_index_list: Vec<usize>,
-  pub(crate) suggested_terms: Vec<HpoMatch>,
+  pub(crate) suggested_terms: Vec<OntologyMatch>,
   pub(crate) mining_status: MiningStatus,
 }
 

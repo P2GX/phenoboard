@@ -24,7 +24,7 @@ import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 import { RouterLink } from '@angular/router';
-import { HpoMatch } from '../models/hpo_mapping_result';
+import { OntologyMatch } from '../models/hpo_mapping_result';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
@@ -468,7 +468,7 @@ export class PtTemplateComponent  {
     }
   }
 
-  submitSelectedHpo = async (selectedHpo: HpoMatch | string | null): Promise<void> => {
+  submitSelectedHpo = async (selectedHpo: OntologyMatch | string | null): Promise<void> => {
     if (! selectedHpo || typeof selectedHpo === 'string') {
       this.notificationService.showError(`HPO Text mining component did not return valid HpoMatch but instead '${selectedHpo}'.`)
       return;

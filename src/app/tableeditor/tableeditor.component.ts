@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult, HpoMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -24,7 +24,6 @@ import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.c
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
-import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
@@ -432,7 +431,7 @@ export class TableEditorComponent  {
     const column = dto.table.columns[colIndex];
     const columnTitle = column.header.original || "n/a";
 
-    let bestHpoMatch: HpoMatch | null = null;
+    let bestHpoMatch: OntologyMatch | null = null;
     try {
       bestHpoMatch = (await this.configService.getBestHpoMatch(columnTitle)) ?? "";
     } catch {
@@ -1912,6 +1911,7 @@ async saveManualEdit(newValue: string): Promise<void> {
         this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
         return;
     };
+    /*
     const dialogRef = this.dialog.open(HpoTwostepComponent, {
       width: '1200px',
       height: '900px',
@@ -1934,7 +1934,8 @@ async saveManualEdit(newValue: string): Promise<void> {
         col.values[rowIndex].status = TRANSFORMED;
         col.values[rowIndex].error = undefined;
       }
-    });
+    });*/
+    this.notificationService.showError("Need to integrate new two step component!");
     
   }
 

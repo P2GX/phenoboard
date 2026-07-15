@@ -9,7 +9,7 @@ export interface HpoMappingResult {
 }
 
 /* A match for the HPO autocomplete function (Rust version from the fenominal library)*/
-export interface HpoMatch {
+export interface OntologyMatch {
   id: string;
   label: string;
   matchedText: string;
@@ -32,7 +32,7 @@ export enum ClinicalStatus {
 export interface MiningConcept {
   originalText: string;
   rowIndexList: number[];
-  suggestedTerms: HpoMatch[];
+  suggestedTerms: OntologyMatch[];
   miningStatus: MiningStatus;
 }
 

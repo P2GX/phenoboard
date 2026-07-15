@@ -8,10 +8,11 @@ import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
-import { HpoMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
+import { OntologyMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
 import { ComparisonReport } from '../models/comparison';
 import {  PpktSaveCheckResult } from '../models/status_dto'
 import { ask } from '@tauri-apps/plugin-dialog';
+import { FenominalSentence, HierarchyMapItem, HpoTermMinimal } from 'ng-hpo-uikit';
 
 @Injectable({
   providedIn: 'root'
@@ -127,21 +128,37 @@ export class ConfigService {
     return await invoke("fetch_pmid_title", {input: input_pmid});
   }
 
+  /*
   async map_text_to_annotations(input_text: string):  Promise<TextAnnotationDto[] | string> {
     return await invoke("map_text_to_annotations", {inputText: input_text});
+  }*/
+   async mineClinicalText(text: string): Promise<FenominalSentence[]> {
+    return await invoke<FenominalSentence[]>('mine_clinical_text', { text });
   }
 
   async getHpoParentAndChildTerms(annotation: HpoAnnotationDto): Promise<ParentChildDto> {
   return await invoke("get_hpo_parent_and_children_terms", {annotation: annotation});
 }
 
+/*
+  async getAutocompleteHpo(value: string): Promise<OntologyMatch[]> {
+    return invoke<OntologyMatch[]>('get_hpo_autocomplete', { query: value });
+  }*/
 
-  async getAutocompleteHpo(value: string): Promise<HpoMatch[]> {
-    return invoke<HpoMatch[]>('get_hpo_autocomplete', { query: value });
+  async getHpoModifiers(): Promise<HpoTermMinimal[]> {
+    return invoke<HpoTermMinimal[]>('get_hpo_modifiers');
   }
 
-  async getBestHpoMatch(value: string): Promise<HpoMatch> {
-    return invoke<HpoMatch>('get_best_hpo_match', {query: value});
+  async performHpoAutocomplete(query: string): Promise<OntologyMatch[]> {
+    return invoke<OntologyMatch[]>('perform_hpo_autocomplete', { query });
+  }
+
+  async getHpoParentAndChildrenTerms(termId: string): Promise<HierarchyMapItem> {
+    return invoke<HierarchyMapItem>('get_hpo_parent_and_children_terms', { termId });
+  }
+
+  async getBestHpoMatch(value: string): Promise<OntologyMatch> {
+    return invoke<OntologyMatch>('get_best_hpo_match', {query: value});
   }
 
   async submitAutocompleteHpoTerm(term_id: string, term_label:string): Promise<void> {

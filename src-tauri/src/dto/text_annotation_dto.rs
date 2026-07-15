@@ -27,6 +27,7 @@ pub struct TextAnnotationDto {
 /// extracted and displayed the HPO hits and no longer care about their positions or the
 /// original text.
 /// Useful because it is easier to manipulate (unique)
+#[deprecated(since = "0.3.0", note = "Use FenominalSentence instead")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HpoAnnotationDto {
@@ -53,7 +54,7 @@ impl TextAnnotationDto {
         dto.label = hit.label.clone();
         dto.start = hit.span.start;
         dto.end = hit.span.end;
-        dto.is_observed = hit.is_observed;
+        dto.is_observed = ! hit.excluded;
         dto.original_text = text.into();
 
         dto

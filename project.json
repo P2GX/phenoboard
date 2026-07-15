@@ -13,6 +13,9 @@
     "build": {
       "executor": "@angular-devkit/build-angular:application",
       "options": {
+        "preserveSymlinks": true,
+        "optimization": false,        
+        "namedChunks": true,
         "outputPath": "dist/phenoboard",
         "index": "src/index.html",
         "browser": "src/main.ts",

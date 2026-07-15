@@ -12,6 +12,36 @@ export interface TextAnnotationDto {
     onsetString: string,
 }
 
+
+/** Mirrors Rust's `std::ops::Range<usize>`, which serde serializes as `{ start, end }`. */
+interface Span {
+    start: number;
+    end: number;
+}
+/** A named entity identified by text mining. */
+interface FenominalHit {
+    termId: string;
+    label: string;
+    span: Span;
+    excluded: boolean;
+}
+/** A contiguous piece of a sentence: either a recognized entity or plain text. */
+type FenominalSegment = {
+    kind: 'hit';
+    text: string;
+    hit: FenominalHit;
+} | {
+    kind: 'text';
+    text: string;
+    span: Span;
+};
+/** A sentence of the original text. */
+interface FenominalSentence {
+    start: number;
+    originalText: string;
+    segments: FenominalSegment[];
+}
+
 /** We use this in the HpoPolishing component to extract unique HPO annotations where
  * we no longer care about the position or the original string.
  */

@@ -5,15 +5,16 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{ComparisonReport, repo_qc::RepoQc}};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{ComparisonReport, repo_qc::RepoQc}, tauri::models::HierarchyMapItem};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
-use fenominal::HpoMatch;
+use fenominal::OntologyMatch;
 
 
 use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
@@ -54,9 +55,9 @@ pub fn run() {
             get_cohort_age_strings,
             get_cohort_data_from_etl_dto,
             get_hp_json_path,
-            get_hpo_autocomplete,
             get_hpo_parent_and_children_terms,
             get_hpo_terms_by_toplevel,
+            get_hpo_modifiers,
             get_modifiers,
             get_multi_hpo_strings,
             get_status_dto,
@@ -68,9 +69,10 @@ pub fn run() {
             load_phetools_excel_template,
             load_ptools_json,
             load_hpo,
-            map_text_to_annotations,
             merge_cohort_data_from_etl_dto,
+            mine_clinical_text,
             mine_multi_hpo_column,
+            perform_hpo_autocomplete,
             process_allele_column,
             reset_pt_template_path,
             sanitize_cohort_data,
@@ -278,7 +280,7 @@ async fn load_ptools_json(
 
 
 
-
+/* 
 #[tauri::command]
 fn map_text_to_annotations(
     state: tauri::State<'_, Arc<AppState>>,
@@ -287,7 +289,23 @@ fn map_text_to_annotations(
     let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     return singleton.map_text_to_annotations(input_text);
+}*/
+
+
+
+#[tauri::command]
+async fn mine_clinical_text(
+    state: tauri::State<'_, Arc<AppState>>,
+    text: String,
+) -> Result<Vec<fenominal::FenominalSentence>, String> {
+    let singleton = match state.phenoboard.lock() {
+        Ok(s) => s,
+        Err(_) => return Err("Failed to acquire application state lock".to_string()),
+    };
+    singleton
+        .mine_clinical_text(&text)
 }
+
 
 
 /// Get a JSON object that represents the directory and file structure of the Phenopacket Store
@@ -386,44 +404,65 @@ async fn fetch_pmid_title(
 }
 
 
+
+
+
 #[tauri::command]
-fn get_hpo_parent_and_children_terms(
+async fn get_hpo_parent_and_children_terms(
     state: tauri::State<'_, Arc<AppState>>,
-    annotation: HpoAnnotationDto
-) -> Result<ParentChildDto, String> {
+    term_id: &str,
+) -> Result<HierarchyMapItem, String> {
     let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    let annots = singleton.get_hpo_parent_and_children_terms(annotation);
-    Ok(annots)
+        .map_err(|_| "Failed to lock state".to_string())?;
+    singleton.get_hpo_parent_and_children_terms(term_id)
 }
 
 
-
-/// This function supplies the autocompletion candidates for angular for the HPO
-/// The JavaScript ensures that query is at least 3 letters
-#[tauri::command]
-fn get_hpo_autocomplete(
-    state: tauri::State<'_, Arc<AppState>>,
-    query: String
-) -> Vec<HpoMatch> {
-    let singleton = match state.phenoboard.lock() {
-        Ok(s) => s,
-        Err(_) => return vec![],
-    };
-
-    // If query is too short, don't even bother searching
-    if query.len() < 3 {
-        return vec![];
+/// format matching the TypeScript `HpoTermMinimal` interface in ng-hpo-uikit.
+#[deprecated="Figure out better way to do this"]
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HpoTermMinimalDto {
+    pub term_id: String,
+    pub label: String,
+}
+impl From<HpoTermDuplet> for HpoTermMinimalDto {
+    fn from(d: HpoTermDuplet) -> Self {
+        HpoTermMinimalDto {
+            term_id: d.hpo_id,
+            label: d.hpo_label,
+        }
     }
-    singleton.search_hpo(&query, 20)
 }
+
+#[tauri::command]
+async fn get_hpo_modifiers(
+    state: tauri::State<'_, Arc<AppState>>
+) -> Result<Vec<HpoTermMinimalDto>, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to lock state".to_string())?;
+    let duplets = singleton.get_modifiers()?;
+
+    Ok(duplets.into_iter().map(HpoTermMinimalDto::from).collect())
+}
+
+
+#[tauri::command]
+async fn perform_hpo_autocomplete(state: tauri::State<'_, Arc<AppState>>, query: String) -> Result<Vec<OntologyMatch>, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to lock state".to_string())?;
+    singleton.perform_hpo_autocomplete(query)
+}
+
+
+
 
 /// This function supplies the autocompletion candidates for angular for the HPO
 /// The JavaScript ensures that query is at least 3 letters
 #[tauri::command]
 fn get_best_hpo_match(
     state: tauri::State<'_, Arc<AppState>>,
-    query: String) -> Option<HpoMatch> {
+    query: String) -> Option<OntologyMatch> {
         match state.phenoboard.lock() {
             Ok(singleton ) => singleton.get_best_hpo_match(query),
             Err(_) => None,
@@ -501,7 +540,7 @@ fn sort_cohort_by_rows(dto: CohortData)
 
 #[tauri::command]
 async fn check_existing_phenopackets(state: tauri::State<'_, Arc<AppState>>) -> Result<PpktSaveCheckResult, String> {
-    let mut singleton = state.phenoboard.lock()
+    let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
      let out_dir = match singleton.get_phenopackets_output_dir() {
             Ok(dir) => dir,

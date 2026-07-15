@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HpoAutocompleteComponent } from './hpoautocomplete.component';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { HpoMatch } from '../models/hpo_mapping_result';
+import { OntologyMatch } from '../models/hpo_mapping_result';
 
 /** A wrapper that allows the autocomplete to be used as a modal dialog with a modern UI */
 @Component({
@@ -61,9 +61,9 @@ import { HpoMatch } from '../models/hpo_mapping_result';
 })
 export class HpoDialogWrapperComponent {
   public dialogRef = inject(MatDialogRef<HpoDialogWrapperComponent>);
-  public data = inject(MAT_DIALOG_DATA) as { bestMatch: HpoMatch, title: string };
+  public data = inject(MAT_DIALOG_DATA) as { bestMatch: OntologyMatch, title: string };
 
-  onSelected(term: HpoMatch) {
+  onSelected(term: OntologyMatch) {
     const duplet: HpoTermDuplet = {
       hpoLabel: term.label,
       hpoId: term.id

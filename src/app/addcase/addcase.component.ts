@@ -9,7 +9,7 @@ import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
-import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { CellValue, CellValueInner, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
@@ -19,12 +19,29 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from '../services/notification.service';
-import { HpoTwostepComponent } from '../hpotwostep/hpotwostep.component';
 import { ConfirmDialogComponent } from '../util/confirm/confirmdialog.component';
 import { signal, computed } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
 import { AppStatusService } from '../services/app_status_service';
+import { HierarchyMapItem, HpoTwostepData, OntologyMatch, PolishedHpoAnnotation } from 'ng-hpo-uikit';
+import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';
+
+
+function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
+  const modifiers = annotation.modifiers.length > 0
+    ? annotation.modifiers.map(m => m.termId) // assumes HpoTermMinimal has a `termId` field
+    : undefined;
+
+  const inner: CellValueInner = annotation.excluded
+    ? { type: "Excluded" }
+    : annotation.onsetString
+      ? { type: "OnsetAge", data: annotation.onsetString }
+      : { type: "Observed" };
+
+  return modifiers ? { ...inner, modifiers } : inner;
+}
+
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -53,6 +70,7 @@ export class AddcaseComponent {
   public statusService = inject(AppStatusService);
 
   public VariantKind = VariantKind;
+
 
   pastedText = '';
   showTextArea = true;
@@ -88,6 +106,7 @@ export class AddcaseComponent {
   /* used for autocomplete widget */
   hpoInputString = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
+    protected hierarchyCache = signal<Record<string, HierarchyMapItem>>({});
 
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
@@ -348,20 +367,73 @@ export class AddcaseComponent {
     this.pmidDto.set(defaultPmidDto());
   }
 
+
+  /* 
+
+
+  protected openCurationWizard(): void {
+    const dialogData: HpoTwostepData = {
+      mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
+      autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
+      hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
+      availableModifiers: () => this.availableModifiers()
+    };
+
+
+    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
+      width: '85vw',
+      maxWidth: '1200px',
+      height: '80vh',
+      disableClose: true,
+      data: dialogData
+    });
+    dialogRef.afterClosed().subscribe((polishedAnnotations?: PolishedHpoAnnotation[]) => {
+      if (polishedAnnotations) {
+        const observedTerms: PolishedHpoAnnotation[] = polishedAnnotations.filter((annot) => ! annot.excluded);
+        const termIds = observedTerms.map(t => t.termId);
+        this.configService.addObservedHposFromNER(termIds);
+        const n_observed = observedTerms.length;
+       if (n_observed > 0) {
+        this.proceedToNextWindow(n_observed);
+       } else {
+          this.notificationService.showError(`Extracted ${polishedAnnotations.length} phenotype annotations but no observed HPOs!`)
+       }
+      } else {
+        this.notificationService.showError("Could not extract phenotype annotations!")
+      }
+    });
+  }
+*/
+
   openHpoTwoStepDialog(): void {
     console.log('openHpoTwoStepDialog');
-    const dialogRef = this.dialog.open(HpoTwostepComponent, {
-      width: '1000px',
-      height: '90vh',
-      maxWidth: '1200px',
-      panelClass: 'full-width-dialog',
-      disableClose: true,
-    });
+     const dialogData: HpoTwostepData = {
+      mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
+      autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
+      hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
+      availableModifiers: () => this.configService.getHpoModifiers()
+    };
 
-    dialogRef.afterClosed().subscribe((result: HpoTermData[] | undefined) => {
-      if (result) {
-        console.log('Final annotations:', result);
-        this.hpoAnnotations.set(result);
+      const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
+      width: '85vw',
+      maxWidth: '1200px',
+      height: '80vh',
+      disableClose: true,
+      data: dialogData
+    });
+    dialogRef.afterClosed().subscribe((polishedAnnotations?: PolishedHpoAnnotation[]) => {
+      if (polishedAnnotations) {
+        const hpoTermDataList: HpoTermData[] = polishedAnnotations.map(pa => {
+          const htd:HpoTermData = {
+            termDuplet: {
+              hpoLabel: pa.label,
+              hpoId: pa.termId
+            },
+            entry: toCellValue(pa)
+          };
+          return htd;
+        });
+        this.hpoAnnotations.set(hpoTermDataList);
       }
     });
   }
@@ -442,4 +514,26 @@ export class AddcaseComponent {
         return label; // should never get here, actually.
     }
   }
+
+   performHpoAutocomplete = (query: string): Observable<OntologyMatch[]> => {
+    return from(this.configService.performHpoAutocomplete(query)).pipe(
+      catchError(err => {
+        this.notificationService.showError(String(err));
+        return of([]);
+      })
+    );
+  };
+
+     
+  fetchHpoHierarchy = (termId: string): Promise<HierarchyMapItem> => {
+    const cached = this.hierarchyCache()[termId];
+    if (cached) {
+      return Promise.resolve(cached);
+    }
+    return this.configService.getHpoParentAndChildrenTerms(termId).then(data => {
+      this.hierarchyCache.update(cache => ({ ...cache, [termId]: data }));
+      return data;
+    });
+  };
+   
 }

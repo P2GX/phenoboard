@@ -7,8 +7,8 @@ use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},
 
 
 use ontolius::{TermId, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm}};
-use fenominal::{AutoCompleter, Fenominal, FenominalHit, HpoMatch};
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::{EtlDto}, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc};
+use fenominal::{AutoCompleter, Fenominal, FenominalHit, FenominalSentence, OntologyMatch};
+use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc, tauri::models::HierarchyMapItem};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -107,7 +107,7 @@ impl PhenoboardSingleton {
 
     /// Provide Strings with TermId - Label that will be used for autocompletion
     /// fenominal functionality
-    pub fn search_hpo(&self, query: &str, limit: usize) -> Vec<HpoMatch> {
+    pub fn search_hpo(&self, query: &str, limit: usize) -> Vec<OntologyMatch> {
         self.autocompleter
             .as_ref()
             .map(|ac| ac.search_hpo(query, limit))
@@ -122,7 +122,7 @@ impl PhenoboardSingleton {
 
     /// We want to get the single best match of any HPO term label to the query string
     /// using the fenominal autocompletion functionality
-    pub fn get_best_hpo_match(&self, query: String) -> Option<HpoMatch> {
+    pub fn get_best_hpo_match(&self, query: String) -> Option<OntologyMatch> {
         self.autocompleter
             .as_ref()
             .map(|ac| ac.get_best_hpo_match(query))
@@ -284,6 +284,35 @@ impl PhenoboardSingleton {
         }
     }
 
+    pub fn mine_clinical_text(
+        &self,
+        text: &str
+     ) -> Result<Vec<FenominalSentence>, String> {
+        let hpo = self.ontology.as_ref().ok_or_else(|| "HPO not initialized".to_string())?;
+        let fenominal = Fenominal::new(hpo.clone());
+        fenominal.mine_sentences(text).map_err(|e|e.to_string())
+    }
+
+    pub fn perform_hpo_autocomplete(&self, query: String) -> Result<Vec<OntologyMatch>, String> {
+        let autocompleter = self.autocompleter.as_ref().ok_or_else(|| "Autocomplete not initialized".to_string())?;
+        let n_term_limit = 20;
+        Ok(autocompleter.search_hpo(&query, n_term_limit))
+    }
+
+
+
+
+        pub fn get_hpo_parent_and_children_terms(&self, term_id: &str) -> Result<HierarchyMapItem, String> {
+            match &self.ontology {
+                Some(hpo) => {
+                    let hm = ga4ghphetools::tauri::parent_child::get_hpo_parent_and_children_terms(term_id, hpo.clone());
+                    Ok(hm)
+                },
+                None => Err("Could not retrieve parent/child hierarchy".to_string())
+            }
+        }
+
+
     /// Run fenominal and sort the results by span.
     /// We use deunicode to remove Unicode characters such as en-dash that are used in some input texts.
     /// en-dash is a 3-byte UTF-8 sequence (U+2013), and can cause UTF-8 character boundary issues with
@@ -297,7 +326,7 @@ impl PhenoboardSingleton {
             Some(hpo) => {
                 let hpo_arc = Arc::clone(hpo);
                 let fenominal = Fenominal::new(hpo_arc);
-                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text);
+                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text).map_err(|e|e.to_string())?;
                 fenominal_hits.sort_by_key(|hit| hit.span.start);
                 return Ok(fenominal_hits);
             }
@@ -459,42 +488,6 @@ impl PhenoboardSingleton {
         retriever.get().await
     }
     
-    pub fn get_hpo_parent_and_children_terms(
-        &self,
-        annotation: HpoAnnotationDto) 
-        -> ParentChildDto 
-    {
-        let hpo = match &self.ontology {
-            Some(hpo) => hpo,
-            None => return ParentChildDto::default(),
-        };
-        let tid = match TermId::from_str(&annotation.term_id) {
-            Ok(tid) => tid,
-            Err(_) => return ParentChildDto::default(), // should never happen
-        };
-        let children: Vec<HpoAnnotationDto> = hpo.iter_child_ids(&tid)
-            .filter_map(|child_tid| {
-                hpo.term_by_id(child_tid).map(|term| HpoAnnotationDto {
-                    term_id: child_tid.to_string(),
-                    label: term.name().to_string(),
-                    is_observed: annotation.is_observed,
-                    onset_string: annotation.onset_string.clone()
-                })
-            })
-            .collect();
-        let parents: Vec<HpoAnnotationDto> = hpo.iter_parent_ids(&tid)
-            .filter_map(|parent_tid| {
-                hpo.term_by_id(parent_tid).map(|term| HpoAnnotationDto {
-                    term_id: parent_tid.to_string(),
-                    label: term.name().to_string(),
-                    is_observed: annotation.is_observed,
-                    onset_string: annotation.onset_string.clone(),
-                })
-            })
-            .collect();
-
-        ParentChildDto { parents: parents, children: children }
-    }
 
     pub fn get_autocompleted_term_dto(&self,
             term_id: impl Into<String>,

@@ -1,4 +1,4 @@
-import { Component, inject, input, output, viewChild, effect, ElementRef } from '@angular/core';
+import { Component, inject, input, output, viewChild, effect, ElementRef, signal } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { debounceTime, switchMap, of, map, startWith } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +8,7 @@ import { MatOptionModule } from '@angular/material/core';
  
 import { MatCardModule } from '@angular/material/card';
 import { ConfigService } from '../services/config.service';
-import { HpoMatch } from '../models/hpo_mapping_result';
+import { OntologyMatch } from '../models/hpo_mapping_result';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIcon } from "@angular/material/icon";
 
@@ -38,23 +38,22 @@ export function hpoMatchValidator(): ValidatorFn {
     MatInputModule,
     MatAutocompleteModule,
     MatOptionModule,
-    MatCardModule,
-    MatIcon
+    MatCardModule
 ]
 })
 export class HpoAutocompleteComponent {
   private configService = inject(ConfigService);
-  
+  config = input<any>();
   placeholder = input<string>('Search HPO term...');
   inputString = input<string>('');
 
-  selected = output<HpoMatch>();
+  selected = output<OntologyMatch>();
 
   inputElement = viewChild<HTMLInputElement>('hpoInput');
-  control = new FormControl<string | HpoMatch>('', [hpoMatchValidator()]);
+  control = new FormControl<string | OntologyMatch>('', [hpoMatchValidator()]);
 
   // A helper signal for the parent to check validity
-  isValid = toSignal(this.control.statusChanges.pipe(map(status => status === 'VALID')), { initialValue: false });
+  isValid = signal(false);
 
   options = toSignal(
     this.control.valueChanges.pipe(
@@ -62,44 +61,29 @@ export class HpoAutocompleteComponent {
       debounceTime(300),
       switchMap((value) =>{
         const query = typeof value ==='string' ? value : value?.label;
-        if (query && query.length > 2) {
-          return this.configService.getAutocompleteHpo(query);
-        }
+       //if (query && query.length > 2) {
+       //   return this.configService.getAutocompleteHpo(query);
+       // }
         return of([]);
       })
     ),
-    { initialValue: [] as HpoMatch[]}
+   
   );
 
   constructor() {
-    effect(() => {
-      const val = this.inputString();
-      const inputRef = this.inputElement(); // This is likely an ElementRef
 
-      if (val && inputRef) {
-        this.control.setValue(val, { emitEvent: true });
-
-        setTimeout(() => {
-          // Access the underlying DOM element
-          const el = inputRef instanceof ElementRef ? inputRef.nativeElement : inputRef;
-          
-          el.focus();
-          el.select();
-        }, 0);
-      }
-    });
 }
   
 
   // turn an HpoMatch object into a string for the input box
-  displayFn(option: HpoMatch | string | null): string {
+  displayFn(option: OntologyMatch | string | null): string {
     if (! option) return '';
     return typeof option === 'string' ? option  : option.label;
   }
 
 
   onOptionSelected(event: MatAutocompleteSelectedEvent) {
-    const selection = event.option.value as HpoMatch;
+    const selection = event.option.value as OntologyMatch;
     console.log("onOptionSelected", selection)
     this.selected.emit(selection);
   }

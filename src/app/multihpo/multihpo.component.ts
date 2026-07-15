@@ -15,7 +15,7 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { HpoMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
+import { OntologyMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
@@ -149,7 +149,7 @@ removeConcept(index: number) {
     this.concepts.set(processed);
   }
 
-  addNewTerm(conceptIndex: number, newMatch: HpoMatch) {
+  addNewTerm(conceptIndex: number, newMatch: OntologyMatch) {
     const concept: MiningConcept = this.concepts()[conceptIndex];
     // Prevent duplicates
     if (!concept.suggestedTerms.some(t => t.id === newMatch.id)) {
@@ -197,7 +197,7 @@ removeConcept(index: number) {
 
     if (parts.length > 1) {
       // 1. Create a typed map of what we already know to auto-fill the new rows
-      const knowledgeMap = new Map<string, HpoMatch[]>(
+      const knowledgeMap = new Map<string, OntologyMatch[]>(
         currentList.map(c => [c.originalText.toLowerCase(), c.suggestedTerms])
       );
      

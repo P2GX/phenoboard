@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.5.154",
+  "version": "0.6.1",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -23,12 +23,12 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "21.2.9",
-    "@angular/cdk": "21.2.7",
+    "@angular/cdk": "21.2.14",
     "@angular/common": "21.2.9",
     "@angular/compiler": "21.2.9",
     "@angular/core": "21.2.9",
     "@angular/forms": "21.2.9",
-    "@angular/material": "21.2.7",
+    "@angular/material": "21.2.14",
     "@angular/platform-browser": "21.2.9",
     "@angular/platform-browser-dynamic": "21.2.9",
     "@angular/router": "21.2.9",
@@ -37,6 +37,7 @@
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-opener": "2.5.3",
     "material-icons": "^1.13.14",
+    "ng-hpo-uikit": "github:P2GX/ng-hpo-uikit#dist-build",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "tw-elements": "^2.0.0",
@@ -82,5 +83,29 @@
     "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.60.1"
+  },
+  "overrides": {
+    "@module-federation/dts-plugin": {
+      "typescript": "$typescript"
+    },
+    "@module-federation/enhanced": {
+      "typescript": "$typescript"
+    },
+    "@module-federation/rspack": {
+      "typescript": "$typescript"
+    },
+    "@angular/core": "$@angular/core",
+    "ng-hpo-uikit": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common"
+    },
+    "@nx/angular": {
+      "@angular-devkit/core": "21.2.18",
+      "@angular-devkit/schematics": "21.2.18",
+      "@schematics/angular": "21.2.18",
+      "@angular-devkit/build-angular": "21.2.18",
+      "@angular/build": "21.2.18",
+      "ng-packagr": "21.2.5"
+    }
   }
 }
