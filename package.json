@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -49,8 +49,8 @@
     "@angular-devkit/core": "21.2.7",
     "@angular-devkit/schematics": "21.2.7",
     "@angular-eslint/eslint-plugin": "^21.4.0",
-    "@angular-eslint/eslint-plugin-template": "^21.3.1",
-    "@angular-eslint/template-parser": "21.3.1",
+    "@angular-eslint/eslint-plugin-template": "^21.4.0",
+    "@angular-eslint/template-parser": "21.4.0",
     "@angular/cli": "21.2.7",
     "@angular/compiler-cli": "21.2.9",
     "@eslint/js": "^9.39.2",

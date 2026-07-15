@@ -8,7 +8,7 @@ import { OrcidDialogComponent } from './orcid-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FormsModule } from '@angular/forms';
 import {MatCheckboxModule } from '@angular/material/checkbox'
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";

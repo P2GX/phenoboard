@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HpoModifierMenuComponent } from '../modifier/hpo-modifier-menu';
 import { CellValue } from '../../models/hpo_term_dto';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../../services/age_service';
 
 

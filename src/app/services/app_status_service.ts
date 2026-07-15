@@ -1,7 +1,7 @@
 import { Injectable, signal, inject, NgZone, computed } from '@angular/core';
 import { listen } from '@tauri-apps/api/event';
 import { StatusDto, defaultStatusDto } from '../models/status_dto';
-import { NotificationService } from './notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { ConfigService } from './config.service';
 import { invoke } from '@tauri-apps/api/core';
 import { ask } from '@tauri-apps/plugin-dialog';

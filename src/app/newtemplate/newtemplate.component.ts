@@ -8,7 +8,7 @@ import { ConfigService } from '../services/config.service';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
 import { DisplayMendelianComponent } from "./display-mendelian.component";

@@ -38,7 +38,11 @@
                 }
 
                 @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
-                  <app-hpoautocomplete class="autocomplete-grow" (selected)="addNewTerm(i, $event)"></app-hpoautocomplete>
+                  <hpo-ontology-autocomplete
+                    [inputString]="hpoAutocompleteString"
+                    [autocompleteProvider]="autocompleteProvider"
+                    (selected)="handleAutocompleteSelection(i, $event)">
+                  </hpo-ontology-autocomplete>
                 } @else {
                   <button mat-icon-button (click)="startSearch(i)" class="add-btn">
                     <mat-icon>add_circle_outline</mat-icon>

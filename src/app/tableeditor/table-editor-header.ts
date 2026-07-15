@@ -9,7 +9,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { MatIconModule } from "@angular/material/icon";
 import {  ColumnTableDto, EtlCellStatus,  EtlDto, fromColumnDto } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';

@@ -12,7 +12,7 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { firstValueFrom } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';

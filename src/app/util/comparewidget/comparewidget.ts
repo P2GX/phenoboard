@@ -1,7 +1,7 @@
 // compare-dialog.component.ts
 import { Component, inject, output, signal } from '@angular/core';
 import { open } from '@tauri-apps/plugin-dialog';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { MatDialogModule } from "@angular/material/dialog";
 
 export interface CompareFiles {

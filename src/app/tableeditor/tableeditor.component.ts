@@ -14,7 +14,7 @@ import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
 import { firstValueFrom } from 'rxjs';
 import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';

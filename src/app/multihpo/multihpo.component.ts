@@ -12,15 +12,17 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import { HpoAutocompleteComponent } from "../hpoautocomplete/hpoautocomplete.component";
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { OntologyMatch, MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
+import { MiningConcept, MiningStatus } from '../models/hpo_mapping_result';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '../services/config.service';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+
+import { OntologyAutocompleteProvider, OntologyMatch, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
+
 
 /// symbols for not applicable or unknown status
 const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?", "/", "n.d.",  "unknown"]);
@@ -50,10 +52,11 @@ const NOT_APPLICABLE = new Set(["na",  "n.a.", "n/a", "nd",  "n/d", "n.d.", "?",
     MatTableModule,
     MatCheckboxModule,
     MatButtonToggleModule,
-    HpoAutocompleteComponent
+    OntologyAutocompleteComponent
 ]
 })
 export class MultiHpoComponent {
+
   readonly concepts = signal<MiningConcept[]>([]);
   private configService = inject(ConfigService);
   // Track which row indices are currently showing the search input field
@@ -62,7 +65,7 @@ export class MultiHpoComponent {
   private dialog = inject(MatDialog);
   public data = inject(MAT_DIALOG_DATA) as { concepts: MiningConcept[], title: string };
   title: string = this.data.title;
-  
+  hpoAutocompleteString = '';
   constructor() {
     const processed = (this.data.concepts ?? [])
       .filter(c => {
@@ -77,8 +80,15 @@ export class MultiHpoComponent {
 
     this.concepts.set(processed);
   }
-
   
+
+
+  autocompleteProvider: OntologyAutocompleteProvider = (query: string) =>
+    this.configService.performHpoAutocomplete(query);
+
+ handleAutocompleteSelection(conceptIndex: number, match: OntologyMatch) {
+    this.addNewTerm(conceptIndex, match);
+  }
 
  // Update a specific concept when user uses autocomplete
 updateMapping(index: number, newTerm: HpoTermDuplet) {

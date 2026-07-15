@@ -1,9 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { ConfigService } from './config.service';
 import { HpoTermDuplet } from '../models/hpo_term_dto';
-import { NotificationService } from './notification.service';
+import { NotificationService } from 'ng-hpo-uikit';
 
 export interface HpoOption {
   id: string;

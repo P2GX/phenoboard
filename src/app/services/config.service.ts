@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { invoke } from "@tauri-apps/api/core";
 import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
@@ -12,14 +12,15 @@ import { OntologyMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_r
 import { ComparisonReport } from '../models/comparison';
 import {  PpktSaveCheckResult } from '../models/status_dto'
 import { ask } from '@tauri-apps/plugin-dialog';
-import { FenominalSentence, HierarchyMapItem, HpoTermMinimal } from 'ng-hpo-uikit';
+import { FenominalSentence, HierarchyMapItem, HpoTermMinimal, NotificationService } from 'ng-hpo-uikit';
+import { catchError, from, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
  
-
+  private notificationService = inject(NotificationService);
   
   constructor() {}
 
@@ -145,12 +146,28 @@ export class ConfigService {
     return invoke<OntologyMatch[]>('get_hpo_autocomplete', { query: value });
   }*/
 
+    
+
   async getHpoModifiers(): Promise<HpoTermMinimal[]> {
     return invoke<HpoTermMinimal[]>('get_hpo_modifiers');
   }
 
-  async performHpoAutocomplete(query: string): Promise<OntologyMatch[]> {
-    return invoke<OntologyMatch[]>('perform_hpo_autocomplete', { query });
+
+  /**
+   * Performs autocomplete against the HPO rust backend.
+   * Fails gracefully to an empty array while notifying the user of errors.
+   */
+  performHpoAutocomplete(query: string): Observable<OntologyMatch[]> {
+    // 1. Convert the Tauri Promise to an RxJS Observable
+    return from(
+      invoke<OntologyMatch[]>('perform_hpo_autocomplete', { query })
+    ).pipe(
+      // 2. Intercept any rust-side panic or IPC channel errors
+      catchError(err => {
+        this.notificationService.showError(String(err));
+        return of([]); // Return a safe fallback so downstream subscribers don't break
+      })
+    );
   }
 
   async getHpoParentAndChildrenTerms(termId: string): Promise<HierarchyMapItem> {
