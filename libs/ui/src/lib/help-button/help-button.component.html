@@ -1,0 +1,23 @@
+<div class="help-wrapper">
+  <button type="button" class="help-trigger" (click)="toggle($event)" aria-label="Help">
+    <span class="help-icon">?</span>
+  </button>
+
+  @if (isOpen()) {
+    <div class="help-bubble" (click)="$event.stopPropagation()">
+      <h3 class="help-title">{{ title() }}</h3>
+
+      @for (line of lines(); track line) {
+        <p class="help-text" [innerHTML]="line"></p>
+      }
+
+      @if (helpUrl()) {
+        <hr class="help-divider" />
+        <button type="button" class="btn-docs" (click)="openDocs()">
+          <span>↗</span>
+          <span>Learn more</span>
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,77 @@
+// help-button.component.scss
+.help-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.help-trigger {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color, #ccc);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-secondary, #666);
+
+  &:hover {
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  }
+}
+
+.help-bubble {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1000; // above dialog content but content is same stacking context as the dialog top layer, fine
+  width: 280px;
+  max-width: 80vw;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.help-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.help-text {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary, #555);
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.help-divider {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.btn-docs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent, #1a73e8);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,19 @@
+dialog.app-dialog {
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  max-width: 640px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow: hidden;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
