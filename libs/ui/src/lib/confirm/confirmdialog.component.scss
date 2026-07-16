@@ -1,0 +1,112 @@
+// Native CSS Variables for scoped, clean design
+$color-warn: #ef4444;
+$color-warn-bg: #fee2e2;
+$color-text: #1f2937;
+$color-text-muted: #4b5563;
+$color-border: #e5e7eb;
+$font-stack: system-ui, -apple-system, sans-serif;
+
+.dialog {
+  // Reset native browser styles
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  font-family: $font-stack;
+  overflow: hidden;
+
+  // Custom Backdrop Styling (native glass overlay!)
+  &::backdrop {
+    background-color: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(2px);
+  }
+
+  &__wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background-color: $color-warn-bg;
+    border-bottom: 1px solid rgba($color-warn, 0.1);
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: darken($color-warn, 20%);
+  }
+
+  &__body {
+    padding: 1.5rem 1.25rem;
+  }
+
+  &__message {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: $color-text;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid $color-border;
+    background-color: #f9fafb;
+
+    button {
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.55rem 1rem;
+      border-radius: 0.375rem;
+      transition: all 0.15s ease-in-out;
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+    }
+
+    .btn-cancel {
+      background: white;
+      border: 1px solid $color-border;
+      color: $color-text-muted;
+
+      &:hover {
+        background-color: #f3f4f6;
+        color: $color-text;
+      }
+    }
+
+    .btn-confirm {
+      background-color: $color-warn;
+      border: 1px solid $color-warn;
+      color: white;
+
+      &:hover {
+        background-color: darken($color-warn, 8%);
+      }
+
+      &:focus-visible {
+        outline-color: lighten($color-warn, 15%);
+      }
+    }
+  }
+}

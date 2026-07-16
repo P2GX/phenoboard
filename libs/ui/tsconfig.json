@@ -1,14 +1,12 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "useDefineForClassFields": false,
-    "types": ["@tauri-apps/api"]
+    "noFallthroughCasesInSwitch": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -16,5 +14,14 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "extends": "./tsconfig.base.json"
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./.storybook/tsconfig.json"
+    }
+  ]
 }

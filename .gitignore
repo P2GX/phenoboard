@@ -43,3 +43,4 @@ src/app/sandbox/
 src/app/mocks/
 .claude/worktrees
 .claude/settings.local.json
+.angular

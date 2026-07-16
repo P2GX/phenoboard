@@ -19,7 +19,7 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent } from '../util/confirm/confirmdialog.component';
+import { ConfirmDialogComponent } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
