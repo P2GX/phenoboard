@@ -17,21 +17,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          toolchain: stable
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
 
-      - name: Install mdBook
-        run: cargo install mdbook --version 0.4.40 --locked
+      - name: Install dependencies
+        working-directory: docs
+        run: npm ci
 
-      - name: Build mdBook
-        run: mdbook build book
+      - name: Build VitePress site
+        working-directory: docs
+        run: npm run docs:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./book/book
+          path: docs/.vitepress/dist
 
   deploy:
     needs: build

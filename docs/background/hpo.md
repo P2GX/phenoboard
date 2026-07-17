@@ -4,7 +4,7 @@ Ontologies are systematic representations of knowledge that can be used to captu
 Additionally, the HPO project is developing a corpus of phenopackets derived from the published literature that with time will form the backbone of the HPO annotation project ([A corpus of GA4GH phenopackets: Case-level phenotyping for genomic diagnostics and discovery](https://pubmed.ncbi.nlm.nih.gov/39394689/)).
 
 <figure>
-  <img src="../img/hpo-i18n.jpg" alt="HPO" width="600">
+  <img src="/img/hpo-i18n.jpg" alt="HPO" width="600">
   <figcaption>
     <strong>HPO</strong>. Screenshot of internationalized HPO Web application. For each term, users can choose from the available languages (seven, in this example) in addition to English.
   </figcaption>

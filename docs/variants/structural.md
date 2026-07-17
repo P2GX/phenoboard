@@ -3,7 +3,8 @@
 Structural variants (SVs) represent genomic variations that involve breakage and rejoining of DNA segments. SVs can alter normal gene dosage, lead to rearrangements of genes and regulatory elements within a topologically associated domain, and potentially contribute to physical traits, genomic disorders, or complex traits.
 
 <figure>
-  <img src="img/structural_variation.jpg" alt="SV categories" width="1000">
+
+![SV categories](./img/structural_variation.jpg)
   <figcaption>
     <strong>Major categories of structural variation</strong>. 
   </figcaption>

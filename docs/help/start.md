@@ -1,7 +1,8 @@
 # Start page
 
 <figure>
-  <img src="img/phenoboard-start.png" alt="phenoboard" width="600">
+
+  ![Phenoboard](./img/phenoboard-start.png)
   <figcaption>
     <strong>Phenoboard start page</strong>.
   </figcaption>

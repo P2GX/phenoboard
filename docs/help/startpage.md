@@ -5,7 +5,9 @@ Phenoboard offers several ways of curating clinical data. The start page of the 
 
 
 <figure>
-  <img src="img/phenoboard-start.png" alt="phenoboard" width="600">
+
+  ![Start page](./img/phenoboard-start.png)
+
   <figcaption>
     <strong>Phenoboard start page</strong>.
   </figcaption>

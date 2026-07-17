@@ -6,9 +6,9 @@ It is designed to curate cohorts of individuals diagnosed with genetic disease u
 
 The application makes major use of the following rust crates.
 
-- [ontololius](https://docs.rs/ontolius/latest/ontolius/){:target="\_blank"}
-- [ga4ghphetools](https://github.com/P2GX/ga4ghphetools){:target="\_blank"}
-- [fenominal](https://github.com/P2GX/fenominal){:target="\_blank"}
+- [ontololius](https://docs.rs/ontolius/latest/ontolius/)
+- [ga4ghphetools](https://github.com/P2GX/ga4ghphetools)
+- [fenominal](https://github.com/P2GX/fenominal)
 
 
 This page summarizes some of the angular and Rust/tauri commands that have been useful to create the application.

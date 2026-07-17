@@ -4,7 +4,8 @@ This screen allows users to visualize and edit the entire cohort.
 
 
 <figure>
-  <img src="img/template-editor.png" alt="Cohort editor" width="600">
+
+![Cohort editor](./img/template-editor.png)
   <figcaption>
     <strong>Cohort editor</strong>. Functions are provided to edit individual cells. Users may choose to compare the annotations for the case they entered (which will be on the last line), with the annotations for other cases, and if there are important pieces of information that appear to be missing, they can go back to the curated publication and search for them. It is important to curate not only observed features but also explicitly excluded features.
   </figcaption>
@@ -17,7 +18,9 @@ This screen allows users to visualize and edit the entire cohort.
 After you have entered all of the data for each individual, phenoboard offers several functions to validate the curation data and export to file.
 
 <figure>
-  <img src="img/cohort-editor-finish.png" alt="Cohort editor finishing" width="1000">
+
+![Cohort editor finishing](./img/cohort-editor-finish.png)
+
   <figcaption>
     <strong>Reviewing curation and export to file</strong>. 
   </figcaption>

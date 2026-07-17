@@ -5,7 +5,9 @@ Some articles present information about groups (cohorts) of individuals in table
 Then, each column is processed by right clicking on the column header or as needed on individual cells.
 
 <figure>
-  <img src="img/table-editor.png" alt="Cohort editor" width="600">
+
+![External table editor](./img/table-editor.png)
+
   <figcaption>
     <strong>External table editor</strong>. Users should work through the columns one by one. Successfully transformed columns are shown in green. The follow sections explain how to use the tool.
   </figcaption>
@@ -47,7 +49,9 @@ Phenoboard offers a number of different functions for transforming columns, each
 Each individual can be annotated with an individual identifier, sex, age of onset, age at last encounter, deceased status. Optionally, a column with a family identifier can be marked and merged with the individual identifier column. To do this, right click on the column header and navegate the context menu as shown below.
 
 <figure>
-  <img src="img/ageParse.png" alt="Ingesting age" width="600">
+
+![Ingesting age](./img/ageParse.png)
+
   <figcaption>
     <strong>Importing age entries</strong>. 
   </figcaption>

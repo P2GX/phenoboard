@@ -4,7 +4,7 @@ Phenoboard allows individual case reports to be curated using text mining. This 
 
 
 <figure>
-  <img src="img/addcase.png" alt="Phenoboard" width="600">
+  <img src="./img/addcase.png" alt="Phenoboard" width="600">
   <figcaption>
     <strong>Add case</strong>. Users should enter information in each of the sections on this page, after which the submit case button will be activated, allowing the case information to be added to the cohort.
   </figcaption>
@@ -29,7 +29,7 @@ This widget performs text mining on text that is pasted into the window.
 
 
 <figure>
-  <img src="img/textmining.png" alt="Text mining" width="600">
+  <img src="./img/textmining.png" alt="Text mining" width="600">
   <figcaption>
     <strong>Text mining</strong>. Users should paste clinical descriptions into the window and perform text mining. They should read the text and correct the results as necessary. The toggle button switches "observed" to "excluded" status and vice versa. If possible, specify the onset of each feature. By clicking on the terms, it is possible to replace a term by a more specific child or less specific parent, if the text mining result needs to be modified. Finally, additional terms can be added using the autocomplete window.
   </figcaption>
@@ -41,7 +41,7 @@ When you are finished adjusting the text mining results, click "Finish".
 You can add HGVS (small variants) or SV (structural variants) using the provided widgets. Make sure the HGVS notation is based on the transcript of reference. If a variant is noted in the publication to be homozygous, click the "biallelic" checkbox.
 
 <figure>
-  <img src="img/addvar.png" alt="Add variant" width="600">
+  <img src="./img/addvar.png" alt="Add variant" width="600">
   <figcaption>
     <strong>Add variant/alleles</strong>. Enter a valid HGVS string or symbol representation of a structural variant (e.g., DEL exon 5). For structural variants, enter the category (e.g., deletion, duplication, inversion, etc.).
   </figcaption>
@@ -53,7 +53,7 @@ When all of the above information has been added, the case can be added to the c
 
 
 <figure>
-  <img src="img/template-editor.png" alt="Cohort editor" width="600">
+  <img src="./img/template-editor.png" alt="Cohort editor" width="600">
   <figcaption>
     <strong>Cohort editor</strong>. Functions are provided to edit individual cells. Users may choose to compare the annotations for the case they entered (which will be on the last line), with the annotations for other cases, and if there are important pieces of information that appear to be missing, they can go back to the curated publication and search for them. It is important to curate not only observed features but also explicitly excluded features.
   </figcaption>

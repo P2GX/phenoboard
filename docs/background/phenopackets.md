@@ -4,7 +4,7 @@ The Global Alliance for Genomics and Health ([GA4GH](https://www.ga4gh.org/)) is
 
 
 <figure>
-  <img src="../img/ppkt-schema.jpg" alt="Phenopacket Schema" width="600">
+  <img src="/img/ppkt-schema.jpg" alt="Phenopacket Schema" width="600">
   <figcaption>
     <strong>Phenopacket Schema overview</strong>. The GA4GH Phenopacket Schema is a hierarchical structure that consists of two required fields, id and MetaData, as well as eight optional fields, Individual, Disease, Interpretation, Biosample, PhenotypicFeature, Measurement, MedicalAction, and files ([GA4GH Phenopackets: A Practical Introduction](https://pubmed.ncbi.nlm.nih.gov/36910590/))
   </figcaption>

@@ -92,7 +92,8 @@
     "stylelint-config-standard-scss": "^17.0.0",
     "ts-node": "10.9.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.60.1"
+    "typescript-eslint": "^8.60.1",
+    "vitepress": "^1.6.4"
   },
   "overrides": {
     "@module-federation/dts-plugin": {
