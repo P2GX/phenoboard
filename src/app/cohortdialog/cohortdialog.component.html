@@ -1,110 +1,112 @@
-<div class="custom-dialog-container">
-  <header class="dialog-header">
-    <h2 class="dialog-title">{{ data.title }}</h2>
-    <button class="btn-close-icon" (click)="cancel()">✕</button>
-  </header>
+<dialog #dialogEl class="native-dialog" (cancel)="onCancelEvent($event)" (click)="onBackdropClick($event)">
+  <div class="custom-dialog-container" (click)="$event.stopPropagation()">
+    <header class="dialog-header">
+      <h2 class="dialog-title">{{ title() }}</h2>
+      <button class="btn-close-icon" (click)="cancel()">✕</button>
+    </header>
 
-  <section class="dialog-body">
-    <form [formGroup]="form" class="dialog-form">
+    <section class="dialog-body">
+      <form [formGroup]="form" class="dialog-form">
 
-      <div class="section-group">
-        <div class="heading-with-help">
-          <h3>Disease Info</h3>
-          <app-help-button 
-            title="Entering disease data"
-            [lines]="[
-              'Enter the OMIM disease identified (e.g., OMIM:163950) and the corrresponding disease name (e.g., Noonan syndrome 1)',
-              'We use the OMIM disease acronym where provided by OMIM...',
-              'Do not use the all-caps form of the disease label...'
-            ]" />
-        </div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <input placeholder="e.g., OMIM:123456" formControlName="diseaseId" class="form-input" [class.error]="isInvalid('diseaseId')" />
-            @if (form.get('diseaseId')?.invalid && form.get('diseaseId')?.touched) {
-              <p class="error-text">Please enter a valid OMIM ID</p>
-            }
+        <div class="section-group">
+          <div class="heading-with-help">
+            <h3>Disease Info</h3>
+            <app-help-button
+              title="Entering disease data"
+              [lines]="[
+                'Enter the OMIM disease identified (e.g., OMIM:163950) and the corrresponding disease name (e.g., Noonan syndrome 1)',
+                'We use the OMIM disease acronym where provided by OMIM...',
+                'Do not use the all-caps form of the disease label...'
+              ]" />
           </div>
 
-          <div class="form-field">
-            <input placeholder="Disease label" formControlName="diseaseLabel" class="form-input" [class.error]="isInvalid('diseaseLabel')" />
-            @if (isInvalid('diseaseLabel')) { <p class="error-text">Disease name is required.</p> }
-          </div>
+          <div class="form-grid">
+            <div class="form-field">
+              <input placeholder="e.g., OMIM:123456" formControlName="diseaseId" class="form-input" [class.error]="isInvalid('diseaseId')" />
+              @if (form.get('diseaseId')?.invalid && form.get('diseaseId')?.touched) {
+                <p class="error-text">Please enter a valid OMIM ID</p>
+              }
+            </div>
 
-          <div class="form-field">
-            <input placeholder="Cohort acronym" formControlName="cohortAcronym" class="form-input" [class.error]="isInvalid('cohortAcronym')"/>
-            @if (isInvalid('cohortAcronym')) { <p class="error-text">Cohort acronym is required.</p> }
-          </div>
-        </div>
-      </div>
+            <div class="form-field">
+              <input placeholder="Disease label" formControlName="diseaseLabel" class="form-input" [class.error]="isInvalid('diseaseLabel')" />
+              @if (isInvalid('diseaseLabel')) { <p class="error-text">Disease name is required.</p> }
+            </div>
 
-      <div class="section-group">
-        <div class="heading-with-help">
-          <h3>Gene Info</h3>
-          <app-help-button title="Entering gene data" [lines]="['Enter the HGNC identifier...']" />
-        </div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <input placeholder="e.g., HGNC:1234" formControlName="hgnc" class="form-input" [class.error]="isInvalid('hgnc')"/>
-          </div>
-
-          <div class="form-field">
-            <div class="form-input-row">
-              <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol" class="form-input flex-1" [class.error]="isInvalid('symbol')" />
-              <button type="button" [disabled]="!canFetch() || isLoading()" (click)="fetchAndFillHgnc()" class="btn-fetch">
-                {{ isLoading() ? '⏳' : '🔍 Fetch HGNC' }}
-              </button>
+            <div class="form-field">
+              <input placeholder="Cohort acronym" formControlName="cohortAcronym" class="form-input" [class.error]="isInvalid('cohortAcronym')"/>
+              @if (isInvalid('cohortAcronym')) { <p class="error-text">Cohort acronym is required.</p> }
             </div>
           </div>
+        </div>
 
-          <div class="form-field">
-            <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript" class="form-input" [class.error]="isInvalid('transcript')"/>
+        <div class="section-group">
+          <div class="heading-with-help">
+            <h3>Gene Info</h3>
+            <app-help-button title="Entering gene data" [lines]="['Enter the HGNC identifier...']" />
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <input placeholder="e.g., HGNC:1234" formControlName="hgnc" class="form-input" [class.error]="isInvalid('hgnc')"/>
+            </div>
+
+            <div class="form-field">
+              <div class="form-input-row">
+                <input placeholder="Gene symbol (e.g. CFTR)" formControlName="symbol" class="form-input flex-1" [class.error]="isInvalid('symbol')" />
+                <button type="button" [disabled]="!canFetch() || isLoading()" (click)="fetchAndFillHgnc()" class="btn-fetch">
+                  {{ isLoading() ? '⏳' : '🔍 Fetch HGNC' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <input placeholder="Transcript (e.g. NM_000492.4)" formControlName="transcript" class="form-input" [class.error]="isInvalid('transcript')"/>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
 
-    @if (showPasteArea()) {
-      <div class="paste-line-container">
-        <div class="paste-input-wrapper">
-          <span class="paste-icon">📋</span>
-          <input 
-            type="text"
-            [(ngModel)]="pastedText" 
-            (keyup.enter)="processPastedText()"
-            class="form-input paste-input" 
-            placeholder="Paste tabular data and press Enter..." 
-            autofocus />
+      @if (showPasteArea()) {
+        <div class="paste-line-container">
+          <div class="paste-input-wrapper">
+            <span class="paste-icon">📋</span>
+            <input
+              type="text"
+              [(ngModel)]="pastedText"
+              (keyup.enter)="processPastedText()"
+              class="form-input paste-input"
+              placeholder="Paste tabular data and press Enter..."
+              autofocus />
+          </div>
+          <div class="paste-actions-inline">
+            <button (click)="processPastedText()" class="btn-primary-sm">Process</button>
+            <button (click)="showPasteArea.set(false)" class="btn-icon-cancel">✕</button>
+          </div>
         </div>
-        <div class="paste-actions-inline">
-          <button (click)="processPastedText()" class="btn-primary-sm">Process</button>
-          <button (click)="showPasteArea.set(false)" class="btn-icon-cancel">✕</button>
-        </div>
-      </div>
-    }
-  </section>
-
-  <footer class="dialog-footer">
-    <div class="footer-left">
-      @if (!showPasteArea()) {
-        <button (click)="showPasteArea.set(true)" class="btn-outline-primary">📋 Paste tabular data</button>
       }
-    </div>
-    
-    <div class="footer-right">
-      <button type="button" class="btn-outline-cancel" (click)="cancel()">Cancel</button>
-      
-      @if (data.isMelded) {
-        <button type="button" class="btn-secondary" (click)="submitAndAddNext()" [disabled]="form.invalid">
-          + Add Another
+    </section>
+
+    <footer class="dialog-footer">
+      <div class="footer-left">
+        @if (!showPasteArea()) {
+          <button (click)="showPasteArea.set(true)" class="btn-outline-primary">📋 Paste tabular data</button>
+        }
+      </div>
+
+      <div class="footer-right">
+        <button type="button" class="btn-outline-cancel" (click)="cancel()">Cancel</button>
+
+        @if (isMelded()) {
+          <button type="button" class="btn-secondary" (click)="submitAndAddNext()" [disabled]="form.invalid">
+            + Add Another
+          </button>
+        }
+
+        <button type="submit" class="btn-primary" (click)="submit()" [disabled]="form.invalid">
+          Finish
         </button>
-      }
-
-      <button type="submit" class="btn-primary" (click)="submit()" [disabled]="form.invalid">
-        Finish
-      </button>
-    </div>
-  </footer>
-</div>
+      </div>
+    </footer>
+  </div>
+</dialog>

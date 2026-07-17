@@ -1,50 +1,51 @@
-import { Component, computed, inject,  signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-
-import { FormsModule } from '@angular/forms';
-import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
-import { MatMenuModule } from "@angular/material/menu";
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
-import { ConfigService } from '../services/config.service';
+import { Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatFormField } from "@angular/material/input";
+import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
+import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
+import { ConfigService } from '../services/config.service';
+import { CohortEntry } from '../newtemplate/newtemplate.component';
 
 export interface CohortDialogData {
   title: string;
-  isMelded: boolean; // Add this
+  isMelded: boolean;
+}
+
+export interface CohortDialogResult {
+  entry: any;
+  keepGoing: boolean;
 }
 
 @Component({
   selector: 'app-cohort-dialog',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatDialogModule,
-    MatMenuModule,
-    ReactiveFormsModule,
-    HelpButtonComponent
-],
+  imports: [FormsModule, ReactiveFormsModule, HelpButtonComponent],
   templateUrl: './cohortdialog.component.html',
   styleUrl: './cohortdialog.component.scss',
 })
 export class CohortDialogComponent {
-  
+  private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');
+
+  title = input.required<string>();
+  isMelded = input<boolean>(false);
+  /** Fires every time an entry is submitted — dialog may stay open (keepGoing) */
+  entrySubmitted = output<CohortEntry>();
+  /** Fires only when the dialog actually goes away — cancel or final submit */
+  closed = output<boolean>(); // true = cancelled, false = completed normally
+
   showPasteArea = signal(false);
   pastedText = signal<string | null>(null);
   private fb = inject(FormBuilder);
-  public dialogRef = inject(MatDialogRef<CohortDialogComponent>);
-  public data = inject(MAT_DIALOG_DATA) as CohortDialogData;
   private configService = inject(ConfigService);
- 
+
   form: FormGroup = this.fb.group({
-      diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
-      diseaseLabel: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
-      cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
-      hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
-      symbol: ['', [Validators.required, noWhitespaceValidator]],
-      transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
-    });
+    diseaseId: ['', [Validators.required, Validators.pattern(/^OMIM:\d{6}$/)]],
+    diseaseLabel: ['', [Validators.required, noLeadingTrailingSpacesValidator]],
+    cohortAcronym: ['', [Validators.required, noWhitespaceValidator]],
+    hgnc: ['', [Validators.required, Validators.pattern(/^HGNC:\d+$/)]],
+    symbol: ['', [Validators.required, noWhitespaceValidator]],
+    transcript: ['', [Validators.required, Validators.pattern(/^[\w]+\.\d+$/)]],
+  });
   symbolValue = toSignal(this.form.get('symbol')!.valueChanges, { initialValue: '' });
   canFetch = computed(() => {
     const s = this.symbolValue();
@@ -52,40 +53,60 @@ export class CohortDialogComponent {
   });
   isLoading = signal(false);
 
-  cancel() {
-    this.dialogRef.close(null);
+
+  open() {
+    this.form.reset();
+    this.showPasteArea.set(false);
+    this.dialogEl().nativeElement.showModal();
   }
 
 
 
-  // For melded, submit but expect to add another disease
-  submitAndAddNext() {
-    if (this.form.valid) {
-      // We pass back the form value AND a flag to continue
-      this.dialogRef.close({ 
-        entry: this.form.value, 
-        keepGoing: true 
-      });
-    } else {
-      this.form.markAllAsTouched();
+  /** Handles Esc key too, since <dialog> fires 'cancel' on Esc */
+  onCancelEvent(event: Event) {
+    event.preventDefault(); // we control closing ourselves, for consistent emit
+    this.cancel();
+  }
+
+  onBackdropClick(event: MouseEvent) {
+    if (event.target === this.dialogEl().nativeElement) {
+      this.cancel();
     }
   }
 
+  cancel() {
+    this.closeDialog(true);
+  }
+
+
+
+
+
+    submitAndAddNext() {
+      if (this.form.valid) {
+        this.entrySubmitted.emit(this.form.value as CohortEntry);
+        this.form.reset();
+      } else {
+        this.form.markAllAsTouched();
+      }
+    }
 
   submit() {
     if (this.form.valid) {
-      this.dialogRef.close({ 
-        entry: this.form.value, 
-        keepGoing: false 
-      });
+      this.entrySubmitted.emit(this.form.value as CohortEntry);
+      this.closeDialog(false);
     } else {
       this.form.markAllAsTouched();
     }
+  }
+  private closeDialog(cancelled: boolean) {
+    this.dialogEl().nativeElement.close();
+    this.closed.emit(cancelled);
   }
 
   processPastedText() {
     const text = this.pastedText();
-    if (! text) {
+    if (!text) {
       this.showPasteArea.set(false);
       return;
     }
@@ -119,7 +140,7 @@ export class CohortDialogComponent {
       return await this.configService.fetchHgncData(symbol);
     } catch (error) {
       console.error(`Error fetching gene ${symbol}: ${error}`);
-      return null; // Return null so your UI can show a "Gene not found" message
+      return null;
     }
   }
 
@@ -137,7 +158,6 @@ export class CohortDialogComponent {
         transcript: result.maneSelect
       });
     } else {
-      // Optional: Toast or specific error handling if gene not found
       alert(`Could not find data for symbol: ${symbol}`);
     }
   }

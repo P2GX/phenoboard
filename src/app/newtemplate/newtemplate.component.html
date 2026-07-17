@@ -46,16 +46,19 @@
       }
       
       <div class="mode-list">
-        @for (mode of cohortModes; track mode.id) {
-          <div class="mode-list__item">
-            <button (click)="mode.action()" 
-                    [disabled]="mode.disabled"
-                    class="btn-outline-primary mode-list__btn">
-              {{ mode.label }}
-            </button>
-            <app-help-button [title]="mode.helpTitle" [lines]="mode.helpLines" />
-          </div>
-        }
+        <button 
+          class="btn-outline-primary mode-list__btn"
+          (click)="mendelian()">Mendelian cohort</button>
+        <button 
+          class="btn-outline-primary mode-list__btn"
+          (click)="melded()">Melded cohort</button>
+          <app-cohort-dialog 
+            #cohortDialog
+              [title]="dialogTitle()"
+              [isMelded]="dialogIsMelded()"
+              (entrySubmitted)="onEntrySubmitted($event)"
+              (closed)="onDialogClosed($event)"
+          ></app-cohort-dialog>
       </div>
     }
 

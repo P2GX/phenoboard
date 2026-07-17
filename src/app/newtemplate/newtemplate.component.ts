@@ -1,13 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData, CohortData, CohortType, GeneTranscriptData } from '../models/cohort_dto';
 import { RouterLink } from '@angular/router';
 import { ConfigService } from '../services/config.service';
-import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
+import { CohortDialogComponent, CohortDialogData, CohortDialogResult} from '../cohortdialog/cohortdialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { NotificationService } from 'ng-hpo-uikit';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
@@ -41,9 +40,9 @@ export function toDiseaseData(entry: CohortEntry): DiseaseData {
   };
 }
 
-export interface CohortDialogResult {
-  entries: CohortEntry[];
-}
+//export interface CohortDialogResult {
+//  entries: CohortEntry[];
+//}
 
 /**
  * Component for creating a Template for a new disease. This is the first thing we need to use
@@ -52,7 +51,7 @@ export interface CohortDialogResult {
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HelpButtonComponent, DisplayMendelianComponent, DisplayMeldedComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, HelpButtonComponent, DisplayMendelianComponent, DisplayMeldedComponent, CohortDialogComponent],
   templateUrl: './newtemplate.component.html',
   styleUrl: './newtemplate.component.scss',
 })
@@ -62,8 +61,12 @@ export class NewTemplateComponent  {
   private configService = inject(ConfigService);
   private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
-  private dialog = inject(MatDialog);
   public statusService = inject(AppStatusService);
+
+  cohortDialogRef = viewChild.required<CohortDialogComponent>('cohortDialog');
+  dialogTitle = signal('');
+  dialogIsMelded = signal(false);
+
 
   digenicTemplate = false;
   meldedTemplate = false;
@@ -90,86 +93,60 @@ export class NewTemplateComponent  {
   pendingCohort = signal<CohortData | null>(null);
   showSuccessMessage = signal<boolean>(false);
 
-
- async melded(): Promise<void> {
+  mendelian(): void {
     this.resetCohort();
+    this.mendelianTemplate = true;
+    this.meldedTemplate = false;
+    this.digenicTemplate = false;
+    this.collectedEntries = [];
+    this.openCohortDialog( 'Create Mendelian Cohort', false);
+  }
+
+ melded(): void {
     this.mendelianTemplate = false;
     this.meldedTemplate = true;
     this.digenicTemplate = false;
-    const tempDiseases: CohortEntry[] = [];
-    let shouldContinue = true;
-    while (shouldContinue) {
-      const dialogRef = this.dialog.open(CohortDialogComponent, {
-        width: '750px',
-        height: '90vw',
-        data: {
-          title: `Enter disease #${tempDiseases.length + 1} Info`,
-          isMelded: true
-        }
-      });
-      const result = await firstValueFrom(dialogRef.afterClosed());
-      if (! result) {
-        shouldContinue = false;
-        if (tempDiseases.length < 2) this.resetCohort();
-      }
-      if (result) {
-        tempDiseases.push({ ...result.entry, geneTranscriptList: []});
-        shouldContinue = result.keepGoing;
-      }
-    }
-    if (tempDiseases.length >= 2) {
-      this.diseases.set(tempDiseases);
-      this.createMeldedTemplate();
-    } else {
-      this.notificationService.showError("Could not get >=2 diseases for melded cohort");
-      this.resetCohort();
-    }
+    this.collectedEntries = [];
+    this.openCohortDialog("Create Melded Cohort", true);
   }
 
-  async digenic(): Promise<void> {
-    this.mendelianTemplate = false;
-    this.meldedTemplate = false;
-    this.digenicTemplate = true;
-    const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '750px',
-      height: '90vw',
-      data: { title: 'Create Digenic Cohort', mode: 'digenic' }
-    });
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result) return;
-
-    alert("digenic template not currently implemented")
+  digenic(): void {
+    alert("digenic template not currently implemented");
   }
 
 
-async mendelian(): Promise<void> {
-  this.mendelianTemplate = true;
-  this.meldedTemplate = false;
-  this.digenicTemplate = false;
-  
-  const dialogRef = this.dialog.open(CohortDialogComponent, {
-      width: '700px',
-      height: '90vw',
-      data: { title: 'Create Mendelian Cohort', mode: 'mendelian' }
-    });
-    const rawValue = await firstValueFrom(dialogRef.afterClosed());
-    if (!rawValue) {
-      this.notificationService.showError("Could not get data for Mendelian cohort");
+
+  openCohortDialog(title: string, isMelded: boolean) {
+     this.dialogTitle.set(title);
+   this.dialogIsMelded.set(isMelded);  
+    this.cohortDialogRef().open();
+  }
+  private collectedEntries: CohortEntry[] = [];
+
+    onEntrySubmitted(entry: CohortEntry): void {
+    const fullEntry: CohortEntry = { ...entry, geneTranscriptList: [] };
+    this.collectedEntries.push(fullEntry);
+  }
+
+  onDialogClosed(cancelled: boolean): void {
+    if (cancelled) {
+      this.collectedEntries = [];
       return;
     }
-    if (rawValue) {
-        const entryA: CohortEntry = {
-          ...rawValue.entry,
-          geneTranscriptList: []
-        };
-        this.diseases.set([entryA]);
-      } else {
-        this.notificationService.showError("Could not retrieve disease");
-        return;
-      }
+    if (this.collectedEntries.length === 0) {
+      this.notificationService.showError('Could not retrieve disease');
+      return;
+    }
+    this.diseases.set(this.collectedEntries);
 
-    this.createMendelianTemplate();
-}
+    if (this.collectedEntries.length > 1) {
+      this.createMeldedTemplate();
+    } else {
+      this.createMendelianTemplate();
+    }
+  }
+
+
 
   private async createMeldedTemplate(): Promise<void> {
     const currentDiseases = this.diseases();

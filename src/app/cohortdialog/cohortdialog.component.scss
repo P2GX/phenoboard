@@ -215,3 +215,14 @@
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+dialog.native-dialog {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  max-width: 640px;
+  width: 90vw;
+}
+dialog.native-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
