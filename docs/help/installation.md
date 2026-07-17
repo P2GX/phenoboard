@@ -109,11 +109,11 @@ node -v
 npm -v
 ``` 
 
-If necessary, go to [https://nodejs.org](nodejs) to install these programs.
+If necessary, go to [Node.js](https://nodejs.org) to install these programs.
 
 ### Rust and Cargo
 
-See [https://rustup.rs](rustp.rs) if needed.
+See [rustup](https://rustup.rs) if needed.
 
 ### Git 
 

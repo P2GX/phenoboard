@@ -20,13 +20,13 @@ Users can curate individuals with a certain disease, represented using an [OMIM]
 
 - [Installation](help/installation.md)
 - [Enter data for new cohort](help/newcohort.md)
-- [Curate one individual](help/)
+- [Curate one individual](help/overview.md)
 
 
 <figure>
 
   ![Phenoboard](/img/phenoboard-screenshot.png)
-  
+
   <figcaption>
     <strong>GA4GH Phenoboard</strong>. Phenoboard is an application for biocuration of case and cohort reports in genetic medicine.
   </figcaption>

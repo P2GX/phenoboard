@@ -156,7 +156,7 @@ Following this, we run from the base source directory:
 ```bash
 npm start
 ```
-Then we open the system browser to view the page (http://localhost:1420/home). If we change the CSS/SCSS file of the component, we
+Then we open the system browser to view the page `http://localhost:1420/home`. If we change the CSS/SCSS file of the component, we
 should immediately see the effect. After we are finished, we can delete the mock data and revert the changes to the input of the component and to the main app.
 
 
