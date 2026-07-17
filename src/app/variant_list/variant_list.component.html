@@ -7,14 +7,15 @@
       <th>Variant</th>
       <th>Gene/Transcript</th>
       <th>Variant Consequence</th>
-      <th>Count <app-help-button 
+      <th>Count <hpo-help-button 
           title="Variant count"
           [lines]="[
             'This column shows the total number of times this variant is annotated in the cohort.',
             'The count is based on the allele count.'
           ]" /></th>
        <th>Category</th>
-      <th>Validated <app-help-button 
+      <th>Validated 
+        <hpo-help-button 
           title="Validated status"
           [lines]="[
             'This column shows a green checkmark (✅) if the variant was successfully validated.',
@@ -23,7 +24,8 @@
             'Users should generally delete the variant string in one row and reannotate using the buttons (HGVS, SV, etc.).',
             'If this operation is successful, the the ❌ will turn into a ✅ in this column.'
           ]" /></th>
-      <th>Edit <app-help-button 
+      <th>Edit 
+        <hpo-help-button 
           title="Editing and deleting variants"
           [lines]="[
             'If a variant is not used to annotate any individual, the count cell is shown as zero in red. ',

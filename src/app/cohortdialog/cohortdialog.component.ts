@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, inject, input, output, signal, viewChi
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '../validators/validators';
-import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
+import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { ConfigService } from '../services/config.service';
 import { CohortEntry } from '../newtemplate/newtemplate.component';
 

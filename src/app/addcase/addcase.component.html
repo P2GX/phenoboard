@@ -38,7 +38,7 @@
       >
         🔍 Lookup PubMed
       </button>
-      <app-help-button
+      <hpo-help-button
         title="Entering PMID data"
         [lines]="[
           'phenoboard is designed to curate published data, and each case requires a corresponding PubMed identifier (PMID).',
@@ -74,7 +74,7 @@
     @if (demographicSummary) {
       <div class="summary-text">{{ demographicSummary }}</div>
     } @else {
-      <app-help-button
+      <hpo-help-button
         title="Entering demographic data"
         [lines]="[
           'Enter the identifier of the original being curated (as used in the original publication)',
@@ -88,7 +88,7 @@
   <section class="section-card">
     <div class="heading-with-help">
       <h3>HPO Annotations</h3>
-      <app-help-button
+      <hpo-help-button
         title="Entering HPO data"
         [lines]="[
           'Copy text describing the clinical manifestations of the individual and paste it into the dialog that will appear upon clicking <b>+ Add HPO Annotations</b>.',
@@ -129,7 +129,7 @@
   <section class="section-card">
     <div class="heading-with-help">
       <h3>Alleles</h3>
-      <app-help-button
+      <hpo-help-button
         title="Entering variant data"
         [lines]="[
           'Enter HGVS, (symbolic) structural variants, intergenic variants, or mitochondrial variants',

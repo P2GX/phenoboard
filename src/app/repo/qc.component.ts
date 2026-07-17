@@ -8,7 +8,7 @@ import { SourcePmid } from '../models/cohort_description_dto';
 import { RepoErrorType, RepoQc } from '../models/repo_qc';
 import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { HelpButtonComponent } from "ng-hpo-uikit";
 import { CompareDialogComponent, CompareFiles } from '../util/comparewidget/comparewidget';
 import { MatDialog } from '@angular/material/dialog';
 import { ComparisonReport } from '../models/comparison';

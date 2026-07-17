@@ -34,6 +34,7 @@ export default {
           { text: 'Installation', link: '/help/installation' },
           { text: 'Start page', link: '/help/start' },
           { text: 'New cohort', link: '/help/newcohort' },
+          { text: 'Cohort types', link: '/help/cohort-type' },
           { text: 'Add case', link: '/help/case' },
           { text: 'Cohort editor', link: '/help/cohort-editor' },
           { text: 'Table editor', link: '/help/table-editor' },

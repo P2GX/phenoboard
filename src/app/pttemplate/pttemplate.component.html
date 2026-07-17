@@ -28,7 +28,7 @@
       <option [value]="groupKey">{{ groupKey }}</option>
     }
   </select>
-  <app-help-button 
+  <hpo-help-button 
             title="Filter HPO columns"
             [lines]="[
               'Filter to the columns shown in the display to the indicated top-level HPO category.',
@@ -267,7 +267,7 @@
       </div>
     }
 
-    <app-help-button 
+    <hpo-help-button 
       title="Managing age data"
       [lines]="[
         'Right-click HPO cells to add specific onset ages.',
@@ -289,7 +289,7 @@
       <a routerLink="/tableeditor" class="tool-btn btn-workflow no-underline">
       <mat-icon>table_chart</mat-icon> New ETL
     </a>
-      <app-help-button 
+      <hpo-help-button 
         title="Adding additional data" 
         [lines]="[
           '<b>New Case:</b> Add a new individual (e.g., case report).',
@@ -309,7 +309,7 @@
       <button class="tool-btn btn-workflow" (click)="sortCohortRows()" matTooltip="Sort rows chronologically">
         <mat-icon>sort</mat-icon> Sort
       </button>
-      <app-help-button 
+      <hpo-help-button 
         title="Editing cohort data" 
         [lines]="[
           '<b>Check & Fix:</b> Validate data (and offer chance to fix if desired).',
@@ -337,7 +337,7 @@
       <mat-icon>fingerprint</mat-icon> Biocuration
     </button>
 
-    <app-help-button 
+    <hpo-help-button 
       title="Cohort Action Guide"
       [lines]="[
         '<b>Save:</b> Saves current cohort as JSON file.',

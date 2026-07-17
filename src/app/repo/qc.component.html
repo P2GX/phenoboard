@@ -13,7 +13,7 @@
         }
         {{ loading() ? 'Analyzing...' : 'Fetch Repo QC' }}
       </button>
-      <app-help-button
+      <hpo-help-button
         title="Repository QC"
           [lines]="[
             'This function performs a number of Q/C operations on a directory of cohort subdirectories.',
@@ -26,7 +26,7 @@
       <button (click)="openCompareDialog()" class="btn-primary-fixed btn-indigo">
         Compare Phenopackets
       </button>
-      <app-help-button
+      <hpo-help-button
         title="Compare Phenopackets"
           [lines]="[
             'Choose two phenopacket files for comparison.',

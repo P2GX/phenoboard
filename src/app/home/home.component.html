@@ -17,7 +17,7 @@
                     <mat-icon class="scale-75">account_circle</mat-icon>
                     {{ biocuratorOrcid() || 'Set ORCID' }}
             </button>
-             <app-help-button title="ORCID" 
+             <hpo-help-button title="ORCID" 
                       [lines]="['Set your researcher ID.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#orcid" />  
             </div>
         </div>
@@ -37,7 +37,7 @@
                             <span>Load HPO</span>
                         }
                     </button>
-                    <app-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
+                    <hpo-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
                 </div>
                 
                 <div class="hpo-status">
@@ -69,7 +69,7 @@
                     class="btn-outline-primary home-card__action-btn">
                           Create New Cohort
                       </button>
-                      <app-help-button title="New phenoboard cohort" 
+                      <hpo-help-button title="New phenoboard cohort" 
                       [lines]="['Create a phenoboard JSON file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#create-new-cohort" />   
                     </div> 
                     <div class="tool-info">
@@ -86,7 +86,7 @@
                     class="btn-outline-primary home-card__action-btn">
                         Open Cohort JSON
                     </button>
-                     <app-help-button title="Open a phenoboard cohort" 
+                     <hpo-help-button title="Open a phenoboard cohort" 
                       [lines]="['Open an existing cohort (JSON file).']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#open-an-existing-cohort" />   
                     </div> 
                     <div class="tool-info">

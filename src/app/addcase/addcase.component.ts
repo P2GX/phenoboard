@@ -22,7 +22,7 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { ConfirmDialogComponent } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
-import { HelpButtonComponent } from '../util/helpbutton/help-button.component';
+import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { AppStatusService } from '../services/app_status_service';
 import { HierarchyMapItem, HpoTwostepData, OntologyMatch, PolishedHpoAnnotation } from 'ng-hpo-uikit';
 import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';

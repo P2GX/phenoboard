@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
 import { Router } from '@angular/router';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { HelpButtonComponent } from "ng-hpo-uikit";
 import { AppStatusService } from '../services/app_status_service';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;

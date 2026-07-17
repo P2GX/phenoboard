@@ -1,5 +1,5 @@
 import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
-import { HelpButtonComponent as HelpButtonComponent } from "../help-button/help-button.component";
+import { HelpButtonComponent as HelpButtonComponent } from "ng-hpo-uikit";
 
 export interface ConfirmDialogData {
   title?: string;
@@ -25,7 +25,7 @@ export interface ConfirmDialogData {
           </div>
 
           @if (data().helpTitle || data().helpLines) {
-            <app-help-button
+            <hpo-help-button
               [title]="data().helpTitle || ''"
               [lines]="data().helpLines || []" />
           }

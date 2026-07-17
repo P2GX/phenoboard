@@ -12,7 +12,7 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { GeneTranscriptData } from '../models/cohort_dto';
 import { HelpService } from '../services/help.service';
-import { HelpButtonComponent } from "../util/helpbutton/help-button.component";
+import { HelpButtonComponent } from "ng-hpo-uikit";
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
