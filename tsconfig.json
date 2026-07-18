@@ -14,7 +14,8 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictTemplates": true,
+    "compilationMode": "partial"
   },
   "extends": "./tsconfig.base.json"
 }

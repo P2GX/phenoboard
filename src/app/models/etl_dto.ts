@@ -1,5 +1,5 @@
 import { DiseaseData } from "./cohort_dto";
-import { HpoTermDuplet } from "./hpo_term_dto";
+import { HpoTermDuplet } from "../../../libs/ui/src/lib/models/hpo_term_dto";
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
 export enum EtlCellStatus {

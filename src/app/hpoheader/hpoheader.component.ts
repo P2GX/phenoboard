@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { HpoMappingResult } from "../models/hpo_mapping_result";
+import { HpoMappingResult } from "@workspace/ui";
 
 
 

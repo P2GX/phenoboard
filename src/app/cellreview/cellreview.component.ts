@@ -1,5 +1,5 @@
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogActions, MatDialogContent } from "@angular/material/dialog";
-import { ClinicalStatus, MappedTerm, MinedCell } from "../models/hpo_mapping_result";
+import { ClinicalStatus, MappedTerm, MinedCell } from "@workspace/ui";
 import { Component, computed, EventEmitter, Output, signal } from "@angular/core";
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -58,7 +58,12 @@ export class CellReviewComponent {
   });
 
   readonly termsToExclude = computed(() => {
-    const currentCellIds = new Set(this.currentCell().mappedTermList.map(t => t.hpoId));
+    const cell = this.currentCell();
+    // Early return if no cell is loaded or active yet
+    if (!cell || !cell.mappedTermList) {
+      return this.allAvailableTerms();
+    }
+    const currentCellIds = new Set(cell.mappedTermList.map(t => t.hpoId));
     return this.allAvailableTerms().filter(t => 
       !currentCellIds.has(t.id) 
     );

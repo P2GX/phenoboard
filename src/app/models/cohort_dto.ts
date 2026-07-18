@@ -2,7 +2,7 @@
  * The data transfer objects in this file correspond to analogous structs in ga4ghphenotools
 */
 
-import { CellValue, HpoTermDuplet } from "./hpo_term_dto";
+import { CellValue, HpoTermDuplet } from "../../../libs/ui/src/lib/models/hpo_term_dto";
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
 export type HpoGroupMap = Record<string, HpoTermDuplet[]>; 

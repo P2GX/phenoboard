@@ -9,7 +9,7 @@ import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../models/cohort_dto';
-import { CellValue, CellValueInner, HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { CellValue, CellValueInner, HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';

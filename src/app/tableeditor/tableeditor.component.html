@@ -1,6 +1,5 @@
 <div class="primary-box">
 <app-table-editor-header></app-table-editor-header>
-
 @if (errorMessage) {
   <div class="error-container">
     <div class="error-message">
@@ -232,6 +231,7 @@
 }
 
 @if (contextMenuCellVisible) {
+  <p>contextMenuCellVisible HELLO</p>
   <div class="menu-overlay-backdrop" (click)="contextMenuCellVisible = false" (contextmenu)="$event.preventDefault(); contextMenuCellVisible = false">
     
     <div class="context-menu-visible"
@@ -268,5 +268,28 @@
         </li>
       </ul>
     </div>
+  </div>
+}
+
+<!-- "Popup components "-->
+@if (activeStep() === 'SELECT_TERM') {
+  <app-hpo-popup-dialog
+    [title]="columnTitle()"
+    [bestMatch]="bestHpoMatch()"
+    [autocompleteProvider]="performHpoAutocomplete"
+    (confirmed)="onHpoTermSelected($event)"
+    (cancel)="onHpoTermSelected(null)">
+  </app-hpo-popup-dialog>
+}
+@if (activeStep() === 'MAP_VALUES') {
+  <div class="mapping-container">
+    <app-hpo-mapping-step
+      [header]="columnTitle()"
+      [hpoLabel]="bestHpoMatch()?.label ?? 'Custom Term'"
+      [hpoId]="bestHpoMatch()?.id ?? ''"
+      [uniqueValues]="uniqueValuesToMap()"
+      (mappingConfirmed)="onMappingCompleted($event)"
+      (cancelled)="onMappingCompleted(null)">
+    </app-hpo-mapping-step>
   </div>
 }

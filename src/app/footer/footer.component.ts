@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { HelpService } from '../services/help.service';
 import { getVersion, getName } from '@tauri-apps/api/app';
@@ -10,12 +10,14 @@ import { getVersion, getName } from '@tauri-apps/api/app';
 })
 export class FooterComponent implements OnInit {
   private helpService = inject(HelpService);
-  appVersion = '';
-  appName = '';
+  appVersion = signal<string>('');
+  readonly appName = signal<string>('');
 
   async ngOnInit() {
-    this.appVersion = await getVersion();
-    this.appName = await getName();
+    const version = await getVersion();
+    const name = await getName();
+    this.appVersion.set(version);
+    this.appName.set(name);
   }
 
   async openHelp(): Promise<void> {

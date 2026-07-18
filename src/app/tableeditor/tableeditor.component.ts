@@ -7,15 +7,13 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept } from "../models/hpo_mapping_result";
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept } from "@workspace/ui";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
-import { ValueMappingComponent } from '../valuemapping/valuemapping.component';
-import { firstValueFrom } from 'rxjs';
-import { HpoDialogWrapperComponent } from '../hpoautocomplete/hpo-dialog-wrapper.component';
+import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { NotificationService } from 'ng-hpo-uikit';
-import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
@@ -34,6 +32,8 @@ import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
 import { TableEditorHeader } from "./table-editor-header";
 import { EtlCellEditDialogComponent } from '../etl_cell/etl-cell-edit-dialog.component';
+import { HpoPopupDialogComponent } from "@workspace/ui";
+import { HpoMappingStepComponent } from "libs/ui/src/lib/hpo-mapping-step/hpo-mapping-step.component";
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -48,7 +48,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, TableEditorHeader],
+  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, TableEditorHeader, HpoPopupDialogComponent, HpoMappingStepComponent],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })
@@ -73,6 +73,14 @@ export class TableEditorComponent  {
   diseaseDataSignal = signal<DiseaseData | null>(null);
   readonly isProcessing = signal<boolean>(false);
 
+  readonly activeStep = signal<'NONE' | 'SELECT_TERM' | 'MAP_VALUES'>('NONE');
+  
+  readonly activeColIndex = signal<number | null>(null);
+  readonly columnTitle = signal<string>('');
+  readonly bestHpoMatch = signal<OntologyMatch | null>(null);
+  readonly selectedHpoTerm = signal<HpoTermDuplet | null>(null);
+  readonly uniqueValuesForMapping = signal<string[]>([]);
+
   diseaseData: DiseaseData | null = null;
 
   INVISIBLE = -1;
@@ -92,6 +100,10 @@ export class TableEditorComponent  {
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
+  // The following are used by the single-hpo table operation
+  // which column, and what is the map from say "+" to observed etc.?
+  readonly mappingColumnIndex = signal<number | null>(null);
+  readonly uniqueValuesToMap = signal<string[]>([]);
 
   contextMenuCellVisible = false;
   contextMenuPosition = signal<{ x: number, y: number }>({ x: 200, y: 200 });
@@ -153,7 +165,7 @@ export class TableEditorComponent  {
 
 
   transformationMap: { [original: string]: string } = {};
-  uniqueValuesToMap: string[] = [];
+
 
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
@@ -414,7 +426,6 @@ export class TableEditorComponent  {
     this.contextMenuColIndex = index;
     this.contextMenuColHeader = header;
     this.contextMenuColType = header.columnType;
-    this.uniqueValuesToMap = unique;
   }
 
   getUniqueValues(colIndex: number): string[] {
@@ -425,51 +436,96 @@ export class TableEditorComponent  {
     return this.extractUniqueValues(column.values);
   }
 
+  /* This method is called from the Popup dialog associated with 
+   * activeStep() === 'SELECT_TERM'. When we get here, the user will have
+   * chosen the HPO term corresponding to the current column, which is a 
+   * single-HPO column. The current method find all unuque
+   * values in the column and put them into uniqueValuesForMapping. It then
+   * switches the active step to MAP_VALUES, which will allow the user to 
+   * map e.g. +/-/? or yes/no/unknown to observed/excluded/na
+   */
+  onHpoTermSelected(selectedTerm: HpoTermDuplet | null): void {
+    if (!selectedTerm) {
+      this.notificationService.showError("User cancelled HPO selection");
+      this.resetWizard();
+      return;
+    }
+    const colIndex = this.activeColIndex();
+    if (!colIndex) {
+      this.notificationService.showError(`Could not retrieve column index for column mapping of ${selectedTerm.hpoLabel}.`);
+      return;
+    }
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    console.log("OnHpoTermSelection", selectedTerm);
+    const column = dto.table.columns[colIndex];
+    this.selectedHpoTerm.set(selectedTerm);
+    // Update column header metadata
+    column.header.columnType = EtlColumnType.SingleHpoTerm;
+    column.header.hpoTerms = [selectedTerm];
+    // Extract values for the next step mapping stage
+    const uniqueVals = Array.from(new Set(column.values.map(v => v.original.trim())));
+    this.uniqueValuesToMap.set(uniqueVals);
+    // Advance the state machine to the Mapping Screen
+    this.activeStep.set('MAP_VALUES');
+}
+
+onMappingCompleted(mapping: HpoMappingResult | undefined | null): void {
+  if (!mapping) {
+    this.notificationService.showError("Could not retrieve mappings for HPO column");
+    return;
+  }
+  const colIndex = this.activeColIndex();
+  if (colIndex === null) return;
+
+  this.updateColumnWithMap(colIndex, mapping);
+  
+  this.resetWizard();
+}
+
+resetWizard(): void {
+  this.activeStep.set('NONE');
+  this.activeColIndex.set(null);
+  this.selectedHpoTerm.set(null);
+  this.bestHpoMatch.set(null);
+}
+
+   performHpoAutocomplete = (query: string): Observable<OntologyMatch[]> => {
+    return from(this.configService.performHpoAutocomplete(query)).pipe(
+      catchError(err => {
+        this.notificationService.showError(String(err));
+        return of([]);
+      })
+    );
+  };
+
+  /* This method is called upon right click of a header. The goal of the
+   * method is the set the HPO term the column is about. After this, the
+   * dialog is opened to set the correspondences of symbols in the column,
+   * e.g., +,- or yes/no to observed/excluded
+   * By setting activeStep to SELECT_TERM we open up a dialog to search for the HPO term.
+   * When this method returns, it calls onHpoTermSelected.
+   */
   async applySingleHpoTransform(colIndex: number): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (! dto) return;
     const column = dto.table.columns[colIndex];
-    const columnTitle = column.header.original || "n/a";
+    const title = column.header.original || "n/a";
 
-    let bestHpoMatch: OntologyMatch | null = null;
+    let bestMatch: OntologyMatch | null = null;
     try {
-      bestHpoMatch = (await this.configService.getBestHpoMatch(columnTitle)) ?? "";
+      bestMatch = (await this.configService.getBestHpoMatch(title)) ?? null;
     } catch {
-      this.notificationService.showError("could not get HPO match");
-    }
-    // Ask user to confirm/select HPO term
-    const selectedTerm: HpoTermDuplet = await firstValueFrom(
-      this.dialog.open(HpoDialogWrapperComponent, {
-        width: '500px',
-        data: { bestMatch: bestHpoMatch, title: columnTitle },
-      }).afterClosed()
-    );
-
-    if (!selectedTerm) {
-      this.notificationService.showError("User cancelled HPO selection");
-      return;
+      this.notificationService.showError("Could not retrieve HPO match suggestion.");
     }
 
-    // Update column header metadata
-    column.header.columnType = EtlColumnType.SingleHpoTerm;
-    column.header.hpoTerms = [selectedTerm];
-
-    // Get unique current values for mapping
-    const uniqueValues = Array.from(new Set(column.values.map(v => v.original.trim())));
-    const mapping: HpoMappingResult | undefined = await firstValueFrom(
-      this.dialog.open(ValueMappingComponent, {
-        width: '75vw', // 75% of the viewport width
-        maxWidth: '90vw',
-        data: {
-          header: column.header.original,
-          hpoTerm: selectedTerm,
-          hpoLabel: selectedTerm.hpoLabel,
-          uniqueValues,
-        },
-      }).afterClosed()
-    );
-    console.log("mapping", mapping)
-    this.updateColumnWithMap(colIndex, mapping);
+    // Defer the state updates to a fresh macrotask cycle so the rendering loop settles
+    setTimeout(() => {
+      this.columnTitle.set(title);
+      this.activeColIndex.set(colIndex);
+      this.bestHpoMatch.set(bestMatch);
+      this.activeStep.set('SELECT_TERM');
+    });
   }
 
   /**
@@ -1125,7 +1181,6 @@ async saveManualEdit(newValue: string): Promise<void> {
         cell.current = transformed;
         cell.status = TRANSFORMED;
         cell.error = undefined;
-        console.log(`set cell.current to {cell.current}`)
       } else {
         cell.current = '';
         cell.status = ERROR;
@@ -1241,7 +1296,7 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.etl_service.updateColumns(newColumns);
   }
 
-  /* USed for operations such as ASCII-sanitization, UPPER-CASE, and trim */
+  /* Used for operations such as ASCII-sanitization, UPPER-CASE, and trim */
   async runTidyColumn(colIndex: number | null, fn: StringTransformFn) {
     const dto = this.etl_service.etlDto();
     if (!dto || !colIndex) return;
@@ -1274,7 +1329,6 @@ async saveManualEdit(newValue: string): Promise<void> {
   async applyNamedTransform(colIndex: number | null, transform: TransformType): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (colIndex == null || !dto) return;
-
     const transformFn = this.ELEMENTWISE_MAP[transform]; // cell-wise transforms, e.g. Age, Sex, Deceased
     if (transformFn) {
       this.runElementwiseEngine(colIndex, transform, transformFn);
@@ -1981,6 +2035,7 @@ async saveManualEdit(newValue: string): Promise<void> {
       default:                        return '❓';
     }
   }
+
 
 }
 

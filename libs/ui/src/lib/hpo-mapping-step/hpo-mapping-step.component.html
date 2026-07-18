@@ -1,0 +1,35 @@
+<dialog #nativeMappingDialog class="hpo-modal" (cancel)="cancel()">
+  <div class="modal-content">
+    <header class="modal-header">
+      <h3>Map Value Symbols for: {{ header() }}</h3>
+      <button class="close-btn" type="button" (click)="cancel()">&times;</button>
+    </header>
+
+    <h1>UNIQ VLUAE n={{uniqueValues().length }}</h1>
+    
+    <main class="modal-body">
+      <p class="hpo-badge">Target Term: <strong>{{ hpoLabel() }}</strong> <code>{{ hpoId() }}</code></p>
+      <p class="instruction-text">Specify how each unique raw cell string maps to this phenotype concept state:</p>
+      
+      <div class="mapping-grid">
+        @for (value of uniqueValues(); track value) {
+          <div class="mapping-row">
+            <span class="raw-value" [title]="value">{{ value }}</span>
+            <div class="select-wrapper">
+              <select [(ngModel)]="valueToStateMap[value]" class="mapping-select">
+                <option value="observed">observed (Present)</option>
+                <option value="excluded">excluded (Absent)</option>
+                <option value="notApplicable">not applicable</option>
+              </select>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+    
+    <footer class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="cancel()">Cancel</button>
+      <button class="btn-primary" type="button" (click)="confirm()">Apply Transformation</button>
+    </footer>
+  </div>
+</dialog>

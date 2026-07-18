@@ -8,12 +8,11 @@ import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, crea
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddageComponent } from "../addages/addage.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
-import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
-import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
+import { getCellValue, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +23,7 @@ import { HelpButtonComponent } from "ng-hpo-uikit";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { CohortMetadataComponent } from "../util/cohortmetadata/cohort-metadata.component";
 import { RouterLink } from '@angular/router';
-import { OntologyMatch } from '../models/hpo_mapping_result';
+import { OntologyMatch } from '@workspace/ui';
 import { PopoverComponent } from "../util/popover/popover-component";
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
@@ -39,7 +38,6 @@ interface Option { label: string; value: string };
     CdkOverlayOrigin,
     CommonModule,
     FormsModule,
-    HpoAutocompleteComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatTableModule,
@@ -95,7 +93,6 @@ export class PtTemplateComponent  {
   private notificationService = inject(NotificationService);
   readonly ageEntries = this.ageService.selectedTerms;
 
-  @ViewChild(HpoAutocompleteComponent) hpo_component!: HpoAutocompleteComponent;
   @ViewChild(AddageComponent) addagesComponent!: AddageComponent;
   // References to the HTML elements
   @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;

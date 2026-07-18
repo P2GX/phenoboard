@@ -1,0 +1,40 @@
+<dialog #nativeDialog class="hpo-modal" (cancel)="cancel.emit()">
+  <div class="modal-content">
+    <header class="modal-header">
+      <h3>Select HPO Term for: {{ title() }}</h3>
+      <button class="close-btn" type="button" (click)="cancel.emit()">&times;</button>
+    </header>
+    
+    <main class="modal-body">
+      <!-- Section 1: Dynamic Top Match Recommendation -->
+      @if (bestMatch(); as match) {
+        <div class="suggestion-box">
+          <span class="section-label">Recommended Match</span>
+          <div class="suggestion-row">
+            <div class="term-details">
+              <strong>{{ match.label }}</strong>
+              <span class="term-id">{{ match.id }}</span>
+            </div>
+            <button class="btn-outline-primary" type="button" (click)="selectTerm(match)">
+              Use Suggestion
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Section 2: Autocomplete Provider Lookup -->
+      <div class="autocomplete-section">
+        <span class="section-label">
+          {{ bestMatch() ? 'Or search alternative term:' : 'Search HPO Term:' }}
+        </span>
+        <hpo-ontology-autocomplete
+          [autocompleteProvider]="autocompleteProvider()"
+          (selected)="onHpoTermSelected($event)" />
+      </div>
+    </main>
+    
+    <footer class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="cancel.emit()">Cancel</button>
+    </footer>
+  </div>
+</dialog>

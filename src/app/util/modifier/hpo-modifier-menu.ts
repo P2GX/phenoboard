@@ -6,7 +6,7 @@ import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/ma
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { HpoModifierService } from '../../services/hpo_modifier_service';
-import { HpoTermDuplet } from '../../models/hpo_term_dto';
+import { HpoTermDuplet } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
 
 @Component({
   selector: 'app-hpo-modifier-menu',

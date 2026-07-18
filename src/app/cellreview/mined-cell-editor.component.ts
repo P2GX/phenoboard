@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MinedCell, MappedTerm, ClinicalStatus } from "../models/hpo_mapping_result";
+import { MinedCell, MappedTerm, ClinicalStatus } from "@workspace/ui";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";

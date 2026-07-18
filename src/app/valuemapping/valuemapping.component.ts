@@ -6,7 +6,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms'; 
-import { HpoStatus, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoStatus, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatTableModule } from '@angular/material/table';
 

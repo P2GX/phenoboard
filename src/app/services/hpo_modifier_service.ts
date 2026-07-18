@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ConfigService } from './config.service';
-import { HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { NotificationService } from 'ng-hpo-uikit';
 
 export interface HpoOption {

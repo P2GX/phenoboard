@@ -4,11 +4,11 @@ import { StatusDto } from '../models/status_dto';
 import { PmidDto } from '../models/pmid_dto';
 import { HpoAnnotationDto, ParentChildDto, TextAnnotationDto } from '../models/text_annotation_dto';
 import { IndividualData, CohortData, DiseaseData, CohortType, HpoGroupMap, CurationEvent } from '../models/cohort_dto';
-import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
+import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
 import { ColumnTableDto, EtlDto } from '../models/etl_dto';
 import { RepoQc } from '../models/repo_qc';
-import { OntologyMatch, MinedCell, MiningConcept } from '../models/hpo_mapping_result';
+import { OntologyMatch, MinedCell, MiningConcept } from '@workspace/ui';
 import { ComparisonReport } from '../models/comparison';
 import {  PpktSaveCheckResult } from '../models/status_dto'
 import { ask } from '@tauri-apps/plugin-dialog';
