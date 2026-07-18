@@ -7,7 +7,7 @@ use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},
 
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{MetadataAware, OntologyTerms, csr::FullCsrOntology}};
-use fenominal::{AutoCompleter, Fenominal, FenominalHit, FenominalSentence, OntologyMatch};
+use fenominal::{AutoCompleter, Fenominal, FenominalSentence, OntologyMatch};
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc, tauri::models::HierarchyMapItem};
 use ga4ghphetools;
 use rfd::FileDialog;

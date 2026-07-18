@@ -24,7 +24,6 @@ import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
-import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
 import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from '@workspace/ui';
 import { CellReviewComponent } from '../cellreview/cellreview.component';
@@ -56,7 +55,6 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     FormsModule,
     MatTooltipModule,
     ReactiveFormsModule,
-    EtlCellComponent,
     TableEditorHeader,
     TableProgressBarComponent,
     HpoPopupDialogComponent,
@@ -100,6 +98,7 @@ export class TableEditorComponent  {
   diseaseData: DiseaseData | null = null;
 
   INVISIBLE = -1;
+  // to delete
   contextMenuColHeader: EtlColumnHeader | null = null;
   contextMenuColType: string | null = null;
   columnContextMenuVisible = false;
@@ -113,6 +112,12 @@ export class TableEditorComponent  {
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
   simpleColumnOperations = [EtlColumnType.Ignore, EtlColumnType.Raw]
+
+  headerMenuState = signal<{ x: number; y: number; colIdx: number; header: EtlColumnHeader } | null>(null);
+  cellMenuState = signal<{ x: number; y: number; colIdx: number; rowIdx: number; cell: EtlCellValue } | null>(null);
+  contextMenuCellRow: number | null = null;
+  contextMenuCellCol: number | null = null;
+  contextMenuCellValue: EtlCellValue | null = null;
 
   errorMessage: string | null = null;
   columnBeingTransformed: number | null = null;
@@ -131,9 +136,7 @@ export class TableEditorComponent  {
   // The following mark columns for merging 
   colAforMerge = signal<number | null>(null);
   colBforMerge = signal<number | null>(null);
-  contextMenuCellRow: number | null = null;
-  contextMenuCellCol: number | null = null;
-  contextMenuCellValue: EtlCellValue | null = null;
+
   contextMenuCellType: EtlColumnType | null = null;
 
   // For undoing the merge op
@@ -334,47 +337,8 @@ export class TableEditorComponent  {
     this.updateCell(cell, event.newValue, TRANSFORMED);
   }
 
-  /* Call this method to clear right-click context */
-  resetRightClick(): void {
-    this.contextMenuColIndex = null;
-    this.contextMenuColHeader = null;
-    this.contextMenuColType = null;
-    this.columnContextMenuX = -1;
-    this.columnContextMenuY = -1;
-    this.columnContextMenuVisible = false;
-  }
 
-  /**
- * Adjusts a menu position to ensure it stays within the viewport.
- * @param x Initial X coordinate (usually mouse event clientX)
- * @param y Initial Y coordinate (usually mouse event clientY)
- * @param menuWidth Width of the menu in pixels
- * @param menuHeight Height of the menu in pixels
- * @param padding Minimum distance from viewport edges (default 10px)
- * @returns { x: number; y: number } Adjusted coordinates
- */
-  private adjustMenuPosition(
-    x: number,
-    y: number,
-    menuWidth: number,
-    menuHeight: number,
-    padding = 10
-  ): { x: number; y: number } {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
 
-    if (x + menuWidth > viewportWidth) {
-      x = viewportWidth - menuWidth - padding;
-    }
-    if (y + menuHeight > viewportHeight) {
-      y = viewportHeight - menuHeight - padding;
-    }
-
-    x = Math.max(padding, x);
-    y = Math.max(padding, y);
-
-    return { x, y };
-  }
 
   visibleColumnsComputed = computed(() => {
     const dto = this.etl_service.etlDto();
@@ -400,19 +364,6 @@ export class TableEditorComponent  {
   };
 
 
-  /** This method is called if the user right clicks on the header (first row) */
-  onRightClickHeader(event: MouseEvent, colIndex: number): void {
-    event.preventDefault();
-    this.contextMenuColIndex = colIndex;
-    const headers = this.displayHeaders();  
-    this.contextMenuColHeader = headers[colIndex] ?? null;
-    this.contextMenuColType = headers[colIndex]?.columnType ?? null;
-    const menuDims = { width: 350, height: 400 };
-    const adjusted = this.adjustMenuPosition(event.clientX, event.clientY, menuDims.width, menuDims.height);
-    this.columnContextMenuX = adjusted.x;
-    this.columnContextMenuY = adjusted.y;
-    this.columnContextMenuVisible = true;
-  }
 
 
   /**
@@ -958,33 +909,6 @@ resetWizard(): void {
   }
 
 
-  /* Activated by a right click on a table cell */
-  onCellContextMenu(event: {
-    event: MouseEvent;
-    cell: EtlCellValue;
-    rowIndex: number;
-    colIndex: number;
-  }) {
-    event.event.preventDefault();
-    event.event.stopPropagation();
-    //  Capture coordinates relative to the VIEWPORT (client)
-    const mousePos = {
-      x: event.event.clientX,
-      y: event.event.clientY
-    };
-    this.contextMenuPosition.set(mousePos);
-    this.editModalPosition.set(mousePos);
-    this.contextMenuCellVisible = true;
-
-    this.contextMenuCellRow = event.rowIndex;
-    this.contextMenuCellCol = event.colIndex;
-    this.contextMenuCellValue = event.cell;
-
-    const headers = this.displayHeaders();
-    const header = headers[event.colIndex];
-    this.contextMenuCellType = header.columnType;
-  }
-  
   /* for the right-click context menu on edit cells */
   handleMenuAction(action: () => void) {
     action();
@@ -1550,33 +1474,6 @@ async saveManualEdit(newValue: string): Promise<void> {
     }
   }
 
-  /**
-   * Extract a specific column index for a column type that we expect to exist exactly once
-   * @param columns  
-   * @returns 
-   */
-  async getEtlColumnIndex(columnType: EtlColumnType): Promise<number> {
-    const dto = this.etl_service.etlDto();
-    if (!dto) {
-      this.notificationService.showError("Could not apply transform because external table was null");
-      throw new Error("Missing table");
-    }
-
-    const indices = dto.table.columns
-      .map((col, index) => ({ col, index }))
-      .filter(entry => entry.col.header.columnType === columnType);
-
-    if (indices.length === 0) {
-      throw new Error(`No column with type "${columnType}" found.`);
-    }
-
-    if (indices.length > 1) {
-      throw new Error(`Multiple columns with type "${columnType}" found.`);
-    }
-
-    return indices[0].index;
-  }
-
   /** Apply a mapping for a column with a single HPO term */
   applyHpoMapping(colIndex: number, mapping: HpoMappingResult): void {
     const dto = this.etl_service.etlDto();
@@ -1622,16 +1519,6 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.etl_service.updateColumns(newColumns);
   }
 
-  /** parse a string like Strabismus[HP:0000486;original: Strabismus] from the single HPO term header */
-  parseHpoString(input: string): HpoTermDuplet | null {
-    const match = input.match(/^([^\[]+)\[([^\];]+);.*\]$/);
-    if (!match) return null;
-
-    const label = match[1].trim();    // before the [
-    const hpoId = match[2].trim();    // before the ;
-
-    return { hpoLabel: label, hpoId: hpoId };
-  }
 
   /** Retrieve the single HPO term associated with a column header */
   getSingleHpoTerm(header: EtlColumnHeader): HpoTermDuplet {
@@ -1724,13 +1611,6 @@ async saveManualEdit(newValue: string): Promise<void> {
     }
   }
 
-
-
-
-  /** Indexing for rows in template forloops. row identity is its index */
-  trackRow(index: number, cell: unknown): number {
-    return index;
-  }
 
   
 
@@ -1929,51 +1809,6 @@ async saveManualEdit(newValue: string): Promise<void> {
       }
   }
 
-  isHpoTextMiningColumn(colIndex: number): boolean {
-    const dto = this.etl_service.etlDto();
-    if (! dto) {
-      return false;
-    }
-    const column = dto.table.columns[colIndex];
-    if (!column) {
-      return false;
-    }
-    return column.header.columnType === EtlColumnType.HpoTextMining;
-  }
-
-  getHpoTermCount(colIndex: number, rowIndex: number): number {
-    const cellData: HpoTermData[] = this.getHpoCellData(colIndex, rowIndex);
-    return cellData?.length ?? 0;
-  }
-
-  getHpoTooltipContent(colIndex: number, rowIndex: number): string {
-    const cellData: HpoTermData[] = this.getHpoCellData(colIndex, rowIndex);
-    if (!cellData || cellData.length === 0) return 'No terms';
-
-    return cellData
-      .map(term => {
-        const value = term.entry;
-        const hpoLabel = term.termDuplet.hpoLabel;
-        const modifierStr = value.modifiers && value.modifiers.length > 0
-          ? ` [${value.modifiers.join(', ')}]`
-          : '';
-        let baseContent = '';
-        switch (value.type) {
-          case 'Observed':
-          case 'Excluded':
-          case 'Na':
-            baseContent = `${hpoLabel}: ${value.type}`;
-            break;
-          case 'OnsetAge':
-            baseContent = `${hpoLabel}: ${value.data} (${value.type})`;
-            break;
-          default:
-            baseContent = `${hpoLabel}: unknown`;
-        }
-        return `${baseContent}${modifierStr}`;
-      })
-      .join('\n');
-  }
 
   openHpoMiningDialog(colIndex: number, rowIndex: number): void {
     const dto = this.etl_service.etlDto();
@@ -2009,35 +1844,7 @@ async saveManualEdit(newValue: string): Promise<void> {
     
   }
 
-  private getHpoCellData(colIndex: number, rowIndex: number): HpoTermData[] {
-    const drows = this.displayRows();
-    const cell = drows[rowIndex][colIndex].current;
-    if (!cell) return [];
-    if (Array.isArray(cell)) return cell;
-    try {
-      return JSON.parse(cell);
-    } catch {
-      this.notificationService.showError(`Invalid HPO data in cell: "${cell}"`);
-      return [];
-    }
-  }
 
-  /* Clear HPO textmining and rest state to pristine */
-  clearHpoMining(colIndex: number, rowIndex: number): void {
-    this.etl_service.updateCell(colIndex, rowIndex, cell => ({
-      ...cell,
-      current: '',
-      status: EtlCellStatus.Raw,    
-      errorMessage: undefined  
-    }));
-  }
-
-  // Compute the current column values for the transformation panel
-  get currentColumnCells(): EtlCellValue[] {
-    const dto = this.etl_service.etlDto();
-    if (!dto|| this.contextMenuColIndex == null) return [];
-    return dto.table.columns[this.contextMenuColIndex].values;
-  }
 
   // show the status of an ETL Cell
   getStatusSymbol(val: EtlCellValue | null): string {
@@ -2053,6 +1860,12 @@ async saveManualEdit(newValue: string): Promise<void> {
   }
 
   openHeaderMenu(data: { event: MouseEvent; index: number; header: any }): void {
+    this.headerMenuState.set({
+      x: data.event.clientX,
+      y: data.event.clientY,
+      colIdx: data.index,
+      header: data.header
+    });
     this.contextMenuColIndex = data.index;
     this.contextMenuColHeader = data.header;
     this.contextMenuColType = data.header.type;
