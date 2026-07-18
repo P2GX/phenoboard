@@ -13,7 +13,7 @@ import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { NotificationService } from 'ng-hpo-uikit';
-import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
+import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
@@ -84,7 +84,7 @@ export class TableEditorComponent  {
   public statusService = inject(AppStatusService);
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
-  diseaseDataSignal = signal<DiseaseData | null>(null);
+  readonly diseaseDataSignal = signal<DiseaseData | null>(null);
   readonly isProcessing = signal<boolean>(false);
 
   readonly activeStep = signal<'NONE' | 'SELECT_TERM' | 'MAP_VALUES'>('NONE');
@@ -101,7 +101,6 @@ export class TableEditorComponent  {
   // to delete
   contextMenuColHeader: EtlColumnHeader | null = null;
   contextMenuColType: string | null = null;
-  columnContextMenuVisible = false;
   columnContextMenuX: number | null = null;
   columnContextMenuY: number | null = null;
   editModeActive = false;
@@ -189,42 +188,11 @@ export class TableEditorComponent  {
   /** These are transformations that we can apply to a column while editing. They appear on right click */
   transformOptions = Object.values(TransformType);
 
-  transformHandlers: { [key in TransformType]: (colIndex: number) => string[] | void } = {
-    [TransformType.STRING_SANITIZE]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.STRING_SANITIZE),
-    [TransformType.TO_UPPERCASE]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.TO_UPPERCASE),
-    [TransformType.TO_LOWERCASE]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.TO_LOWERCASE),
-    [TransformType.EXTRACT_NUMBERS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.EXTRACT_NUMBERS),
-    [TransformType.ONSET_AGE]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ONSET_AGE),
-    [TransformType.LAST_ENCOUNTER_AGE]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LAST_ENCOUNTER_AGE),
-    [TransformType.SEX_COLUMN]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.SEX_COLUMN),
-    [TransformType.SINGLE_HPO_TERM]: (colIndex) => { this.applySingleHpoTransform(colIndex); },
-    [TransformType.MULTIPLE_HPO_TERM]: (colIndex: number) => { this.processMultipleHpoColumn(colIndex); },
-    [TransformType.REPLACE_UNIQUE_VALUES]: (colIndex: number) => { this.editUniqueValuesInColumn(colIndex); },
-    [TransformType.ONSET_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.ONSET_AGE_ASSUME_YEARS),
-    [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: (colIndex) => this.transformColumnElementwise(colIndex, TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS),
-    [TransformType.SPLIT_COLUMN]: (colIndex) => { this.splitColumn(colIndex); },
-    [TransformType.DELETE_COLUMN]: (colIndex) => { this.deleteColumn(colIndex); },
-    [TransformType.DUPLICATE_COLUMN]: (colIndex) => { this.duplicateColumn(colIndex); },
-    [TransformType.CONSTANT_COLUMN]: (colIndex) => { this.addConstantColumn(colIndex); },
-    [TransformType.RAW_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
-    [TransformType.FAMILY_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.FamilyId); },
-    [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.PatientId); },
-    [TransformType.GENE_SYMBOL_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.GeneSymbol); },
-    [TransformType.DISEASE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Disease); },
-    [TransformType.SEX_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Sex); },
-    [TransformType.DECEASED_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Deceased); },
-    [TransformType.IGNORE_COLUMN_TYPE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Ignore); },
-    [TransformType.REMOVE_WHITESPACE]: (colIndex: number) => { this.simpleColumnOp(colIndex, EtlColumnType.Raw); },
-    [TransformType.ANNOTATE_VARIANTS]: (colIndex: number) => { this.annotateVariants(colIndex); }
-
-  };
-
 
 
   /** Reset if user clicks outside of defined elements. */
   @HostListener('document:click')
   onClickAnywhere(): void {
-    this.columnContextMenuVisible = false;
     this.editModalVisible.set(false);
   }
 
@@ -379,20 +347,19 @@ export class TableEditorComponent  {
     const dto = this.etl_service.etlDto();
     if (!dto) return;
     const column = dto.table.columns[index];
-    const headers = this.displayHeaders();
-    const header = headers[index];
-    if (!column || !header) {
-      this.notificationService.showError(`Invalid column/header at index ${index}`);
+    if (! column) {
+      this.notificationService.showError(`Invalid column at index ${index}`);
       return;
     }
-
     const unique = this.extractUniqueValues(column.values);
-
     this.transformationMap = Object.fromEntries(unique.map(val => [val, val]));
-
-    this.contextMenuColIndex = index;
-    this.contextMenuColHeader = header;
-    this.contextMenuColType = header.columnType;
+    this.activeColIndex.set(index);
+    this.headerMenuState.set({
+      x: 0,
+      y: 0,
+      colIdx: index,
+      header: column.header
+    })
   }
 
   getUniqueValues(colIndex: number): string[] {
@@ -418,7 +385,7 @@ export class TableEditorComponent  {
       return;
     }
     const colIndex = this.activeColIndex();
-    if (!colIndex) {
+    if (colIndex === null) {
       this.notificationService.showError(`Could not retrieve column index for column mapping of ${selectedTerm.hpoLabel}.`);
       return;
     }
@@ -652,20 +619,6 @@ resetWizard(): void {
       }
     });
   }
-
-
-
-
-
-  /**
-   * This will close the modal dialog opened by editCellValueManually
-   */
-  @HostListener('document:click')
-  onDocumentClick() {
-    this.columnContextMenuVisible = false;
-  }
-
-
 
 
   /**
@@ -1266,54 +1219,71 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.etl_service.updateColumns(newColumns);
   }
 
-  async applyNamedTransform(colIndex: number | null, transform: TransformType): Promise<void> {
+  async applyNamedTransform(colIndex: number | null, rawTransform: TransformType): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (colIndex == null || !dto) return;
-    const transformFn = this.ELEMENTWISE_MAP[transform]; // cell-wise transforms, e.g. Age, Sex, Deceased
+    let transform: TransformType = rawTransform;
+    if (typeof rawTransform === 'string' && !(rawTransform in TransformType)) {
+      const matchingKey = Object.keys(TransformType).find(
+        key => TransformType[key as keyof typeof TransformType] === rawTransform
+      );
+      if (matchingKey) {
+        transform = TransformType[matchingKey as keyof typeof TransformType];
+      }
+    }
+    // 1. Check cell-wise transforms (Age, Sex, Deceased mappings handled globally)
+    const transformFn = this.ELEMENTWISE_MAP[transform]; 
     if (transformFn) {
       this.runElementwiseEngine(colIndex, transform, transformFn);
       return;
     }
-    const tidyFn = this.TIDY_CELL_FN_MAP[transform]; // "tidy" functions such as toLowerCase.
+
+    // 2. Check "tidy" format functions (e.g., toLowerCase, removeWhitespace)
+    const tidyFn = this.TIDY_CELL_FN_MAP[transform]; 
     if (tidyFn) {
       this.runTidyColumn(colIndex, tidyFn);
       return;
     }
-    // Interactive / structural transforms
+
+    // 3. Interactive, modal-driven, or structural layouts
     switch (transform) {
       case TransformType.IGNORE_COLUMN_TYPE:
         await this.ignoreColumn(colIndex);
         return;
+
       case TransformType.SINGLE_HPO_TERM:
         await this.applySingleHpoTransform(colIndex);
         return;
+
       case TransformType.MULTIPLE_HPO_TERM:
         await this.processMultipleHpoColumn(colIndex);
         return;
+
       case TransformType.SPLIT_COLUMN:
         this.splitColumn(colIndex);
         return;
+
       case TransformType.DELETE_COLUMN:
         this.deleteColumn(colIndex);
         return;
+
       case TransformType.CONSTANT_COLUMN:
         this.addConstantColumn(colIndex);
         return;
-      case TransformType.ONSET_AGE:
-      case TransformType.LAST_ENCOUNTER_AGE:
-      case TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS:
-      case TransformType.ONSET_AGE_ASSUME_YEARS:
-        this.applyElementwiseTransform(colIndex, transform);
-        break;
+
       case TransformType.ANNOTATE_VARIANTS:
         this.annotateVariants(colIndex);
-        break;
+        return;
+
       case TransformType.DUPLICATE_COLUMN:
         this.duplicateColumn(colIndex);
-        break;
-      default:
-        this.notificationService.showError(`Did not recognize transformation type "${transform}"`)
+        return;
 
+      default:
+        setTimeout(() => {
+          this.notificationService.showError(`Did not recognize transformation type "${transform}"`);
+        });
+        return;
     }
   }
 
@@ -1400,6 +1370,15 @@ async saveManualEdit(newValue: string): Promise<void> {
       }
     });
     this.etl_service.updateColumns(newColumns);
+  }
+
+  executeTransform(colIndex: number, transform: any): void {
+    this.headerMenuState.set(null);
+    
+    // 2. Defer execution slightly to allow Angular's change detection cycle to complete safely
+    setTimeout(() => {
+      this.applyNamedTransform(colIndex, transform);
+    }, 0);
   }
 
   async executeMerge(): Promise<void> {
@@ -1866,12 +1845,6 @@ async saveManualEdit(newValue: string): Promise<void> {
       colIdx: data.index,
       header: data.header
     });
-    this.contextMenuColIndex = data.index;
-    this.contextMenuColHeader = data.header;
-    this.contextMenuColType = data.header.type;
-    this.columnContextMenuX = data.event.clientX;
-    this.columnContextMenuY = data.event.clientY;
-    this.columnContextMenuVisible = true;
   }
 
   openCellMenu(data: { event: MouseEvent; rowIdx: number; colIdx: number; cell: any }): void {
@@ -1889,7 +1862,8 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.contextMenuCellRow = data.rowIdx;
     this.editCellValueManually();
   }
-
+  
+  
 
 }
 

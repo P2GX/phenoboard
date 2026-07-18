@@ -29,6 +29,7 @@
             @if (cell) {
                 <td 
                 [class]="'status-' + cell.status"
+                [style.background-color]="col.header.columnType === EtlColumnType.Ignore ? '#f3f4f6' : 'transparent'"
                 (contextmenu)="onCellContextMenu($event, rowIndex, colIdx, cell)"
                 (doubleclick)="cellDoubleClicked.emit({ rowIdx: rowIndex, colIdx: colIdx, cell: cell })">
                     <!-- Fallback to current values, if blank display original raw string string -->

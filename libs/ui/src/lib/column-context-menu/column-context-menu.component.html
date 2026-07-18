@@ -19,7 +19,7 @@
             Ignore/Reset 
             <ul class="submenu">
               @for (category of simpleColumnOperations(); track category) {
-                <li (click)="simpleOpRequested.emit(category)">
+                <li (click)="simpleOpRequested.emit(category); $event.stopPropagation()">
                   {{ category }}
                 </li>
               }
@@ -35,7 +35,7 @@
                   {{ category.label }} 
                   <ul class="submenu">
                     @for (t of category.transforms; track t) {
-                      <li (click)="transformRequested.emit(t)">
+                      <li (click)="transformRequested.emit(t); $event.stopPropagation()">
                         {{ getTransformDisplayName(t) }}
                       </li>
                     }
@@ -49,13 +49,13 @@
           <li class="has-submenu">
             Merge Columns
             <ul class="submenu">
-              <li (click)="mergeActionRequested.emit('SET_A')">
+              <li (click)="mergeActionRequested.emit('SET_A'); $event.stopPropagation()">
                 Mark as Column A (Merge)
               </li>
-              <li (click)="mergeActionRequested.emit('SET_B')">
+              <li (click)="mergeActionRequested.emit('SET_B'); $event.stopPropagation()">
                 Mark as Column B (Merge)
               </li>
-              <li (click)="mergeActionRequested.emit('EXECUTE')">
+              <li (click)="mergeActionRequested.emit('EXECUTE'); $event.stopPropagation()">
                 Merge columns A and B
               </li>
             </ul>

@@ -44,22 +44,22 @@
 }
 
 <!-- Context menu for column headers -->
- @if (columnContextMenuVisible) {
+ @if (headerMenuState(); as menu) {
   <app-column-context-menu
-    [x]="columnContextMenuX"
-    [y]="columnContextMenuY"
-    [headerOriginalName]="contextMenuColHeader?.original ?? ''"
-    [columnType]="contextMenuColType ?? ''"
+    [x]="menu.x"
+    [y]="menu.y"
+    [headerOriginalName]="menu.header.original"
+    [columnType]="menu.header.columnType"
     [simpleColumnOperations]="simpleColumnOperations"
     [transformCategories]="transformCategories"
-    (simpleOpRequested)="simpleColumnOp(contextMenuColIndex, $event); columnContextMenuVisible = false"
-    (transformRequested)="applyNamedTransform(contextMenuColIndex, $any($event)); columnContextMenuVisible = false"
+    (simpleOpRequested)="simpleColumnOp(menu.colIdx, $event); headerMenuState.set(null)"
+    (transformRequested)="applyNamedTransform(menu.colIdx, $any($event)); headerMenuState.set(null)"
     (mergeActionRequested)="
-      $event === 'SET_A' ? colAforMerge.set(contextMenuColIndex) : 
-      $event === 'SET_B' ? colBforMerge.set(contextMenuColIndex) : executeMerge();
-      columnContextMenuVisible = false
+      $event === 'SET_A' ? colAforMerge.set(menu.colIdx) : 
+      $event === 'SET_B' ? colBforMerge.set(menu.colIdx) : executeMerge();
+      headerMenuState.set(null)
     "
-    (close)="columnContextMenuVisible = false">
+    (close)="headerMenuState.set(null)">
   </app-column-context-menu>
 }
 

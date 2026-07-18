@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TransformLabels, TransformType } from '@workspace/ui';
 
 @Component({
   selector: 'app-column-context-menu',
@@ -28,7 +29,7 @@ export class ColumnContextMenuComponent {
   close = output<void>();
 
   getTransformDisplayName(t: string): string {
-    // If you have a cleaner mapping lookup utility, slot it here, or just space out names:
-    return t.replace(/([A-Z])/g, ' $1').trim();
+    const lookupKey = t as TransformType;
+    return TransformLabels[lookupKey] || t;
   }
 }
