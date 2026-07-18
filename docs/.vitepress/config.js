@@ -7,7 +7,6 @@ export default {
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Introduction', link: '/introduction' },
     ],
     sidebar: [
       { text: 'Introduction', link: '/introduction' },

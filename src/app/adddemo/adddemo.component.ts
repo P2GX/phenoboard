@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -10,12 +10,11 @@ import {
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { AgeInputService } from '../services/age_service';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
-import { asciiValidator } from '../validators/validators';
+import { asciiValidator, IndividualCommentComponent } from '@workspace/ui';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { DemoFormDialogComponent } from './demoformdialog.component';
 import { MatIcon } from '@angular/material/icon';
 import { AddageComponent } from '../addages/addage.component';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
@@ -48,6 +47,9 @@ export class AdddemoComponent {
 
   deceasedOptions: string[] = ['yes', 'no', 'na'];
   sexOptions: string[] = ['M', 'F', 'O', 'U'];
+
+  isCommentDialogOpen = signal<boolean>(false);
+  existingComment = signal<string>('Initial comment text from model state');
 
   demoForm: FormGroup = this.initForm();
 
@@ -105,30 +107,24 @@ export class AdddemoComponent {
     }
   }
 
-  openCommentDialog(): void {
-    const currentValue = this.demoForm.get('comment')?.value || '';
 
-    const dialogRef = this.dialog.open(DemoFormDialogComponent, {
-      width: '400px',
-      data: { comment: currentValue },
-    });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result !== undefined) {
-        this.demoForm.patchValue({ comment: result });
-      }
-    });
+
+  openCommentDialog() {
+    this.isCommentDialogOpen.set(true);
   }
 
-  reset(): void {
-    this.demoForm.reset({
-      individualId: '',
-      ageOfOnset: 'na',
-      ageAtLastEncounter: 'na',
-      sex: null,
-      deceased: null,
-      comment: '',
-    });
+  closeCommentDialog() {
+    this.isCommentDialogOpen.set(false);
+  }
+
+  onCommentSaved(updatedComment: string) {
+    console.log('Received comment text from child:', updatedComment);
+    this.existingComment.set(updatedComment); // Sync down to your state model
+    
+     this.demoForm.patchValue({ comment: this.existingComment() });
+    
+    this.closeCommentDialog(); // Hide the component view
   }
 
   cancel(): void {

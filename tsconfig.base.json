@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@workspace/ui": ["libs/ui/src/public-api.ts"]
+      "@workspace/ui": ["libs/ui/src/public-api.ts"],
     }
   }
 }

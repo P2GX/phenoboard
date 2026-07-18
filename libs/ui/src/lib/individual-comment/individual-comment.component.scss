@@ -1,0 +1,79 @@
+// demoformdialog.component.scss
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.dialog-title {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+
+  &:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  }
+
+  &.is-invalid {
+    border-color: #dc3545;
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+    }
+  }
+}
+
+.error-message {
+  font-size: 12px;
+  color: #dc3545;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

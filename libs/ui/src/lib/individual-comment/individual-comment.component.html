@@ -1,0 +1,37 @@
+<div class="dialog-container">
+  <h2 class="dialog-title">Add Comment</h2>
+
+  <div class="dialog-content">
+    <div class="form-group">
+      <label for="comment-input" class="form-label">Comment</label>
+      <textarea
+        id="comment-input"
+        class="form-control"
+        [class.is-invalid]="commentControl.invalid && commentControl.touched"
+        rows="2"
+        cols="80"
+        [formControl]="commentControl"
+        placeholder="Enter your comment"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      ></textarea>
+      
+      @if (commentControl.hasError('ascii') && commentControl.touched) {
+        <span class="error-message">Only ASCII characters are allowed</span>
+      }
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn-outline-cancel" (click)="cancel()">Cancel</button>
+    <button
+      type="button"
+      class="btn-outline-primary"
+      [disabled]="commentControl.invalid"
+      (click)="save()"
+    >
+      Save
+    </button>
+  </div>
+</div>

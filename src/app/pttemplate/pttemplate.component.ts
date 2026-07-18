@@ -12,7 +12,7 @@ import { HpoAutocompleteComponent } from '../hpoautocomplete/hpoautocomplete.com
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { firstValueFrom } from 'rxjs';
-import { NotificationService } from 'ng-hpo-uikit';
+import { NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
 import { getCellValue, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
@@ -52,7 +52,8 @@ interface Option { label: string; value: string };
     CohortMetadataComponent,
     RouterLink,
     PopoverComponent,
-    TableCellEditorComponent
+    TableCellEditorComponent,
+    OntologyAutocompleteComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -468,17 +469,22 @@ export class PtTemplateComponent  {
     }
   }
 
-  submitSelectedHpo = async (selectedHpo: OntologyMatch | string | null): Promise<void> => {
-    if (! selectedHpo || typeof selectedHpo === 'string') {
-      this.notificationService.showError(`HPO Text mining component did not return valid HpoMatch but instead '${selectedHpo}'.`)
+
+  hpoAutocompleteProvider = (query: string) => this.configService.performHpoAutocomplete(query);
+
+
+  async onHpoTermSelected(selectedTerm: OntologyMatch): Promise<void> {
+    if (! selectedTerm) {
+      this.notificationService.showError("Could not retrieve valid HPO term");
       return;
     }
     const duplet: HpoTermDuplet = {
-      hpoLabel: selectedHpo.label,
-      hpoId: selectedHpo.id
+      hpoLabel: selectedTerm.label,
+      hpoId: selectedTerm.id
     };
     await this.addHpoTermToCohort(duplet);
-  };
+  }
+
 
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {
     const template = this.cohortData();

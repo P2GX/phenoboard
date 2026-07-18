@@ -145,6 +145,20 @@
         <button type="button" (click)="openCommentDialog()" class="btn btn-secondary">
           Add Comment
         </button>
+        @if (isCommentDialogOpen()) {
+          <div class="modal-backdrop" (click)="closeCommentDialog()">
+            <!-- Stop click propagation so clicking inside the form box doesn't close it -->
+            <div class="modal-window" (click)="$event.stopPropagation()">
+              
+              <app-demo-form-dialog
+                [comment]="existingComment()"
+                (saved)="onCommentSaved($event)"
+                (cancelled)="closeCommentDialog()">
+              </app-demo-form-dialog>
+
+            </div>
+          </div>
+        }
       </div>
     </div>
   </div>

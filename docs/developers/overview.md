@@ -10,6 +10,8 @@ The application makes major use of the following rust crates.
 - [ga4ghphetools](https://github.com/P2GX/ga4ghphetools)
 - [fenominal](https://github.com/P2GX/fenominal)
 
+Phenoboard uses Angular components we have developed in the  [ng-hpo-uikit](https://p2gx.github.io/ng-hpo-uikit/) component library.
+
 
 This page summarizes some of the angular and Rust/tauri commands that have been useful to create the application.
 

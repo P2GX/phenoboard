@@ -230,16 +230,13 @@
 <div class="toolbar-bar">
   <div class="toolbar-search-group">
     <div class="toolbar-autocomplete-wrap">
-      <app-hpoautocomplete #hpoSearch></app-hpoautocomplete>
+      <hpo-ontology-autocomplete
+        placeholder='Search clinical phenotypes (e.g., Seizures)...'
+        [autocompleteProvider]="hpoAutocompleteProvider"
+        [requireConfirmation]="true"
+        (selected)="onHpoTermSelected($event)" />
     </div>
-    <button 
-      mat-flat-button 
-      color="primary"
-      [disabled]="hpoSearch.control.invalid" 
-      (click)="submitSelectedHpo(hpoSearch.control.value); hpoSearch.control.reset()"
-      class="btn-outline-primary">
-      Submit
-    </button>
+
   </div>
 
   <div class="toolbar-divider"></div>

@@ -19,7 +19,7 @@ import { HpoTermData, HpoTermDuplet } from '../models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
-import { removeAllWhitespace, sanitizeString } from '../validators/validators';
+import { removeAllWhitespace, sanitizeString } from '@workspace/ui';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
