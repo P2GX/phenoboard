@@ -3,10 +3,10 @@ import { Component, inject, OnInit } from '@angular/core';
 import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData } from '../models/cohort_dto';
+import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { RouterModule } from '@angular/router'; 
-import { SourcePmid } from '../models/cohort_description_dto';
+import { SourcePmid } from '@workspace/ui';
 
 @Component({
   selector: 'app-status',

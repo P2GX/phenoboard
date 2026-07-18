@@ -32,151 +32,35 @@
     (dismissUndo)="undoVisible.set(false)">
   </app-table-merge-columns>
 </div>
-<div class="table-viewport">
-<table class="pt-table">
-   <!-- ===== HEADER ROW ===== -->
-  <tr>
-    @for(col of this.etl_service.columns(); track $index; let i = $index){
-      <th [ngClass]="{
-          'transformed-column': etl_service.transformedColumns()[i],
-          'visible-column': i === visibleColIndex,
-          'normal-column': i !== visibleColIndex && !etl_service.transformedColumns()[i],
-          'bg-blue-50 border-blue-400': colAforMerge() === i,
-          'bg-orange-50 border-orange-400': colBforMerge() === i
-        }"
-        class="relative"
-        (contextmenu)="onRightClickHeader($event, i)">
-      
-      {{ col.header.original }}
-
-      @if (colAforMerge() === i) {
-        <span class="merge-badge a">
-          A
-        </span>
-      }
-      @if (colBforMerge() === i) {
-        <span class="merge-badge b">
-          B
-        </span>
-      }
-    </th>
-}
-</tr>
-
-  <!-- ===== TYPE ROW ===== -->
-  <tr class="type-row">
-    @for (col of columnsToRender(); track trackColumn($index, col); let colIndex = $index) {
-       <th [ngClass]="getColumnClass(colIndex)"
-          (contextmenu)="onRightClickHeader($event, colIndex)">
-        {{ col.header.columnType }}
-      </th>
-    }
-  </tr>
-<!-- ===== DATA ROWS ===== -->
-@for (row of displayRows(); track trackRow($index, row); let rowIndex = $index) {
-  <tr>
-    @for (col of columnsToRender(); track trackColumn($index, col); let colIndex = $index) {
-        @if (isHpoTextMiningColumn(colIndex)) {
-          <!-- HPO Text Mining Cell -->
-          <td>
-          <button
-            class="hpo-button"
-            [class.has-terms]="getHpoTermCount(colIndex, rowIndex) > 0"
-            [matTooltip]="getHpoTooltipContent(colIndex, rowIndex)"
-            matTooltipClass="hpo-tooltip-custom"
-            matTooltipPosition="above"
-            matTooltipShowDelay="500"
-            (click)="openHpoMiningDialog(colIndex, rowIndex)"
-          >
-            <span class="icon">🔍</span>
-            @if (getHpoTermCount(colIndex, rowIndex) > 0) {
-              <span class="badge">{{ getHpoTermCount(colIndex, rowIndex) }}</span>
-              <span 
-                class="clear-btn" 
-                (click)="clearHpoMining(colIndex, rowIndex); $event.stopPropagation()"
-                matTooltip="Clear mined terms"
-                matTooltipShowDelay="300"
-              >×</span>
-            }
-          </button>
-          </td>
-        } @else {
-          <td class="table-cell">
-            <etl-cell
-              [cell]="row[colIndex]"
-              [rowIndex]="rowIndex"
-              [colIndex]="colIndex"
-              (contextMenuRequested)="onCellContextMenu($event)"
-              (edited)="onCellEdited($event)"
-            ></etl-cell>
-          </td>
-      }     
-    } 
- </tr>
-}
-</table>
-</div>
+  @if (this.etl_service.etlDto()?.table?.columns) {
+    <app-etl-data-table
+      [columns]="this.etl_service.etlDto()!.table.columns"
+      (headerContextMenuRequested)="openHeaderMenu($event)"
+      (cellContextMenuRequested)="openCellMenu($event)"
+      (cellDoubleClicked)="triggerInlineCellEdit($event)">
+    </app-etl-data-table>
+  }
 <div style="height: 40px;"></div>
-
 }
 
 <!-- Context menu for column headers -->
  @if (columnContextMenuVisible) {
-<div
-  [style.top.px]="columnContextMenuY"
-  [style.left.px]="columnContextMenuX"
-  class="context-menu"
->
-  <div style="padding: 5px 12px; font-weight: bold;">
-    Column: {{ contextMenuColHeader?.original }}<br />
-  </div>
-    <div style="padding: 5px 12px; font-weight: normal; font-size: 10px;">
-    Type: {{ contextMenuColType }}
-  </div>
-  <ul>
-      <li class="has-submenu">
-        Ignore/Reset 
-        <ul class="submenu">
-          @for (category of simpleColumnOperations; track category) {
-            <li (click)="simpleColumnOp(contextMenuColIndex, category); columnContextMenuVisible = false">
-              {{ category }}
-            </li>
-          }
-        </ul>
-      </li>
-    <li class="has-submenu">
-      Transform Column 
-      <ul class="submenu">
-        @for (category of transformCategories; track category.label) {
-          <li class="has-submenu">
-            {{ category.label }} 
-            <ul class="submenu">
-              @for (t of category.transforms; track t) {
-                <li (click)="applyNamedTransform(contextMenuColIndex, t); columnContextMenuVisible = false">
-                  {{ getTransformDisplayName(t) }}
-                </li>
-              }
-            </ul>
-          </li>
-        }
-      </ul>
-    </li>
-    <li class="has-submenu">
-      Merge Columns
-      <ul class="submenu">
-        <li (click)="colAforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
-          Mark as Column A (Merge)
-        </li>
-        <li (click)="colBforMerge.set(contextMenuColIndex); columnContextMenuVisible = false">
-          Mark as Column B (Merge)
-        </li>
-        <li (click)="executeMerge(); columnContextMenuVisible = false">
-          Merge columns A and B
-        </li>
-      </ul>
-    </li>
-  </ul>
-</div>
+  <app-column-context-menu
+    [x]="columnContextMenuX"
+    [y]="columnContextMenuY"
+    [headerOriginalName]="contextMenuColHeader?.original ?? ''"
+    [columnType]="contextMenuColType ?? ''"
+    [simpleColumnOperations]="simpleColumnOperations"
+    [transformCategories]="transformCategories"
+    (simpleOpRequested)="simpleColumnOp(contextMenuColIndex, $event); columnContextMenuVisible = false"
+    (transformRequested)="applyNamedTransform(contextMenuColIndex, $any($event)); columnContextMenuVisible = false"
+    (mergeActionRequested)="
+      $event === 'SET_A' ? colAforMerge.set(contextMenuColIndex) : 
+      $event === 'SET_B' ? colBforMerge.set(contextMenuColIndex) : executeMerge();
+      columnContextMenuVisible = false
+    "
+    (close)="columnContextMenuVisible = false">
+  </app-column-context-menu>
 }
 
 @if (contextMenuCellVisible) {

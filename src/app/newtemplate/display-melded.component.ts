@@ -1,6 +1,6 @@
 import { Component, input } from "@angular/core";
 import { DisplayDiseaseComponent } from "./display-disease.component";
-import { DiseaseData } from "../models/cohort_dto";
+import { DiseaseData } from "../../../libs/ui/src/lib/models/cohort_dto";
 
 @Component({
   selector: 'app-display-melded',

@@ -3,11 +3,11 @@ import { Component, computed, HostListener, inject, OnDestroy, OnInit, signal, S
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData } from '../models/cohort_dto';
+import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import {  ColumnTableDto, EtlCellStatus,  EtlDto, fromColumnDto } from '../models/etl_dto';
+import {  ColumnTableDto, EtlCellStatus,  EtlDto, fromColumnDto } from '@workspace/ui';
 import { EtlSessionService } from '../services/etl_session_service';
 import { NotificationService } from 'ng-hpo-uikit';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -61,7 +61,6 @@ export class TableEditorHeader implements OnInit {
 
     importCohortDiseaseData(): void {
         const cohort = this.cohortService.getCohortData();
-        console.log("importCohortDiseaseData")
         if (cohort == null) {
             this.notificationService.showError("Could not initialize cohort/disease data");
             return;
@@ -76,7 +75,6 @@ export class TableEditorHeader implements OnInit {
         }
         const ddata = cohort.diseaseList[0];
         this.diseaseDataSignal.set(ddata);
-        console.log("dds", this.diseaseDataSignal())
         this.notificationService.showSuccess("Imported cohort data");
     }
 

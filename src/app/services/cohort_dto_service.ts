@@ -1,9 +1,7 @@
 import { computed, inject, Injectable, signal, WritableSignal  } from '@angular/core';
-import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent, getRowId } from '../models/cohort_dto';
+import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent, getRowId } from '@workspace/ui';
 import { ConfigService } from './config.service';
-import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, VariantDto } from '../models/variant_dto';
-import { SourcePmid } from '../models/cohort_description_dto';
-
+import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, SourcePmid } from '@workspace/ui';
 
 
 /**

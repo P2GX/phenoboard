@@ -1,7 +1,7 @@
 import { Component, computed, EventEmitter, inject, OnChanges, Output, signal, SimpleChanges, WritableSignal } from "@angular/core";
 import { PubmedComponent } from "../pubmed/pubmed.component";
 import { FormsModule } from '@angular/forms';
-import { ModeOfInheritance } from "../models/cohort_dto";
+import { ModeOfInheritance } from "../../../libs/ui/src/lib/models/cohort_dto";
 import { defaultPmidDto, PmidDto } from "../models/pmid_dto";
 import { MatDialog } from "@angular/material/dialog";
 import { firstValueFrom } from "rxjs";

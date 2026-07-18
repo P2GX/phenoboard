@@ -2,7 +2,7 @@ import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData, CohortData, CohortType, GeneTranscriptData } from '../models/cohort_dto';
+import { DiseaseData, CohortData, CohortType, GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { RouterLink } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';

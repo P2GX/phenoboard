@@ -1,0 +1,65 @@
+<!-- Invisible full-screen backdrop to capture dismiss clicks cleanly -->
+    <div class="menu-overlay-backdrop" (click)="close.emit()" (contextmenu)="$event.preventDefault(); close.emit()">
+      <div
+        [style.top.px]="y() ?? 0"
+        [style.left.px]="x() ?? 0"
+        class="context-menu"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="menu-header">
+          <strong>Column:</strong> {{ headerOriginalName() || 'n/a' }}
+        </div>
+        <div class="menu-subheader">
+          Type: {{ columnType() }}
+        </div>
+        
+        <ul class="menu-list">
+          <!-- Submenu: Ignore/Reset -->
+          <li class="has-submenu">
+            Ignore/Reset 
+            <ul class="submenu">
+              @for (category of simpleColumnOperations(); track category) {
+                <li (click)="simpleOpRequested.emit(category)">
+                  {{ category }}
+                </li>
+              }
+            </ul>
+          </li>
+          
+          <!-- Submenu: Transform Column -->
+          <li class="has-submenu">
+            Transform Column 
+            <ul class="submenu">
+              @for (category of transformCategories(); track category.label) {
+                <li class="has-submenu">
+                  {{ category.label }} 
+                  <ul class="submenu">
+                    @for (t of category.transforms; track t) {
+                      <li (click)="transformRequested.emit(t)">
+                        {{ getTransformDisplayName(t) }}
+                      </li>
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
+          </li>
+          
+          <!-- Submenu: Merge Columns -->
+          <li class="has-submenu">
+            Merge Columns
+            <ul class="submenu">
+              <li (click)="mergeActionRequested.emit('SET_A')">
+                Mark as Column A (Merge)
+              </li>
+              <li (click)="mergeActionRequested.emit('SET_B')">
+                Mark as Column B (Merge)
+              </li>
+              <li (click)="mergeActionRequested.emit('EXECUTE')">
+                Merge columns A and B
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>

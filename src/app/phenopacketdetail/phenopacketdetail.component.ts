@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortData, RowData } from '../models/cohort_dto';
+import { CohortData, RowData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';

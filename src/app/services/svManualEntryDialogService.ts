@@ -1,10 +1,10 @@
 // variant-dialog.service.ts
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { StructuralVariant, SvType } from '../models/variant_dto';
+import { StructuralVariant, SvType } from '../../../libs/ui/src/lib/models/variant_dto';
 import { firstValueFrom } from 'rxjs';
 import { ManualStructuralVariantDialog } from '../manualsv/manual-sv.component'
-import { GeneTranscriptData } from '../models/cohort_dto';
+import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 
 @Injectable({ providedIn: 'root' })
 export class SvDialogService {

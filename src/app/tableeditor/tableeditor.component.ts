@@ -1,14 +1,14 @@
-import { Component, computed, HostListener, inject, OnDestroy, OnInit, signal, Signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData } from '../models/cohort_dto';
+import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent } from "@workspace/ui";
-import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, ColumnContextMenuComponent, EtlDataTableComponent } from "@workspace/ui";
+import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '@workspace/ui';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
@@ -21,12 +21,12 @@ import { removeAllWhitespace, sanitizeString } from '@workspace/ui';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
-import { HgvsVariant, StructuralVariant } from '../models/variant_dto';
+import { HgvsVariant, StructuralVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
 import { EtlCellComponent } from "../etl_cell/etlcell.component";
 import { HelpService } from '../services/help.service';
-import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from './etl-metadata';
+import { TransformType, TransformCategory, StringTransformFn, columnTypeColors, TransformToColumnTypeMap } from '@workspace/ui';
 import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
@@ -61,7 +61,9 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     TableProgressBarComponent,
     HpoPopupDialogComponent,
     HpoMappingStepComponent,
-    TableFloatingControlsComponent
+    TableFloatingControlsComponent,
+    ColumnContextMenuComponent,
+    EtlDataTableComponent
 ],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
@@ -2048,6 +2050,31 @@ async saveManualEdit(newValue: string): Promise<void> {
       case EtlCellStatus.Ignored:     return '🚫';
       default:                        return '❓';
     }
+  }
+
+  openHeaderMenu(data: { event: MouseEvent; index: number; header: any }): void {
+    this.contextMenuColIndex = data.index;
+    this.contextMenuColHeader = data.header;
+    this.contextMenuColType = data.header.type;
+    this.columnContextMenuX = data.event.clientX;
+    this.columnContextMenuY = data.event.clientY;
+    this.columnContextMenuVisible = true;
+  }
+
+  openCellMenu(data: { event: MouseEvent; rowIdx: number; colIdx: number; cell: any }): void {
+    this.contextMenuCellValue = data.cell;
+    this.contextMenuCellValue = data.cell;
+    this.contextMenuCellCol = data.colIdx;
+    this.contextMenuCellRow = data.rowIdx;
+    this.contextMenuPosition.set({ x: data.event.clientX, y: data.event.clientY });
+    this.contextMenuCellVisible = true;
+  }
+
+  triggerInlineCellEdit(data: { rowIdx: number; colIdx: number; cell: any }): void {
+    this.contextMenuCellValue = data.cell;
+    this.contextMenuCellCol = data.colIdx;
+    this.contextMenuCellRow = data.rowIdx;
+    this.editCellValueManually();
   }
 
 

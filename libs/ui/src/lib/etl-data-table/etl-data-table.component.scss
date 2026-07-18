@@ -1,0 +1,99 @@
+.table-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.etl-grid {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: monospace;
+  font-size: 13px;
+
+  th, td {
+    padding: 10px 14px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    min-width: 120px;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    font-weight: 600;
+    color: #1e293b;
+    text-align: left;
+    box-shadow: inset 0 -2px 0 #cbd5e1;
+  }
+}
+
+.cell-wrapper {
+  display: block;
+  width: 100%;
+  min-height: 18px; /* Ensures even empty text rows have visible vertical height shape */
+}
+
+.value {
+  display: inline-block;
+  width: 100%;
+  color: #0f172a; /* Make sure text color isn't inheriting white/transparent anywhere */
+}
+
+.clickable-header {
+  cursor: pointer;
+  user-select: none;
+  &:hover {
+    filter: brightness(0.96);
+  }
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  .title { font-weight: 700; color: #0f172a; }
+  .badge { font-size: 10px; color: #64748b; background: rgba(0,0,0,0.05); padding: 1px 4px; border-radius: 4px; width: max-content; }
+}
+
+.row-index-header, .row-counter-cell {
+  background: #f8fafc !important;
+  text-align: center;
+  width: 50px;
+  min-width: 50px;
+  color: #94a3b8;
+  font-weight: 500;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.row-index-header { z-index: 4; }
+
+/* Status cell variation colors matching validation engine states */
+td.status-valid { background-color: #f0fdf4; color: #16a34a; }
+td.status-invalid { background-color: #fef2f2; color: #dc2626; font-weight: 600; }
+td.status-warning { background-color: #fffbeb; color: #d97706; }
+
+td.status-transformed {
+  background-color: #f0fdf4; /* A crisp, light mint green */
+  color: #16a34a;            /* Clean dark green for high contrast text readability */
+  border-bottom-color: #dcfce7;
+  border-right-color: #dcfce7;
+}
+
+/* Optional: Subtle hover tweak so you can see your mouse tracking across transformed fields */
+td.status-transformed:hover {
+  background-color: #dcfce7;
+}

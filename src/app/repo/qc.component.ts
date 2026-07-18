@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ConfigService } from '../services/config.service';
-import { DiseaseData } from '../models/cohort_dto';
+import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatIconModule } from "@angular/material/icon";
 import { RouterModule } from '@angular/router'; 
-import { SourcePmid } from '../models/cohort_description_dto';
+import { SourcePmid } from '@workspace/ui';
 import { RepoErrorType, RepoQc } from '../models/repo_qc';
 import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';

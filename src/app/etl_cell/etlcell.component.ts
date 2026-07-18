@@ -1,9 +1,7 @@
 import { Component, computed, effect, EventEmitter, HostListener, input, Output, output, signal } from "@angular/core";
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { EtlCellValue } from "../models/etl_dto";
-import { EtlCellStatus } from "../models/etl_dto";
-
+import { EtlCellValue, EtlCellStatus } from "@workspace/ui";
 import { MatDialog } from "@angular/material/dialog";
 import { EtlCellEditDialogComponent } from "./etl-cell-edit-dialog.component";
 

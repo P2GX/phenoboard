@@ -1,7 +1,7 @@
 // variant-dialog.service.ts
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { HgvsVariant } from '../models/variant_dto';
+import { HgvsVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { firstValueFrom } from 'rxjs';
 import { ManualHgvsVariantDialog } from '../manualhgvs/manual-hgvs.component';
 

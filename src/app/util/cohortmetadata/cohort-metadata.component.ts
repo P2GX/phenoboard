@@ -1,7 +1,7 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { CohortData, ModeOfInheritance } from '../../models/cohort_dto';
+import { CohortData, ModeOfInheritance } from '../../../../libs/ui/src/lib/models/cohort_dto';
 import { MoiSelector } from "../../moiselector/moiselector.component";
 
 

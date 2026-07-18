@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
-import { SourcePmid } from '../../models/cohort_description_dto';
+import { SourcePmid } from '@workspace/ui';
 
 
 @Component({

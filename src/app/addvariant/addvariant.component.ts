@@ -10,9 +10,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ConfigService } from '../services/config.service';
-import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs, displayIntergenic,IntergenicHgvsVariant } from '../models/variant_dto';
+import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs, displayIntergenic,IntergenicHgvsVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { GeneTranscriptData } from '../models/cohort_dto';
+import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 /* This widget can validate small HGVS variants (e.g., small number of nucleotides, "c."("n.")),

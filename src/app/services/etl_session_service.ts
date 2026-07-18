@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from "@angular/core";
-import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from "../models/etl_dto";
+import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from "@workspace/ui";
 import { AgeInputService } from "./age_service";
-import { DiseaseData } from "../models/cohort_dto";
+import { DiseaseData } from "../../../libs/ui/src/lib/models/cohort_dto";
 import { PmidDto } from "../models/pmid_dto";
 
 

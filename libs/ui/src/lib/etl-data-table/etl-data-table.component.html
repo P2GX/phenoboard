@@ -1,0 +1,47 @@
+<div class="table-scroll-container">
+
+
+
+    <table class="etl-grid">
+    <thead>
+        <tr>
+        <th class="row-index-header">#</th>
+        @for (col of columns(); track col.id; let colIdx = $index) {
+            <th 
+            [style.background-color]="getColumnColor(col.header.columnType)"
+            (contextmenu)="onHeaderContextMenu($event, colIdx, col.header)"
+            class="clickable-header">
+            <div class="header-content">
+                <span class="title" [title]="col.header.original">{{ col.header.original }}</span>
+                <span class="badge">{{ col.header.columnType }}</span>
+            </div>
+            </th>
+        }
+        </tr>
+    </thead>
+    <tbody>
+        @for (rowIndex of rowIndices(); track rowIndex) {
+        <tr>
+  
+            <td class="row-counter-cell">{{ rowIndex + 1 }}</td>
+            @for (col of columns(); track col.id; let colIdx = $index) {
+            @let cell = col.values[rowIndex];
+            @if (cell) {
+                <td 
+                [class]="'status-' + cell.status"
+                (contextmenu)="onCellContextMenu($event, rowIndex, colIdx, cell)"
+                (doubleclick)="cellDoubleClicked.emit({ rowIdx: rowIndex, colIdx: colIdx, cell: cell })">
+                    <!-- Fallback to current values, if blank display original raw string string -->
+                    <span class="value" [title]="cell.error || ''">
+                    {{ cell.current || cell.original || '' }}
+                    </span>
+                </td>
+            } @else {
+                <td></td>
+            }
+            }
+        </tr>
+        }
+    </tbody>
+    </table>
+</div>

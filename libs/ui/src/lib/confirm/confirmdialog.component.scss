@@ -1,4 +1,5 @@
-// Native CSS Variables for scoped, clean design
+@use "sass:color";
+
 $color-warn: #ef4444;
 $color-warn-bg: #fee2e2;
 $color-text: #1f2937;
@@ -51,7 +52,7 @@ $font-stack: system-ui, -apple-system, sans-serif;
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: darken($color-warn, 20%);
+    color: color.adjust($color-warn, $lightness: -20%)
   }
 
   &__body {
@@ -101,11 +102,11 @@ $font-stack: system-ui, -apple-system, sans-serif;
       color: white;
 
       &:hover {
-        background-color: darken($color-warn, 8%);
+        background-color: color.scale($color-warn, $lightness: -13%); 
       }
 
       &:focus-visible {
-        outline-color: lighten($color-warn, 15%);
+        background-color: color.scale($color-warn, $lightness: 37%);
       }
     }
   }

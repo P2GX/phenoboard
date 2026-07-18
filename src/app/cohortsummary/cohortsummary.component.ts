@@ -1,8 +1,8 @@
 
 import { Component, computed, inject, input, OnInit } from '@angular/core';
-import { CohortData, DiseaseData, GeneTranscriptData } from '../models/cohort_dto';
+import { CohortData, DiseaseData, GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { SourcePmid } from '../models/cohort_description_dto';
+import { SourcePmid } from '@workspace/ui';
 import { PmidDialogComponent } from '../util/pmidvis/pmid-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 

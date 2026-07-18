@@ -4,8 +4,6 @@
       <h3>Map Value Symbols for: {{ header() }}</h3>
       <button class="close-btn" type="button" (click)="cancel()">&times;</button>
     </header>
-
-    <h1>UNIQ VLUAE n={{uniqueValues().length }}</h1>
     
     <main class="modal-body">
       <p class="hpo-badge">Target Term: <strong>{{ hpoLabel() }}</strong> <code>{{ hpoId() }}</code></p>
@@ -13,14 +11,38 @@
       
       <div class="mapping-grid">
         @for (value of uniqueValues(); track value) {
-          <div class="mapping-row">
-            <span class="raw-value" [title]="value">{{ value }}</span>
-            <div class="select-wrapper">
-              <select [(ngModel)]="valueToStateMap[value]" class="mapping-select">
-                <option value="observed">observed (Present)</option>
-                <option value="excluded">excluded (Absent)</option>
-                <option value="notApplicable">not applicable</option>
-              </select>
+          <div class="mapping-card">
+            <div class="card-header">
+              <span class="raw-value" [title]="value">{{ value || '(Empty String)' }}</span>
+            </div>
+            
+            <div class="tile-options-group">
+              <button 
+                type="button"
+                class="tile-btn observed-tile"
+                [class.active]="valueToStateMap[value] === 'observed'"
+                (click)="valueToStateMap[value] = 'observed'">
+                <span class="tile-icon">✓</span>
+                <span class="tile-label">Observed</span>
+              </button>
+
+              <button 
+                type="button"
+                class="tile-btn excluded-tile"
+                [class.active]="valueToStateMap[value] === 'excluded'"
+                (click)="valueToStateMap[value] = 'excluded'">
+                <span class="tile-icon">✕</span>
+                <span class="tile-label">Excluded</span>
+              </button>
+
+              <button 
+                type="button"
+                class="tile-btn na-tile"
+                [class.active]="valueToStateMap[value] === 'notApplicable'"
+                (click)="valueToStateMap[value] = 'notApplicable'">
+                <span class="tile-icon">−</span>
+                <span class="tile-label">N/A</span>
+              </button>
             </div>
           </div>
         }

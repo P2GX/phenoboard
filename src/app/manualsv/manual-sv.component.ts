@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from "@angular/material/input";
-import { StructuralVariant, SvType } from '../models/variant_dto';
+import { StructuralVariant, SvType } from '../../../libs/ui/src/lib/models/variant_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from "@angular/material/autocomplete";

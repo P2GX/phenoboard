@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData, getRowId } from '../models/cohort_dto';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, createCurationEvent, GeneTranscriptData, DiseaseData, getRowId } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddageComponent } from "../addages/addage.component";
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component'; 
