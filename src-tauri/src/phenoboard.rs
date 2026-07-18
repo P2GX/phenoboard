@@ -2,11 +2,11 @@
 //!
 
 
-use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::MiningConcept, settings::HpoCuratorSettings, util::{pubmed_retrieval::PubmedRetriever, text_to_annotation}};
-use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf}, str::FromStr, sync::Arc};
+use crate::{directory_manager::DirectoryManager, dto::{pmid_dto::PmidDto}, hpo::MiningConcept, settings::HpoCuratorSettings, util::{pubmed_retrieval::PubmedRetriever}};
+use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},  sync::Arc};
 
 
-use ontolius::{TermId, io::OntologyLoaderBuilder, ontology::{HierarchyWalks, MetadataAware, OntologyTerms, csr::FullCsrOntology}, term::{MinimalTerm}};
+use ontolius::{io::OntologyLoaderBuilder, ontology::{MetadataAware, OntologyTerms, csr::FullCsrOntology}};
 use fenominal::{AutoCompleter, Fenominal, FenominalHit, FenominalSentence, OntologyMatch};
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, repo::repo_qc::RepoQc, tauri::models::HierarchyMapItem};
 use ga4ghphetools;
@@ -267,23 +267,6 @@ impl PhenoboardSingleton {
         return dirman.get_json();
     }
 
-
-    /// Use our rust fenominal implementation to perform HPO text mining.
-    /// 
-    /// * Arguments
-    /// `input_text` - Generally, a clinical text that contains HPO terms
-    /// 
-    /// * Returns: A list of  representing the fenominal hits.
-    pub fn map_text_to_annotations(&self, input_text: &str) -> Result<Vec<TextAnnotationDto>, String> {
-         let deunicoded_text = fenominal::sanitize(input_text);
-        match self.get_sorted_fenominal_hits(&deunicoded_text) {
-            Ok(fenominal_hits) => {
-                return text_to_annotation::text_to_annotations(&deunicoded_text, &fenominal_hits);
-            },
-            Err(e) => {return Err(e.to_string()); },
-        }
-    }
-
     pub fn mine_clinical_text(
         &self,
         text: &str
@@ -299,9 +282,6 @@ impl PhenoboardSingleton {
         Ok(autocompleter.search_hpo(&query, n_term_limit))
     }
 
-
-
-
         pub fn get_hpo_parent_and_children_terms(&self, term_id: &str) -> Result<HierarchyMapItem, String> {
             match &self.ontology {
                 Some(hpo) => {
@@ -311,28 +291,6 @@ impl PhenoboardSingleton {
                 None => Err("Could not retrieve parent/child hierarchy".to_string())
             }
         }
-
-
-    /// Run fenominal and sort the results by span.
-    /// We use deunicode to remove Unicode characters such as en-dash that are used in some input texts.
-    /// en-dash is a 3-byte UTF-8 sequence (U+2013), and can cause UTF-8 character boundary issues with
-    /// the text mining utilities in fenominal and phenoboard, and we do not need unicode characters for the downstream 
-    /// processing
-    fn get_sorted_fenominal_hits(&self, input_text: &str) 
-        -> Result<Vec<FenominalHit>, String>
-    {
-        let deunicoded_text = fenominal::sanitize(input_text);
-        match &self.ontology {
-            Some(hpo) => {
-                let hpo_arc = Arc::clone(hpo);
-                let fenominal = Fenominal::new(hpo_arc);
-                let mut fenominal_hits: Vec<FenominalHit> = fenominal.process(&deunicoded_text).map_err(|e|e.to_string())?;
-                fenominal_hits.sort_by_key(|hit| hit.span.start);
-                return Ok(fenominal_hits);
-            }
-            None => Err(format!("Could not initialize hpo")),
-        }
-    }
 
     /// create name of JSON cohort template file, {gene}_{disease}_individuals.json
     fn extract_template_name(&self, cohort_dto: &CohortData) -> Result<String, String> {
@@ -489,31 +447,7 @@ impl PhenoboardSingleton {
     }
     
 
-    pub fn get_autocompleted_term_dto(&self,
-            term_id: impl Into<String>,
-            term_label: impl Into<String>) -> Result<TextAnnotationDto, String> {
-        let hpo = match &self.ontology {
-            Some(hpo) => hpo,
-            None => { return Err(format!("HPO not initialized"));},
-        };
-        let term_id = term_id.into();
-        let hpo_id = match TermId::from_str(&term_id){
-            Ok(tid) => tid,
-            Err(e) => { return Err(format!("Could not create TermId: {}", e));},
-        };
-        let hpo_term = match hpo.term_by_id(&hpo_id) {
-            Some(term) => term,
-            None => { return Err(format!("Could not find term for TermId: {}", &hpo_id));},
-        };
-        let hpo_label: String = term_label.into();
-        if hpo_term.name() != hpo_label {
-            return Err(format!("Submitted label '{}' did not match label expected '{}' for TermId: {}", 
-            &hpo_label,
-            &hpo_term.name(),
-            &hpo_id));
-        };
-        Ok(TextAnnotationDto::autocompleted_fenominal_hit(&term_id, &hpo_label))
-    }
+   
 
     pub fn get_biocurator_orcid(&self) -> Result<String, String> {
        self.settings.get_biocurator_orcid()
@@ -630,12 +564,6 @@ mod tests {
         Arc::new(hpo)
     }
 
-    #[test]
-    fn test_fenominal() {
-        let text = "The proband (II‐5) is a 74‐year‐old male. Since childhood, he had poor vision. At 60 years, he manifested slowly progressive ataxic–spastic gait and a mild hearing defect. Brain MRI displayed cerebellar atrophy, mild cerebral atrophy, and severe optic atrophy. Electromyography showed axonal neuropathy. At last examination, he showed blindness, with severe ophthalmoparesis and nystagmus, moderate hearing loss, mild speech impairment, generalized hypotonia without weakness, ataxic–spastic gait, and global hyperreflexia. Muscle respiratory chain activities were normal. The proband's father (I‐1) and brother (II‐1) were referred to have optic atrophy and hearing loss. The 47‐year‐old proband's son (III‐5) had nystagmus and optic atrophy since early childhood (3 years). At last examination, hearing was normal and there were no signs of neurological involvement. He had severe visual loss with complete color blindness, very poor visual acuity (0.1), and pale optic discs. Optical coherence tomography (OCT) examination showed bilateral severely reduced RNFL thickness.";
-        let singleton = PhenoboardSingleton::new();
-        let res = singleton.map_text_to_annotations(text);
-        assert!(res.is_ok())
-    }
+   
 
 }

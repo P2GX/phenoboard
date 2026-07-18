@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 pub mod io_util;
 pub mod pubmed_retrieval;
-pub mod text_to_annotation;
 mod hgnc_rest;
 
 #[derive(Deserialize, Debug, Serialize, Clone)]

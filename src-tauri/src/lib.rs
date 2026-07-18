@@ -9,7 +9,7 @@ use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, Indi
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ontolius::ontology::MetadataAware;
 use phenoboard::PhenoboardSingleton;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
@@ -17,7 +17,7 @@ use tauri_plugin_fs::{init};
 use fenominal::OntologyMatch;
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}, text_annotation_dto::{HpoAnnotationDto, ParentChildDto, TextAnnotationDto}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -279,21 +279,6 @@ async fn load_ptools_json(
 }
 
 
-
-
-/* 
-#[tauri::command]
-fn map_text_to_annotations(
-    state: tauri::State<'_, Arc<AppState>>,
-    input_text: &str 
-) -> Result<Vec<TextAnnotationDto>, String> {
-    let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    return singleton.map_text_to_annotations(input_text);
-}*/
-
-
-
 #[tauri::command]
 async fn mine_clinical_text(
     state: tauri::State<'_, Arc<AppState>>,
@@ -469,25 +454,6 @@ fn get_best_hpo_match(
             Err(_) => None,
         }  
 }
-
-
-
-/*
-#[tauri::command]
-fn submit_autocompleted_hpo_term(
-    state: tauri::State<'_, Arc<AppState>>,
-    app: AppHandle,
-    term_id: &str,
-    term_label: &str,
-) -> Result<(), String> {
-        let singleton = state.phenoboard.lock()
-            .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-        let dto = singleton.get_autocompleted_term_dto(term_id, term_label)?;
-        let _ = app.emit("autocompletion", dto);
-        Ok(())
-    }
- */
-
 
 
 #[tauri::command]
