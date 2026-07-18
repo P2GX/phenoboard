@@ -1,7 +1,34 @@
 
+
 .form-container {
-  max-width: 800px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 85vh; /* Sync with parent modal constraints */
+  background: #ffffff;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Make the body card scroll independently if the contents grow too long */
+.form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto; 
+  flex-grow: 1;
+  margin-bottom: 16px;
+}
+
+/* Explicit layout styling for the actions container */
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
 .form-header {
@@ -13,13 +40,7 @@
   margin-bottom: 1rem;
 }
 
-.form-card {
-  padding: 1.5rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 1%);
-}
+
 
 /* Grid Layout: Responsive without 50 breakpoints */
 .form-grid {
@@ -42,6 +63,12 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
+}
+
+.field-hint {
+  font-size: 0.5rem;
+  font-weight: 200;
+  color: gray;
 }
 
 .label-with-help {
@@ -151,4 +178,78 @@
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   animation: modalFadeIn 0.2s ease-out;
+}
+
+/* Container to place both groups side-by-side */
+.radio-group-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* The sleek segment bar */
+.segmented-control {
+  display: inline-flex;
+  width: 100%;
+  background-color: #f1f5f9; /* Soft gray background track */
+  padding: 3px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Base item option styling */
+.segment-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  transition: all 0.15s ease-in-out;
+  user-select: none;
+}
+
+/* Hide the standard ugly radio input circles completely */
+.hidden-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Visual hover enhancement */
+.segment-item:hover:not(.is-active) {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+/* The active state highlighting card */
+.segment-item.is-active {
+  background-color: #ffffff;
+  color: #2563eb; /* Clean modern blue */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.segment-label {
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+.input-large {
+  padding: 12px 14px; /* Increases vertical and horizontal spacing */
+  font-size: 16px;    /* Makes the text input larger and easier to read */
+  font-weight: 500;   /* Gives the input value a slightly cleaner weight */
+  color: #0f172a;     /* Dark slate for premium readability */
 }

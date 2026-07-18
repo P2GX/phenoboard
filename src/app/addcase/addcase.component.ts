@@ -49,7 +49,7 @@ function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, MatIconModule, HelpButtonComponent],
+  imports: [FormsModule, MatIconModule, HelpButtonComponent, AdddemoComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })
@@ -490,19 +490,25 @@ demographicSummary = computed<string | null>(() => {
     });
   }
 
+
+  isDemoDialogOpen = signal<boolean>(false);
+
   openAddDemoDialog(): void {
-    const dialogRef = this.dialog.open(AdddemoComponent, {
-      width: '1000px',
-      data: { demoDto: this.demographData() },
-    });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.demographData.set(result.dto);
-        this.showAgeEntryArea = !result.hideDemo;
-      } else {
-        this.notificationService.showError('Could not get demographic data');
-      }
-    });
+    this.isDemoDialogOpen.set(true);
+  }
+
+  closeAddDemoDialog(): void {
+    this.isDemoDialogOpen.set(false);
+  }
+
+  onDemoFormSubmitted(result: { dto: DemographDto; hideDemo: boolean }): void {
+    if (result?.dto) {
+      this.demographData.set(result.dto);
+      this.showAgeEntryArea = !result.hideDemo;
+      this.closeAddDemoDialog();
+    } else {
+      this.notificationService.showError('Could not get demographic data');
+    }
   }
 
 

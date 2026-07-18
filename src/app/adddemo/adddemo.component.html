@@ -1,21 +1,37 @@
+<!-- adddemo.component.html -->
 <form [formGroup]="demoForm" (ngSubmit)="submitDemo(true)" class="form-container">
   <h2 class="form-header">Demographic Information</h2>
 
   <div class="form-card">
     <div class="form-grid">
+      
+      <!-- 1. Individual ID -->
       <div class="field-group">
-        <label for="individualId" class="field-label">Individual ID</label>
-        <mat-form-field appearance="outline" class="w-full">
-          <input matInput formControlName="individualId" id="individualId" placeholder="Enter ID" />
-          <mat-hint>As used in published source</mat-hint>
+        <label for="individualId" class="compact-label">Individual ID</label>
+        <input 
+          type="text" 
+          formControlName="individualId" 
+          id="individualId" 
+          class="form-control input-large"
+          [class.is-invalid]="demoForm.get('individualId')?.invalid && demoForm.get('individualId')?.touched"
+          placeholder="Enter ID" 
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <span class="field-hint">As used in published source</span>
+        
+        @if (demoForm.get('individualId')?.touched) {
           @if (demoForm.get('individualId')?.hasError('required')) {
-            <mat-error>Individual ID is required</mat-error>
+            <span class="error-message">Individual ID is required</span>
           }
           @if (demoForm.get('individualId')?.hasError('ascii')) {
-            <mat-error>Only ASCII characters are allowed</mat-error>
+            <span class="error-message">Only ASCII characters are allowed</span>
           }
-        </mat-form-field>
+        }
       </div>
+
+      <!-- 2. Age of Onset -->
       <div class="field-group">
         <div class="label-with-help">
           <label class="compact-label">Age of Onset</label>
@@ -23,128 +39,123 @@
             title="Age of Onset"
             [lines]="[
               'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
-              'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.',
+              'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.'
             ]"
             helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
           />
         </div>
         <div class="age-slot">
-          @if (!demoForm.get('ageOfOnset')?.value) {
-            <button
-              type="button"
-              (click)="openAgeWizard('ageOfOnset')"
-              class="btn btn-outline btn-small"
-            >
-              <mat-icon>add_circle_outline</mat-icon> Set Age
+          @if (isAgeEmpty('ageOfOnset')) {
+            <button type="button" (click)="openAgeWizard('ageOfOnset')" class="btn btn-outline btn-small icon-gap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Set Age
             </button>
           } @else {
             <div class="age-display">
               <span class="age-value">{{ demoForm.get('ageOfOnset')?.value }}</span>
               <div class="age-actions">
-                <button type="button" (click)="openAgeWizard('ageOfOnset')" class="edit-btn">
-                  <mat-icon>edit</mat-icon>
+                <button type="button" (click)="openAgeWizard('ageOfOnset')" class="action-icon-btn edit-btn" title="Edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button
-                  type="button"
-                  (click)="demoForm.get('ageOfOnset')?.setValue('')"
-                  class="clear-btn"
-                >
-                  <mat-icon>close</mat-icon>
+                <button type="button" (click)="demoForm.get('ageOfOnset')?.setValue('')" class="action-icon-btn clear-btn" title="Clear">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
             </div>
           }
         </div>
       </div>
+
+      <!-- 3. Age at Last Encounter -->
       <div class="field-group">
         <div class="label-with-help">
           <label class="compact-label">Age at last encounter</label>
           <hpo-help-button
             title="Age at last encounter"
-            [lines]="[
-              'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
-            ]"
+            [lines]="['The age of the individual in the phenopacket at the time of the last recorded medical encounter.']"
             helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
           />
         </div>
         <div class="age-slot">
-          @if (!demoForm.get('ageAtLastEncounter')?.value) {
-            <button
-              type="button"
-              (click)="openAgeWizard('ageAtLastEncounter')"
-              class="btn-outline-primary"
-            >
-              <mat-icon>add_circle_outline</mat-icon>
+          @if (isAgeEmpty('ageAtLastEncounter')) {
+            <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" class="btn btn-outline btn-small icon-gap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
               Set Age
             </button>
           } @else {
             <div class="age-display">
-              <span class="age-value">
-                {{ demoForm.get('ageAtLastEncounter')?.value }}
-              </span>
+              <span class="age-value">{{ demoForm.get('ageAtLastEncounter')?.value }}</span>
               <div class="age-actions">
-                <button
-                  type="button"
-                  (click)="openAgeWizard('ageAtLastEncounter')"
-                  class="edit-btn"
-                >
-                  <mat-icon>edit</mat-icon>
+                <button type="button" (click)="openAgeWizard('ageAtLastEncounter')" class="action-icon-btn edit-btn" title="Edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button
-                  type="button"
-                  (click)="demoForm.get('ageAtLastEncounter')?.setValue('')"
-                  class="clear-btn"
-                >
-                  <mat-icon>close</mat-icon>
+                <button type="button" (click)="demoForm.get('ageAtLastEncounter')?.setValue('')" class="action-icon-btn clear-btn" title="Clear">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-svg"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
             </div>
           }
         </div>
       </div>
+
     </div>
-    <div>
-      <div class="field-group">
+
+    <div class="radio-group-row">
+      <!-- 4. Sex -->
+      <div class="field-group flex-1">
         <div class="label-with-help">
           <label class="field-label">Sex</label>
           <hpo-help-button
             title="Sex"
             [lines]="[
               '<b>M</b>: male.',
-              '<b>F</b>: male.',
+              '<b>F</b>: female.',
               '<b>O</b>: other.',
-              '<b>U</b>: unknown or not recorded.',
+              '<b>U</b>: unknown or not recorded.'
             ]"
           />
         </div>
-        <div class="radio-stack">
+        <div class="segmented-control">
           @for (s of sexOptions; track s) {
-            <label class="radio-item">
-              <input type="radio" [value]="s" formControlName="sex" />
-              {{ s }}
+            <label class="segment-item" [class.is-active]="demoForm.get('sex')?.value === s">
+              <input type="radio" [value]="s" formControlName="sex" class="hidden-radio" />
+              <span class="segment-label">{{ s }}</span>
             </label>
           }
         </div>
       </div>
 
       <!-- 5. Deceased -->
-      <div class="field-group">
-        <label class="field-label">Deceased</label>
-        <div class="radio-stack">
+      <div class="field-group flex-1">
+        <div class="label-with-help">
+          <label class="field-label">Deceased</label>
+          <hpo-help-button
+              title="Deceased"
+              [lines]="[
+                '<b>yes</b>: deceased.',
+                '<b>no</b>: alive.',
+                '<b>U</b>: unknown or not recorded.'
+              ]"
+            />
+          </div>
+        <div class="segmented-control">
           @for (d of deceasedOptions; track d) {
-            <label class="radio-item">
-              <input type="radio" [value]="d" formControlName="deceased" />
-              {{ d }}
+            <label class="segment-item" [class.is-active]="demoForm.get('deceased')?.value === d">
+              <input type="radio" [value]="d" formControlName="deceased" class="hidden-radio" />
+              <span class="segment-label">{{ d  }}</span>
             </label>
           }
         </div>
       </div>
 
-      <!-- 6. Comment -->
+    </div>
+      <!-- 6. Comment Trigger -->
       <div class="field-group flex-end">
         <button type="button" (click)="openCommentDialog()" class="btn btn-secondary">
-          Add Comment
+          {{ demoForm.get('comment')?.value ? 'Edit Comment' : 'Add Comment' }}
         </button>
+        
+        <!-- Native modal portal replacement -->
         @if (isCommentDialogOpen()) {
           <div class="modal-backdrop" (click)="closeCommentDialog()">
             <div class="modal-window" (click)="$event.stopPropagation()">
@@ -157,13 +168,25 @@
           </div>
         }
       </div>
-    </div>
   </div>
 
   <!-- Action buttons -->
   <div class="form-footer">
-    <button type="button" (click)="cancel()" class="btn btn-outline">Cancel</button>
-    <button type="button" (click)="reset()" class="btn btn-outline">Reset</button>
-    <button type="submit" [disabled]="!demoForm.valid" class="btn btn-primary">Submit</button>
+    <button type="button" (click)="cancel()" class="btn-outline-cancel">Cancel</button>
+    <button type="button" (click)="reset()" class="btn-outline-cancel">Reset</button>
+    <button type="submit" [disabled]="!demoForm.valid" class="btn-outline-primary">Submit</button>
   </div>
 </form>
+
+<!-- Inline Portal handling for the Age Wizard Modal -->
+@if (isAgeWizardOpen()) {
+  <div class="modal-backdrop" (click)="closeAgeWizard()">
+    <div class="modal-window wizard-dimensions" (click)="$event.stopPropagation()">
+      <app-addage
+        [current]="activeAgeControl()?.value"
+        (saved)="onAgeWizardSaved($event)"
+        (cancelled)="closeAgeWizard()">
+      </app-addage>
+    </div>
+  </div>
+}

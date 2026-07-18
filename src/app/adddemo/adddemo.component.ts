@@ -1,82 +1,46 @@
+// adddemo.component.ts
 import { Component, inject, output, signal } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  FormsModule,
-  ReactiveFormsModule,
-} from '@angular/forms';
-
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
+import { AddageComponent } from '../addages/addage.component';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { asciiValidator, IndividualCommentComponent } from '@workspace/ui';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
-import { AddageComponent } from '../addages/addage.component';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
 
 @Component({
   selector: 'app-adddemo',
   standalone: true,
   imports: [
+    AddageComponent,
     FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatRadioModule,
-    MatSelectModule,
     ReactiveFormsModule,
-    MatIcon,
     HelpButtonComponent,
     IndividualCommentComponent
 ],
   templateUrl: './adddemo.component.html',
-  styleUrls: ['./adddemo.component.css'],
+  styleUrls: ['./adddemo.component.scss'],
 })
 export class AdddemoComponent {
   private fb = inject(FormBuilder);
-  private dialog = inject(MatDialog);
   private ageService = inject(AgeInputService);
 
-  private dialogRef = inject(MatDialogRef<AdddemoComponent>, { optional: true });
-  private data = inject<{ demoDto?: DemographDto }>(MAT_DIALOG_DATA, { optional: true });
   readonly ageStrings = this.ageService.selectedTerms;
   demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();
 
   deceasedOptions: string[] = ['yes', 'no', 'na'];
   sexOptions: string[] = ['M', 'F', 'O', 'U'];
 
+  // Signals managing visibility state transitions
   isCommentDialogOpen = signal<boolean>(false);
-  existingComment = signal<string>('Initial comment text from model state');
+  existingComment = signal<string>('');
+  
+  isAgeWizardOpen = signal<boolean>(false);
+  activeAgeControl = signal<AbstractControl | null>(null);
 
   demoForm: FormGroup = this.initForm();
 
-  /* Open dialog to enter ageOfOnset or ageAtLastEncounter */
-  openAgeWizard(controlName: string): void {
-    const control = this.demoForm.get(controlName);
-    if (!control) {
-      return;
-    }
-
-    const dialogRef = this.dialog.open(AddageComponent, {
-      width: '450px',
-      data: { current: control?.value },
-    });
-
-    dialogRef.afterClosed().subscribe((result: string | undefined) => {
-      if (result) {
-        control.patchValue(result);
-        control.markAsDirty();
-        control.markAsTouched();
-      }
-    });
-  }
-
   private initForm(): FormGroup {
-    const dto = this.data?.demoDto ?? defaultDemographDto();
+    const dto = defaultDemographDto(); // Handled completely internally now
 
     return this.fb.group({
       individualId: [dto.individualId, [Validators.required, asciiValidator()]],
@@ -91,41 +55,61 @@ export class AdddemoComponent {
     });
   }
 
-  submitDemo(hideDemographic: boolean): void {
-    if (!this.demoForm.valid) return;
+  isAgeEmpty(controlName: string): boolean {
+    const value = this.demoForm.get(controlName)?.value;
+    // Accounts for empty strings, null, undefined, or explicit 'na' states
+    return !value || value === '' || value === 'na';
+  }
 
-    const result = {
-      dto: this.demoForm.value as DemographDto,
-      hideDemo: hideDemographic,
-    };
-
-    if (this.dialogRef) {
-      // if used in a dialog, close and return
-      this.dialogRef.close(result);
-    } else {
-      // if used inline, just emit
-      this.demoSubmitted.emit(result);
+  /* Age Wizard State Machine Operations */
+  openAgeWizard(controlName: string): void {
+    const control = this.demoForm.get(controlName);
+    console.log("openAgeWizard contrl = ", control);
+    if (control) {
+      this.activeAgeControl.set(control);
+      this.isAgeWizardOpen.set(true);
     }
   }
 
+  closeAgeWizard(): void {
+    this.isAgeWizardOpen.set(false);
+    this.activeAgeControl.set(null);
+  }
 
+  onAgeWizardSaved(result: string): void {
+    const control = this.activeAgeControl();
+    if (control && result) {
+      control.setValue(result);
+      control.markAsDirty();
+      control.markAsTouched();
+    }
+    this.closeAgeWizard();
+  }
 
-
-  openCommentDialog() {
+  /* Comment State Machine Operations */
+  openCommentDialog(): void {
+    this.existingComment.set(this.demoForm.get('comment')?.value ?? '');
     this.isCommentDialogOpen.set(true);
   }
 
-  closeCommentDialog() {
+  closeCommentDialog(): void {
     this.isCommentDialogOpen.set(false);
   }
 
-  onCommentSaved(updatedComment: string) {
-    console.log('Received comment text from child:', updatedComment);
-    this.existingComment.set(updatedComment); // Sync down to your state model
-    
-     this.demoForm.patchValue({ comment: this.existingComment() });
-    
-    this.closeCommentDialog(); // Hide the component view
+  onCommentSaved(updatedComment: string): void {
+    this.existingComment.set(updatedComment);
+    this.demoForm.patchValue({ comment: updatedComment });
+    this.demoForm.get('comment')?.markAsDirty();
+    this.closeCommentDialog();
+  }
+
+  submitDemo(hideDemographic: boolean): void {
+    if (!this.demoForm.valid) return;
+
+    this.demoSubmitted.emit({
+      dto: this.demoForm.value as DemographDto,
+      hideDemo: hideDemographic,
+    });
   }
 
   reset(): void {
@@ -140,8 +124,9 @@ export class AdddemoComponent {
   }
 
   cancel(): void {
-    if (this.dialogRef) {
-      this.dialogRef.close(null);
-    }
+    this.demoSubmitted.emit({
+      dto: this.demoForm.value as DemographDto,
+      hideDemo: true
+    });
   }
 }

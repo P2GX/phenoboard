@@ -171,3 +171,14 @@
     </button>
   </div>
 </div>
+
+
+@if (isDemoDialogOpen()) {
+  <div class="modal-backdrop" (click)="closeAddDemoDialog()">
+    <div class="modal-window demo-modal-dimensions" (click)="$event.stopPropagation()">
+      <app-adddemo
+        (demoSubmitted)="onDemoFormSubmitted($event)">
+      </app-adddemo>
+    </div>
+  </div>
+}

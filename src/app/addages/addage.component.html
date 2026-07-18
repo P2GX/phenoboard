@@ -1,58 +1,53 @@
-<h2 mat-dialog-title class="dialog-title">Select Age</h2>
+<!-- addage.component.html -->
+<div class="age-wizard-container">
+  <h2 class="wizard-title">Set Age Value</h2>
 
-<mat-dialog-content class="age-dialog-content">
-  <div class="dialog-stack">
-    
-    <div class="selection-section">
-      <label class="section-label">Choose Existing</label>
-      <div class="age-tag-cloud">
-        @for (term of existingAgeStrings(); track term) {
-          <button 
-            type="button"
-            (click)="selectExisting(term)"
-            class="age-tag">
-            {{ term }}
-          </button>
-        }
+  <div class="wizard-body">
+    <!-- Section A: Quick Select from previously used terms -->
+    @if (existingAgeStrings().length > 0) {
+      <div class="quick-select-section">
+        <label class="section-label">Recently Used Ages</label>
+        <div class="tag-cloud">
+          @for (term of existingAgeStrings(); track term) {
+            <button type="button" class="tag-btn" (click)="selectExisting(term)">
+              {{ term }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
+    }
 
-    <div class="divider">
-        <div class="divider-line"></div>
-        <span class="divider-text">OR CREATE NEW</span>
-        <div class="divider-line"></div>
+    <!-- Section B: Standard text entry box with ambient lookup matching -->
+    <div class="input-section">
+      <label for="age-search" class="section-label">Enter Age String</label>
+      <div class="search-wrapper">
+        <input
+          id="age-search"
+          type="text"
+          class="form-control text-input-look"
+          placeholder="e.g., P32Y, P25Y, G38w2d"
+          [(ngModel)]="customAge"
+          list="age-suggestions"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        
+        <!-- Ambient browser suggestions dropdown list -->
+        <datalist id="age-suggestions">
+          @for (suggested of filteredTerms(); track suggested) {
+            <option [value]="suggested"></option>
+          }
+        </datalist>
+      </div>
+      <span class="format-hint">Type any age term (e.g., Adult onset), custom ISO8601 pattern (P[Y][M][D]), or Gestational value (G[w][d]).</span>
     </div>
-
-    <div class="manual-entry">
-      <mat-form-field appearance="outline" class="flex-grow dense-field">
-        <mat-label>New Age String</mat-label>
-        <input matInput 
-              [ngModel]="customAge()" 
-              (ngModelChange)="customAge.set($event)"
-              [matAutocomplete]="auto"
-              (keyup.enter)="createNewAge()"
-              autofocus
-              autocapitalize="none"
-              spellcheck="false"
-              autocomplete="off"
-              placeholder="e.g. P35Y">
-      </mat-form-field>
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectExisting($event.option.value)">
-            @for (term of filteredTerms(); track term) {
-              <mat-option [value]="term">{{ term }}</mat-option>
-            }
-        </mat-autocomplete>
-      
-      <button class="btn-outline-primary"
-              (click)="createNewAge()" 
-              [disabled]="!customAge()">
-        Use
-      </button>
-    </div>
-
   </div>
-</mat-dialog-content>
 
-<mat-dialog-actions align="end" class="!dialog-footer">
-  <button mat-button (click)="onCancel()" class="btn-outline-cancel">Cancel</button>
-</mat-dialog-actions>
+  <div class="wizard-footer">
+    <button type="button" class="btn btn-outline" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn btn-primary" [disabled]="!customAge().trim()" (click)="createNewAge()">
+      Apply Age
+    </button>
+  </div>
+</div>

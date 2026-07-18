@@ -1,66 +1,71 @@
-import { Component, inject, signal, computed } from '@angular/core';
-
+// addage.component.ts
+import { Component, inject, signal, computed, input, output, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatAutocompleteModule } from "@angular/material/autocomplete";
 
 @Component({
-  selector: 'app-addages',
+  selector: 'app-addage',
   standalone: true,
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatAutocompleteModule],
+  imports: [FormsModule],
   templateUrl: './addage.component.html',
-  styleUrl: './addage.component.css'
+  styleUrl: './addage.component.scss'
 })
 export class AddageComponent {
   private ageService = inject(AgeInputService);
-  private dialogRef = inject(MatDialogRef<AddageComponent>);
+  
+  // Clean context-free I/O mapping
+  current = input<string>('');
+  saved = output<string>();
+  cancelled = output<void>();
+
   readonly existingAgeStrings = this.ageService.selectedTerms;
   customAge = signal('');
 
-  readonly existingTerms = this.ageService.allAvailableTerms;
+ readonly existingTerms = this.ageService.allAvailableTerms;
+
   filteredTerms = computed(() => {
     const typed = this.customAge().trim().toLowerCase();
-    if (!typed) {
-      return []; /* this is returned if the user hasn't entered anything yet */
-   }
+    
+    // If empty or already a typed exact match or custom format draft, clear suggestions
+    if (!typed || typed.startsWith('p') && typed.length > 3) {
+      return []; 
+    }
 
     return this.existingTerms().filter(t => t.toLowerCase().includes(typed));
   });
 
-  ageInput = signal('');
+  constructor() {
+    // Populate form value if a value is passed down
+    effect(() => {
+      const initial = this.current();
+      if (!initial || initial === 'na') {
+        this.customAge.set('');
+      } else {
+        this.customAge.set(initial);
+      }
+    });
+  }
 
-  /* User chooses an existing string from the list */
   selectExisting(term: string): void {
     if (term) {
-      this.ageService.addSelectedTerm(term); // Add to the service pool for future use
-      this.dialogRef.close(term);
+      this.ageService.addSelectedTerm(term);
+      this.saved.emit(term);
     }
   }
 
-  /**
-   * User creates a new age string
-   */
   createNewAge(): void {
     const val = this.customAge().trim();
     if (!val) return;
+    
     if (this.ageService.validateAgeInput(val)) {
-      // Add to the service pool for future use
       this.ageService.addSelectedTerm(val);
-      this.dialogRef.close(val);
+      this.saved.emit(val);
     } else {
       alert('Invalid format. Please use ISO8601 (e.g. P1Y) or Gestational (e.g. G20w).');
     }
   }
 
-
-
   onCancel(): void {
-    this.dialogRef.close();
+    this.cancelled.emit();
   }
-
 }
