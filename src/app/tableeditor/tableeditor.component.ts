@@ -33,7 +33,8 @@ import { AgeInputService } from '../services/age_service';
 import { TableEditorHeader } from "./table-editor-header";
 import { EtlCellEditDialogComponent } from '../etl_cell/etl-cell-edit-dialog.component';
 import { HpoPopupDialogComponent } from "@workspace/ui";
-import { HpoMappingStepComponent } from "libs/ui/src/lib/hpo-mapping-step/hpo-mapping-step.component";
+import { HpoMappingStepComponent } from "@workspace/ui";
+import { TableProgressBarComponent } from '@workspace/ui';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -48,7 +49,18 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 @Component({
   selector: 'app-tableeditor',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatIconModule, FormsModule, MatTooltipModule, ReactiveFormsModule, EtlCellComponent, TableEditorHeader, HpoPopupDialogComponent, HpoMappingStepComponent],
+  imports: [
+    CommonModule, 
+    MatTableModule, 
+    MatIconModule, 
+    FormsModule, 
+    MatTooltipModule, 
+    ReactiveFormsModule, 
+    EtlCellComponent, 
+    TableEditorHeader, 
+    TableProgressBarComponent,
+    HpoPopupDialogComponent, 
+    HpoMappingStepComponent],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })

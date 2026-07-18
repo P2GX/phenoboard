@@ -13,22 +13,10 @@
   </div>
 }
 
-@if (isProcessing()) {
-  <div class="progress-container">
-    <div class="progress" style="height: 20px;">
-      <div 
-        class="progress-bar progress-bar-striped progress-bar-animated" 
-        role="progressbar" 
-        [style.width.%]="statusService.progress()" 
-        [attr.aria-valuenow]="statusService.progress()" 
-        aria-valuemin="0" 
-        aria-valuemax="100">
-        {{ statusService.progress() }}%
-      </div>
-    </div>
-    <p class="text-center mt-2">Validating variants...</p>
-  </div>
-}
+<app-table-progress-bar 
+  [visible]="isProcessing()" 
+  [progressValue]="statusService.progress()">
+</app-table-progress-bar>
 
 @if(this.etl_service.etlDto()) {
 <div class="pt-table-container">

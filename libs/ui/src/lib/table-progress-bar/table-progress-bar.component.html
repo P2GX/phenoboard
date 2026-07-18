@@ -1,0 +1,16 @@
+@if (visible()) {
+      <div class="progress-container">
+        <div class="progress" style="height: 20px;">
+          <div 
+            class="progress-bar progress-bar-striped progress-bar-animated" 
+            role="progressbar" 
+            [style.width.%]="progressValue()" 
+            [attr.aria-valuenow]="progressValue()" 
+            aria-valuemin="0" 
+            aria-valuemax="100">
+            {{ progressValue() }}%
+          </div>
+        </div>
+        <p class="text-center mt-2">Validating variants...</p>
+      </div>
+    }
