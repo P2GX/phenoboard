@@ -1169,7 +1169,6 @@ async saveManualEdit(newValue: string): Promise<void> {
           } else {
             return {
               ...cell,
-              original: result,
               current: result,
               status: EtlCellStatus.Transformed,
               errorMessage: undefined
