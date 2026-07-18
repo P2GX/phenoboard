@@ -1,0 +1,54 @@
+<div class="floating-ui-container">
+    <!-- State A: Column Merge Configuration Panel -->
+    @if ((colA() !== null && colB() !== null) && !undoVisible()) {
+    <div class="merge-staged-panel animate-slide-in">
+        <mat-icon class="block">call_merge</mat-icon>
+        <div class="panel-info">
+        <span class="label">Merge Staged</span>
+        <span class="indices">A:{{ colA()! + 1 }} → B:{{ colB()! + 1 }}</span>
+        </div>
+        
+        <div class="panel-controls">
+        <div class="control-row">
+            <select 
+            [value]="separator()" 
+            (change)="onSeparatorChange($event)"
+            class="merge-select">
+            <option value=" ">Space</option>
+            <option value=" and ">and</option>
+            <option value="-">-</option>
+            <option value="">None</option>
+            </select>
+            <button 
+            (click)="mergeRequested.emit()" 
+            class="btn-confirm">
+            Merge
+            </button>
+        </div>
+        
+        <label class="checkbox-label">
+            <input 
+            type="checkbox" 
+            [checked]="labelColumns()" 
+            (change)="onLabelCheckboxChange($event)"
+            />
+            <span>Label merged values (A) ... (B) ...</span>
+        </label>
+        
+        <button (click)="cancelMerge.emit()" class="btn-cancel-link">
+            Cancel
+        </button>
+        </div>
+    </div>
+    }
+
+    <!-- State B: Undo Operations Action Banner -->
+    @if (undoVisible()) {
+    <div class="undo-panel animate-slide-in">
+        <mat-icon>history</mat-icon>
+        <div>Merge Complete</div>
+        <button (click)="undoRequested.emit()" class="btn-undo">Undo</button>
+        <button (click)="dismissUndo.emit()" class="btn-dismiss">Dismiss</button>
+    </div>
+    }
+</div>

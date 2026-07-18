@@ -7,7 +7,7 @@ import { DiseaseData } from '../models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from "@angular/material/icon";
-import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept } from "@workspace/ui";
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent } from "@workspace/ui";
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnHeader, EtlColumnType } from '../models/etl_dto';
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
@@ -50,17 +50,19 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   selector: 'app-tableeditor',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatTableModule, 
-    MatIconModule, 
-    FormsModule, 
-    MatTooltipModule, 
-    ReactiveFormsModule, 
-    EtlCellComponent, 
-    TableEditorHeader, 
+    CommonModule,
+    MatTableModule,
+    MatIconModule,
+    FormsModule,
+    MatTooltipModule,
+    ReactiveFormsModule,
+    EtlCellComponent,
+    TableEditorHeader,
     TableProgressBarComponent,
-    HpoPopupDialogComponent, 
-    HpoMappingStepComponent],
+    HpoPopupDialogComponent,
+    HpoMappingStepComponent,
+    TableFloatingControlsComponent
+],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })
