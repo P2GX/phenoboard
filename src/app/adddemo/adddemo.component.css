@@ -125,3 +125,30 @@
   gap: 0.75rem;
   padding-bottom: 6px;
 }
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  
+  background-color: rgba(0, 0, 0, 0.4);
+  
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  z-index: 2000;
+}
+
+.modal-window {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  animation: modalFadeIn 0.2s ease-out;
+}

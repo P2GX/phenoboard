@@ -108,6 +108,39 @@ export class AddcaseComponent {
   selectedHpoTerm: HpoTermDuplet | null = null;
     protected hierarchyCache = signal<Record<string, HierarchyMapItem>>({});
 
+      readonly ageEntries = computed(() => this.ageService.selectedTerms());
+
+demographicSummary = computed<string | null>(() => {
+  const value = this.demographData(); // Angular automatically tracks this dependency
+  if (!value?.individualId) {
+    return null;
+  }
+  const details = [
+    value.ageAtLastEncounter !== 'na' && `age: ${value.ageAtLastEncounter}`,
+    value.ageOfOnset !== 'na' && `onset: ${value.ageOfOnset}`
+  ].filter(Boolean).join(', ');
+  const sexLabels: Record<string, string> = {
+    'M': 'male',
+    'F': 'female',
+    'U': 'unknown sex',
+    'O': 'other sex'
+  };
+  const deceasedLabels: Record<string,string> = {
+    'yes': 'deceased',
+    'no': 'alive'
+  };
+
+  const humanReadableSex = sexLabels[value.sex] || 'unknown sex';
+  const deceasedLab = deceasedLabels[value.deceased] || 'unknown vital status';
+  const baseInfo = [
+    details && `${details}`,
+    `${humanReadableSex}`,
+    `${deceasedLab}`
+  ].filter(Boolean).join('; ');
+  const mainSummary = `Individual: ${value.individualId} - ${baseInfo}`;
+  return value.comment ? `${mainSummary} (${value.comment})` : mainSummary;
+});
+
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
    * for one new case.
@@ -472,21 +505,7 @@ export class AddcaseComponent {
     });
   }
 
-  readonly ageEntries = computed(() => this.ageService.selectedTerms());
 
-  get demographicSummary(): string | null {
-    const value = this.demographData();
-    if (value === null) {
-      return null;
-    }
-    if (!value.individualId) return null;
-
-    const age = value.ageAtLastEncounter !== 'na' ? `age: ${value.ageAtLastEncounter}` : '';
-    const onset = value.ageOfOnset !== 'na' ? `onset: ${value.ageOfOnset}` : '';
-    const extras = [age, onset].filter(Boolean).join(', ');
-
-    return `Individual: ${value.individualId} (${extras}; sex: ${value.sex}; deceased?: ${value.deceased})`;
-  }
 
   /** Do we have all of the information needed to submit a row? */
   readonly canSubmitRow = computed(

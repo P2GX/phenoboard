@@ -71,8 +71,8 @@
     >
       ➕ Add/edit Demographics
     </button>
-    @if (demographicSummary) {
-      <div class="summary-text">{{ demographicSummary }}</div>
+    @if (demographicSummary()) {
+      <div class="summary-text">{{ demographicSummary()}}</div>
     } @else {
       <hpo-help-button
         title="Entering demographic data"

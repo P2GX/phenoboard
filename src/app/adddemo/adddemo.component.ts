@@ -31,7 +31,8 @@ import { HelpButtonComponent } from 'ng-hpo-uikit';
     ReactiveFormsModule,
     MatIcon,
     HelpButtonComponent,
-  ],
+    IndividualCommentComponent
+],
   templateUrl: './adddemo.component.html',
   styleUrls: ['./adddemo.component.css'],
 })
@@ -125,6 +126,17 @@ export class AdddemoComponent {
      this.demoForm.patchValue({ comment: this.existingComment() });
     
     this.closeCommentDialog(); // Hide the component view
+  }
+
+  reset(): void {
+    this.demoForm.reset({
+      individualId: '',
+      ageOfOnset: 'na',
+      ageAtLastEncounter: 'na',
+      sex: null,
+      deceased: null,
+      comment: '',
+    });
   }
 
   cancel(): void {
