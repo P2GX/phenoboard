@@ -86,13 +86,22 @@ td.status-valid { background-color: #f0fdf4; color: #16a34a; }
 td.status-invalid { background-color: #fef2f2; color: #dc2626; font-weight: 600; }
 td.status-warning { background-color: #fffbeb; color: #d97706; }
 
+/* Keep your existing cell selector styling */
 td.status-transformed {
-  background-color: #f0fdf4; /* A crisp, light mint green */
-  color: #16a34a;            /* Clean dark green for high contrast text readability */
+  background-color: #f0fdf4; 
+  color: #16a34a;            
   border-bottom-color: #dcfce7;
   border-right-color: #dcfce7;
 }
 
+/* ADD THIS: Target headers when their parsed type is updated */
+th.status-transformed,
+th.type-sex,
+th.type-age { 
+  background-color: #f0fdf4 !important;
+  color: #16a34a !important;
+  border-bottom: 2px solid #dcfce7;
+}
 /* Optional: Subtle hover tweak so you can see your mouse tracking across transformed fields */
 td.status-transformed:hover {
   background-color: #dcfce7;

@@ -101,13 +101,11 @@ export class TableEditorComponent  {
   // to delete
   contextMenuColHeader: EtlColumnHeader | null = null;
   contextMenuColType: string | null = null;
-  columnContextMenuX: number | null = null;
-  columnContextMenuY: number | null = null;
+
   editModeActive = false;
   visibleColIndex: number = this.INVISIBLE;
   transformedColIndex: number = this.INVISIBLE;
-  contextMenuColIndex: number | null = null;
-  contextMenuRowIndex: number | null = null;
+
   /* All possible column types */
   etlTypes: EtlColumnType[] = Object.values(EtlColumnType);
   simpleColumnOperations = [EtlColumnType.Ignore, EtlColumnType.Raw]
@@ -1862,7 +1860,9 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.editCellValueManually();
   }
   
-  
+
+
+
 
 }
 

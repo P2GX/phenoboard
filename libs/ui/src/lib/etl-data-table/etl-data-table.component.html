@@ -8,9 +8,8 @@
         <th class="row-index-header">#</th>
         @for (col of columns(); track col.id; let colIdx = $index) {
             <th 
-            [style.background-color]="getColumnColor(col.header.columnType)"
-            (contextmenu)="onHeaderContextMenu($event, colIdx, col.header)"
-            class="clickable-header">
+            [class]="'clickable-header status-' + col.header.columnType.toLowerCase()"
+            (contextmenu)="onHeaderContextMenu($event, colIdx, col.header)">
             <div class="header-content">
                 <span class="title" [title]="col.header.original">{{ col.header.original }}</span>
                 <span class="badge">{{ col.header.columnType }}</span>
@@ -28,11 +27,9 @@
             @let cell = col.values[rowIndex];
             @if (cell) {
                 <td 
-                [class]="'status-' + cell.status"
-                [style.background-color]="col.header.columnType === EtlColumnType.Ignore ? '#f3f4f6' : 'transparent'"
+                [class]="col.header.columnType === EtlColumnType.Ignore ? 'status-ignored' : 'status-' + cell.status"
                 (contextmenu)="onCellContextMenu($event, rowIndex, colIdx, cell)"
                 (doubleclick)="cellDoubleClicked.emit({ rowIdx: rowIndex, colIdx: colIdx, cell: cell })">
-                    <!-- Fallback to current values, if blank display original raw string string -->
                     <span class="value" [title]="cell.error || ''">
                     {{ cell.current || cell.original || '' }}
                     </span>
