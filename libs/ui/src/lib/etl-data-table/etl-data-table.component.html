@@ -29,9 +29,17 @@
                 <td 
                 [class]="col.header.columnType === EtlColumnType.Ignore ? 'status-ignored' : 'status-' + cell.status"
                 (contextmenu)="onCellContextMenu($event, rowIndex, colIdx, cell)"
-                (doubleclick)="cellDoubleClicked.emit({ rowIdx: rowIndex, colIdx: colIdx, cell: cell })">
+                (dblclick)="cellDoubleClicked.emit({ rowIdx: rowIndex, colIdx: colIdx, cell: cell })"
+                class="relative-cell-container">
+                 @if(col.header.columnType === EtlColumnType.HpoTextMining && cell.status !== EtlCellStatus.Transformed){
+                    <span 
+                        class="mining-prompt-badge" 
+                        title="Double-click to open clinical text mining wizard">
+                        🔍 Mine
+                    </span>
+                 }
                     <span class="value" [title]="cell.error || ''">
-                    {{ cell.current || cell.original || '' }}
+                    {{ getDisplayValue(cell, col.header.columnType) }}
                     </span>
                 </td>
             } @else {

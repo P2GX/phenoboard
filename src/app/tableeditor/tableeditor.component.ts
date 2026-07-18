@@ -34,6 +34,7 @@ import { EtlCellEditDialogComponent } from '../etl_cell/etl-cell-edit-dialog.com
 import { HpoPopupDialogComponent } from "@workspace/ui";
 import { HpoMappingStepComponent } from "@workspace/ui";
 import { TableProgressBarComponent } from '@workspace/ui';
+import { HpoMiningDialogService} from '../services/hpo-mining-dialog.service';
 
 export const RAW: EtlCellStatus = 'raw' as EtlCellStatus;
 export const TRANSFORMED: EtlCellStatus = 'transformed' as EtlCellStatus;
@@ -82,6 +83,7 @@ export class TableEditorComponent  {
   private helpService = inject(HelpService);
   private cohortService = inject(CohortDtoService);
   public statusService = inject(AppStatusService);
+  private miningService = inject(HpoMiningDialogService);
   readonly EtlCellStatus = EtlCellStatus;
   public readonly TransformType = TransformType;
   readonly diseaseDataSignal = signal<DiseaseData | null>(null);
@@ -1788,37 +1790,30 @@ async saveManualEdit(newValue: string): Promise<void> {
 
   openHpoMiningDialog(colIndex: number, rowIndex: number): void {
     const dto = this.etl_service.etlDto();
-    if (! dto) {
-        this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
-        return;
-    };
-    /*
-    const dialogRef = this.dialog.open(HpoTwostepComponent, {
-      width: '1200px',
-      height: '900px',
-      maxWidth: '95vw',   
-      panelClass: 'full-width-dialog' ,
-      disableClose: true,
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log("HMINING result=", result);
-        
-        const col = dto.table.columns[colIndex];
-        if (!col) {
-          this.notificationService.showError("Could not add mining results because column not defined");
-          return;
-        }
-        const jsonized_cell_calue = JSON.stringify(result);
-        col.values[rowIndex].current = jsonized_cell_calue;
-        col.values[rowIndex].status = TRANSFORMED;
-        col.values[rowIndex].error = undefined;
-      }
-    });*/
-    this.notificationService.showError("Need to integrate new two step component!");
-    
-  }
+    if (!dto) {
+      this.notificationService.showError("Could not add mining results because ETL DTO not initialized");
+      return;
+    }
+    this.miningService.openHpoTwoStepDialog().subscribe(hpoTermDataList => {
+      if (!hpoTermDataList) return;
+      console.log("HMINING result structure parsed successfully:", hpoTermDataList);
+      const jsonizedCellValue = JSON.stringify(hpoTermDataList);
+      const newColumns = dto.table.columns.map((col, cIdx) => {
+        if (cIdx !== colIndex) return col;
+        const newValues = col.values.map((cell, rIdx) => {
+          if (rIdx !== rowIndex) return cell;
+          return {
+            ...cell,
+            current: jsonizedCellValue,
+            status: EtlCellStatus.Transformed, 
+            error: undefined
+          };
+        });
+        return { ...col, values: newValues };
+      });
+    this.etl_service.updateColumns(newColumns);
+  });
+}
 
 
 
@@ -1862,7 +1857,18 @@ async saveManualEdit(newValue: string): Promise<void> {
   
 
 
-
+  onCellDoubleClicked(eventData: { rowIdx: number; colIdx: number; cell: EtlCellValue }): void {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const targetColumn = dto.table.columns[eventData.colIdx];
+    const colType: EtlColumnType= targetColumn?.header.columnType;
+    
+    if (colType === EtlColumnType.HpoTextMining) {
+      this.openHpoMiningDialog(eventData.colIdx, eventData.rowIdx);
+    } else {
+      this.triggerInlineCellEdit(eventData);
+    }
+  }
 
 }
 

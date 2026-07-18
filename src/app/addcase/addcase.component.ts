@@ -19,7 +19,7 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent } from '@workspace/ui';
+import { ConfirmDialogComponent, toCellValue } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
@@ -28,19 +28,6 @@ import { HierarchyMapItem, HpoTwostepData, OntologyMatch, PolishedHpoAnnotation 
 import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';
 
 
-function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
-  const modifiers = annotation.modifiers.length > 0
-    ? annotation.modifiers.map(m => m.termId) // assumes HpoTermMinimal has a `termId` field
-    : undefined;
-
-  const inner: CellValueInner = annotation.excluded
-    ? { type: "Excluded" }
-    : annotation.onsetString
-      ? { type: "OnsetAge", data: annotation.onsetString }
-      : { type: "Observed" };
-
-  return modifiers ? { ...inner, modifiers } : inner;
-}
 
 
 /**
@@ -106,9 +93,9 @@ export class AddcaseComponent {
   /* used for autocomplete widget */
   hpoInputString = '';
   selectedHpoTerm: HpoTermDuplet | null = null;
-    protected hierarchyCache = signal<Record<string, HierarchyMapItem>>({});
+  protected hierarchyCache = signal<Record<string, HierarchyMapItem>>({});
 
-      readonly ageEntries = computed(() => this.ageService.selectedTerms());
+  readonly ageEntries = computed(() => this.ageService.selectedTerms());
 
 demographicSummary = computed<string | null>(() => {
   const value = this.demographData(); // Angular automatically tracks this dependency
@@ -400,43 +387,6 @@ demographicSummary = computed<string | null>(() => {
     this.pmidDto.set(defaultPmidDto());
   }
 
-
-  /* 
-
-
-  protected openCurationWizard(): void {
-    const dialogData: HpoTwostepData = {
-      mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
-      autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
-      hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
-      availableModifiers: () => this.availableModifiers()
-    };
-
-
-    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
-      width: '85vw',
-      maxWidth: '1200px',
-      height: '80vh',
-      disableClose: true,
-      data: dialogData
-    });
-    dialogRef.afterClosed().subscribe((polishedAnnotations?: PolishedHpoAnnotation[]) => {
-      if (polishedAnnotations) {
-        const observedTerms: PolishedHpoAnnotation[] = polishedAnnotations.filter((annot) => ! annot.excluded);
-        const termIds = observedTerms.map(t => t.termId);
-        this.configService.addObservedHposFromNER(termIds);
-        const n_observed = observedTerms.length;
-       if (n_observed > 0) {
-        this.proceedToNextWindow(n_observed);
-       } else {
-          this.notificationService.showError(`Extracted ${polishedAnnotations.length} phenotype annotations but no observed HPOs!`)
-       }
-      } else {
-        this.notificationService.showError("Could not extract phenotype annotations!")
-      }
-    });
-  }
-*/
 
   openHpoTwoStepDialog(): void {
     console.log('openHpoTwoStepDialog');

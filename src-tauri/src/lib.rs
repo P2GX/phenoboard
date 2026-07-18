@@ -943,7 +943,6 @@ async fn mine_multi_hpo_column(
 
 /// Get list of unique concepts (in which the row number is fake) for the 
 /// first phase of text mining
-
 #[tauri::command]
 async fn create_canonical_dictionary(
     mining_results: Vec<MiningConcept>,

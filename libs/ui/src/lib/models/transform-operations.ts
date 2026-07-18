@@ -1,5 +1,6 @@
+import { PolishedHpoAnnotation } from "ng-hpo-uikit";
 import { DiseaseData } from "./cohort_dto";
-import { HpoTermDuplet } from "./hpo_term_dto";
+import { CellValue, CellValueInner, HpoTermDuplet } from "./hpo_term_dto";
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant } from "./variant_dto";
 
 export enum EtlCellStatus {
@@ -241,3 +242,18 @@ export const TransformPolishingElementsSet: Set<TransformType> = new Set([
       TransformType.TO_LOWERCASE,
       TransformType.EXTRACT_NUMBERS,
 ]);
+
+
+export function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
+  const modifiers = annotation.modifiers.length > 0
+    ? annotation.modifiers.map(m => m.termId) // assumes HpoTermMinimal has a `termId` field
+    : undefined;
+
+  const inner: CellValueInner = annotation.excluded
+    ? { type: "Excluded" }
+    : annotation.onsetString
+      ? { type: "OnsetAge", data: annotation.onsetString }
+      : { type: "Observed" };
+
+  return modifiers ? { ...inner, modifiers } : inner;
+}

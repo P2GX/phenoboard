@@ -106,3 +106,18 @@ th.type-age {
 td.status-transformed:hover {
   background-color: #dcfce7;
 }
+
+/* Crisp indicator prompt styling */
+.mining-prompt-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eff6ff; 
+  color: #2563eb; 
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px dashed #bfdbfe;
+  user-select: none;
+  white-space: nowrap;
+}

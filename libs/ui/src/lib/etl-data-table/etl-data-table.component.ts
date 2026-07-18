@@ -18,6 +18,7 @@ export class EtlDataTableComponent {
   cellDoubleClicked = output<{ rowIdx: number; colIdx: number; cell: EtlCellValue }>();
 
   protected readonly EtlColumnType = EtlColumnType;
+  protected readonly EtlCellStatus = EtlCellStatus;
   
   rowIndices = computed<number[]>(() => {
     const cols = this.columns();
@@ -64,5 +65,21 @@ export class EtlDataTableComponent {
   onCellContextMenu(event: MouseEvent, rowIdx: number, colIdx: number, cell: EtlCellValue): void {
     event.preventDefault();
     this.cellContextMenuRequested.emit({ event, rowIdx, colIdx, cell });
+  }
+
+
+  getDisplayValue(cell: EtlCellValue, columnType: EtlColumnType): string {
+    if (columnType === EtlColumnType.HpoTextMining && cell.status === EtlCellStatus.Transformed && cell.current) {
+      try {
+        const parsedTerms = JSON.parse(cell.current);
+        if (Array.isArray(parsedTerms)) {
+          const count = parsedTerms.length;
+          return `${count} HPO Term${count === 1 ? '' : 's'} added`;
+        }
+      } catch (e) {
+        console.error("Failed to parse stringified HPO data cell", e);
+      }
+    }
+    return cell.current || cell.original || '';
   }
 }

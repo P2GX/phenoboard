@@ -37,7 +37,7 @@
       [columns]="this.etl_service.etlDto()!.table.columns"
       (headerContextMenuRequested)="openHeaderMenu($event)"
       (cellContextMenuRequested)="openCellMenu($event)"
-      (cellDoubleClicked)="triggerInlineCellEdit($event)">
+      (cellDoubleClicked)="onCellDoubleClicked($event)">
     </app-etl-data-table>
   }
 <div style="height: 40px;"></div>
