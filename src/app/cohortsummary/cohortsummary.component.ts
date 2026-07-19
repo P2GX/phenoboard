@@ -1,5 +1,5 @@
 
-import { Component, computed, inject, input, OnInit } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { CohortData, DiseaseData, GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { SourcePmid } from '@workspace/ui';
@@ -16,18 +16,16 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './cohortsummary.component.html',
   styleUrls: ['./cohortsummary.component.scss'],
   standalone: true,
-  imports: [],
+  imports: [PmidDialogComponent],
 })
-export class CohortSummaryComponent implements OnInit{
+export class CohortSummaryComponent {
   
   cohort = input.required<CohortData>(); 
   private cohortService = inject(CohortDtoService);
-  private dialog = inject(MatDialog);
-  citations: SourcePmid[] = [];
-
-  ngOnInit(): void {
-    this.citations = this.cohortService.getAllPmids();
-  }
+  showPmid = signal<boolean>(false);
+  citations = computed(() => {
+    return this.cohortService.getAllPmids();
+  });
 
 
   /* return the total count of distinct variants */
@@ -64,11 +62,8 @@ export class CohortSummaryComponent implements OnInit{
       }));
     }
 
-  openPmidDialog(): void {
-    this.dialog.open(PmidDialogComponent, {
-      width: '500px',
-      data: { citations: this.citations } 
-    });
+  togglePmidModal() {
+    this.showPmid.update(v => !v);
   }
 
 }
