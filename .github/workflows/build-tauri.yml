@@ -3,27 +3,24 @@ name: Build Tauri App for All Platforms
 on:
   push:
     tags:
-      - 'v*' # Build on version tags, e.g., v1.0.0
+      - 'v*'
   workflow_dispatch:
 
 permissions:
   contents: write
-  
+
 jobs:
   build:
     name: Build on ${{ matrix.platform }}
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ macos-latest, windows-latest, ubuntu-latest] #  - waiting for upstream ashpd (2025-01-13)
+        platform: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ------------------------------------
-      # 1. Setup Environment (Rust & Node)
-      # ------------------------------------
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -38,28 +35,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-    
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # ------------------------------------
-      # 2. Install Dependencies
-      # ------------------------------------
       - name: Install dependencies
         run: npm install
 
-      # ------------------------------------
-      # 3. Build Frontend (Angular / React / etc.)
-      # ------------------------------------
       - name: Build Frontend
         run: npm run build -- --configuration=production --skip-nx-cache
 
-      # ------------------------------------
-      # 4. Install platform-specific deps
-      # ------------------------------------
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-latest'
         run: |
@@ -71,31 +58,29 @@ jobs:
             librsvg2-dev \
             patchelf
 
-
-      - name: Install macOS dependencies
-        if: matrix.platform == 'macos-latest'
-        run: brew install osslsigncode || true
-
       - name: Import Apple Certificate
         if: matrix.platform == 'macos-latest'
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
-          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD}}
-      # ------------------------------------
-      # 5. Build Tauri App
-      # ------------------------------------
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY || '' }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD || '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE || '' }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+          APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_SIGNING_IDENTITY || '' }}
           APPLE_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_ID || '' }}
           APPLE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_TEAM_ID || '' }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'v__VERSION__'
+          releaseDraft: true
+          prerelease: false
 
-      # ------------------------------------
-      # 6. Upload Artifacts
-      # ------------------------------------
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -107,9 +92,6 @@ jobs:
             src-tauri/target/release/bundle/appimage/*.AppImage
           if-no-files-found: error
 
-  # ------------------------------------
-  # 7. Create Single Release
-  # ------------------------------------
   release:
     name: Create GitHub Release
     needs: build
