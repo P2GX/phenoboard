@@ -155,13 +155,18 @@
 }
 
 .onset-select-container {
-  margin-top: 8px;
-  animation: fadeIn 0.15s ease-out;
+  background-color: #e8f5e9; /* Very light green (Material Design 50) */
+  border: 1px solid #a5d6a7; /* Slightly darker green border */
+  border-radius: 8px;
+  padding: 16px;
+  margin: 10px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  animation: fadeIn 0.2s ease-in; /*
 
   /* ⚡ Side-by-side row wrapper */
   .onset-input-row {
     display: flex;
-    gap: 6px;
+    gap: 10px;
     align-items: center;
   }
 
@@ -200,4 +205,15 @@
       border-color: #3b82f6;
     }
   }
+}
+
+
+.modal-container {
+  position: fixed; /* Also fixed to the viewport */
+  background: white;
+  z-index: 10000;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  min-width: 300px;
 }

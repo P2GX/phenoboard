@@ -1,10 +1,11 @@
-import { Component, input, computed, output, inject } from '@angular/core';
+import { Component, input, computed, output, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HpoModifierMenuComponent } from '../modifier/hpo-modifier-menu';
 import { CellValue } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
 import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../../services/age_service';
+import { HpoModifierService } from 'src/app/services/hpo_modifier_service';
 
 
 @Component({
@@ -20,55 +21,75 @@ export class TableCellEditorComponent {
   dataChanged = output<CellValue>();
   private notificationService = inject(NotificationService);
   private ageService = inject(AgeInputService);
-  
-
+  protected modifierService = inject(HpoModifierService);
+  // The parent component will open the new-onset dialog and update the CellValue
+  // this avoids race condition with closing the dialog and transmitting a new CellValue
+  requestNewOnset = output<void>();
   hasOnset = computed(() => this.cellData()?.type === 'OnsetAge');
   availableOnsetTerms = this.ageService.selectedTerms; 
-  onsetText = computed(() => {
-    const current = this.cellData();
-    return current.type === 'OnsetAge' ? current.data : '';
+  onsetText = signal<string>('');
+  onsetLabel = computed(() => {
+    const cell = this.cellData();
+    return cell.type === 'OnsetAge' ? cell.data : 'Onset';
   });
 
-isSelectingOnset = false;
-// The parent component will open the new-onset dialog and update the CellValue
-// this avoids race condition with closing the dialog and transmitting a new CellValue
-requestNewOnset = output<void>();
+  cellType = computed(() => {
+    const cell = this.cellData();
+    return cell ? cell.type : 'Na';
+  });
+    
+  showOnsetPicker = signal(false);
 
-toggleOnsetSelection(): void {
-  // If it's already OnsetAge, clicking toggles the dropdown visibility view
-  if (this.cellData().type === 'OnsetAge') {
-    // Optional: add logic here if you want it to revert to 'Na' or 'Observed' on toggle-off
-    return;
-  }
-  this.isSelectingOnset = !this.isSelectingOnset;
+
+
+constructor() {
+  effect(() => {
+    const data = this.cellData();
+    if (data.type === 'OnsetAge') {
+      this.onsetText.set(data.data);
+    }
+  });
 }
+
+  toggleOnsetSelection(): void {
+    const currentData = this.cellData();
+    if (currentData.type === 'OnsetAge') {
+      return; // already committed; dropdown already visible via cellType()
+    }
+    this.showOnsetPicker.update(v => !v);
+  }
+
+  cancelOnsetSelection(): void {
+    this.showOnsetPicker.set(false);
+  }
 
 updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString?: string): void {
   const currentData = this.cellData();
-  
-  if (newStatus === 'OnsetAge') {
-    if (!onsetString) {
-      this.notificationService.showError("Could not set onset because no onset string was found");
-      return;
+
+    if (newStatus === 'OnsetAge') {
+      // 1. If we have a string, we commit the data
+      if (onsetString) {
+        this.dataChanged.emit({
+          ...currentData,
+          type: 'OnsetAge',
+          data: onsetString
+        });
+        this.showOnsetPicker.set(false);
+      } else {
+        this.showOnsetPicker.set(true); 
+        this.notificationService.showError("Please select an onset age.");
+      }
+    } else {
+      // 3. For Observed/Excluded/Na, we just commit and hide everything
+      this.dataChanged.emit({
+        ...currentData,
+        type: newStatus
+      });
+      this.showOnsetPicker.set(false);
     }
-    this.isSelectingOnset = false;
-
-    this.dataChanged.emit({
-      ...currentData,
-      type: 'OnsetAge',
-      data: onsetString
-    });
-  } else {
-    // If they switch to Observed/Excluded/Na, reset our temporary selector state
-    this.isSelectingOnset = false;
-    this.dataChanged.emit({
-      ...currentData,
-      type: newStatus
-    });
   }
-}
 
- 
+
 
   addModifier(newModifier:  string): void {
    const currentData = this.cellData();
@@ -94,8 +115,9 @@ updateStatus(newStatus: 'Observed' | 'Excluded' | 'Na' | 'OnsetAge', onsetString
     this.dataChanged.emit(updatedData);
   }
 
-  /* THe parent component will receive this signal and then open the new Age Dialog itself */
+  /* The parent component will receive this signal and then open the new Age Dialog itself */
   openAddAgeDialog(): void {
+    this.showOnsetPicker.set(true);
     this.requestNewOnset.emit();
   }
 }

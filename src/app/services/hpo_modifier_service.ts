@@ -9,7 +9,7 @@ export interface HpoOption {
 }
 
 @Injectable({
-  providedIn: 'root', // 👈 This makes it a singleton across the app
+  providedIn: 'root', 
 })
 export class HpoModifierService {
   private configService = inject(ConfigService);
@@ -41,5 +41,10 @@ export class HpoModifierService {
       option.hpoLabel.toLowerCase().includes(cleanQuery) || 
       option.hpoId.toLowerCase().includes(cleanQuery)
     );
+  }
+
+  getModifierLabel(id: string): string {
+    const match = this.modifierList().find(option => option.hpoId === id);
+    return match ? match.hpoLabel : id;
   }
 }

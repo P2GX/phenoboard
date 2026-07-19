@@ -15,3 +15,4 @@ export * from './lib/hpo-mapping-step/hpo-mapping-step.component';
 export * from './lib/table-merge-columns/table-merge-columns.component';
 export * from './lib/column-context-menu/column-context-menu.component';
 export * from './lib/etl-data-table/etl-data-table.component';
+export * from './lib/pt-context-menu.component/pt-context-menu.component';

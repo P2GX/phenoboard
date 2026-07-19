@@ -211,9 +211,15 @@
                 <span>Unknown</span>
             }
           }
-          @if (cell.originalCell.modifiers?.length) {
-              <span class="modifier-indicator-dot" title="Has clinical modifiers">⚙️</span>
-            }
+          @if (hasExtraInfo(cell.originalCell)) {
+            <button 
+              type="button"
+              class="info-indicator"
+              title="View details (right click)"
+              >
+              ⓘ
+            </button>
+          }
         </td>
       }
     }
@@ -350,21 +356,6 @@
 </div>
 </div>
 
-<!-- Context Menu (appears after right-click on HPO cell)-->
-@if (contextMenuVisible && selectedCellContents) {
-  <div
-    [ngStyle]="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
-    class="context-menu-position-wrapper"
-    #contextMenu
-  >
-    <app-hpo-annotation-panel
-      [cellData]="selectedCellContents"
-      [columnTitle]="currentHpoLabel()"
-      (requestNewOnset)="openGlobalAgeDialog()"
-      (dataChanged)="handleTableDataUpdate($event, pendingHpoColumnIndex!)">
-    </app-hpo-annotation-panel>
-  </div>
-}
 <!-- Individual (row-level) context menu -->
  @if (individualContextMenuVisible) {
   <div
@@ -388,5 +379,40 @@
       <li class="context-menu-item"
           (click)="deleteRow(contextRowId)">Delete row</li>
     </ul>
+  </div>
+}
+
+ @if (interactionService.activeContext(); as ctx) {
+    <div class="backdrop" (click)="interactionService.close()"></div>
+    
+    <pt-app-context-menu 
+      #hpoContextMenu
+      [x]="ctx.x" 
+      [y]="ctx.y"
+      (close)="interactionService.close()"
+      (confirm)="handleConfirm(ctx)">
+      <!-- This div acts as an invisible backdrop and closes the dialog if we click elsewhere -->
+    
+        <div (click)="$event.stopPropagation()">
+            <app-hpo-annotation-panel
+              [cellData]="ctx.cell"
+              [columnTitle]="currentHpoLabel()"
+              (requestNewOnset)="openGlobalAgeDialog(ctx)"
+              (dataChanged)="handleTableDataUpdate($event)">
+            </app-hpo-annotation-panel>
+        </div>
+    
+    </pt-app-context-menu>
+  }
+
+  @if (showAgeDialog()) {
+  <div class="backdrop-modal" (click)="closeAgeDialog()"></div>
+  
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <app-addage 
+      [current]="activeAgeString()"
+      (saved)="handleAgeSaved($event)"
+      (cancelled)="closeAgeDialog()">
+    </app-addage>
   </div>
 }

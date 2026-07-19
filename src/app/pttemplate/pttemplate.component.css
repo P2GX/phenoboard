@@ -670,3 +670,54 @@ button[mat-icon-button] {
   display: block;
   width: max-content; 
 }
+
+.menu-overlay {
+  position: fixed;
+  z-index: 9999;
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998; /* Just below the menu (9999) */
+  background: transparent;
+}
+
+.hpo-cell-modify-modal {
+  /* Position it fixed relative to the browser window */
+  position: fixed; 
+  
+  /* Start at 100px from the top */
+  top: 100px; 
+  
+  /* Move to the horizontal center */
+  left: 50%;
+  
+  /* Pull it back by 50% of its own width to perfectly center it */
+  transform: translateX(-50%);
+  
+  /* Ensure it sits above the context menu */
+  z-index: 100000;
+  
+  /* Styling */
+  background: white;
+  width: 400px; /* Adjust this to your preferred width */
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000; /* Must be higher than backdrop */
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}

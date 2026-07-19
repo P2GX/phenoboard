@@ -1,4 +1,4 @@
-// addage.component.ts
+
 import { Component, inject, signal, computed, input, output, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
