@@ -1,6 +1,6 @@
 {
   "name": "phenoboard",
-  "version": "0.6.21",
+  "version": "0.6.22",
   "scripts": {
     "ng": "ng",
     "start": "nx serve phenoboard --port 1420",
@@ -37,7 +37,7 @@
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-opener": "2.5.3",
     "material-icons": "^1.13.14",
-    "ng-hpo-uikit": "github:P2GX/ng-hpo-uikit#dist-build",
+    "ng-hpo-uikit": "file:../ng-hpo-uikit/dist/ng-hpo-uikit",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "tw-elements": "^2.0.0",

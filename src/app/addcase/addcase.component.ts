@@ -389,7 +389,6 @@ demographicSummary = computed<string | null>(() => {
 
 
   openHpoTwoStepDialog(): void {
-    console.log('openHpoTwoStepDialog');
      const dialogData: HpoTwostepData = {
       mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
       autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
