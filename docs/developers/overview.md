@@ -1,8 +1,8 @@
 # Developers
 
 GA4GH Phenoboard is a tauri application with a Rust backend and an Angular front end.
-It is designed to curate cohorts of individuals diagnosed with genetic disease using
-[Human Phenotype Ontology](https://hpo.jax.org/){:target="\_blank"} and [Global Alliance for Genomics and Health](https://www.ga4gh.org/){:target="\_blank"} [Phenopacket Schema](https://phenopacket-schema.readthedocs.io/en/latest/){:target="\_blank"}.
+It is designed to curate cohorts of individuals diagnosed with genetic disease using the
+[Human Phenotype Ontology](https://hpo.jax.org/) and [Global Alliance for Genomics and Health](https://www.ga4gh.org/) [Phenopacket Schema](https://phenopacket-schema.readthedocs.io/en/latest/).
 
 The application makes major use of the following rust crates.
 
