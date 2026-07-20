@@ -32,7 +32,7 @@ import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
-import { getCellValue, HpoTermDuplet } from '@workspace/ui';
+import { HpoTermDuplet } from '@workspace/ui';
 import { MatIconModule } from '@angular/material/icon';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
@@ -84,7 +84,8 @@ interface Option {
     TableCellEditorComponent,
     OntologyAutocompleteComponent,
     PtContextMenuComponent,
-    AddageComponent
+    AddageComponent,
+    ConfirmDialogComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -393,30 +394,38 @@ export class PtTemplateComponent {
     }
   });
 
-  /**
+  confirmDialogData = signal<ConfirmDialogData | null>(null);
+  isConfirmDialogOpen = signal(false);
+  private resolveConfirm?: (value: boolean) => void;
+
+    /**
    * Opens the confirmation dialog for sanitization and returns the user's choice.
    * @param errorMessage The error message to display in the dialog
    * @returns A promise that resolves to true if the user chooses 'Sanitize'
    */
   private async openSanitizeDialog(errorMessage: string): Promise<boolean> {
-    const dialogData: ConfirmDialogData = {
+    this.confirmDialogData.set({
       title: 'Validation Issues',
       message: `The cohort has errors: "${errorMessage}". Would you like to automatically sanitize the data?`,
       confirmText: 'Sanitize',
-      cancelText: 'Cancel',
-      helpLines: [
-        'The sanitization steps removes redundant HPO annotations.',
-        'Any other errors that are flagged need to be fixed manually.',
-      ],
-    };
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: dialogData,
-      width: '500px',
+      cancelText: 'Cancel'
     });
+    
+    this.isConfirmDialogOpen.set(true);
 
-    return await firstValueFrom(dialogRef.afterClosed());
+    return new Promise((resolve) => {
+      this.resolveConfirm = resolve;
+    });
   }
+
+  /* handle the user's response to the ontology sanitize dialog */
+  handleConfirmResult(confirmed: boolean): void {
+    this.isConfirmDialogOpen.set(false);
+    this.resolveConfirm?.(confirmed); // Resolves the promise from openSanitizeDialog
+  }
+
+
+
 
   async validateCohort(): Promise<void> {
     const cohortData = this.cohortData();

@@ -416,3 +416,11 @@
     </app-addage>
   </div>
 }
+
+@if (confirmDialogData(); as data) {
+  <app-confirm-dialog 
+    [data]="data" 
+    [isOpen]="isConfirmDialogOpen()"
+    (result)="handleConfirmResult($event)">
+  </app-confirm-dialog>
+}
