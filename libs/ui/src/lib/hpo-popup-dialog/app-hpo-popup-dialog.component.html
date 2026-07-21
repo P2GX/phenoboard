@@ -29,6 +29,7 @@
         </span>
         <hpo-ontology-autocomplete
           [autocompleteProvider]="autocompleteProvider()"
+          [requireConfirmation]="true"
           (selected)="onHpoTermSelected($event)" />
       </div>
     </main>

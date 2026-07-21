@@ -41,6 +41,7 @@
                   <hpo-ontology-autocomplete
                     [inputString]="hpoAutocompleteString"
                     [autocompleteProvider]="autocompleteProvider"
+                    [requireConfirmation]="true"
                     (selected)="handleAutocompleteSelection(i, $event)">
                   </hpo-ontology-autocomplete>
                 } @else {
