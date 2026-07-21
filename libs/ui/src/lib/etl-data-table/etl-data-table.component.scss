@@ -8,6 +8,14 @@
   background: #ffffff;
 }
 
+
+
+.cell-wrapper {
+  display: block;
+  width: 100%;
+  min-height: 18px; /* Ensures even empty text rows have visible vertical height shape */
+}
+
 .etl-grid {
   width: max-content;
   min-width: 100%;
@@ -35,14 +43,26 @@
     color: #1e293b;
     text-align: left;
     box-shadow: inset 0 -2px 0 #cbd5e1;
+
+    &.transformed { background-color: #f0fdf4; border-bottom: 2px solid #22c55e; }
+    &.ignored { background-color: gray; border-bottom: 2px solid #030303; }
+    &.focused { background-color: #eff6ff; outline: 2px solid #3b82f6; }
+    &.mark-a { background-color: #fffbeb; border-color: #d97706; }
+    &.mark-b { background-color: #fff7ed; border-color: #ea580c; }
+  }
+
+  td.relative-cell-container {
+    position: relative;
+    cursor: pointer;
+    user-select: text;
+
+    .mining-prompt-badge,
+    .value {
+      pointer-events: none;
+    }
   }
 }
 
-.cell-wrapper {
-  display: block;
-  width: 100%;
-  min-height: 18px; /* Ensures even empty text rows have visible vertical height shape */
-}
 
 .value {
   display: inline-block;
@@ -85,6 +105,7 @@
 td.status-valid { background-color: #f0fdf4; color: #16a34a; }
 td.status-invalid { background-color: #fef2f2; color: #dc2626; font-weight: 600; }
 td.status-warning { background-color: #fffbeb; color: #d97706; }
+td.status-ignored { background-color: #f3f4f6; color: darkgray; }
 
 /* Keep your existing cell selector styling */
 td.status-transformed {
@@ -94,14 +115,7 @@ td.status-transformed {
   border-right-color: #dcfce7;
 }
 
-/* ADD THIS: Target headers when their parsed type is updated */
-th.status-transformed,
-th.type-sex,
-th.type-age { 
-  background-color: #f0fdf4 !important;
-  color: #16a34a !important;
-  border-bottom: 2px solid #dcfce7;
-}
+
 /* Optional: Subtle hover tweak so you can see your mouse tracking across transformed fields */
 td.status-transformed:hover {
   background-color: #dcfce7;
@@ -120,4 +134,19 @@ td.status-transformed:hover {
   border: 1px dashed #bfdbfe;
   user-select: none;
   white-space: nowrap;
+}
+
+
+
+.merge-badge {
+    position: absolute;
+    top: 0; right: 0;
+    padding: 0 4px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    border-bottom-left-radius: 4px;
+
+    &.a { background: #b45309; }
+    &.b { background: #c2410c; }
 }

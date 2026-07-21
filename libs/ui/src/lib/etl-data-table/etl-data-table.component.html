@@ -14,6 +14,12 @@
                 <span class="title" [title]="col.header.original">{{ col.header.original }}</span>
                 <span class="badge">{{ col.header.columnType }}</span>
             </div>
+            @if (colAforMerge() === colIdx) {
+                <span class="merge-badge a">A</span>
+            }
+            @if (colBforMerge() === colIdx) {
+                <span class="merge-badge b">B</span>
+            }
             </th>
         }
         </tr>

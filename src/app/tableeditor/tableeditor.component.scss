@@ -6,12 +6,11 @@
   overflow-x: hidden;
 }
 
-/* Variables & Mixins */
 $indigo-600: #4f46e5;
 $amber-600: #d97706;
 $border-light: #e2e8f0;
 
-/* Layout & Action Bar */
+
 .global-action-bar {
   display: flex;
   align-items: center;
@@ -40,7 +39,7 @@ $border-light: #e2e8f0;
   .subtle-help { margin-top: -2px; zoom: 0.8; }
 }
 
-/* Warning Alerts */
+
 .status-alert {
   display: flex;
   align-items: center;
@@ -61,7 +60,7 @@ $border-light: #e2e8f0;
   .alert-text { font-size: 0.75rem; }
 }
 
-/* Floating Merge Panel */
+
 .floating-ui-container {
   position: fixed;
   top: 5rem;
@@ -109,6 +108,7 @@ $border-light: #e2e8f0;
     border: 1px solid $border-light;
 
     &.transformed { background-color: #f0fdf4; border-bottom: 2px solid #22c55e; }
+    &.ignored { background-color: gray; border-bottom: 2px solid #030303;}
     &.focused { background-color: #eff6ff; outline: 2px solid #3b82f6; }
     &.mark-a { background-color: #fffbeb; border-color: #d97706; }
     &.mark-b { background-color: #fff7ed; border-color: #ea580c; }

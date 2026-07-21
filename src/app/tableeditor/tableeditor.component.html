@@ -19,35 +19,38 @@
 </app-table-progress-bar>
 
 @if(this.etl_service.etlDto()) {
-<div class="pt-table-container">
-  <app-table-merge-columns
-    [colA]="colAforMerge()"
-    [colB]="colBforMerge()"
-    [(separator)]="mergeSeparator"
-    [(labelColumns)]="labelMergedColumn"
-    [undoVisible]="undoVisible()"
-    (mergeRequested)="executeMerge()"
-    (cancelMerge)="colAforMerge.set(null); colBforMerge.set(null)"
-    (undoRequested)="undoMerge()"
-    (dismissUndo)="undoVisible.set(false)">
-  </app-table-merge-columns>
-</div>
-  @if (this.etl_service.etlDto()?.table?.columns) {
-    <app-etl-data-table
-      [columns]="this.etl_service.etlDto()!.table.columns"
-      (headerContextMenuRequested)="openHeaderMenu($event)"
-      (cellContextMenuRequested)="openCellMenu($event)"
-      (cellDoubleClicked)="onCellDoubleClicked($event)">
-    </app-etl-data-table>
-  }
-<div style="height: 40px;"></div>
+  <div class="pt-table-container">
+    <app-table-merge-columns
+      [colA]="colAforMerge()"
+      [colB]="colBforMerge()"
+      [(separator)]="mergeSeparator"
+      [(labelColumns)]="labelMergedColumn"
+      [undoVisible]="undoVisible()"
+      (mergeRequested)="executeMerge()"
+      (cancelMerge)="colAforMerge.set(null); colBforMerge.set(null)"
+      (undoRequested)="undoMerge()"
+      (dismissUndo)="undoVisible.set(false)">
+    </app-table-merge-columns>
+  </div>
+    @if (this.etl_service.etlDto()?.table?.columns) {
+      <app-etl-data-table
+        [columns]="this.etl_service.etlDto()!.table.columns"
+        [colAforMerge]="colAforMerge()"
+        [colBforMerge]="colBforMerge()"
+        (headerContextMenuRequested)="openHeaderMenu($event)"
+        (cellContextMenuRequested)="openCellMenu($event)"
+        (cellDoubleClicked)="onCellDoubleClicked($event)">
+      </app-etl-data-table>
+    }
+  <div style="height: 40px;"></div>
 }
 
 <!-- Context menu for column headers -->
  @if (headerMenuState(); as menu) {
+  @let safePos = getSafeMenuPosition(menu.x, menu.y);
   <app-column-context-menu
-    [x]="menu.x"
-    [y]="menu.y"
+    [x]="safePos.x"
+    [y]="safePos.y"
     [headerOriginalName]="menu.header.original"
     [columnType]="menu.header.columnType"
     [simpleColumnOperations]="simpleColumnOperations"
@@ -64,7 +67,6 @@
 }
 
 @if (contextMenuCellVisible) {
-  <p>contextMenuCellVisible HELLO</p>
   <div class="menu-overlay-backdrop" (click)="contextMenuCellVisible = false" (contextmenu)="$event.preventDefault(); contextMenuCellVisible = false">
     
     <div class="context-menu-visible"

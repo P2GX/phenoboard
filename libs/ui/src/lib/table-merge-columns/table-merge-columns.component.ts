@@ -1,25 +1,24 @@
 import { Component, input, output, model } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { IconComponent } from "../svg-icons/svg-icon.component";
+
+
 
 @Component({
   selector: 'app-table-merge-columns',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [IconComponent],
   templateUrl: './table-merge-columns.component.html',
   styleUrl: './table-merge-columns.component.scss'
 })
 export class TableFloatingControlsComponent {
-  // Staged targets inputs
+
   colA = input.required<number | null>();
   colB = input.required<number | null>();
   
-  // Two-way model sync for local control configuration variables
   separator = model.required<string>();
   labelColumns = model.required<boolean>();
   undoVisible = input.required<boolean>();
 
-  // Action event streams
   mergeRequested = output<void>();
   cancelMerge = output<void>();
   undoRequested = output<void>();

@@ -1788,6 +1788,7 @@ async saveManualEdit(newValue: string): Promise<void> {
   }
 
 
+  /* This is for the HPO mining column where we can add additional data from narrative texts if they are available in addition to the table */
   openHpoMiningDialog(colIndex: number, rowIndex: number): void {
     const dto = this.etl_service.etlDto();
     if (!dto) {
@@ -1868,6 +1869,31 @@ async saveManualEdit(newValue: string): Promise<void> {
     } else {
       this.triggerInlineCellEdit(eventData);
     }
+  }
+
+  getSafeMenuPosition(x: number, y: number): { x: number; y: number } {
+    // Estimated dimensions of your context menu (adjust width/height if needed)
+    const menuWidth = 220; 
+    const menuHeight = 300; 
+
+    let safeX = x;
+    let safeY = y;
+
+    // Check right edge overflow
+    if (x + menuWidth > window.innerWidth) {
+      safeX = x - menuWidth;
+    }
+
+    // Check bottom edge overflow
+    if (y + menuHeight > window.innerHeight) {
+      safeY = y - menuHeight;
+    }
+
+    // Ensure coordinates don't go negative
+    return {
+      x: Math.max(10, safeX),
+      y: Math.max(10, safeY)
+    };
   }
 
 }

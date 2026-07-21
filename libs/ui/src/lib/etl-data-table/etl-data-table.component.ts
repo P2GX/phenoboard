@@ -12,6 +12,8 @@ import { EtlCellStatus } from '../models/transform-operations';
 })
 export class EtlDataTableComponent {
   columns = input.required<ColumnDto[]>();
+  colAforMerge = input<number | null>(null);
+  colBforMerge = input<number | null>(null);
 
   headerContextMenuRequested = output<{ event: MouseEvent; index: number; header: EtlColumnHeader }>();
   cellContextMenuRequested = output<{ event: MouseEvent; rowIdx: number; colIdx: number; cell: EtlCellValue }>();
