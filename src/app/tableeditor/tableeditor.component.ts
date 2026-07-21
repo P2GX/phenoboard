@@ -168,6 +168,7 @@ export class TableEditorComponent  {
   /* Functions that perform a fixed operation on cells and DO expect the column type to change */
   readonly ELEMENTWISE_MAP: Partial<Record<TransformType, StringTransformFn>> = {
     [TransformType.ONSET_AGE]: (val) => this.ageService.mapEtlAgeString(val),
+    [TransformType.LAST_ENCOUNTER_AGE]: (val) => this.ageService.mapEtlAgeString(val),
     [TransformType.SEX_COLUMN]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.SEX_COLUMN_TYPE]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
@@ -391,7 +392,6 @@ export class TableEditorComponent  {
     }
     const dto = this.etl_service.etlDto();
     if (!dto) return;
-    console.log("OnHpoTermSelection", selectedTerm);
     const column = dto.table.columns[colIndex];
     this.selectedHpoTerm.set(selectedTerm);
     // Update column header metadata
@@ -1280,7 +1280,7 @@ async saveManualEdit(newValue: string): Promise<void> {
 
       default:
         setTimeout(() => {
-          this.notificationService.showError(`Did not recognize transformation type "${transform}"`);
+          this.notificationService.showError(`[TableEditorComponent::applyNamedTransform] Did not recognize transformation type "${transform}"`);
         });
         return;
     }
