@@ -4,7 +4,6 @@ import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { SourcePmid } from '@workspace/ui';
 
@@ -13,7 +12,7 @@ import { SourcePmid } from '@workspace/ui';
   templateUrl: './status.component.html',
   styleUrls: ['./status.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule, RouterModule],
+  imports: [CommonModule, RouterModule],
 })
 export class StatusComponent implements OnInit {
   private configService = inject(ConfigService);

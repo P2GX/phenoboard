@@ -1,12 +1,13 @@
 import { Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
+
+import { IconComponent } from "@workspace/ui";
 
 @Component({
   selector: 'etl-cell-edit-dialog',
   standalone: true,
-  imports: [FormsModule, MatIconModule],
+  imports: [FormsModule, IconComponent],
   templateUrl: './etl-cell-edit-dialog.component.html',
   styleUrl: './etl-cell-edit-dialog.component.scss',
 })

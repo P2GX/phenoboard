@@ -95,22 +95,22 @@
 
         <ul class="menu-list">
           <li (click)="handleMenuAction(() => editCellValueManually()); $event.stopPropagation()">
-            <mat-icon>edit</mat-icon> <span>Edit cell contents</span>
+            <app-icon name="edit" [size]="20" /> <span>Edit cell contents</span>
           </li>
           <li (click)="handleMenuAction(() => deleteRow()); $event.stopPropagation()">
-            <mat-icon>delete</mat-icon> <span>Delete row</span>
+            <app-icon name="delete" [size]="20" /> <span>Delete row</span>
           </li>
           @if (hasValueAbove()) {
             <li (click)="handleMenuAction(() => useValueFromAbove()); $event.stopPropagation()">
-              <mat-icon>content_copy</mat-icon> <span>Copy value from above</span>
+              <app-icon name="content_copy" [size]="20" /> <span>Copy value from above</span>
             </li>
           }
           <hr class="menu-divider" />
           <li (click)="handleMenuAction(() => openHgvsEditor()); $event.stopPropagation()">
-            <mat-icon>science</mat-icon> <span>Manually add HGVS</span>
+            <app-icon name="science" [size]="20" /> <span>Manually add HGVS</span>
           </li>
           <li (click)="handleMenuAction(() => openSvEditor()); $event.stopPropagation()">
-            <mat-icon>account_tree</mat-icon> <span>Manually add SV</span>
+            <app-icon name="account_tree" [size]="20" /> <span>Manually add SV</span>
           </li>
         </ul>
       </div>

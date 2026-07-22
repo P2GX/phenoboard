@@ -2,9 +2,8 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MinedCell, MappedTerm, ClinicalStatus } from '@workspace/ui';
+import { MinedCell, MappedTerm, ClinicalStatus, IconComponent } from '@workspace/ui';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { AgeInputService } from '../services/age_service';
@@ -19,10 +18,10 @@ import { AddageComponent } from '../addages/addage.component';
     FormsModule,
     MatButtonModule,
     MatChipsModule,
-    MatIconModule,
     MatMenuModule,
     MatTableModule,
-  ],
+    IconComponent
+],
   templateUrl: './mined-cell-editor.component.html',
   styleUrls: ['./mined-cell-editor.component.scss'],
 })

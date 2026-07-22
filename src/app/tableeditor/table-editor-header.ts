@@ -16,8 +16,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { ColumnTableDto, EtlCellStatus, EtlDto, fromColumnDto } from '@workspace/ui';
+import { ColumnTableDto, EtlCellStatus, EtlDto, fromColumnDto, IconComponent } from '@workspace/ui';
 import { EtlSessionService } from '../services/etl_session_service';
 import { NotificationService } from 'ng-hpo-uikit';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -41,13 +40,13 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   standalone: true,
   imports: [
     MatTableModule,
-    MatIconModule,
     FormsModule,
     MatTooltipModule,
     ReactiveFormsModule,
     HelpButtonComponent,
     PubmedComponent,
-  ],
+    IconComponent
+],
   templateUrl: './table-editor-header.html',
   styleUrls: ['./table-editor-header.scss'],
 })

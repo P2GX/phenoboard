@@ -6,16 +6,7 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import {
-  HpoMappingResult,
-  OntologyMatch,
-  MinedCell,
-  MiningConcept,
-  TableFloatingControlsComponent,
-  ColumnContextMenuComponent,
-  EtlDataTableComponent,
-} from '@workspace/ui';
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, ColumnContextMenuComponent, EtlDataTableComponent, IconComponent } from '@workspace/ui';
 import {
   ColumnDto,
   EtlCellStatus,
@@ -71,7 +62,6 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   imports: [
     CommonModule,
     MatTableModule,
-    MatIconModule,
     FormsModule,
     MatTooltipModule,
     ReactiveFormsModule,
@@ -82,7 +72,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     TableFloatingControlsComponent,
     ColumnContextMenuComponent,
     EtlDataTableComponent,
-  ],
+    IconComponent
+],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })

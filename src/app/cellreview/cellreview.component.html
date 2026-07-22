@@ -3,15 +3,13 @@
     <h2>{{ data.title }}</h2>
     <div class="stepper-controls">
       <button mat-icon-button (click)="prev()" [disabled]="currentIndex() === 0">
-        <mat-icon>chevron_left</mat-icon>
+        <app-icon name="chevron_left" [size]="20" />
       </button>
       <span class="progress-text">
         Record <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
       </span>
       <button mat-icon-button (click)="next()">
-        <mat-icon>{{
-          currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right'
-        }}</mat-icon>
+        <app-icon [name]="currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right'" [size]="20" />
       </button>
     </div>
   </div>

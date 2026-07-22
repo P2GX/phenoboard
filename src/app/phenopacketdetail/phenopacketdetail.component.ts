@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, RowData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatCard, MatCardModule } from '@angular/material/card';
@@ -10,6 +9,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { IconComponent } from "@workspace/ui";
 
 @Component({
   selector: 'app-phenopacketdetail',
@@ -23,8 +23,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatListModule,
     MatTableModule,
     MatButtonModule,
-    MatIconModule,
-  ],
+    IconComponent
+],
 })
 export class PhenopacketDetailComponent {
   private cohortService = inject(CohortDtoService);

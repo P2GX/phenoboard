@@ -4,10 +4,9 @@ import {
   MatDialogActions,
   MatDialogContent,
 } from '@angular/material/dialog';
-import { ClinicalStatus, MappedTerm, MinedCell } from '@workspace/ui';
+import { ClinicalStatus, MappedTerm, MinedCell, IconComponent } from '@workspace/ui';
 import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
@@ -27,11 +26,11 @@ which rows correspond to the concepts. The point of this widget is to review the
     MatButtonModule,
     MatDialogActions,
     MatDialogContent,
-    MatIconModule,
     MatMenuModule,
     MatTableModule,
     MinedCellEditorComponent,
-  ],
+    IconComponent
+],
   templateUrl: './cellreview.component.html',
   styleUrls: ['./cellreview.component.scss'],
 })

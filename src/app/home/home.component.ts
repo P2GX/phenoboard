@@ -15,6 +15,7 @@ import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStatusService } from '../services/app_status_service';
+import { IconComponent } from "@workspace/ui";
 
 @Component({
   selector: 'app-home',
@@ -27,7 +28,8 @@ import { AppStatusService } from '../services/app_status_service';
     HelpButtonComponent,
     MatIcon,
     MatProgressSpinnerModule,
-  ],
+    IconComponent
+],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

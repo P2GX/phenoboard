@@ -14,17 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import {
-  IndividualData,
-  CohortData,
-  RowData,
-  CellValue,
-  ModeOfInheritance,
-  GeneTranscriptData,
-  DiseaseData,
-  getRowId,
-  PtContextMenuComponent,
-} from '@workspace/ui';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, DiseaseData, getRowId, PtContextMenuComponent, IconComponent } from '@workspace/ui';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddageComponent } from '../addages/addage.component';
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component';
@@ -33,7 +23,6 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '@workspace/ui';
-import { MatIconModule } from '@angular/material/icon';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -74,7 +63,6 @@ interface Option {
     MatTableModule,
     MatTooltipModule,
     MatDialogModule,
-    MatIconModule,
     OverlayModule,
     CohortSummaryComponent,
     HelpButtonComponent,
@@ -86,7 +74,8 @@ interface Option {
     PtContextMenuComponent,
     AddageComponent,
     ConfirmDialogComponent,
-  ],
+    IconComponent
+],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -157,7 +157,7 @@
             {{ allele.variantString }} ({{ allele.geneSymbol }})
           </div>
           <button (click)="removeAllele(allele)" class="btn-icon-remove">
-            <mat-icon>close</mat-icon>
+            <app-icon name="close" [size]="20" />
           </button>
         </li>
       } @empty {

@@ -10,7 +10,7 @@
     <div class="home-header__orcid">
       <div class="action-with-help">
         <button (click)="setBiocuratorOrcid()" class="orcid-btn">
-          <mat-icon class="scale-75">account_circle</mat-icon>
+          <app-icon name="account_circle" [size]="20" />
           {{ biocuratorOrcid() || 'Set ORCID' }}
         </button>
         <hpo-help-button
@@ -55,7 +55,7 @@
             class="hpo-status__text"
           >
             @if (statusService.hpoLoaded()) {
-              <mat-icon class="hpo-status__icon">check_circle</mat-icon>
+              <app-icon name="check_circle" [size]="20" class="hpo-status__icon" />
             }
             {{ hpoMessage() }}
           </span>

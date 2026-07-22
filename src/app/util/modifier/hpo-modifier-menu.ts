@@ -6,10 +6,10 @@ import {
   MatAutocompleteModule,
   MatAutocompleteSelectedEvent,
 } from '@angular/material/autocomplete';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { HpoModifierService } from '../../services/hpo_modifier_service';
 import { HpoTermDuplet } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
+import { IconComponent } from "@workspace/ui";
 
 @Component({
   selector: 'app-hpo-modifier-menu',
@@ -19,9 +19,9 @@ import { HpoTermDuplet } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
     MatFormFieldModule,
     MatInputModule,
     MatAutocompleteModule,
-    MatIconModule,
     MatButtonModule,
-  ],
+    IconComponent
+],
   templateUrl: './hpo-modifier-menu.html',
   styleUrls: ['./hpo-modifier-menu.scss'],
 })

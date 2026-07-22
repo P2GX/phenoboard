@@ -40,7 +40,7 @@
           <mat-list>
             @for (diseaseId of r.diseaseIdList; track diseaseId) {
               <mat-list-item>
-                <mat-icon mat-list-icon>medical_services</mat-icon>
+                <app-icon name="medical_services" [size]="20" />
                 @if (getOmimUrl(diseaseId)) {
                   <a [href]="getOmimUrl(diseaseId)" target="_blank">
                     {{ getDiseaseLabel(diseaseId) }}

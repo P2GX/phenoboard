@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -14,7 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MiningConcept, MiningStatus } from '@workspace/ui';
+import { MiningConcept, MiningStatus, IconComponent } from '@workspace/ui';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
@@ -60,12 +59,12 @@ const NOT_APPLICABLE = new Set([
     MatSlideToggleModule,
     MatButtonModule,
     MatTooltipModule,
-    MatIconModule,
     MatTableModule,
     MatCheckboxModule,
     MatButtonToggleModule,
     OntologyAutocompleteComponent,
-  ],
+    IconComponent
+],
 })
 export class MultiHpoComponent {
   readonly concepts = signal<MiningConcept[]>([]);

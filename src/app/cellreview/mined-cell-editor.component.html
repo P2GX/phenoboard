@@ -1,7 +1,7 @@
 <div class="mined-cell-container">
   <div class="cell-header">
     <div class="flex items-center gap-2 mb-3">
-      <mat-icon class="text-slate-400">subject</mat-icon>
+      <app-icon name="subject" [size]="20" class="text-slate-400" />
       <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Source text</span>
     </div>
     <div class="source-bubble">"{{ cell().cellText }}"</div>
@@ -33,12 +33,12 @@
                 [class.status-set]="term.status"
               >
                 <span class="current-value">{{ term.status || 'na' | titlecase }}</span>
-                <mat-icon>arrow_drop_down</mat-icon>
+                <app-icon name="arrow_drop_down" [size]="20" />
               </button>
 
               <div class="onset-group" [class.has-onset]="term.onset && term.onset !== 'na'">
                 <div class="onset-icon">
-                  <mat-icon>schedule</mat-icon>
+                  <app-icon name="schedule" [size]="20" />
                 </div>
                 <select
                   #onsetSelect
@@ -64,9 +64,7 @@
             <mat-menu #statusMenu="matMenu">
               @for (opt of statusOptions; track opt) {
                 <button mat-menu-item (click)="updateStatus(term, opt)">
-                  <mat-icon [color]="term.status === opt ? 'primary' : ''">
-                    {{ term.status === opt ? 'check_circle' : 'radio_button_unchecked' }}
-                  </mat-icon>
+                    <app-icon [name]="term.status === opt ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
                   <span>{{ opt | titlecase }}</span>
                 </button>
               }
@@ -86,7 +84,7 @@
         class="help-btn"
         aria-label="Toggle explanation"
       >
-        <mat-icon>help_outline</mat-icon>
+        <app-icon name="help_outline" [size]="20" />
       </button>
     </div>
     <mat-menu #helpMenu="matMenu" class="help-bubble">
@@ -110,7 +108,7 @@
         [disabled]="toExclude().length === 0"
         (click)="excludeAll.emit()"
       >
-        <mat-icon>done_all</mat-icon>
+        <app-icon name="done_all" [size]="20" />
         <span class="badge-label">Exclude All</span>
       </button>
     }
@@ -121,7 +119,7 @@
       <button class="shelf-badge" (click)="excludeTerm.emit(term)">
         <span class="badge-label">{{ term.label }}</span>
         <span class="badge-id"> ({{ term.id }})</span>
-        <mat-icon>add</mat-icon>
+        <app-icon name="add" [size]="20" />
       </button>
     } @empty {
       <div class="empty-shelf-message">All cohort terms are accounted for.</div>

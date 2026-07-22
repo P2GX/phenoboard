@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { SourcePmid } from '@workspace/ui';
 import { RepoErrorType, RepoQc } from '../models/repo_qc';
@@ -18,7 +17,7 @@ import { ComparisonReport } from '../models/comparison';
   templateUrl: './qc.component.html',
   styleUrls: ['./qc.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule, RouterModule, HelpButtonComponent],
+  imports: [CommonModule, RouterModule, HelpButtonComponent],
 })
 export class QcComponent implements OnInit {
   private configService = inject(ConfigService);

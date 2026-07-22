@@ -14,7 +14,7 @@
           <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
             <td class="col-source">
               <div class="source-cell-content">
-                <mat-icon class="source-icon">description</mat-icon>
+                <app-icon name="description" [size]="20" class="source-icon" />
                 <code class="source-code">"{{ c.originalText }}"</code>
                 <button
                   mat-icon-button
@@ -22,7 +22,7 @@
                   class="split-btn"
                   (click)="openSplitDialog(i)"
                 >
-                  <mat-icon>content_cut</mat-icon>
+                  <app-icon name="content_cut" [size]="20" />
                 </button>
               </div>
             </td>
@@ -33,9 +33,9 @@
                   <mat-chip-row (removed)="removeTerm(i, termIdx)" class="hpo-chip">
                     <span class="hpo-chip-id">{{ term.id }}</span>
                     <span>{{ term.label }}</span>
-                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                    <button matChipRemove><app-icon name="cancel" [size]="20" /></button>
                     <button mat-icon-button [cdkCopyToClipboard]="term.label" class="chip-copy-btn">
-                      <mat-icon>content_copy</mat-icon>
+                      <app-icon name="content_copy" [size]="20" />
                     </button>
                   </mat-chip-row>
                 }
@@ -50,7 +50,7 @@
                   </hpo-ontology-autocomplete>
                 } @else {
                   <button mat-icon-button (click)="startSearch(i)" class="add-btn">
-                    <mat-icon>add_circle_outline</mat-icon>
+                    <app-icon name="add_circle_outline" [size]="20" />
                   </button>
                 }
               </div>
@@ -63,12 +63,10 @@
                   (click)="toggleConfirm(i)"
                   [color]="c.miningStatus === 'confirmed' ? 'primary' : ''"
                 >
-                  <mat-icon>{{
-                    c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked'
-                  }}</mat-icon>
+                <app-icon [name]="c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
                 </button>
                 <button mat-icon-button color="warn" (click)="removeConcept(i)">
-                  <mat-icon>delete_outline</mat-icon>
+                  <app-icon name="delete_outline" [size]="20" />
                 </button>
               </div>
             </td>
@@ -87,7 +85,7 @@
     (click)="save()"
     [disabled]="concepts().length === 0"
   >
-    <mat-icon class="mr-1">done_all</mat-icon>
+    <app-icon name="done_all" [size]="20" class="mr-1" />
     Apply {{ concepts().length }} Mappings
   </button>
 </mat-dialog-actions>

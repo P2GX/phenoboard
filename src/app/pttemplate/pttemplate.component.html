@@ -314,12 +314,12 @@
       <div class="toolbar-age-group">
         <div class="toolbar-btn-group">
           <button mat-button (click)="openAgeDialog()" class="toolbar-btn">
-            <mat-icon class="toolbar-btn-icon">edit</mat-icon>
+            <app-icon class="toolbar-btn-icon" name="edit" [size]="20" />
             <span>Add onset age</span>
           </button>
           <div class="toolbar-btn-inner-divider"></div>
           <button mat-button (click)="addAllCohortAges()" class="toolbar-btn toolbar-btn-muted">
-            <mat-icon class="toolbar-btn-icon">group_add</mat-icon>
+            <app-icon name="group_add" [size]="20"  class="toolbar-btn-icon"/>
             <span>Add ages from cohort</span>
           </button>
         </div>
@@ -349,7 +349,7 @@
 
         <div class="action-with-help">
           <a routerLink="/tableeditor" class="tool-btn btn-workflow no-underline">
-            <mat-icon>table_chart</mat-icon> New ETL
+            <app-icon name="table_chart" [size]="20" /> New ETL
           </a>
           <hpo-help-button
             title="Adding additional data"
@@ -364,7 +364,7 @@
 
       <div class="action-group">
         <button class="tool-btn btn-workflow" (click)="validateCohort()">
-          <mat-icon>health_and_safety</mat-icon> Check & Fix
+          <app-icon name="health_and_safety" [size]="20" /> Check & Fix
         </button>
 
         <div class="action-with-help">
@@ -373,7 +373,7 @@
             (click)="sortCohortRows()"
             matTooltip="Sort rows chronologically"
           >
-            <mat-icon>sort</mat-icon> Sort
+            <app-icon name="sort" [size]="20" /> Sort
           </button>
           <hpo-help-button
             title="Editing cohort data"
@@ -388,19 +388,19 @@
 
       <div class="action-group">
         <button class="tool-btn btn-success" (click)="saveCohort()">
-          <mat-icon>save</mat-icon> Save
+          <app-icon name="save" [size]="20" /> Save
         </button>
 
         <button class="tool-btn btn-success" (click)="exportPpkt()">
-          <mat-icon>description</mat-icon> Phenopackets
+          <app-icon name="description" [size]="20" /> Phenopackets
         </button>
 
         <button class="tool-btn btn-success" (click)="exportHpoa()">
-          <mat-icon>assignment</mat-icon> HPOA
+          <app-icon name="assignment" [size]="20" /> HPOA
         </button>
 
         <button class="tool-btn btn-warning" (click)="recordBiocuration()">
-          <mat-icon>fingerprint</mat-icon> Biocuration
+          <app-icon name="fingerprint" [size]="20" /> Biocuration
         </button>
 
         <hpo-help-button

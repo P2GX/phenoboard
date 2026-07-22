@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, Input, NgZone, viewChild } from '@angular/core';
+import { Component, inject, Input, NgZone, viewChild } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
@@ -14,7 +14,6 @@ import {
   CohortData,
 } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { VariantDto, VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
@@ -23,7 +22,7 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent, toCellValue } from '@workspace/ui';
+import { ConfirmDialogComponent, toCellValue, IconComponent } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
@@ -42,7 +41,7 @@ import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component'
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, MatIconModule, HelpButtonComponent, AdddemoComponent, PubmedComponent],
+  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })

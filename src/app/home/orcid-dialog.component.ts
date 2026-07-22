@@ -8,9 +8,8 @@ import {
 } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-
 import { ReactiveFormsModule } from '@angular/forms';
+import { IconComponent } from "@workspace/ui";
 
 export interface OrcidDialogData {
   currentOrcid?: string;
@@ -42,7 +41,7 @@ export interface OrcidDialogData {
       </form>
 
       <div class="orcid-info">
-        <mat-icon>info</mat-icon>
+        <app-icon name="info" [size]="20" />
         <span>
           ORCID provides a persistent digital identifier for researchers.
           <a href="https://orcid.org/" target="_blank" class="text-blue-600 underline"
@@ -105,7 +104,7 @@ export interface OrcidDialogData {
     `,
   ],
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatIconModule, ReactiveFormsModule],
+  imports: [MatDialogModule, MatInputModule, ReactiveFormsModule, IconComponent],
 })
 export class OrcidDialogComponent {
   private fb = inject(FormBuilder);
