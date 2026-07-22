@@ -7,7 +7,7 @@ describe('IndividualEditComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IndividualEditComponent]
+      imports: [IndividualEditComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(IndividualEditComponent);

@@ -7,7 +7,7 @@ describe('TableEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManualHgvsVariantDialog]
+      imports: [ManualHgvsVariantDialog],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ManualHgvsVariantDialog);

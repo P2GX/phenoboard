@@ -1,5 +1,3 @@
-
-
 .rotate-header {
   height: 80px; /* or less */
   vertical-align: bottom;
@@ -7,19 +5,18 @@
 }
 
 .hpo-col {
-  position: relative;        /* makes absolute child positioning work */
+  position: relative; /* makes absolute child positioning work */
   width: auto;
   max-width: 3.5rem;
   white-space: nowrap;
   text-align: center;
-  vertical-align: bottom;    /* align content towards the bottom */
-  overflow: visible;   
+  vertical-align: bottom; /* align content towards the bottom */
+  overflow: visible;
 }
 
 .hpo-col-th {
   height: 200px;
 }
-
 
 .hpo-col .rotated-text {
   transform: rotate(-30deg);
@@ -72,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;       /* match your square size */
+  width: 2.5rem; /* match your square size */
   height: 2.5rem;
   border-radius: 4px;
   background-color: #dbeafe; /* light blue background */
@@ -101,7 +98,6 @@
   box-shadow: 0 0 3px rgba(30, 64, 175, 0.4);
 }
 
-
 .na-cell {
   background-color: #f5f5f5;
   color: #999;
@@ -125,18 +121,18 @@
 ::ng-deep .error-snackbar {
   background: white !important;
   border: 2px solid red !important;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.2) !important;
-  
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2) !important;
+
   .mat-mdc-snackbar-surface {
     background: white !important;
   }
-  
+
   .mat-mdc-snackbar-label {
     color: red !important;
     font-weight: bold !important;
     white-space: pre-line !important;
   }
-  
+
   .mat-mdc-snack-bar-action button {
     color: darkred !important;
     font-weight: bold !important;
@@ -152,9 +148,9 @@
 
 /* Label text styling */
 .button-label {
-  font-size: 0.75rem;      /* smaller text */
-  color: #666;             /* medium grey */
-  vertical-align: middle;  /* align nicely with icon */
+  font-size: 0.75rem; /* smaller text */
+  color: #666; /* medium grey */
+  vertical-align: middle; /* align nicely with icon */
 }
 
 /* Ensure icon-button lays out inline content */
@@ -180,8 +176,6 @@ button[mat-icon-button] {
   display: none; /* Webkit */
 }
 
-
-
 .focused-row {
   background-color: #eef5ff;
 }
@@ -206,7 +200,9 @@ button[mat-icon-button] {
   display: flex;
   align-items: center;
   justify-content: center; /* centers emoji perfectly */
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .allele-toggle-group .mat-button-toggle:hover {
@@ -232,19 +228,19 @@ button[mat-icon-button] {
 
 .variant-bar {
   display: flex;
-  gap: 2px;         /* small spacing between buttons */
+  gap: 2px; /* small spacing between buttons */
   justify-content: start;
   align-items: center;
   padding-right: 5px;
 }
 .variant-bar button {
-  width: 18px;      /* make buttons small and uniform */
+  width: 18px; /* make buttons small and uniform */
   height: 18px;
   padding: 0;
 }
 
 .gene-links a {
-  color: #2563eb;            /* blue-600 */
+  color: #2563eb; /* blue-600 */
   text-decoration: none;
   font-weight: 500;
 }
@@ -254,7 +250,7 @@ button[mat-icon-button] {
 }
 
 .gene-links a:visited {
-  color: #1e40af;            /* slightly darker blue */
+  color: #1e40af; /* slightly darker blue */
 }
 
 .gene-links a:focus {
@@ -285,15 +281,13 @@ button[mat-icon-button] {
 
 .allele-tile:hover {
   background-color: #f3f4f6; /* gray-100 */
-  border-color: #6366f1;     /* indigo-500 */
+  border-color: #6366f1; /* indigo-500 */
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .allele-tile:active {
   transform: scale(0.97);
 }
-
-
 
 .allele-btn {
   width: 1.75rem;
@@ -312,7 +306,7 @@ button[mat-icon-button] {
 
 .allele-btn:hover {
   background-color: #f3f4f6; /* gray-100 */
-  border-color: #9ca3af;     /* gray-400 */
+  border-color: #9ca3af; /* gray-400 */
 }
 
 .allele-btn-delete {
@@ -325,14 +319,14 @@ button[mat-icon-button] {
 }
 
 .allele-btn-add {
-  background-color: #ecfdf5;   /* green-50 */
-  border-color: #a7f3d0;       /* green-200 */
-  color: #047857;              /* green-700 */
+  background-color: #ecfdf5; /* green-50 */
+  border-color: #a7f3d0; /* green-200 */
+  color: #047857; /* green-700 */
   font-weight: 600;
 }
 
 .allele-btn-add:hover {
-  background-color: #d1fae5;  /* green-100 */
+  background-color: #d1fae5; /* green-100 */
 }
 
 /* Count buttons */
@@ -358,7 +352,6 @@ button[mat-icon-button] {
   display: none !important;
 }
 
-
 .page-container {
   padding: 24px;
   background-color: #fafafa;
@@ -367,7 +360,6 @@ button[mat-icon-button] {
 .section-gap-top {
   margin-top: 16px;
 }
-
 
 .hpo-filter-row {
   margin-top: 16px;
@@ -383,7 +375,6 @@ button[mat-icon-button] {
   font-size: 0.875rem;
 }
 
-
 .pt-table-scroll {
   overflow-y: auto;
   max-height: 600px;
@@ -395,7 +386,7 @@ button[mat-icon-button] {
   top: 0;
   z-index: 10;
   background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -404,9 +395,8 @@ button[mat-icon-button] {
 }
 
 .row-no-hpo {
-  background-color: #fff5f5; 
+  background-color: #fff5f5;
 }
-
 
 .cell-error-label {
   color: #e53935;
@@ -418,7 +408,7 @@ button[mat-icon-button] {
   background: #fff;
   border: 1px solid #bdbdbd;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 999;
   font-size: 0.875rem;
   padding: 16px;
@@ -460,8 +450,12 @@ button[mat-icon-button] {
   border-radius: 50%;
 }
 
-.allele-dot-valid   { background-color: #43a047; }
-.allele-dot-invalid { background-color: #e53935; }
+.allele-dot-valid {
+  background-color: #43a047;
+}
+.allele-dot-invalid {
+  background-color: #e53935;
+}
 
 .allele-menu-grid {
   display: grid;
@@ -470,14 +464,12 @@ button[mat-icon-button] {
   width: 220px;
 }
 
-
 .cell-truncate {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   max-width: 4rem;
 }
-
 
 .toolbar-bar {
   display: flex;
@@ -486,7 +478,7 @@ button[mat-icon-button] {
   padding: 8px;
   background-color: #f8fafc;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
 }
 
@@ -524,7 +516,7 @@ button[mat-icon-button] {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 2px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .toolbar-btn {
@@ -532,7 +524,9 @@ button[mat-icon-button] {
   padding: 0 12px !important;
   font-size: 0.875rem !important;
   gap: 4px; /* This replaces the need for ml-1 on the span */
-  &:hover { background-color: #f8fafc; }
+  &:hover {
+    background-color: #f8fafc;
+  }
 }
 
 .toolbar-btn-muted {
@@ -590,7 +584,7 @@ button[mat-icon-button] {
   padding: 12px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e0e0e0;
   margin-bottom: 16px;
 }
@@ -608,14 +602,13 @@ button[mat-icon-button] {
   }
 }
 
-
 .context-menu {
   position: absolute;
   z-index: 50;
   background: #fff;
   border: 1px solid #bdbdbd;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 8px;
   font-size: 0.875rem;
   min-width: 176px;
@@ -638,7 +631,8 @@ button[mat-icon-button] {
   border: none;
   background: none;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #f5f5f5;
     outline: none;
   }
@@ -660,15 +654,19 @@ button[mat-icon-button] {
   font-size: 0.75rem;
 }
 
-.modifier-indicator-dot { font-size: 10px; vertical-align: super; opacity: 0.7; }
+.modifier-indicator-dot {
+  font-size: 10px;
+  vertical-align: super;
+  opacity: 0.7;
+}
 
 .context-menu-position-wrapper {
   position: fixed; /* CRITICAL: Matches the coordinate space of event.clientX/Y */
-  z-index: 1000;   /* Keeps the menu floating on top of your data table */
-  
+  z-index: 1000; /* Keeps the menu floating on top of your data table */
+
   /* Optional: Ensure it doesn't accidentally stretch across the page */
   display: block;
-  width: max-content; 
+  width: max-content;
 }
 
 .menu-overlay {
@@ -688,26 +686,26 @@ button[mat-icon-button] {
 
 .hpo-cell-modify-modal {
   /* Position it fixed relative to the browser window */
-  position: fixed; 
-  
+  position: fixed;
+
   /* Start at 100px from the top */
-  top: 100px; 
-  
+  top: 100px;
+
   /* Move to the horizontal center */
   left: 50%;
-  
+
   /* Pull it back by 50% of its own width to perfectly center it */
   transform: translateX(-50%);
-  
+
   /* Ensure it sits above the context menu */
   z-index: 100000;
-  
+
   /* Styling */
   background: white;
   width: 400px; /* Adjust this to your preferred width */
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .modal-container {
@@ -719,5 +717,5 @@ button[mat-icon-button] {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }

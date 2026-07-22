@@ -1,14 +1,13 @@
-
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
-import { CohortData, DiseaseData, GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
+import {
+  CohortData,
+  DiseaseData,
+  GeneTranscriptData,
+} from '../../../libs/ui/src/lib/models/cohort_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { SourcePmid } from '@workspace/ui';
 import { PmidDialogComponent } from '../util/pmidvis/pmid-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-
-
-
-
 
 /* Display a summary of the salient characteristics of the Cohort */
 @Component({
@@ -19,14 +18,12 @@ import { MatDialog } from '@angular/material/dialog';
   imports: [PmidDialogComponent],
 })
 export class CohortSummaryComponent {
-  
-  cohort = input.required<CohortData>(); 
+  cohort = input.required<CohortData>();
   private cohortService = inject(CohortDtoService);
   showPmid = signal<boolean>(false);
   citations = computed(() => {
     return this.cohortService.getAllPmids();
   });
-
 
   /* return the total count of distinct variants */
   numVariants = computed((): number => {
@@ -37,10 +34,9 @@ export class CohortSummaryComponent {
     return n_hgvs + n_sv + n_ig;
   });
 
-
-    /* Create an OMIM URL from a string such as OMIM:654123 */
+  /* Create an OMIM URL from a string such as OMIM:654123 */
   getOmimId(diseaseId: string): string {
-    const parts = diseaseId.split(":");
+    const parts = diseaseId.split(':');
     return `${parts.length > 1 ? parts[1] : diseaseId}`;
   }
 
@@ -49,21 +45,22 @@ export class CohortSummaryComponent {
   }
 
   /* Get Links for display with summary of cohort */
-  getGeneLinks(disease: DiseaseData): {symbol: string, hgncUrl: string, transcript: string, ncbiUrl: string}[] {
-      if (!disease?.geneTranscriptList?.length) {
-        return [];
-      }
-  
-      return disease.geneTranscriptList.map((gene:  GeneTranscriptData) => ({
-        symbol: gene.geneSymbol,
-        transcript: gene.transcript,
-        hgncUrl: `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${gene.hgncId}`,
-        ncbiUrl: `https://www.ncbi.nlm.nih.gov/nuccore/${gene.transcript}`
-      }));
+  getGeneLinks(
+    disease: DiseaseData,
+  ): { symbol: string; hgncUrl: string; transcript: string; ncbiUrl: string }[] {
+    if (!disease?.geneTranscriptList?.length) {
+      return [];
     }
 
-  togglePmidModal() {
-    this.showPmid.update(v => !v);
+    return disease.geneTranscriptList.map((gene: GeneTranscriptData) => ({
+      symbol: gene.geneSymbol,
+      transcript: gene.transcript,
+      hgncUrl: `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${gene.hgncId}`,
+      ncbiUrl: `https://www.ncbi.nlm.nih.gov/nuccore/${gene.transcript}`,
+    }));
   }
 
+  togglePmidModal() {
+    this.showPmid.update((v) => !v);
+  }
 }

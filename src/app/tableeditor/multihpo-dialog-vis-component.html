@@ -9,27 +9,27 @@
     </tr>
 
     @for (entry of entries; track entry; let i = $index) {
-      <tr>
-        <td class="px-2 py-1">{{ entry.hpoId }}</td>
-        <td class="px-2 py-1">{{ entry.label }}</td>
-        <td class="px-2 py-1">
-          @if (editMode) {
-            <mat-select [(ngModel)]="entries[i].status">
-              <mat-option value="observed">Observed</mat-option>
-              <mat-option value="excluded">Excluded</mat-option>
-            </mat-select>
-          } @else {
-            <mat-chip
-              [ngClass]="{
+    <tr>
+      <td class="px-2 py-1">{{ entry.hpoId }}</td>
+      <td class="px-2 py-1">{{ entry.label }}</td>
+      <td class="px-2 py-1">
+        @if (editMode) {
+        <mat-select [(ngModel)]="entries[i].status">
+          <mat-option value="observed">Observed</mat-option>
+          <mat-option value="excluded">Excluded</mat-option>
+        </mat-select>
+        } @else {
+        <mat-chip
+          [ngClass]="{
                 'bg-green-200 text-green-900': entry.status === 'observed',
                 'bg-red-200 text-red-900': entry.status === 'excluded'
               }"
-            >
-              {{ entry.status }}
-            </mat-chip>
-          }
-        </td>
-      </tr>
+        >
+          {{ entry.status }}
+        </mat-chip>
+        }
+      </td>
+    </tr>
     }
   </table>
 </mat-dialog-content>
@@ -38,9 +38,9 @@
   <button mat-button (click)="onCancel()">Close</button>
 
   @if (editMode) {
-    <button mat-button (click)="toggleEdit()">Cancel Edit</button>
-    <button mat-button color="primary" (click)="onSave()">Save</button>
+  <button mat-button (click)="toggleEdit()">Cancel Edit</button>
+  <button mat-button color="primary" (click)="onSave()">Save</button>
   } @else {
-    <button mat-button color="primary" (click)="toggleEdit()">Edit</button>
+  <button mat-button color="primary" (click)="toggleEdit()">Edit</button>
   }
 </mat-dialog-actions>

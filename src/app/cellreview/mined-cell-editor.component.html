@@ -4,9 +4,7 @@
       <mat-icon class="text-slate-400">subject</mat-icon>
       <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Source text</span>
     </div>
-    <div class="source-bubble">
-      "{{ cell().cellText }}"
-    </div>
+    <div class="source-bubble">"{{ cell().cellText }}"</div>
   </div>
 
   <table class="compact-table">
@@ -19,76 +17,101 @@
     </thead>
     <tbody>
       @for (term of cell().mappedTermList; track term.hpoId) {
-      <tr>
-        <td class="term-label">
-          <strong>{{ term.hpoLabel || 'Unknown Term' }}</strong>
-        </td>
-        <td>
-          <span class="hpo-id-badge">{{ term.hpoId }}</span>
-        </td>
-        <td class="action-col">
-          <div class="controls-wrapper">
-            <button mat-stroked-button [matMenuTriggerFor]="statusMenu" class="status-btn" 
-                    [class.status-set]="term.status">
-              <span class="current-value">{{ (term.status || 'na') | titlecase }}</span>
-              <mat-icon>arrow_drop_down</mat-icon>
-            </button>
-
-            <div class="onset-group" [class.has-onset]="term.onset && term.onset !== 'na'">
-              <div class="onset-icon">
-                <mat-icon>schedule</mat-icon>
-              </div>
-              <select #onsetSelect (change)="updateOnset(term, onsetSelect.value)" class="onset-select">
-                @for (option of availableOnsetTerms; track option) {  
-                  <option [value]="option" [selected]="option === term.onset">{{ option }}</option>
-                }
-              </select>
-              <button (click)="addOnsetString(term)" class="add-onset-btn" matTooltip="Add Custom Onset">+</button>
-            </div>
-          </div>
-
-          <mat-menu #statusMenu="matMenu">
-            @for (opt of statusOptions; track opt) {
-              <button mat-menu-item (click)="updateStatus(term, opt)">
-                <mat-icon [color]="term.status === opt ? 'primary' : ''">
-                  {{ term.status === opt ? 'check_circle' : 'radio_button_unchecked' }}
-                </mat-icon>
-                <span>{{ opt | titlecase }}</span>
+        <tr>
+          <td class="term-label">
+            <strong>{{ term.hpoLabel || 'Unknown Term' }}</strong>
+          </td>
+          <td>
+            <span class="hpo-id-badge">{{ term.hpoId }}</span>
+          </td>
+          <td class="action-col">
+            <div class="controls-wrapper">
+              <button
+                mat-stroked-button
+                [matMenuTriggerFor]="statusMenu"
+                class="status-btn"
+                [class.status-set]="term.status"
+              >
+                <span class="current-value">{{ term.status || 'na' | titlecase }}</span>
+                <mat-icon>arrow_drop_down</mat-icon>
               </button>
-            }
-          </mat-menu>
-        </td>
-      </tr>
+
+              <div class="onset-group" [class.has-onset]="term.onset && term.onset !== 'na'">
+                <div class="onset-icon">
+                  <mat-icon>schedule</mat-icon>
+                </div>
+                <select
+                  #onsetSelect
+                  (change)="updateOnset(term, onsetSelect.value)"
+                  class="onset-select"
+                >
+                  @for (option of availableOnsetTerms; track option) {
+                    <option [value]="option" [selected]="option === term.onset">
+                      {{ option }}
+                    </option>
+                  }
+                </select>
+                <button
+                  (click)="addOnsetString(term)"
+                  class="add-onset-btn"
+                  matTooltip="Add Custom Onset"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <mat-menu #statusMenu="matMenu">
+              @for (opt of statusOptions; track opt) {
+                <button mat-menu-item (click)="updateStatus(term, opt)">
+                  <mat-icon [color]="term.status === opt ? 'primary' : ''">
+                    {{ term.status === opt ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span>{{ opt | titlecase }}</span>
+                </button>
+              }
+            </mat-menu>
+          </td>
+        </tr>
       }
     </tbody>
   </table>
 </div>
 <div class="exclusion-container">
-  
   <div class="shelf-header">
     <div class="title-group">
-      <button mat-icon-button 
-            [matMenuTriggerFor]="helpMenu" 
-            class="help-btn"
-            aria-label="Toggle explanation">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="helpMenu"
+        class="help-btn"
+        aria-label="Toggle explanation"
+      >
         <mat-icon>help_outline</mat-icon>
       </button>
     </div>
     <mat-menu #helpMenu="matMenu" class="help-bubble">
       <div class="help-content" (click)="$event.stopPropagation()">
         <h3>About Other Terms</h3>
-        <p>These HPO terms were annotated for other individuals (rows in the current column), but haven't been assigned to this specific cell yet.</p>
-        <p>Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if appropriate. Alternatively, click on individual terms (below) to mark only specific terms as excluded.</p>
+        <p>
+          These HPO terms were annotated for other individuals (rows in the current column), but
+          haven't been assigned to this specific cell yet.
+        </p>
+        <p>
+          Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if
+          appropriate. Alternatively, click on individual terms (below) to mark only specific terms
+          as excluded.
+        </p>
       </div>
     </mat-menu>
     <span class="shelf-title">Other terms ({{ toExclude().length || 0 }})</span>
     @if (toExclude().length > 0) {
-      <button class="shelf-badge bulk-action"  
-              [disabled]="toExclude().length === 0"
-              (click)="excludeAll.emit()"
-              >
+      <button
+        class="shelf-badge bulk-action"
+        [disabled]="toExclude().length === 0"
+        (click)="excludeAll.emit()"
+      >
         <mat-icon>done_all</mat-icon>
-        <span class="badge-label">Exclude All</span>  
+        <span class="badge-label">Exclude All</span>
       </button>
     }
   </div>
@@ -104,5 +127,4 @@
       <div class="empty-shelf-message">All cohort terms are accounted for.</div>
     }
   </div>
-
 </div>

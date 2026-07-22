@@ -8,10 +8,9 @@ describe('VariantListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VariantListComponent]
-    })
-    .compileComponents();
-    
+      imports: [VariantListComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(VariantListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -12,10 +12,15 @@
 }
 
 /* Move these here so they apply to the div directly */
-.cell-raw { color: #666; background-color: white; }
-.cell-transformed { background-color: lightgreen; }
-.cell-error { 
-  background-color: lightcoral; 
+.cell-raw {
+  color: #666;
+  background-color: white;
+}
+.cell-transformed {
+  background-color: lightgreen;
+}
+.cell-error {
+  background-color: lightcoral;
   outline: 1px solid #b00020; /* Use outline so it doesn't shift layout */
   outline-offset: -1px;
 }

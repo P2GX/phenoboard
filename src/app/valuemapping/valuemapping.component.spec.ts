@@ -8,10 +8,9 @@ describe('ValueMappingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ValueMappingComponent]
-    })
-    .compileComponents();
-    
+      imports: [ValueMappingComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(ValueMappingComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

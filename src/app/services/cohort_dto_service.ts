@@ -1,300 +1,295 @@
-import { computed, inject, Injectable, signal, WritableSignal  } from '@angular/core';
-import { CohortData, GeneTranscriptData, DiseaseData, RowData, CurationEvent, getRowId } from '@workspace/ui';
+import { computed, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import {
+  CohortData,
+  GeneTranscriptData,
+  DiseaseData,
+  RowData,
+  CurationEvent,
+  getRowId,
+} from '@workspace/ui';
 import { ConfigService } from './config.service';
 import { HgvsVariant, IntergenicHgvsVariant, StructuralVariant, SourcePmid } from '@workspace/ui';
 
-
 /**
  * This service is the one source of truth for the Cohort data (Template). The data is sent to the back end to add
- * new rows, to serialize, etc., but the updated tempalte is sent back and capture here. 
+ * new rows, to serialize, etc., but the updated tempalte is sent back and capture here.
  * We consider this service to have the one source of truth
  */
 @Injectable({ providedIn: 'root' })
 export class CohortDtoService {
-    
-    private configService = inject(ConfigService);
-    private _cohortData: WritableSignal<CohortData | null> = signal<CohortData | null>(null);
-    cohortData = this._cohortData.asReadonly(); // read-only for consumers
+  private configService = inject(ConfigService);
+  private _cohortData: WritableSignal<CohortData | null> = signal<CohortData | null>(null);
+  cohortData = this._cohortData.asReadonly(); // read-only for consumers
 
+  //private cohortDataSubject = new BehaviorSubject<CohortData | null>(null);
+  //cohortData$ = this.cohortDataSubject.asObservable();
 
-    //private cohortDataSubject = new BehaviorSubject<CohortData | null>(null);
-    //cohortData$ = this.cohortDataSubject.asObservable();
+  setCohortData(template: CohortData) {
+    this._cohortData.set(template);
+  }
 
-    
-    setCohortData(template: CohortData) {
-        this._cohortData.set(template);
+  getCohortData(): CohortData | null {
+    return this._cohortData();
+  }
+
+  private readonly rowMap = computed(() => {
+    const cohort = this.cohortData();
+    if (!cohort) return new Map<string, RowData>();
+
+    return new Map(cohort.rows.map((r) => [getRowId(r.individualData), r]));
+  });
+
+  getRowById(rowId: string): RowData | undefined {
+    return this.rowMap().get(rowId);
+  }
+
+  clearCohortData() {
+    this._cohortData.set(null);
+  }
+
+  getDiseaseList(): DiseaseData[] {
+    const cohortData = this.getCohortData();
+    if (cohortData == null) {
+      return [];
     }
+    const dto = cohortData.diseaseList;
+    return dto || null;
+  }
 
-    getCohortData(): CohortData | null {
-        return this._cohortData();
+  getCohortAcronym(): string | null {
+    const cohortData = this.getCohortData();
+    if (cohortData == null) {
+      console.error('Attempt to get acronym but cohort template was null');
+      return null;
     }
-
-    private readonly rowMap = computed(() => {
-        const cohort = this.cohortData();
-        if (!cohort) return new Map<string, RowData>();
-
-        return new Map(
-            cohort.rows.map(r => [getRowId(r.individualData), r])
-        );
-    });
-
-    getRowById(rowId: string): RowData | undefined {
-        return this.rowMap().get(rowId);
+    if (cohortData.cohortAcronym == null) {
+      console.error('Cohort acronym not initialized');
+      return null;
     }
+    return cohortData.cohortAcronym;
+  }
 
-    clearCohortData() {
-         this._cohortData.set(null);
+  /** Add an HGVS object that has been validated in the backend */
+  addHgvsVariant(hgvs: HgvsVariant) {
+    const cohortData = this.getCohortData();
+    if (!cohortData) {
+      alert('No CohortDto available to update');
+      return;
     }
+    const key = hgvs.variantKey;
+    // Create a new object so we don't mutate the existing one directly
+    const updated: CohortData = {
+      ...cohortData,
+      hgvsVariants: {
+        ...cohortData.hgvsVariants,
+        [key]: hgvs,
+      },
+    };
+    this.setCohortData(updated);
+  }
 
-    getDiseaseList(): DiseaseData[] {
-        const cohortData = this.getCohortData();
-        if (cohortData == null) {
-            return [];
-        }
-        const dto = cohortData.diseaseList;
-        return dto || null;
+  /** Add an SV object that has been validated in the backend */
+  addStructuralVariant(sv: StructuralVariant) {
+    const current = this.getCohortData();
+    if (!current) {
+      alert('No CohortDto available to update');
+      return;
     }
+    const key = sv.variantKey;
+    const updated: CohortData = {
+      ...current,
+      structuralVariants: {
+        ...current.structuralVariants,
+        [key]: sv,
+      },
+    };
+    this.setCohortData(updated);
+  }
 
-    getCohortAcronym(): string | null {
-        const cohortData = this.getCohortData();
-        if (cohortData == null) {
-            console.error("Attempt to get acronym but cohort template was null");
-            return null;
-        }
-        if (cohortData.cohortAcronym == null) {
-            console.error("Cohort acronym not initialized");
-            return null;
-        }
-        return cohortData.cohortAcronym;
+  addIntergenicVariant(ig: IntergenicHgvsVariant) {
+    const current = this.getCohortData();
+    if (!current) {
+      alert('No CohortData available to update');
+      return;
     }
+    const key = ig.variantKey;
+    console.error('adding ig var, key=', key);
+    const updated: CohortData = {
+      ...current,
+      intergenicVariants: {
+        ...current.intergenicVariants,
+        [key]: ig,
+      },
+    };
+    this.setCohortData(updated);
+  }
 
-    /** Add an HGVS object that has been validated in the backend */
-    addHgvsVariant(hgvs: HgvsVariant) {
-        const cohortData = this.getCohortData();
-        if (!cohortData) {
-            alert("No CohortDto available to update");
-            return;
-        }
-        const key = hgvs.variantKey;
-        // Create a new object so we don't mutate the existing one directly
-        const updated: CohortData = {
-            ...cohortData,
-            hgvsVariants: {
-                ...cohortData.hgvsVariants,
-                [key]: hgvs
-            }
-        };
-        this.setCohortData(updated);
+  /* addHgvsVariant etc add the complete variant to the maps. Here, we add the variant
+   * key to the row of the individual with the allele */
+  addAlleleToRow(rowId: string, variantKey: string, count: number): boolean {
+    const cohort = this.cohortData();
+    if (!cohort) return false;
+    const row = cohort.rows.find((r) => getRowId(r.individualData) === rowId);
+    if (!row) return false;
+    row.alleleCountMap[variantKey] = count;
+    this.setCohortData({ ...cohort });
+    return true;
+  }
+
+  /** Update the disease cohort acronym, e.g., MFS for Marfan syndrome.
+   * This can be useful to set the acronym when we are importing from
+   * a legacy excel file (which does not have a field for disease aronym).
+   */
+  async setCohortAcronym(acronym: string) {
+    const current = this.getCohortData();
+    if (!current) {
+      alert('No CohortDto available to update');
+      return;
     }
+    const updated: CohortData = {
+      ...current,
+      cohortAcronym: acronym,
+    };
+    this.setCohortData(updated);
+  }
 
-    /** Add an SV object that has been validated in the backend */
-    addStructuralVariant(sv: StructuralVariant) {
-        const current = this.getCohortData();
-        if (!current) {
-            alert("No CohortDto available to update");
-            return;
-        }
-        const key = sv.variantKey;
-        const updated: CohortData = {
-            ...current,
-            structuralVariants: {
-                ...current.structuralVariants,
-                [key]: sv
-            }
-        };
-        this.setCohortData(updated);
+  async saveCohortDto(): Promise<void> {
+    const cohort = this.getCohortData();
+    if (cohort != null) {
+      return await this.configService.validateCohort(cohort);
+    } else {
+      console.error('Attempt to save null CohortDto');
     }
+  }
 
-    addIntergenicVariant(ig: IntergenicHgvsVariant) {
-        const current = this.getCohortData();
-        if (!current) {
-            alert("No CohortData available to update");
-            return;
-        }
-        const key = ig.variantKey;
-        console.error("adding ig var, key=", key);
-        const updated: CohortData = {
-            ...current,
-            intergenicVariants: {
-                ...current.intergenicVariants,
-                [key]: ig
-            }
-        }
-        this.setCohortData(updated);
-    }
-
-    /* addHgvsVariant etc add the complete variant to the maps. Here, we add the variant
-     * key to the row of the individual with the allele */
-    addAlleleToRow(rowId: string, variantKey: string, count: number ): boolean {
-        const cohort = this.cohortData();
-        if (!cohort) return false;
-        const row = cohort.rows.find(r => getRowId(r.individualData) === rowId);
-        if (!row) return false;
-        row.alleleCountMap[variantKey] = count;
-        this.setCohortData({ ...cohort });
-        return true;
-    }
-
-    /** Update the disease cohort acronym, e.g., MFS for Marfan syndrome.
-     * This can be useful to set the acronym when we are importing from 
-     * a legacy excel file (which does not have a field for disease aronym).
-     */
-    async setCohortAcronym(acronym: string) {
-        const current = this.getCohortData();
-        if (!current) {
-            alert("No CohortDto available to update");
-            return;
-        }
-        const updated: CohortData = {
-            ...current,
-            cohortAcronym: acronym
-        };
-        this.setCohortData(updated);
-    }
-
-    async saveCohortDto(): Promise<void> {
-        const cohort = this.getCohortData();
-        if (cohort != null) {
-            return await this.configService.validateCohort(cohort);
-        } else {
-            console.error("Attempt to save null CohortDto");
-        }
-    }
-
-    /* Get all of the gene symbol/HGNC/transcript entries for the current
+  /* Get all of the gene symbol/HGNC/transcript entries for the current
     cohort. For Mendelian, this should be just one */
-    getGeneTranscriptDataList(): GeneTranscriptData[] {
-        const disease_list = this.getDiseaseList();
-        if (disease_list == null || disease_list.length == 0) {
-            console.error("Attempt to retrieve genes but disease_list was empty");
-            return [];
-        }
-        const gt_list: GeneTranscriptData[] = disease_list.flatMap(d => d.geneTranscriptList);
-        return  gt_list;
+  getGeneTranscriptDataList(): GeneTranscriptData[] {
+    const disease_list = this.getDiseaseList();
+    if (disease_list == null || disease_list.length == 0) {
+      console.error('Attempt to retrieve genes but disease_list was empty');
+      return [];
     }
+    const gt_list: GeneTranscriptData[] = disease_list.flatMap((d) => d.geneTranscriptList);
+    return gt_list;
+  }
 
-
-
-
-    /** Return a list of all PMIDs */
-    getAllPmids(): SourcePmid[] {
-        const cohort = this.getCohortData();
-        if (! cohort) {
-            return [];
-        }
-        const sourceList: SourcePmid[] = [];
-        const seenPmidSet = new Set();
-        cohort.rows.forEach(row => {
-            const pmid = row.individualData.pmid;
-            const title = row.individualData.title;
-            if (! seenPmidSet.has(pmid)) {
-                seenPmidSet.add(pmid);
-                    const sourcePmid: SourcePmid = {
-                        pmid: pmid,
-                        title: title,
-                    };
-                    sourceList.push(sourcePmid);
-            }
-        })
-       return sourceList;
+  /** Return a list of all PMIDs */
+  getAllPmids(): SourcePmid[] {
+    const cohort = this.getCohortData();
+    if (!cohort) {
+      return [];
     }
-
-    pmidExists(pmid: string): boolean {
-        return this.getAllPmids().some(p => p.pmid === pmid);
-    }
-
-    /** This method is used to see if the current CohortData is initialized and has data rows -- if this is
-     * the case, we need to merge data coming from an EtlDto, otherwise we can just set the cohortData to the
-     * new cohort
-     */
-    currentCohortContainsData() {
-      const current = this.getCohortData();
-      if (current == null) {
-        return false;
+    const sourceList: SourcePmid[] = [];
+    const seenPmidSet = new Set();
+    cohort.rows.forEach((row) => {
+      const pmid = row.individualData.pmid;
+      const title = row.individualData.title;
+      if (!seenPmidSet.has(pmid)) {
+        seenPmidSet.add(pmid);
+        const sourcePmid: SourcePmid = {
+          pmid: pmid,
+          title: title,
+        };
+        sourceList.push(sourcePmid);
       }
-      return (current.rows.length > 0);
-    }
+    });
+    return sourceList;
+  }
 
-    findPhenopacketById(id: string): RowData | undefined {
-        const cohort = this.getCohortData();
-        if (!cohort) {
-            return undefined;
-        }
-        return cohort.rows.find(
-            row => row.individualData.individualId === id
-        );
+  pmidExists(pmid: string): boolean {
+    return this.getAllPmids().some((p) => p.pmid === pmid);
+  }
+
+  /** This method is used to see if the current CohortData is initialized and has data rows -- if this is
+   * the case, we need to merge data coming from an EtlDto, otherwise we can just set the cohortData to the
+   * new cohort
+   */
+  currentCohortContainsData() {
+    const current = this.getCohortData();
+    if (current == null) {
+      return false;
+    }
+    return current.rows.length > 0;
+  }
+
+  findPhenopacketById(id: string): RowData | undefined {
+    const cohort = this.getCohortData();
+    if (!cohort) {
+      return undefined;
+    }
+    return cohort.rows.find((row) => row.individualData.individualId === id);
   }
 
   /**
-   * 
+   *
    * @returns Try to a get a chromosome to use to initialize a dialog.
    */
-    getChromosome(): string {
-        const cohort = this.getCohortData();
-        if (cohort == null) {
-            return '';
-        }
-        if (cohort.cohortType != 'mendelian') {
-            console.error("getChromosome -- Only applicable to Mendelian")
-            return ''; // We probably will only use this for mendelian, but let's avoid surprises.
-        }
-       Object.entries(cohort.hgvsVariants).forEach(([key, hgvs]) => {
-            return hgvs.chr;
-        });
-        Object.entries(cohort.structuralVariants).forEach(([key, sv]) => {
-            return sv.chromosome;
-        });
-        return '';
+  getChromosome(): string {
+    const cohort = this.getCohortData();
+    if (cohort == null) {
+      return '';
     }
-
-    addBiocuration(biocurationEvent: CurationEvent) {
-        const cohort = this.getCohortData();
-        if (cohort === null) {
-            return;
-        }
-        if (!cohort.curationHistory) {
-            cohort.curationHistory = [];
-        }
-        cohort.curationHistory.push(biocurationEvent);
+    if (cohort.cohortType != 'mendelian') {
+      console.error('getChromosome -- Only applicable to Mendelian');
+      return ''; // We probably will only use this for mendelian, but let's avoid surprises.
     }
+    Object.entries(cohort.hgvsVariants).forEach(([key, hgvs]) => {
+      return hgvs.chr;
+    });
+    Object.entries(cohort.structuralVariants).forEach(([key, sv]) => {
+      return sv.chromosome;
+    });
+    return '';
+  }
 
-    /** In the variant tab, the user can update/edit structural variant definitions, e.g., 
-     * the user can change the SV type from SV (generic) to DEL (deletion), etc. This has
-     * the effect of changing the SV key, and so this method updates the rows (which may contain
-     * the "old" keys) accordingly.
-     */
-    updateSv(cohort: CohortData, currentSvKey: string, updatedSvKey: string) {
-        if (currentSvKey == updatedSvKey) {
-            this.setCohortData({...cohort});
-            return;
-        }
-        const updatedRows = cohort.rows.map(row => {
-            // Check if this row even contains the variant we are editing
-            if (!(currentSvKey in row.alleleCountMap)) {
-                return row; // Return original reference if no change needed
-            }
-            // 2. Create a brand new alleleCountMap for this specific row
-            const newAlleleMap = { ...row.alleleCountMap };
-            const count = newAlleleMap[currentSvKey];
-            delete newAlleleMap[currentSvKey];
-            newAlleleMap[updatedSvKey] = count;
-            return {
-                ...row,
-                alleleCountMap: newAlleleMap
-            };
-        });
-        this.setCohortData({
-            ...cohort,
-            rows: updatedRows
-        });
+  addBiocuration(biocurationEvent: CurationEvent) {
+    const cohort = this.getCohortData();
+    if (cohort === null) {
+      return;
     }
-
-    getCurationHistory(): CurationEvent[] {
-        const cohort = this.cohortData();
-        if (cohort) {
-            return cohort.curationHistory || [];
-        }
-        return [];
+    if (!cohort.curationHistory) {
+      cohort.curationHistory = [];
     }
+    cohort.curationHistory.push(biocurationEvent);
+  }
 
+  /** In the variant tab, the user can update/edit structural variant definitions, e.g.,
+   * the user can change the SV type from SV (generic) to DEL (deletion), etc. This has
+   * the effect of changing the SV key, and so this method updates the rows (which may contain
+   * the "old" keys) accordingly.
+   */
+  updateSv(cohort: CohortData, currentSvKey: string, updatedSvKey: string) {
+    if (currentSvKey == updatedSvKey) {
+      this.setCohortData({ ...cohort });
+      return;
+    }
+    const updatedRows = cohort.rows.map((row) => {
+      // Check if this row even contains the variant we are editing
+      if (!(currentSvKey in row.alleleCountMap)) {
+        return row; // Return original reference if no change needed
+      }
+      // 2. Create a brand new alleleCountMap for this specific row
+      const newAlleleMap = { ...row.alleleCountMap };
+      const count = newAlleleMap[currentSvKey];
+      delete newAlleleMap[currentSvKey];
+      newAlleleMap[updatedSvKey] = count;
+      return {
+        ...row,
+        alleleCountMap: newAlleleMap,
+      };
+    });
+    this.setCohortData({
+      ...cohort,
+      rows: updatedRows,
+    });
+  }
+
+  getCurationHistory(): CurationEvent[] {
+    const cohort = this.cohortData();
+    if (cohort) {
+      return cohort.curationHistory || [];
+    }
+    return [];
+  }
 }

@@ -1,6 +1,13 @@
 // adddemo.component.ts
 import { Component, inject, output, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+  AbstractControl,
+} from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
 import { AddageComponent } from '../addages/addage.component';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
@@ -15,8 +22,8 @@ import { HelpButtonComponent } from 'ng-hpo-uikit';
     FormsModule,
     ReactiveFormsModule,
     HelpButtonComponent,
-    IndividualCommentComponent
-],
+    IndividualCommentComponent,
+  ],
   templateUrl: './adddemo.component.html',
   styleUrls: ['./adddemo.component.scss'],
 })
@@ -33,7 +40,7 @@ export class AdddemoComponent {
   // Signals managing visibility state transitions
   isCommentDialogOpen = signal<boolean>(false);
   existingComment = signal<string>('');
-  
+
   isAgeWizardOpen = signal<boolean>(false);
   activeAgeControl = signal<AbstractControl | null>(null);
 
@@ -64,7 +71,7 @@ export class AdddemoComponent {
   /* Age Wizard State Machine Operations */
   openAgeWizard(controlName: string): void {
     const control = this.demoForm.get(controlName);
-    console.log("openAgeWizard contrl = ", control);
+    console.log('openAgeWizard contrl = ', control);
     if (control) {
       this.activeAgeControl.set(control);
       this.isAgeWizardOpen.set(true);
@@ -126,7 +133,7 @@ export class AdddemoComponent {
   cancel(): void {
     this.demoSubmitted.emit({
       dto: this.demoForm.value as DemographDto,
-      hideDemo: true
+      hideDemo: true,
     });
   }
 }

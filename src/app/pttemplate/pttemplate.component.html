@@ -1,4 +1,3 @@
-
 <div class="page-container">
   @if (cohortData(); as cohort) {
     <app-cohort-summary [cohort]="cohort"></app-cohort-summary>
@@ -6,421 +5,484 @@
     <p>Cohort not initialized.</p>
   }
 
-<!-- String input section -->
-<div class="section-gap-top">
- <app-cohort-metadata 
-  [cohortData]="cohortData()!" 
-  (resetCohortMetadata)="handleReset()"
-  (updateAcronym)="handleAcronym($any($event))"
-  (updateMoi)="handleMoi($any($event))">
-  </app-cohort-metadata>
+  <!-- String input section -->
+  <div class="section-gap-top">
+    <app-cohort-metadata
+      [cohortData]="cohortData()!"
+      (resetCohortMetadata)="handleReset()"
+      (updateAcronym)="handleAcronym($any($event))"
+      (updateMoi)="handleMoi($any($event))"
+    >
+    </app-cohort-metadata>
 
-  <div class="hpo-filter-row">
-    <label for="hpoFilter" class="hint-text">Filter HPO columns:</label>
-    <select
-    id="hpoFilter"
-    class="filter-select"
-    [value]="selectedTopLevelHpo()"
-    (change)="selectedTopLevelHpo.set($any($event.target).value)"
-  >
-    <option value="">Show all</option>
-    @for (groupKey of hpoGroupKeys(); track groupKey) {
-      <option [value]="groupKey">{{ groupKey }}</option>
-    }
-  </select>
-  <hpo-help-button 
-            title="Filter HPO columns"
-            [lines]="[
-              'Filter to the columns shown in the display to the indicated top-level HPO category.',
-              'The categories correspond to top-level HPO terms (direct children of <i>Phenotypic abnormality</i>).',
-              'Choose <i>Show all</i> to restore the original view.'
-            ]" />
-  </div>
-
-  <!-- Table with one row per phenopacket -->
-  @if (cohortData(); as cohort){
-  <div class="pt-table-container">
-    <div class="top-scroll-mirror">
-      <div class="spacer-4px" [style.width]="tableWidth"></div>
+    <div class="hpo-filter-row">
+      <label for="hpoFilter" class="hint-text">Filter HPO columns:</label>
+      <select
+        id="hpoFilter"
+        class="filter-select"
+        [value]="selectedTopLevelHpo()"
+        (change)="selectedTopLevelHpo.set($any($event.target).value)"
+      >
+        <option value="">Show all</option>
+        @for (groupKey of hpoGroupKeys(); track groupKey) {
+          <option [value]="groupKey">{{ groupKey }}</option>
+        }
+      </select>
+      <hpo-help-button
+        title="Filter HPO columns"
+        [lines]="[
+          'Filter to the columns shown in the display to the indicated top-level HPO category.',
+          'The categories correspond to top-level HPO terms (direct children of <i>Phenotypic abnormality</i>).',
+          'Choose <i>Show all</i> to restore the original view.',
+        ]"
+      />
     </div>
-    <div class="pt-table-scroll">
-    <table class="pt-table">
-      <thead class="pt-table-head">
-        <tr>
-        <th class="narrow-column bottom-align">Individual ID</th>
 
-            <th class="narrow-column bottom-align">
-              Alleles
-            </th>
-        <!-- The following creates the series of headers for the HPO columns.
+    <!-- Table with one row per phenopacket -->
+    @if (cohortData(); as cohort) {
+      <div class="pt-table-container">
+        <div class="top-scroll-mirror">
+          <div class="spacer-4px" [style.width]="tableWidth"></div>
+        </div>
+        <div class="pt-table-scroll">
+          <table class="pt-table">
+            <thead class="pt-table-head">
+              <tr>
+                <th class="narrow-column bottom-align">Individual ID</th>
+
+                <th class="narrow-column bottom-align">Alleles</th>
+                <!-- The following creates the series of headers for the HPO columns.
             The function shouldDisplayHpoColumn allows the user to focus on 1-10 columns at a time-->
-        @if (cohort) {
-            @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
-              @if (visibleColumnMask()[i]) {
-                <th
-                  class="rotate-header hpo-col hpo-col-th"
-                  (mouseenter)="onHeaderMouseEnter(i)"
-                  (mouseleave)="onHeaderMouseLeave()"
-                >
-                  <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
-                    {{ header.hpoLabel }}
-                  </div>
-                <!-- Popup shown on hover -->
-                @if(isHeaderHovered(i)) {
-                    <div class="hpo-popup">
-                      <a
-                        [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
-                        target="_blank"
-                        rel="noopener"
+                @if (cohort) {
+                  @for (header of cohort.hpoHeaders; track header.hpoId; let i = $index) {
+                    @if (visibleColumnMask()[i]) {
+                      <th
+                        class="rotate-header hpo-col hpo-col-th"
+                        (mouseenter)="onHeaderMouseEnter(i)"
+                        (mouseleave)="onHeaderMouseLeave()"
                       >
-                        🔗 {{ header.hpoId }}
-                      </a>
-                    </div>
+                        <div class="rotated-text" [ngClass]="{ 'hover-underline': true }">
+                          {{ header.hpoLabel }}
+                        </div>
+                        <!-- Popup shown on hover -->
+                        @if (isHeaderHovered(i)) {
+                          <div class="hpo-popup">
+                            <a
+                              [href]="'https://hpo.jax.org/browse/term/' + header.hpoId"
+                              target="_blank"
+                              rel="noopener"
+                            >
+                              🔗 {{ header.hpoId }}
+                            </a>
+                          </div>
+                        }
+                      </th>
+                    }
                   }
-                </th>
-              }
-            }
-          }
-        </tr>
-      </thead>
-      <tbody>
-      @for (row of tableVM(); track row.id;  let rowIndex = $index) {
-      <tr [class.row-no-hpo]="!row.hasObservedHpo">
-        <td class="relative narrow-column"
-          (contextmenu)="onIndividualRightClick($event, row.id)"
-          class="cursor-context-menu">
-          {{ row.individualId }}
-          @if(!row.individualId){ <span class="cell-error-label">[ID is null/empty]</span> }
-          <!-- Info popup for this row -->
-         @if (activeInfoRow(); as currentRow) {
-            <div
-              class="row-info-popup"
-              [style.left.px]="infoMenuPos()?.x"
-              [style.top.px]="infoMenuPos()?.y"
-            >
-              <ul class="row-info-list">
-                <li><strong>{{ currentRow.individualData.individualId }}</strong></li>
-                <li>PMID: {{ currentRow.individualData.pmid }}</li>
-                <li>{{ currentRow.individualData.title }}</li>
-                @if(currentRow.individualData.comment; as comment){
-                  <li><strong>Comment:</strong> {{ comment }}</li>
                 }
-                <li>Onset: {{ currentRow.individualData.ageOfOnset }}</li>
-                <li>Age: {{currentRow.individualData.ageAtLastEncounter}}</li>
-                <li>Deceased: {{currentRow.individualData.deceased}}</li>
-                <li>Sex: {{ currentRow.individualData.sex }}</li>
-              </ul>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of tableVM(); track row.id; let rowIndex = $index) {
+                <tr [class.row-no-hpo]="!row.hasObservedHpo">
+                  <td
+                    class="relative narrow-column"
+                    (contextmenu)="onIndividualRightClick($event, row.id)"
+                    class="cursor-context-menu"
+                  >
+                    {{ row.individualId }}
+                    @if (!row.individualId) {
+                      <span class="cell-error-label">[ID is null/empty]</span>
+                    }
+                    <!-- Info popup for this row -->
+                    @if (activeInfoRow(); as currentRow) {
+                      <div
+                        class="row-info-popup"
+                        [style.left.px]="infoMenuPos()?.x"
+                        [style.top.px]="infoMenuPos()?.y"
+                      >
+                        <ul class="row-info-list">
+                          <li>
+                            <strong>{{ currentRow.individualData.individualId }}</strong>
+                          </li>
+                          <li>PMID: {{ currentRow.individualData.pmid }}</li>
+                          <li>{{ currentRow.individualData.title }}</li>
+                          @if (currentRow.individualData.comment; as comment) {
+                            <li><strong>Comment:</strong> {{ comment }}</li>
+                          }
+                          <li>Onset: {{ currentRow.individualData.ageOfOnset }}</li>
+                          <li>Age: {{ currentRow.individualData.ageAtLastEncounter }}</li>
+                          <li>Deceased: {{ currentRow.individualData.deceased }}</li>
+                          <li>Sex: {{ currentRow.individualData.sex }}</li>
+                        </ul>
 
-              <div class="row-info-actions">
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  class="text-xs"
-                  (click)="openIndividualEditor(); closeRowInfo();"
-                >
-                  ✏️ Edit
-                </button>
-                <button
-                  mat-stroked-button
-                  color="warn"
-                  class="text-xs"
-                  (click)="closeRowInfo()"
-                >
-                  ✖️ Close
-                </button>
-              </div>
-            </div>
-          }
-        </td>
+                        <div class="row-info-actions">
+                          <button
+                            mat-stroked-button
+                            color="primary"
+                            class="text-xs"
+                            (click)="openIndividualEditor(); closeRowInfo()"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            mat-stroked-button
+                            color="warn"
+                            class="text-xs"
+                            (click)="closeRowInfo()"
+                          >
+                            ✖️ Close
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </td>
 
-        <!-- Second column for gene/allele -->
-     
+                  <!-- Second column for gene/allele -->
 
-<td class="relative narrow-column">
-  @if (row.alleles.length === 0) {
-    <button 
-      cdkOverlayOrigin #originList="cdkOverlayOrigin"
-      #originEmpty="cdkOverlayOrigin"
-      class="allele-btn allele-btn-add" 
-      (click)="openAddAlleleRowId = row.id">+</button>
-      <app-popover [trigger]="originList" [isOpen]="openAddAlleleRowId === row.id">
-           <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
-         </app-popover>
-  }
-  @for (allele of row.alleles; track allele.key) {
-    <div class="allele-row">
-       <div class="allele-content">
-            <span 
-              class="allele-status-dot"
-              [ngClass]="allele.validated ? 'allele-dot-valid' : 'allele-dot-invalid'"
-              [title]="allele.validated ? 'Validated' : 'Not validated'"
-            ></span>
-            <span class="cursor-pointer">
-              {{ allele.shortDisplay }}
-            </span>
+                  <td class="relative narrow-column">
+                    @if (row.alleles.length === 0) {
+                      <button
+                        cdkOverlayOrigin
+                        #originList="cdkOverlayOrigin"
+                        #originEmpty="cdkOverlayOrigin"
+                        class="allele-btn allele-btn-add"
+                        (click)="openAddAlleleRowId = row.id"
+                      >
+                        +
+                      </button>
+                      <app-popover [trigger]="originList" [isOpen]="openAddAlleleRowId === row.id">
+                        <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
+                      </app-popover>
+                    }
+                    @for (allele of row.alleles; track allele.key) {
+                      <div class="allele-row">
+                        <div class="allele-content">
+                          <span
+                            class="allele-status-dot"
+                            [ngClass]="allele.validated ? 'allele-dot-valid' : 'allele-dot-invalid'"
+                            [title]="allele.validated ? 'Validated' : 'Not validated'"
+                          ></span>
+                          <span class="cursor-pointer">
+                            {{ allele.shortDisplay }}
+                          </span>
+                        </div>
+                        <div class="allele-count-grid">
+                          <button
+                            class="allele-btn allele-btn-count"
+                            [ngClass]="{ 'selected-count': allele.count === 1 }"
+                            (click)="onAlleleCountChange(allele.key, row.id, 1)"
+                          >
+                            1
+                          </button>
+                          <button
+                            class="allele-btn allele-btn-count"
+                            [ngClass]="{ 'selected-count': allele.count === 2 }"
+                            (click)="onAlleleCountChange(allele.key, row.id, 2)"
+                          >
+                            2
+                          </button>
+                          <button
+                            class="allele-btn allele-btn-delete"
+                            (click)="onAlleleCountChange(allele.key, row.id, 0)"
+                          >
+                            🗑️
+                          </button>
+                          <button
+                            cdkOverlayOrigin
+                            #originList="cdkOverlayOrigin"
+                            class="allele-btn allele-btn-add"
+                            (click)="setActivePopover(row.id, allele.key)"
+                          >
+                            +
+                          </button>
+                          <app-popover
+                            [trigger]="originList"
+                            [isOpen]="isPopoverOpen(row.id, allele.key)"
+                          >
+                            <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
+                          </app-popover>
+                        </div>
+                      </div>
+                    }
+
+                    <ng-template #alleleMenuContent>
+                      <div class="allele-menu-grid">
+                        <button
+                          type="button"
+                          class="allele-tile"
+                          (click)="addAllele(row.id, VariantKind.HGVS); openAddAlleleRowId = null"
+                        >
+                          HGVS
+                        </button>
+                        <button
+                          type="button"
+                          class="allele-tile"
+                          (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null"
+                        >
+                          SV
+                        </button>
+                        <button
+                          type="button"
+                          class="allele-tile"
+                          (click)="
+                            addAllele(row.id, VariantKind.INTERGENIC); openAddAlleleRowId = null
+                          "
+                        >
+                          Intergenic
+                        </button>
+                        <button
+                          type="button"
+                          class="allele-tile"
+                          (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null"
+                        >
+                          Mito
+                        </button>
+                      </div>
+                    </ng-template>
+                  </td>
+
+                  <!-- The values of the HPO columns-->
+                  @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {
+                    @if (visibleColumnMask()[hpoIndex]) {
+                      <td
+                        class="hpo-col"
+                        [ngClass]="cell.cssClass"
+                        style="width: 2.5rem; height: 2.5rem"
+                        (contextmenu)="
+                          onRightClick($event, hpoIndex, rowIndex, row.id, cell.originalCell)
+                        "
+                      >
+                        @switch (cell.originalCell.type) {
+                          @case ('Observed') {
+                            <span>✅</span>
+                          }
+                          @case ('Excluded') {
+                            <span>❌</span>
+                          }
+                          @case ('Na') {
+                            <span>n/a</span>
+                          }
+                          @case ('OnsetAge') {
+                            <div class="onset-content" [title]="cell.displayValue">
+                              <span class="onset-icon">🕒</span>
+                              <span class="onset-text"></span>
+                            </div>
+                          }
+
+                          @default {
+                            <span>Unknown</span>
+                          }
+                        }
+                        @if (hasExtraInfo(cell.originalCell)) {
+                          <button
+                            type="button"
+                            class="info-indicator"
+                            title="View details (right click)"
+                          >
+                            ⓘ
+                          </button>
+                        }
+                      </td>
+                    }
+                  }
+                </tr>
+              }
+              <!-- end of for over the tr -->
+            </tbody>
+          </table>
+        </div>
+        <div class="table-spacer"></div>
+      </div>
+    }
+    <!-- close  @if (cohortData(); as cohort){ -->
+
+    <div class="toolbar-bar">
+      <div class="toolbar-search-group">
+        <div class="toolbar-autocomplete-wrap">
+          <hpo-ontology-autocomplete
+            placeholder="Search clinical phenotypes (e.g., Seizures)..."
+            [autocompleteProvider]="hpoAutocompleteProvider"
+            [requireConfirmation]="true"
+            (selected)="onHpoTermSelected($event)"
+          />
+        </div>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-age-group">
+        <div class="toolbar-btn-group">
+          <button mat-button (click)="openAgeDialog()" class="toolbar-btn">
+            <mat-icon class="toolbar-btn-icon">edit</mat-icon>
+            <span>Add onset age</span>
+          </button>
+          <div class="toolbar-btn-inner-divider"></div>
+          <button mat-button (click)="addAllCohortAges()" class="toolbar-btn toolbar-btn-muted">
+            <mat-icon class="toolbar-btn-icon">group_add</mat-icon>
+            <span>Add ages from cohort</span>
+          </button>
+        </div>
+
+        @if (ageEntries().length > 0) {
+          <div class="age-badge">
+            <span class="age-badge-label">Latest:</span>
+            <span class="age-badge-value">{{ ageEntries().at(-1) }}</span>
+            <span class="age-badge-count">{{ ageEntries().length }}</span>
           </div>
-      <div class="allele-count-grid">
-          <button 
-                  class="allele-btn allele-btn-count" 
-                  [ngClass]="{ 'selected-count': allele.count === 1 }"
-                  (click)="onAlleleCountChange(allele.key, row.id, 1)">1</button>
-                <button class="allele-btn allele-btn-count"
-                  [ngClass]="{ 'selected-count': allele.count === 2 }"
-                  (click)="onAlleleCountChange(allele.key, row.id, 2)">2</button>
-                <button 
-                  class="allele-btn allele-btn-delete" 
-                  (click)="onAlleleCountChange(allele.key, row.id, 0)">🗑️</button>
-                  <button cdkOverlayOrigin #originList="cdkOverlayOrigin"
-                 class="allele-btn allele-btn-add" (click)="setActivePopover(row.id, allele.key)">+</button>
-          <app-popover [trigger]="originList" [isOpen]="isPopoverOpen(row.id, allele.key)">
-           <ng-container *ngTemplateOutlet="alleleMenuContent"></ng-container>
-         </app-popover>
+        }
+
+        <hpo-help-button
+          title="Managing age data"
+          [lines]="[
+            'Right-click HPO cells to add specific onset ages.',
+            'Format examples: <b>Congenital onset</b>, <b>P3Y2M</b>, or <b>G28w1d</b>.',
+            'Use <i>Cohort</i> to pull all ages existing in current data.',
+          ]"
+        />
       </div>
+    </div>
+
+    <div class="action-toolbar">
+      <div class="action-group">
+        <a routerLink="/addcase" class="tool-btn btn-workflow no-underline"> Add Phenopacket </a>
+
+        <div class="action-with-help">
+          <a routerLink="/tableeditor" class="tool-btn btn-workflow no-underline">
+            <mat-icon>table_chart</mat-icon> New ETL
+          </a>
+          <hpo-help-button
+            title="Adding additional data"
+            [lines]="[
+              '<b>New Case:</b> Add a new individual (e.g., case report).',
+              '<b>New ETL:</b> Add ETL cohort',
+            ]"
+            helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+          />
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button class="tool-btn btn-workflow" (click)="validateCohort()">
+          <mat-icon>health_and_safety</mat-icon> Check & Fix
+        </button>
+
+        <div class="action-with-help">
+          <button
+            class="tool-btn btn-workflow"
+            (click)="sortCohortRows()"
+            matTooltip="Sort rows chronologically"
+          >
+            <mat-icon>sort</mat-icon> Sort
+          </button>
+          <hpo-help-button
+            title="Editing cohort data"
+            [lines]="[
+              '<b>Check & Fix:</b> Validate data (and offer chance to fix if desired).',
+              '<b>Sort rows:</b> Sort rows of cohort chronologically according to PMID',
+            ]"
+            helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+          />
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button class="tool-btn btn-success" (click)="saveCohort()">
+          <mat-icon>save</mat-icon> Save
+        </button>
+
+        <button class="tool-btn btn-success" (click)="exportPpkt()">
+          <mat-icon>description</mat-icon> Phenopackets
+        </button>
+
+        <button class="tool-btn btn-success" (click)="exportHpoa()">
+          <mat-icon>assignment</mat-icon> HPOA
+        </button>
+
+        <button class="tool-btn btn-warning" (click)="recordBiocuration()">
+          <mat-icon>fingerprint</mat-icon> Biocuration
+        </button>
+
+        <hpo-help-button
+          title="Cohort Action Guide"
+          [lines]="[
+            '<b>Save:</b> Saves current cohort as JSON file.',
+            '<b>Phenopackets:</b> Exports current cohort as collection of phenopacket files.',
+            '<b>HPOA:</b> Exports current cohort as an HPO annotation file.',
+            '<b>Biocuration:</b>Adds current ORCID id to the cohort file.',
+          ]"
+          helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Individual (row-level) context menu -->
+  @if (individualContextMenuVisible) {
+    <div
+      class="context-menu"
+      [style.left.px]="individualMenuX"
+      [style.top.px]="individualMenuY"
+      #individualContextMenu
+    >
+      <ul class="context-menu-list">
+        <li class="context-menu-item" (click)="focusOnSingleRow()">Focus on row</li>
+        <li class="context-menu-item" (click)="focusOnPmid(contextRowPmid)">
+          Focus on PMID: {{ contextRowPmid ?? 'N/A' }}
+        </li>
+        <li class="context-menu-item" (click)="openPmidInBrowser(contextRowPmid)">
+          Open PMID in Browser<span class="text-xs">↗</span>
+        </li>
+        <li class="context-menu-item" (click)="showAllRows()">Show all rows</li>
+        <li class="context-menu-item" (click)="showInfoForRow(contextRowId, $event)">Show info</li>
+        <li class="context-menu-item" (click)="deleteRow(contextRowId)">Delete row</li>
+      </ul>
     </div>
   }
 
-  <ng-template #alleleMenuContent>
-    <div class="allele-menu-grid">
-      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.HGVS); openAddAlleleRowId = null">HGVS</button>
-      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null">SV</button>
-      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.INTERGENIC); openAddAlleleRowId = null">Intergenic</button>
-      <button type="button" class="allele-tile"  (click)="addAllele(row.id, VariantKind.SV); openAddAlleleRowId = null">Mito</button>
-    </div>
-  </ng-template>
-</td>
-
-    <!-- The values of the HPO columns-->
-    @for (cell of row.hpoCells; track $index; let hpoIndex = $index) {
-      @if (visibleColumnMask()[hpoIndex]) {
-          <td class="hpo-col" 
-          [ngClass]="cell.cssClass" 
-          style="width: 2.5rem; height: 2.5rem;"
-          (contextmenu)="onRightClick($event, hpoIndex, rowIndex, row.id, cell.originalCell)">
-          @switch (cell.originalCell.type) {
-            @case ('Observed') { <span>✅</span> }
-            @case ('Excluded') { <span>❌</span> }
-            @case ('Na') { <span>n/a</span> }
-            @case ('OnsetAge') {
-              <div class="onset-content" [title]="cell.displayValue">
-                <span class="onset-icon">🕒</span>
-                <span class="onset-text"></span>
-              </div>
-            }
-            
-            @default {
-                <span>Unknown</span>
-            }
-          }
-          @if (hasExtraInfo(cell.originalCell)) {
-            <button 
-              type="button"
-              class="info-indicator"
-              title="View details (right click)"
-              >
-              ⓘ
-            </button>
-          }
-        </td>
-      }
-    }
-
-  } <!-- end of for over the tr -->
-    </tbody>
-  </table>
-  </div>
-  <div class="table-spacer"></div>
-  </div>
-} <!-- close  @if (cohortData(); as cohort){ -->
-
-
-<div class="toolbar-bar">
-  <div class="toolbar-search-group">
-    <div class="toolbar-autocomplete-wrap">
-      <hpo-ontology-autocomplete
-        placeholder='Search clinical phenotypes (e.g., Seizures)...'
-        [autocompleteProvider]="hpoAutocompleteProvider"
-        [requireConfirmation]="true"
-        (selected)="onHpoTermSelected($event)" />
-    </div>
-
-  </div>
-
-  <div class="toolbar-divider"></div>
-
-  <div class="toolbar-age-group">
-    
-    <div class="toolbar-btn-group">
-      <button mat-button (click)="openAgeDialog()" class="toolbar-btn">
-        <mat-icon class="toolbar-btn-icon">edit</mat-icon>
-        <span>Add onset age</span>
-      </button>
-      <div class="toolbar-btn-inner-divider"></div>
-      <button mat-button (click)="addAllCohortAges()" 
-            class="toolbar-btn toolbar-btn-muted">
-        <mat-icon class="toolbar-btn-icon">group_add</mat-icon>
-        <span>Add ages from cohort</span>
-      </button>
-    </div>
-
-    @if (ageEntries().length > 0) {
-      <div class="age-badge">
-        <span class="age-badge-label">Latest:</span>
-        <span class="age-badge-value">{{ ageEntries().at(-1) }}</span>
-        <span class="age-badge-count">{{ ageEntries().length }}</span>
-      </div>
-    }
-
-    <hpo-help-button 
-      title="Managing age data"
-      [lines]="[
-        'Right-click HPO cells to add specific onset ages.',
-        'Format examples: <b>Congenital onset</b>, <b>P3Y2M</b>, or <b>G28w1d</b>.',
-        'Use <i>Cohort</i> to pull all ages existing in current data.'
-      ]" />
-  </div>
-</div>
-
-
-<div class="action-toolbar">
-  
-  <div class="action-group">
-     <a routerLink="/addcase" class="tool-btn btn-workflow no-underline">
-          Add Phenopacket
-        </a>
-    
-    <div class="action-with-help">
-      <a routerLink="/tableeditor" class="tool-btn btn-workflow no-underline">
-      <mat-icon>table_chart</mat-icon> New ETL
-    </a>
-      <hpo-help-button 
-        title="Adding additional data" 
-        [lines]="[
-          '<b>New Case:</b> Add a new individual (e.g., case report).',
-          '<b>New ETL:</b> Add ETL cohort'
-        ]" 
-        helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
-      />
-    </div>
-  </div>
-
-  <div class="action-group">
-    <button class="tool-btn btn-workflow" (click)="validateCohort()">
-      <mat-icon>health_and_safety</mat-icon> Check & Fix
-    </button>
-
-    <div class="action-with-help">
-      <button class="tool-btn btn-workflow" (click)="sortCohortRows()" matTooltip="Sort rows chronologically">
-        <mat-icon>sort</mat-icon> Sort
-      </button>
-      <hpo-help-button 
-        title="Editing cohort data" 
-        [lines]="[
-          '<b>Check & Fix:</b> Validate data (and offer chance to fix if desired).',
-          '<b>Sort rows:</b> Sort rows of cohort chronologically according to PMID'
-        ]" 
-        helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
-      />
-    </div>
-  </div>
-
-  <div class="action-group">
-    <button class="tool-btn btn-success" (click)="saveCohort()">
-      <mat-icon>save</mat-icon> Save
-    </button>
-    
-    <button class="tool-btn btn-success" (click)="exportPpkt()">
-      <mat-icon>description</mat-icon> Phenopackets
-    </button>
-
-    <button class="tool-btn btn-success" (click)="exportHpoa()">
-      <mat-icon>assignment</mat-icon> HPOA
-    </button>
-
-    <button class="tool-btn btn-warning" (click)="recordBiocuration()">
-      <mat-icon>fingerprint</mat-icon> Biocuration
-    </button>
-
-    <hpo-help-button 
-      title="Cohort Action Guide"
-      [lines]="[
-        '<b>Save:</b> Saves current cohort as JSON file.',
-         '<b>Phenopackets:</b> Exports current cohort as collection of phenopacket files.',
-         '<b>HPOA:</b> Exports current cohort as an HPO annotation file.',
-        '<b>Biocuration:</b>Adds current ORCID id to the cohort file.',
-       
-      ]" 
-      helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
-    />
-  </div>
-
-</div>
-</div>
-
-<!-- Individual (row-level) context menu -->
- @if (individualContextMenuVisible) {
-  <div
-    class="context-menu"
-    [style.left.px]="individualMenuX"
-    [style.top.px]="individualMenuY"
-    #individualContextMenu
-  >
-    <ul class="context-menu-list">
-      <li class="context-menu-item"
-          (click)="focusOnSingleRow()">Focus on row</li>
-      <li class="context-menu-item"
-          (click)="focusOnPmid(contextRowPmid)">Focus on PMID: {{ contextRowPmid ?? 'N/A' }}</li>
-      <li class="context-menu-item"
-      (click)="openPmidInBrowser(contextRowPmid)"> Open PMID in Browser<span class="text-xs">↗</span>
-      </li>
-      <li class="context-menu-item"
-          (click)="showAllRows()">Show all rows</li>
-      <li class="context-menu-item"
-          (click)="showInfoForRow(contextRowId, $event)">Show info</li>
-      <li class="context-menu-item"
-          (click)="deleteRow(contextRowId)">Delete row</li>
-    </ul>
-  </div>
-}
-
- @if (interactionService.activeContext(); as ctx) {
+  @if (interactionService.activeContext(); as ctx) {
     <div class="backdrop" (click)="interactionService.close()"></div>
-    
-    <pt-app-context-menu 
+
+    <pt-app-context-menu
       #hpoContextMenu
-      [x]="ctx.x" 
+      [x]="ctx.x"
       [y]="ctx.y"
       (close)="interactionService.close()"
-      (confirm)="handleConfirm(ctx)">
+      (confirm)="handleConfirm(ctx)"
+    >
       <!-- This div acts as an invisible backdrop and closes the dialog if we click elsewhere -->
-    
-        <div (click)="$event.stopPropagation()">
-            <app-hpo-annotation-panel
-              [cellData]="ctx.cell"
-              [columnTitle]="currentHpoLabel()"
-              (requestNewOnset)="openGlobalAgeDialog(ctx)"
-              (dataChanged)="handleTableDataUpdate($event)">
-            </app-hpo-annotation-panel>
-        </div>
-    
+
+      <div (click)="$event.stopPropagation()">
+        <app-hpo-annotation-panel
+          [cellData]="ctx.cell"
+          [columnTitle]="currentHpoLabel()"
+          (requestNewOnset)="openGlobalAgeDialog(ctx)"
+          (dataChanged)="handleTableDataUpdate($event)"
+        >
+        </app-hpo-annotation-panel>
+      </div>
     </pt-app-context-menu>
   }
 
   @if (showAgeDialog()) {
-  <div class="backdrop-modal" (click)="closeAgeDialog()"></div>
-  
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <app-addage 
-      [current]="activeAgeString()"
-      (saved)="handleAgeSaved($event)"
-      (cancelled)="closeAgeDialog()">
-    </app-addage>
-  </div>
-}
+    <div class="backdrop-modal" (click)="closeAgeDialog()"></div>
 
-@if (confirmDialogData(); as data) {
-  <app-confirm-dialog 
-    [data]="data" 
-    [isOpen]="isConfirmDialogOpen()"
-    (result)="handleConfirmResult($event)">
-  </app-confirm-dialog>
-}
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <app-addage
+        [current]="activeAgeString()"
+        (saved)="handleAgeSaved($event)"
+        (cancelled)="closeAgeDialog()"
+      >
+      </app-addage>
+    </div>
+  }
+
+  @if (confirmDialogData(); as data) {
+    <app-confirm-dialog
+      [data]="data"
+      [isOpen]="isConfirmDialogOpen()"
+      (result)="handleConfirmResult($event)"
+    >
+    </app-confirm-dialog>
+  }
+</div>

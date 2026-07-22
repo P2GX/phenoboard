@@ -1,6 +1,6 @@
-import { Component, input } from "@angular/core";
-import { DiseaseData } from "../../../libs/ui/src/lib/models/cohort_dto";
-import { DisplayDiseaseComponent } from "./display-disease.component";
+import { Component, input } from '@angular/core';
+import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
+import { DisplayDiseaseComponent } from './display-disease.component';
 
 @Component({
   selector: 'app-display-mendelian',
@@ -11,7 +11,7 @@ import { DisplayDiseaseComponent } from "./display-disease.component";
       <p>Acronym: {{ acronym() }}</p>
       <app-display-disease [disease]="disease()" />
     </div>
-  `
+  `,
 })
 export class DisplayMendelianComponent {
   disease = input.required<DiseaseData>();

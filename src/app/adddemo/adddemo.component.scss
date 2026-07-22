@@ -1,5 +1,3 @@
-
-
 .form-container {
   display: flex;
   flex-direction: column;
@@ -16,7 +14,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 24px;
-  overflow-y: auto; 
+  overflow-y: auto;
   flex-grow: 1;
   margin-bottom: 16px;
 }
@@ -39,8 +37,6 @@
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
 }
-
-
 
 /* Grid Layout: Responsive without 50 breakpoints */
 .form-grid {
@@ -86,10 +82,10 @@
 }
 
 /* Age Display Pill */
-.age-slot { 
-  height: 40px; 
-  display: flex; 
-  align-items: center; 
+.age-slot {
+  height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 .age-display {
@@ -124,9 +120,15 @@
   align-items: center;
 }
 
-.age-actions .edit-btn { color: #2563eb; }
-.age-actions .clear-btn { color: #9ca3af; }
-.age-actions .clear-btn:hover { color: #dc2626; }
+.age-actions .edit-btn {
+  color: #2563eb;
+}
+.age-actions .clear-btn {
+  color: #9ca3af;
+}
+.age-actions .clear-btn:hover {
+  color: #dc2626;
+}
 
 /* Radio Buttons */
 .radio-stack {
@@ -142,7 +144,9 @@
   cursor: pointer;
 }
 
-.radio-item input { margin-right: 8px; }
+.radio-item input {
+  margin-right: 8px;
+}
 
 /* Footer */
 .form-footer {
@@ -153,7 +157,6 @@
   padding-bottom: 6px;
 }
 
-
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -162,14 +165,13 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  
+
   background-color: rgba(0, 0, 0, 0.4);
-  
 
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   z-index: 2000;
 }
 
@@ -238,7 +240,9 @@
 .segment-item.is-active {
   background-color: #ffffff;
   color: #2563eb; /* Clean modern blue */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .segment-label {
@@ -249,7 +253,7 @@
 
 .input-large {
   padding: 12px 14px; /* Increases vertical and horizontal spacing */
-  font-size: 16px;    /* Makes the text input larger and easier to read */
-  font-weight: 500;   /* Gives the input value a slightly cleaner weight */
-  color: #0f172a;     /* Dark slate for premium readability */
+  font-size: 16px; /* Makes the text input larger and easier to read */
+  font-weight: 500; /* Gives the input value a slightly cleaner weight */
+  color: #0f172a; /* Dark slate for premium readability */
 }

@@ -1,11 +1,12 @@
 .variant-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #9ca3af;   /* border-gray-400 */
+  border: 1px solid #9ca3af; /* border-gray-400 */
 
-  th, td {
+  th,
+  td {
     border: 1px solid #9ca3af;
-    padding: 0.5rem 1rem;      /* px-4 py-2 */
+    padding: 0.5rem 1rem; /* px-4 py-2 */
     text-align: left;
   }
 
@@ -31,17 +32,17 @@
   .gene-symbol {
     font-style: italic;
     font-weight: 500;
-    color: #1d4ed8;            /* text-blue-700 */
+    color: #1d4ed8; /* text-blue-700 */
   }
 
   .gene-transcript {
-    font-size: 0.625rem;       /* text-[10px] */
-    color: #6b7280;            /* text-gray-500 */
+    font-size: 0.625rem; /* text-[10px] */
+    color: #6b7280; /* text-gray-500 */
     font-family: monospace;
   }
 
   .gene-na {
-    color: #9ca3af;            /* text-gray-400 */
+    color: #9ca3af; /* text-gray-400 */
     font-style: italic;
   }
 
@@ -57,10 +58,10 @@
   }
 
   .action-btn {
-    font-size: 0.875rem;       /* text-sm */
-    color: #4b5563;            /* text-gray-600 */
+    font-size: 0.875rem; /* text-sm */
+    color: #4b5563; /* text-gray-600 */
     border: 1px solid #d1d5db; /* border-gray-300 */
-    padding: 0.125rem 0.5rem;  /* py-0.5 px-2 */
+    padding: 0.125rem 0.5rem; /* py-0.5 px-2 */
     border-radius: 0.25rem;
     background: none;
     cursor: pointer;
@@ -73,7 +74,6 @@
 }
 
 .empty-message {
-  color: #9ca3af;              /* text-gray-400 */
+  color: #9ca3af; /* text-gray-400 */
   margin-top: 0.5rem;
 }
-

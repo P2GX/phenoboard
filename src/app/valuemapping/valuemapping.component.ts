@@ -1,40 +1,44 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogModule } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+  MatDialogContent,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { MatAutocompleteModule } from "@angular/material/autocomplete";
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule } from '@angular/forms';
 import { HpoStatus, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
-
 
 const VALUE_TO_STATE: Record<string, HpoStatus> = {
   '+': 'observed',
-  'Yes': 'observed',
-  'yes': 'observed',
-  'Y': 'observed',
-  'y': 'observed',
-  'No': 'excluded',
-  'no': 'excluded',
-  'N': 'excluded',
-  'n': 'excluded',
+  Yes: 'observed',
+  yes: 'observed',
+  Y: 'observed',
+  y: 'observed',
+  No: 'excluded',
+  no: 'excluded',
+  N: 'excluded',
+  n: 'excluded',
   '-': 'excluded',
   '–': 'excluded', // en dash
   '—': 'excluded', // em dash
-  'na': 'na',
-  'Mild': 'observed;HP:0012825', // Mild (HP:0012825)
-  'mild': 'observed;HP:0012825',
-  'Moderate': 'observed;HP:0012826', // Moderate (HP:0012826)
-  'moderate': 'observed;HP:0012826',
+  na: 'na',
+  Mild: 'observed;HP:0012825', // Mild (HP:0012825)
+  mild: 'observed;HP:0012825',
+  Moderate: 'observed;HP:0012826', // Moderate (HP:0012826)
+  moderate: 'observed;HP:0012826',
   'Mod.': 'observed;HP:0012826',
   'mod.': 'observed;HP:0012826',
-  'Severe': "observed;HP:0012828",// Severe (HP:0012828)
-  'severe': "observed;HP:0012828",
-  'Sev.': "observed;HP:0012828",
-  'sev.': "observed;HP:0012828",
+  Severe: 'observed;HP:0012828', // Severe (HP:0012828)
+  severe: 'observed;HP:0012828',
+  'Sev.': 'observed;HP:0012828',
+  'sev.': 'observed;HP:0012828',
 };
 
 export interface ValueMappingData {
@@ -55,13 +59,12 @@ export interface ValueMappingData {
     MatAutocompleteModule,
     FormsModule,
     MatButtonToggleModule,
-    MatTableModule
-],
+    MatTableModule,
+  ],
   templateUrl: './valuemapping.component.html',
-  styleUrls: ['./valuemapping.component.css']
+  styleUrls: ['./valuemapping.component.css'],
 })
 export class ValueMappingComponent implements OnInit {
- 
   /* key: An entry in a column, e.g., 'yes'; value: corresponding phenoboard value, e.g., 'observed' */
   valueToStateMap: { [key: string]: HpoStatus } = {};
 
@@ -73,16 +76,16 @@ export class ValueMappingComponent implements OnInit {
   public uniqueValues = signal(this.data.uniqueValues);
 
   ngOnInit(): void {
-    this.data.uniqueValues.forEach(val => {
+    this.data.uniqueValues.forEach((val) => {
       this.valueToStateMap[val] = VALUE_TO_STATE[val.trim()] ?? 'na';
-    })
+    });
   }
 
   onSave(): void {
     const hpoMapResult = {
       valueToStateMap: this.valueToStateMap,
       hpoId: this.hpoId,
-      hpoLabel: this.hpoLabel
+      hpoLabel: this.hpoLabel,
     };
     this.dialogRef.close(hpoMapResult);
   }
@@ -96,5 +99,4 @@ export class ValueMappingComponent implements OnInit {
   onCancel(): void {
     this.dialogRef.close();
   }
-
 }

@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -28,4 +27,3 @@ export class NavbarComponent {
 function provideExperimentalFeatures(arg0: string[]) {
   throw new Error('Function not implemented.');
 }
-

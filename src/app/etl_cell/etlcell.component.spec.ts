@@ -7,7 +7,7 @@ describe('EtlCellComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EtlCellComponent]
+      imports: [EtlCellComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EtlCellComponent);

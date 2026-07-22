@@ -2,21 +2,20 @@ import { Component, input, output, signal, computed } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { CohortData, ModeOfInheritance } from '../../../../libs/ui/src/lib/models/cohort_dto';
-import { MoiSelector } from "../../moiselector/moiselector.component";
-
+import { MoiSelector } from '../../moiselector/moiselector.component';
 
 @Component({
   selector: 'app-cohort-metadata',
   standalone: true,
   imports: [FormsModule, MoiSelector],
-  templateUrl: './cohort-metadata.component.html'
+  templateUrl: './cohort-metadata.component.html',
 })
 export class CohortMetadataComponent {
   cohortData = input.required<CohortData>();
   readonly diseases = computed(() => this.cohortData()?.diseaseList ?? []);
   resetCohortMetadata = output<void>();
   updateAcronym = output<string>();
-  updateMoi = output<{diseaseIndex: number, moi: ModeOfInheritance}>();
+  updateMoi = output<{ diseaseIndex: number; moi: ModeOfInheritance }>();
 
   // local ui state signals
   showCohortAcronym = signal(false);
@@ -27,7 +26,7 @@ export class CohortMetadataComponent {
   displayAcronym = computed(() => this.cohortData()?.cohortAcronym || '---');
 
   toggleMoi(index: number): void {
-    this.showMoiIndex.update(current => current === index ? null : index);
+    this.showMoiIndex.update((current) => (current === index ? null : index));
   }
 
   submitAcronym(): void {
@@ -35,21 +34,19 @@ export class CohortMetadataComponent {
     this.showCohortAcronym.set(false);
   }
 
-   /** Get suggest cohort acronym for melded only (others should be blank because the user
+  /** Get suggest cohort acronym for melded only (others should be blank because the user
    * needs to retrieve from OMIM; for melded, we use the gene symbols for the two diseases). */
-  suggestedAcronym = computed(() : string  => {
+  suggestedAcronym = computed((): string => {
     const cohort = this.cohortData();
-    if (! cohort) return '';
+    if (!cohort) return '';
     if (cohort.cohortType === 'melded') {
       // Collect all gene symbols from both diseases
       const symbols = cohort.diseaseList
-        .flatMap(disease => 
-          disease.geneTranscriptList.map(gt => gt.geneSymbol)
-        )
+        .flatMap((disease) => disease.geneTranscriptList.map((gt) => gt.geneSymbol))
         .filter(Boolean) // remove null/undefined just in case
         .sort((a: string, b: string) => a.localeCompare(b)); // alphabetic sort
       return symbols.join('-');
-    }  else if (cohort.cohortAcronym != null) {
+    } else if (cohort.cohortAcronym != null) {
       return cohort.cohortAcronym;
     } else {
       return '';

@@ -4,8 +4,8 @@ import { EtlSessionService } from '../services/etl_session_service';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from "@angular/material/icon";
-import { RouterModule } from '@angular/router'; 
+import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 import { SourcePmid } from '@workspace/ui';
 
 @Component({
@@ -16,36 +16,29 @@ import { SourcePmid } from '@workspace/ui';
   imports: [CommonModule, MatIconModule, RouterModule],
 })
 export class StatusComponent implements OnInit {
-
   private configService = inject(ConfigService);
   private cohortService = inject(CohortDtoService);
   private etl_service = inject(EtlSessionService);
 
+  cohortData = this.cohortService.cohortData;
 
-  cohortData = this.cohortService.cohortData; 
-  
   diseaseList!: DiseaseData[];
   pmidList: SourcePmid[] = [];
   showPmid = false;
   showJson = false;
 
-
   ngOnInit(): void {
     this.diseaseList = this.cohortService.getDiseaseList();
   }
 
-
   get mendelianDiseaseOmimUrl(): string | null {
     const cohort = this.cohortService.getCohortData();
-    if (
-      cohort?.cohortType === 'mendelian' &&
-      cohort.diseaseList?.length == 1
-    ) {
+    if (cohort?.cohortType === 'mendelian' && cohort.diseaseList?.length == 1) {
       const disease = cohort.diseaseList[0];
       const id = disease.diseaseId;
       if (id?.startsWith('OMIM:')) {
         const omimNumber = id.split(':')[1];
-        return  `https://omim.org/entry/${omimNumber}`;
+        return `https://omim.org/entry/${omimNumber}`;
       }
     }
     return null;
@@ -53,18 +46,14 @@ export class StatusComponent implements OnInit {
 
   get hgncGeneUrl(): string | null {
     const cohort = this.cohortService.getCohortData();
-    if (
-      cohort?.cohortType === 'mendelian' &&
-      cohort.diseaseList?.length == 1
-    ) {
+    if (cohort?.cohortType === 'mendelian' && cohort.diseaseList?.length == 1) {
       const gene = cohort.diseaseList[0].geneTranscriptList[0];
       const hgncId = gene.hgncId;
-      return  `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${hgncId}`;
+      return `https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${hgncId}`;
     }
     return null;
   }
 
-  
   showAllPmid(): void {
     this.pmidList = this.cohortService.getAllPmids();
     this.showPmid = true;
@@ -76,25 +65,24 @@ export class StatusComponent implements OnInit {
   }
 
   /** Return a cleaned PMID id suitable for the PubMed URL.
- *  - Prefer the first sequence of digits if present.
- *  - Fallback: strip a leading "PMID:" prefix and trim.
- */
-extractPmid(raw?: string): string {
-  if (!raw) return '';
-  // prefer the first run of digits
-  const m = raw.match(/\d+/);
-  if (m) return m[0];
-  // fallback: remove common "PMID:" style prefix
-  return raw.replace(/^\s*PMID:\s*/i, '').trim();
-}
-  
-saveHtmlSummary(): void {
-  const cohort = this.cohortService.getCohortData();
-  if (! cohort) {
-    alert("Cohort not initialized");
-    return;
+   *  - Prefer the first sequence of digits if present.
+   *  - Fallback: strip a leading "PMID:" prefix and trim.
+   */
+  extractPmid(raw?: string): string {
+    if (!raw) return '';
+    // prefer the first run of digits
+    const m = raw.match(/\d+/);
+    if (m) return m[0];
+    // fallback: remove common "PMID:" style prefix
+    return raw.replace(/^\s*PMID:\s*/i, '').trim();
   }
-  this.configService.saveHtmlReport(cohort);
-}
 
+  saveHtmlSummary(): void {
+    const cohort = this.cohortService.getCohortData();
+    if (!cohort) {
+      alert('Cohort not initialized');
+      return;
+    }
+    this.configService.saveHtmlReport(cohort);
+  }
 }

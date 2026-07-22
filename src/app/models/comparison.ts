@@ -6,10 +6,10 @@ export interface ComparisonReport {
   idMatch: boolean;
   idA: string;
   idB: string;
-  
+
   addedHpo: string[];
   removedHpo: string[];
-  
+
   addedVariants: string[];
   removedVariants: string[];
 }

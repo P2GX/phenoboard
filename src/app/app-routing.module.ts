@@ -11,8 +11,6 @@ import { StatusComponent } from './status/status.component';
 import { PhenopacketDetailComponent } from './phenopacketdetail/phenopacketdetail.component';
 import { QcComponent as QcComponent } from './repo/qc.component';
 
-
-
 /* Not using routing currently, consider refactor */
 
 export const appRoutes: Routes = [
@@ -27,10 +25,10 @@ export const appRoutes: Routes = [
   { path: 'help', component: HelpComponent },
   { path: 'phenopacket/:id', component: PhenopacketDetailComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: '**', redirectTo: '/home' } // Fallback route
+  { path: '**', redirectTo: '/home' }, // Fallback route
 ];
 @NgModule({
   imports: [RouterModule.forRoot(appRoutes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}

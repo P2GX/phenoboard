@@ -1,8 +1,5 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { HpoMappingResult } from "@workspace/ui";
-
-
-
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { HpoMappingResult } from '@workspace/ui';
 
 @Component({
   selector: 'app-hpo-mapping-dialog',

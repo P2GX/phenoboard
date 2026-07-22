@@ -32,7 +32,7 @@
           autocorrect="off"
           spellcheck="false"
         />
-        
+
         <!-- Ambient browser suggestions dropdown list -->
         <datalist id="age-suggestions">
           @for (suggested of filteredTerms(); track suggested) {
@@ -40,13 +40,21 @@
           }
         </datalist>
       </div>
-      <span class="format-hint">Type any age term (e.g., Adult onset), custom ISO8601 pattern (P[Y][M][D]), or Gestational value (G[w][d]).</span>
+      <span class="format-hint"
+        >Type any age term (e.g., Adult onset), custom ISO8601 pattern (P[Y][M][D]), or Gestational
+        value (G[w][d]).</span
+      >
     </div>
   </div>
 
   <div class="wizard-footer">
     <button type="button" class="btn btn-outline" (click)="onCancel()">Cancel</button>
-    <button type="button" class="btn btn-primary" [disabled]="!customAge().trim()" (click)="createNewAge()">
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="!customAge().trim()"
+      (click)="createNewAge()"
+    >
       Apply Age
     </button>
   </div>

@@ -1,4 +1,4 @@
- <h2 mat-dialog-title style="margin-bottom: 0;">{{title}}</h2>
+<h2 mat-dialog-title style="margin-bottom: 0">{{ title }}</h2>
 <mat-dialog-content class="mat-typography">
   <div class="review-table-container">
     <table class="custom-curation-table">
@@ -12,12 +12,16 @@
       <tbody>
         @for (c of concepts(); track $index; let i = $index) {
           <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
-            
             <td class="col-source">
               <div class="source-cell-content">
                 <mat-icon class="source-icon">description</mat-icon>
                 <code class="source-code">"{{ c.originalText }}"</code>
-                <button mat-icon-button color="primary" class="split-btn" (click)="openSplitDialog(i)">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  class="split-btn"
+                  (click)="openSplitDialog(i)"
+                >
                   <mat-icon>content_cut</mat-icon>
                 </button>
               </div>
@@ -30,8 +34,7 @@
                     <span class="hpo-chip-id">{{ term.id }}</span>
                     <span>{{ term.label }}</span>
                     <button matChipRemove><mat-icon>cancel</mat-icon></button>
-                    <button mat-icon-button 
-                      [cdkCopyToClipboard]="term.label" class="chip-copy-btn">
+                    <button mat-icon-button [cdkCopyToClipboard]="term.label" class="chip-copy-btn">
                       <mat-icon>content_copy</mat-icon>
                     </button>
                   </mat-chip-row>
@@ -42,7 +45,8 @@
                     [inputString]="hpoAutocompleteString"
                     [autocompleteProvider]="autocompleteProvider"
                     [requireConfirmation]="true"
-                    (selected)="handleAutocompleteSelection(i, $event)">
+                    (selected)="handleAutocompleteSelection(i, $event)"
+                  >
                   </hpo-ontology-autocomplete>
                 } @else {
                   <button mat-icon-button (click)="startSearch(i)" class="add-btn">
@@ -54,25 +58,35 @@
 
             <td class="col-actions">
               <div class="actions-cell-content">
-                <button mat-icon-button (click)="toggleConfirm(i)" [color]="c.miningStatus === 'confirmed' ? 'primary' : ''">
-                  <mat-icon>{{ c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <button
+                  mat-icon-button
+                  (click)="toggleConfirm(i)"
+                  [color]="c.miningStatus === 'confirmed' ? 'primary' : ''"
+                >
+                  <mat-icon>{{
+                    c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked'
+                  }}</mat-icon>
                 </button>
                 <button mat-icon-button color="warn" (click)="removeConcept(i)">
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
             </td>
-
           </tr>
         }
       </tbody>
     </table>
-    
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end" class="dialog-actions-bar">
   <button mat-button class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
-  <button mat-raised-button color="primary" class="btn-outline-primary" (click)="save()" [disabled]="concepts().length === 0">
+  <button
+    mat-raised-button
+    color="primary"
+    class="btn-outline-primary"
+    (click)="save()"
+    [disabled]="concepts().length === 0"
+  >
     <mat-icon class="mr-1">done_all</mat-icon>
     Apply {{ concepts().length }} Mappings
   </button>

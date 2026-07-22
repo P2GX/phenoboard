@@ -5,7 +5,7 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { ConfigService } from './config.service';
 import { invoke } from '@tauri-apps/api/core';
 import { ask } from '@tauri-apps/plugin-dialog';
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 @Injectable({ providedIn: 'root' })
 export class AppStatusService {
@@ -15,15 +15,13 @@ export class AppStatusService {
 
   // Raw state from the backend
   readonly state = signal<StatusDto>(defaultStatusDto());
-  
+
   // Derived UI states
   readonly hpoLoading = signal<boolean>(false);
   readonly hpoLoaded = computed(() => this.state().hpoLoaded);
   progress = signal<number>(0);
   hasUnsavedWork = signal(false);
   private readonly appWindow = getCurrentWindow();
-
-  
 
   constructor() {
     this.init();
@@ -36,30 +34,28 @@ export class AppStatusService {
     try {
       const status: StatusDto = await invoke('get_status_dto');
       this.state.set(status);
-     } catch (err) {
-      console.error("Failed to fetch initial backend status", err);
+    } catch (err) {
+      console.error('Failed to fetch initial backend status', err);
     }
   }
 
   private async listen_alleles() {
-    await listen("progress-update", (event) => {
-      const {current, total} = event.payload as {current: number, total: number};
+    await listen('progress-update', (event) => {
+      const { current, total } = event.payload as { current: number; total: number };
       const percent = Math.round((current / total) * 100);
       this.ngZone.run(() => {
-        this.progress.set(percent)
+        this.progress.set(percent);
       });
-       ;
     });
   }
 
-
   private async listen_close() {
-    await listen("close-requested", async() => {
-      console.log("Listen close");
+    await listen('close-requested', async () => {
+      console.log('Listen close');
       if (this.hasUnsavedWork()) {
-        const confirmed = await ask("You have unsaved changes. Quit anyway?", {
-          title: "Unsaved work",
-          kind: "warning"
+        const confirmed = await ask('You have unsaved changes. Quit anyway?', {
+          title: 'Unsaved work',
+          kind: 'warning',
         });
         if (!confirmed) return;
       }
@@ -68,11 +64,11 @@ export class AppStatusService {
   }
 
   private async setupListeners() {
-    await listen("hpo-load-event", (event) => {
-      const { status, message, data } = event.payload as { 
-        status: 'loading' | 'success' | 'error' | 'cancel', 
-        message?: string, 
-        data?: StatusDto 
+    await listen('hpo-load-event', (event) => {
+      const { status, message, data } = event.payload as {
+        status: 'loading' | 'success' | 'error' | 'cancel';
+        message?: string;
+        data?: StatusDto;
       };
 
       this.ngZone.run(() => {

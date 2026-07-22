@@ -35,7 +35,9 @@
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:focus {
     outline: none;
@@ -67,7 +69,7 @@
 }
 
 .title-display__pmid {
-  font-size: 0.75rem;   
+  font-size: 0.75rem;
   color: #666;
 }
 

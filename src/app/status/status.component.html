@@ -1,104 +1,110 @@
-
 @let cohort = cohortData();
 @if (cohort) {
-  <div class="cohort-status-card"> 
+  <div class="cohort-status-card">
     <h1 class="h1-primary">Status</h1>
-      @if (diseaseList) {
-        <div class="template-info">
-        <h3 class="type-heading">Template type: {{ cohort.cohortType}}</h3>
-      @for (disease of cohort.diseaseList; track disease; let i= $index) {
-        <div class="disease-entry"> 
-        @if (mendelianDiseaseOmimUrl; as omimUrl) {
-           <p class="disease-label">
+    @if (diseaseList) {
+      <div class="template-info">
+        <h3 class="type-heading">Template type: {{ cohort.cohortType }}</h3>
+        @for (disease of cohort.diseaseList; track disease; let i = $index) {
+          <div class="disease-entry">
+            @if (mendelianDiseaseOmimUrl; as omimUrl) {
+              <p class="disease-label">
                 {{ disease.diseaseLabel }}
                 <a [href]="omimUrl" target="_blank" rel="noopener" class="status-anchor">
                   {{ disease.diseaseId }}
                 </a>
               </p>
-          } @else {
-            <!-- i.e., for some reason we cannot create the URL-->
-           <p class="disease-label"> 
+            } @else {
+              <!-- i.e., for some reason we cannot create the URL-->
+              <p class="disease-label">
                 Disease: {{ disease.diseaseLabel }} ({{ disease.diseaseId }})
               </p>
-          }
-          <div class="gene-list">
-          @for (gene of disease.geneTranscriptList; track gene; let gi=$index) {
-            @if (hgncGeneUrl; as hgncUrl) {
-             <span class="gene-item">
-                <a [href]="hgncUrl" target="_blank" rel="noopener" class="status-anchor">{{ gene.geneSymbol }}</a>
-                <span class="transcript">({{ gene.transcript }})</span>
-              </span>
-            } @else {
-              <p class="gene-item">
-                {{ gene.geneSymbol }} (HGNC: {{ gene.hgncId }}; {{ gene.transcript }})
-              </p>
-            } 
-          }
-        </div>
+            }
+            <div class="gene-list">
+              @for (gene of disease.geneTranscriptList; track gene; let gi = $index) {
+                @if (hgncGeneUrl; as hgncUrl) {
+                  <span class="gene-item">
+                    <a [href]="hgncUrl" target="_blank" rel="noopener" class="status-anchor">{{
+                      gene.geneSymbol
+                    }}</a>
+                    <span class="transcript">({{ gene.transcript }})</span>
+                  </span>
+                } @else {
+                  <p class="gene-item">
+                    {{ gene.geneSymbol }} (HGNC: {{ gene.hgncId }}; {{ gene.transcript }})
+                  </p>
+                }
+              }
+            </div>
+          </div>
+        }
       </div>
     }
-    </div>
-  }
   </div>
   <div class="stats-container">
     <p class="stats-title">Cohort statistics</p>
     <ul class="stats-list">
-      <li><strong>{{ cohort?.rows?.length }}</strong> phenopackets</li>
-      <li><strong>{{ cohort?.hpoHeaders?.length}}</strong> HPO terms used for annotation</li>
+      <li>
+        <strong>{{ cohort?.rows?.length }}</strong> phenopackets
+      </li>
+      <li>
+        <strong>{{ cohort?.hpoHeaders?.length }}</strong> HPO terms used for annotation
+      </li>
     </ul>
   </div>
 
   <div class="button-toolbar">
-      <button (click)="showJson = true" class="btn-outline-primary">Show JSON</button>
-      <button (click)="showJson = false" class="btn-outline-primary">Hide JSON</button>
-      <button (click)="showAllPmid()" class="btn-outline-primary">Show PMIDs</button>
-      <button (click)="showAllPpkt()" class="btn-outline-primary">Show Phenopackets</button>
+    <button (click)="showJson = true" class="btn-outline-primary">Show JSON</button>
+    <button (click)="showJson = false" class="btn-outline-primary">Hide JSON</button>
+    <button (click)="showAllPmid()" class="btn-outline-primary">Show PMIDs</button>
+    <button (click)="showAllPpkt()" class="btn-outline-primary">Show Phenopackets</button>
   </div>
-  
+
   <div class="button-toolbar secondary">
-      <button (click)="saveHtmlSummary()" class="btn-outline-primary">Save HTML summary</button>
+    <button (click)="saveHtmlSummary()" class="btn-outline-primary">Save HTML summary</button>
   </div>
-}
-@else {
-   <div class="empty-state">
-      <span>❌</span> Cohort not loaded.
-    </div>
+} @else {
+  <div class="empty-state"><span>❌</span> Cohort not loaded.</div>
 }
 
 <div class="cohort-content-area">
-@if (showJson) {
-  <div class="json-viewer">
-      <p class="success-note"><span>✅</span> CohortDTO loaded with {{ cohort?.rows?.length }} rows.</p>
+  @if (showJson) {
+    <div class="json-viewer">
+      <p class="success-note">
+        <span>✅</span> CohortDTO loaded with {{ cohort?.rows?.length }} rows.
+      </p>
       <pre class="code-block">{{ cohort | json }}</pre>
     </div>
-} @else if (showPmid) {
-  <h2 class="section-title">PubMed References</h2>
+  } @else if (showPmid) {
+    <h2 class="section-title">PubMed References</h2>
     <ul class="pubmed-list">
       @for (pmid of pmidList; track pmid) {
         <li>
-          <a [href]="'https://pubmed.ncbi.nlm.nih.gov/' + extractPmid(pmid.pmid)"
-             target="_blank" rel="noopener noreferrer" class="pmid-link">
+          <a
+            [href]="'https://pubmed.ncbi.nlm.nih.gov/' + extractPmid(pmid.pmid)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pmid-link"
+          >
             {{ pmid.title }}
           </a>
           <span class="pmid-id">({{ pmid.pmid }})</span>
         </li>
       }
     </ul>
-}  @else if (cohort) {
-   <h2 class="section-title">Individuals in cohort</h2>
+  } @else if (cohort) {
+    <h2 class="section-title">Individuals in cohort</h2>
     <ul class="individual-list">
       @for (row of cohort.rows; track row) {
         <li>
-          <a [routerLink]="['/phenopacket', row.individualData.individualId]" class="individual-link">
+          <a
+            [routerLink]="['/phenopacket', row.individualData.individualId]"
+            class="individual-link"
+          >
             {{ row.individualData.individualId || 'Unnamed subject' }}
           </a>
         </li>
       }
     </ul>
-
-}
+  }
 </div>
-
-
-
-

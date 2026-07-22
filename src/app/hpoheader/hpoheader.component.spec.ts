@@ -8,10 +8,9 @@ describe('HpoHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HpoHeaderComponent]
-    })
-    .compileComponents();
-    
+      imports: [HpoHeaderComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(HpoHeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

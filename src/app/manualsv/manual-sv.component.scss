@@ -43,18 +43,19 @@ div[mat-dialog-actions] {
 }
 
 /* Buttons */
-button[mat-button], button[mat-flat-button] {
+button[mat-button],
+button[mat-flat-button] {
   margin-left: 6px;
   padding: 4px 12px; /* slightly smaller buttons */
   font-size: 0.85rem;
 }
 
-button[mat-flat-button][color="primary"] {
+button[mat-flat-button][color='primary'] {
   background-color: #1976d2;
   color: white;
 }
 
-button[mat-flat-button][color="primary"]:disabled {
+button[mat-flat-button][color='primary']:disabled {
   background-color: #ccc;
   color: #999;
 }

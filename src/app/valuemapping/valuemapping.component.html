@@ -7,7 +7,7 @@
     mat-table
     [dataSource]="uniqueValues()"
     class="w-full"
-    style="border-collapse: collapse; font-size: 12px;"
+    style="border-collapse: collapse; font-size: 12px"
   >
     <ng-container matColumnDef="original">
       <th mat-header-cell *matHeaderCellDef>Original Value</th>
@@ -16,7 +16,6 @@
       </td>
     </ng-container>
 
-   
     <ng-container matColumnDef="mapping">
       <th mat-header-cell *matHeaderCellDef>Mapped State</th>
       <td mat-cell *matCellDef="let val">
@@ -26,12 +25,22 @@
           aria-label="Select state"
           appearance="legacy"
         >
-          <mat-button-toggle value="observed" class="status-observed scant-padding">Obs</mat-button-toggle>
-          <mat-button-toggle value="excluded" class="status-excluded scant-padding">Excl</mat-button-toggle>
+          <mat-button-toggle value="observed" class="status-observed scant-padding"
+            >Obs</mat-button-toggle
+          >
+          <mat-button-toggle value="excluded" class="status-excluded scant-padding"
+            >Excl</mat-button-toggle
+          >
           <mat-button-toggle value="na" class="status-na scant-padding">NA</mat-button-toggle>
-          <mat-button-toggle value="observed;HP:0012825" class="status-observed scant-padding">Mild</mat-button-toggle>
-          <mat-button-toggle value="observed;HP:0012826" class="status-observed scant-padding">Mod</mat-button-toggle>
-          <mat-button-toggle value="observed;HP:0012828" class="status-observed scant-padding">Sev</mat-button-toggle>
+          <mat-button-toggle value="observed;HP:0012825" class="status-observed scant-padding"
+            >Mild</mat-button-toggle
+          >
+          <mat-button-toggle value="observed;HP:0012826" class="status-observed scant-padding"
+            >Mod</mat-button-toggle
+          >
+          <mat-button-toggle value="observed;HP:0012828" class="status-observed scant-padding"
+            >Sev</mat-button-toggle
+          >
         </mat-button-toggle-group>
       </td>
     </ng-container>
@@ -45,7 +54,7 @@
 <div
   mat-dialog-actions
   align="end"
-  style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px;"
+  style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px"
 >
   <button (click)="onSave()" class="btn-outline-primary">Save</button>
   <button (click)="onCancel()" class="btn-outline-cancel">Cancel</button>

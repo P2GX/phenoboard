@@ -1,5 +1,5 @@
 // 1. ALL @use rules must be first
-@use "@angular/material" as mat;
+@use '@angular/material' as mat;
 @use 'styles/animations';
 @use 'styles/buttons';
 @use 'styles/forms';
@@ -11,14 +11,11 @@
 @use 'styles/typography';
 @use 'styles/variables' as *;
 
-
 // 2. Then @include
 @include mat.core();
 
 // 3. Then @import
 @import '@angular/cdk/overlay-prebuilt.css';
-
-
 
 // 5. Then any plain CSS rules
 .mat-mdc-dialog-container,
@@ -35,11 +32,12 @@
 
 /* Ensure the dropdown panel has a solid background */
 .cdk-overlay-pane {
-  background-color: var(--mat-select-panel-background-color, white); 
+  background-color: var(--mat-select-panel-background-color, white);
   opacity: 1 !important;
-  box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 
-              0px 8px 10px 1px rgba(0, 0, 0, 0.14), 
-              0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0px 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0px 3px 14px 2px rgba(0, 0, 0, 0.12);
 }
 
 // Force dialog padding that build optimizer strips
@@ -59,13 +57,13 @@
   padding: 24px 24px 0;
 }
 
-
-
 /* Ensure the autocomplete panel has a solid background and shadow */
 .mat-mdc-autocomplete-panel {
   background-color: #ffffff !important; /* Forces white background */
   border-radius: 4px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 4px 0;
 }
 
@@ -76,7 +74,7 @@
 }
 
 /* Style the hover/focus state of options */
-.mat-mdc-option:hover, 
+.mat-mdc-option:hover,
 .mat-mdc-option.mdc-list-item--selected {
   background-color: #f3f4f6 !important; /* gray-100 */
 }
@@ -102,12 +100,17 @@
   left: 12px !important;
 }
 
+.mat-chip-set mat-chip {
+  font-size: 12px;
+}
 
-.mat-chip-set mat-chip { font-size: 12px; }
+.edit-dialog .mat-mdc-dialog-container {
+  z-index: 2001 !important;
+}
 
-.edit-dialog .mat-mdc-dialog-container { z-index: 2001 !important; }
-
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -152,7 +155,6 @@
   box-shadow: none !important;
 }
 
-
 .tool-row {
   display: flex;
   align-items: center;
@@ -163,8 +165,8 @@
   border: 1px solid transparent;
 
   &:hover {
-    background-color: rgba(239, 246, 255, 0.5);  // blue-50/50
-    border-color: #dbeafe;                         // blue-100
+    background-color: rgba(239, 246, 255, 0.5); // blue-50/50
+    border-color: #dbeafe; // blue-100
   }
 }
 
@@ -185,7 +187,6 @@
     font-style: italic;
   }
 }
-
 
 .global-action-bar {
   display: flex;
@@ -232,9 +233,9 @@
         opacity: 0.6;
       }
     }
-    &:hover mat-icon { opacity: 1; color: #2563eb !important; }
+    &:hover mat-icon {
+      opacity: 1;
+      color: #2563eb !important;
+    }
   }
 }
-
-
-

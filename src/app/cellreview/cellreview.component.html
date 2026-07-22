@@ -9,25 +9,28 @@
         Record <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
       </span>
       <button mat-icon-button (click)="next()">
-        <mat-icon>{{ currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right' }}</mat-icon>
+        <mat-icon>{{
+          currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right'
+        }}</mat-icon>
       </button>
     </div>
   </div>
 
   <mat-dialog-content>
-    <app-mined-cell-editor 
+    <app-mined-cell-editor
       [cell]="currentCell()"
       [toExclude]="termsToExclude()"
       (excludeTerm)="handleExcludeTerm($event)"
       (excludeAll)="handleExcludeAll()"
-      (cellChange)="handleCellChange($event)">
+      (cellChange)="handleCellChange($event)"
+    >
     </app-mined-cell-editor>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
     @if (allMinedCells().length > 0) {
-      <span style="width: 8px;"></span>
+      <span style="width: 8px"></span>
       <button class="btn-outline-primary" (click)="next()">
         {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
       </button>

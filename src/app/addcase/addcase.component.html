@@ -73,7 +73,7 @@
       ➕ Add/edit Demographics
     </button>
     @if (demographicSummary()) {
-      <div class="summary-text">{{ demographicSummary()}}</div>
+      <div class="summary-text">{{ demographicSummary() }}</div>
     } @else {
       <hpo-help-button
         title="Entering demographic data"
@@ -173,14 +173,10 @@
   </div>
 </div>
 
-
 @if (isDemoDialogOpen()) {
   <div class="modal-backdrop" (click)="closeAddDemoDialog()">
     <div class="modal-window demo-modal-dimensions" (click)="$event.stopPropagation()">
-      <app-adddemo
-        (demoSubmitted)="onDemoFormSubmitted($event)">
-      </app-adddemo>
+      <app-adddemo (demoSubmitted)="onDemoFormSubmitted($event)"> </app-adddemo>
     </div>
   </div>
 }
-

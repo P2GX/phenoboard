@@ -1,42 +1,36 @@
-import { Injectable } from "@angular/core";
-import {  } from "../models/etl_dto";
+import { Injectable } from '@angular/core';
+import {} from '../models/etl_dto';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ColumnTransformationService {
-  
-  
-  
-  
   private applyFunctionRule(values: string[], functionName: string): string[] {
     switch (functionName) {
       case 'toUpperCase':
-        return values.map(value => value.toUpperCase());
+        return values.map((value) => value.toUpperCase());
       case 'toLowerCase':
-        return values.map(value => value.toLowerCase());
+        return values.map((value) => value.toLowerCase());
       case 'trim':
-        return values.map(value => value.trim());
+        return values.map((value) => value.trim());
       case 'extractHpoId':
-        return values.map(value => this.extractHpoId(value));
+        return values.map((value) => this.extractHpoId(value));
       case 'normalizeGeneName':
-        return values.map(value => this.normalizeGeneName(value));
+        return values.map((value) => this.normalizeGeneName(value));
       default:
         return values;
     }
   }
-  
+
   private extractHpoId(value: string): string {
     const match = value.match(/HP:\d{7}/);
     return match ? match[0] : value;
   }
-  
+
   private normalizeGeneName(value: string): string {
     return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
-  
-  
-  
+
   private validateHpoTerms(values: string[]): string[] {
     const errors: string[] = [];
     values.forEach((value, index) => {
@@ -46,7 +40,7 @@ export class ColumnTransformationService {
     });
     return errors;
   }
-  
+
   private validateGeneSymbols(values: string[]): string[] {
     const errors: string[] = [];
     values.forEach((value, index) => {
@@ -56,7 +50,7 @@ export class ColumnTransformationService {
     });
     return errors;
   }
-  
+
   private validatePatientIds(values: string[]): string[] {
     const errors: string[] = [];
     const seen = new Set<string>();

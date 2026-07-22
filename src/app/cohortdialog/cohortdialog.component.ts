@@ -1,5 +1,20 @@
-import { Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+  FormsModule,
+} from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { noWhitespaceValidator, noLeadingTrailingSpacesValidator } from '@workspace/ui';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
@@ -53,14 +68,11 @@ export class CohortDialogComponent {
   });
   isLoading = signal(false);
 
-
   open() {
     this.form.reset();
     this.showPasteArea.set(false);
     this.dialogEl().nativeElement.showModal();
   }
-
-
 
   /** Handles Esc key too, since <dialog> fires 'cancel' on Esc */
   onCancelEvent(event: Event) {
@@ -78,18 +90,14 @@ export class CohortDialogComponent {
     this.closeDialog(true);
   }
 
-
-
-
-
-    submitAndAddNext() {
-      if (this.form.valid) {
-        this.entrySubmitted.emit(this.form.value as CohortEntry);
-        this.form.reset();
-      } else {
-        this.form.markAllAsTouched();
-      }
+  submitAndAddNext() {
+    if (this.form.valid) {
+      this.entrySubmitted.emit(this.form.value as CohortEntry);
+      this.form.reset();
+    } else {
+      this.form.markAllAsTouched();
     }
+  }
 
   submit() {
     if (this.form.valid) {
@@ -110,8 +118,8 @@ export class CohortDialogComponent {
       this.showPasteArea.set(false);
       return;
     }
-    const parts = text.split(/\t/).filter(p => p.trim());
-    const omimIdIndex = parts.findIndex(p => /^\d{6}$/.test(p));
+    const parts = text.split(/\t/).filter((p) => p.trim());
+    const omimIdIndex = parts.findIndex((p) => /^\d{6}$/.test(p));
     if (omimIdIndex === -1) {
       alert('No valid 6-digit OMIM ID found in pasted data.');
       this.showPasteArea.set(false);
@@ -132,10 +140,10 @@ export class CohortDialogComponent {
   }
 
   togglePaste() {
-    this.showPasteArea.update(v => !v);
+    this.showPasteArea.update((v) => !v);
   }
 
-  async fetchHgncData(symbol: string): Promise<{ hgncId: string, maneSelect: string } | null> {
+  async fetchHgncData(symbol: string): Promise<{ hgncId: string; maneSelect: string } | null> {
     try {
       return await this.configService.fetchHgncData(symbol);
     } catch (error) {
@@ -155,7 +163,7 @@ export class CohortDialogComponent {
     if (result) {
       this.form.patchValue({
         hgnc: result.hgncId,
-        transcript: result.maneSelect
+        transcript: result.maneSelect,
       });
     } else {
       alert(`Could not find data for symbol: ${symbol}`);

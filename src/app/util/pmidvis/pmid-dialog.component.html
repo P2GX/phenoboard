@@ -1,21 +1,23 @@
 <section class="pmid-modal">
   <h3>PubMed Citations</h3>
 
-    <div class="pmid-list">
-      @for (item of citations(); track item.pmid) {
-        <div class="pmid-item">
-          <div class="pmid-title">{{ item.title }}</div>
-          <div class="pmid-meta">
-            <a [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmid(item)" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               class="pmid-link">
-              <strong>{{ item.pmid }}</strong> ↗
-            </a>
-          </div>
+  <div class="pmid-list">
+    @for (item of citations(); track item.pmid) {
+      <div class="pmid-item">
+        <div class="pmid-title">{{ item.title }}</div>
+        <div class="pmid-meta">
+          <a
+            [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmid(item)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pmid-link"
+          >
+            <strong>{{ item.pmid }}</strong> ↗
+          </a>
         </div>
-      } @empty {
-        <p>No citations available.</p>
-      }
-    </div>
+      </div>
+    } @empty {
+      <p>No citations available.</p>
+    }
+  </div>
 </section>

@@ -1,9 +1,11 @@
 <div class="disease-summary">
   <ul>
     @for (disease of cohort().diseaseList; track disease.diseaseId; let i = $index) {
-      <li> 
+      <li>
         <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" target="_blank">
-          <h2><strong>{{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong></h2> 
+          <h2>
+            <strong>{{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong>
+          </h2>
         </a>
         @if (disease.geneTranscriptList.length) {
           <span class="gene-links">
@@ -11,8 +13,8 @@
             @for (gene of getGeneLinks(disease); let i = $index; track gene.symbol) {
               <i>{{ gene.symbol }}</i>
               [
-                <a [href]="gene.hgncUrl" target="_blank" rel="noopener" class="bluelink">HGNC</a> |
-                <a [href]="gene.ncbiUrl" target="_blank" rel="noopener" class="bluelink">NCBI</a>
+              <a [href]="gene.hgncUrl" target="_blank" rel="noopener" class="bluelink">HGNC</a> |
+              <a [href]="gene.ncbiUrl" target="_blank" rel="noopener" class="bluelink">NCBI</a>
               ]
               {{ i < disease.geneTranscriptList.length - 1 ? ', ' : '' }}
             }
@@ -25,13 +27,24 @@
 
   <div class="summary-row">
     <p class="summary-text">
-      This is a <strong>{{ cohort().cohortType }}</strong> cohort of 
-      <strong>{{ cohort().rows.length }}</strong> individuals. {{ numVariants() }} Variants were identified. 
-      <strong>{{ cohort().hpoHeaders.length }}</strong> distinct HPO terms were observed.
+      This is a <strong>{{ cohort().cohortType }}</strong> cohort of
+      <strong>{{ cohort().rows.length }}</strong> individuals. {{ numVariants() }} Variants were
+      identified. <strong>{{ cohort().hpoHeaders.length }}</strong> distinct HPO terms were
+      observed.
     </p>
-    
+
     <button class="btn-show-pmids-inline" (click)="togglePmidModal()" title="Show PMIDs">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
         <polyline points="14 2 14 8 20 8"></polyline>
         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -48,9 +61,7 @@
   <div class="modal-overlay" (click)="togglePmidModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <app-pmid-dialog [citations]="citations()" />
-      <button 
-      class="btn-outline-cancel"
-      (click)="togglePmidModal()">Close</button>
+      <button class="btn-outline-cancel" (click)="togglePmidModal()">Close</button>
     </div>
   </div>
 }

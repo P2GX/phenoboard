@@ -1,101 +1,118 @@
 <div class="home-page">
-    
-    <div class="home-header">
-        <img src="assets/icon.png" alt="Phenoboard Logo" class="home-header__logo" />
-        
-        <div class="home-header__titles">
-            <h1 class="home-header__h1">
-                GA4GH <span class="home-header__h1--accent">Phenoboard</span>
-            </h1>
-            <p class="home-header__subtitle">Biocuration suite for GA4GH Phenopackets</p>
-        </div>
+  <div class="home-header">
+    <img src="assets/icon.png" alt="Phenoboard Logo" class="home-header__logo" />
 
-        <div class="home-header__orcid">
-            <div class="action-with-help">  
-            <button (click)="setBiocuratorOrcid()" 
-                class="orcid-btn">
-                    <mat-icon class="scale-75">account_circle</mat-icon>
-                    {{ biocuratorOrcid() || 'Set ORCID' }}
-            </button>
-             <hpo-help-button 
-                title="ORCID" 
-                [lines]="['Set your researcher ID.']" 
-                helpUrl="https://p2gx.github.io/phenoboard/help/start.html#orcid" />  
-            </div>
-        </div>
+    <div class="home-header__titles">
+      <h1 class="home-header__h1">GA4GH <span class="home-header__h1--accent">Phenoboard</span></h1>
+      <p class="home-header__subtitle">Biocuration suite for GA4GH Phenopackets</p>
     </div>
 
-    <div class="home-card">
-        
-        <div class="home-card__section">
-            <h2 class="home-card__section-label">Ontology Setup</h2>
-            <div class="home-card__row">
-                <div class="action-with-help">
-                    <button (click)="loadHpo()" [disabled]="statusService.hpoLoading()" class="btn-outline-primary home-card__action-btn">
-                       @if (statusService.hpoLoading()) {
-                        <mat-spinner diameter="15"></mat-spinner>
-                            <span>Loading...</span>
-                        } @else {
-                            <span>Load HPO</span>
-                        }
-                    </button>
-                    <hpo-help-button title="Loading the HPO" [lines]="['Select the hp.json file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo" />
-                </div>
-                
-                <div class="hpo-status">
-                    <span [ngClass]="{
-                        'hpo-status__text--loading': statusService.hpoLoading(), 
-                        'hpo-status__text--loaded': statusService.hpoLoaded()}" 
-                        class="hpo-status__text">
-                        @if(statusService.hpoLoaded()) {
-                          <mat-icon class="hpo-status__icon">check_circle</mat-icon> 
-                        }
-                        {{ hpoMessage() }}
-                    </span>
-                    @if(statusService.hpoLoaded()) {
-                      <span class="hpo-status__terms">
-                        {{ statusService.state().nHpoTerms }} terms available
-                      </span>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="home-card__section">
-            <h2 class="home-card__section-label">Curation Tools</h2>
-                <div class="tool-row">
-                  <div class="action-with-help">
-                    <button 
-                    (click)="createNewPhetoolsTemplate()" 
-                    [disabled]="!statusService.hpoLoaded()" 
-                    class="btn-outline-primary home-card__action-btn">
-                          Create New Cohort
-                      </button>
-                      <hpo-help-button title="New phenoboard cohort" 
-                      [lines]="['Create a phenoboard JSON file.']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#create-new-cohort" />   
-                    </div> 
-                    <div class="tool-info">
-                        <span class="tool-title">Start a new project</span>
-                        <span class="tool-description">Mendelian, Melded, or Digenic templates</span>
-                    </div>
-                </div>
-
-                <div class="tool-row">
-                  <div class="action-with-help">
-                    <button 
-                    (click)="chooseJsonTemplateFile()" 
-                    [disabled]="!statusService.hpoLoaded()" 
-                    class="btn-outline-primary home-card__action-btn">
-                        Open Cohort JSON
-                    </button>
-                     <hpo-help-button title="Open a phenoboard cohort" 
-                      [lines]="['Open an existing cohort (JSON file).']" helpUrl="https://p2gx.github.io/phenoboard/help/start.html#open-an-existing-cohort" />   
-                    </div> 
-                    <div class="tool-info">
-                        <span class="tool-title">Continue curation</span>
-                        <span class="tool-description">{{ jsonTemplateFileMessage() || 'Select a .json file' }}</span>
-                    </div>
-                </div>
-        </div>
+    <div class="home-header__orcid">
+      <div class="action-with-help">
+        <button (click)="setBiocuratorOrcid()" class="orcid-btn">
+          <mat-icon class="scale-75">account_circle</mat-icon>
+          {{ biocuratorOrcid() || 'Set ORCID' }}
+        </button>
+        <hpo-help-button
+          title="ORCID"
+          [lines]="['Set your researcher ID.']"
+          helpUrl="https://p2gx.github.io/phenoboard/help/start.html#orcid"
+        />
+      </div>
     </div>
+  </div>
+
+  <div class="home-card">
+    <div class="home-card__section">
+      <h2 class="home-card__section-label">Ontology Setup</h2>
+      <div class="home-card__row">
+        <div class="action-with-help">
+          <button
+            (click)="loadHpo()"
+            [disabled]="statusService.hpoLoading()"
+            class="btn-outline-primary home-card__action-btn"
+          >
+            @if (statusService.hpoLoading()) {
+              <mat-spinner diameter="15"></mat-spinner>
+              <span>Loading...</span>
+            } @else {
+              <span>Load HPO</span>
+            }
+          </button>
+          <hpo-help-button
+            title="Loading the HPO"
+            [lines]="['Select the hp.json file.']"
+            helpUrl="https://p2gx.github.io/phenoboard/help/start.html#load-the-hpo"
+          />
+        </div>
+
+        <div class="hpo-status">
+          <span
+            [ngClass]="{
+              'hpo-status__text--loading': statusService.hpoLoading(),
+              'hpo-status__text--loaded': statusService.hpoLoaded(),
+            }"
+            class="hpo-status__text"
+          >
+            @if (statusService.hpoLoaded()) {
+              <mat-icon class="hpo-status__icon">check_circle</mat-icon>
+            }
+            {{ hpoMessage() }}
+          </span>
+          @if (statusService.hpoLoaded()) {
+            <span class="hpo-status__terms">
+              {{ statusService.state().nHpoTerms }} terms available
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="home-card__section">
+      <h2 class="home-card__section-label">Curation Tools</h2>
+      <div class="tool-row">
+        <div class="action-with-help">
+          <button
+            (click)="createNewPhetoolsTemplate()"
+            [disabled]="!statusService.hpoLoaded()"
+            class="btn-outline-primary home-card__action-btn"
+          >
+            Create New Cohort
+          </button>
+          <hpo-help-button
+            title="New phenoboard cohort"
+            [lines]="['Create a phenoboard JSON file.']"
+            helpUrl="https://p2gx.github.io/phenoboard/help/start.html#create-new-cohort"
+          />
+        </div>
+        <div class="tool-info">
+          <span class="tool-title">Start a new project</span>
+          <span class="tool-description">Mendelian, Melded, or Digenic templates</span>
+        </div>
+      </div>
+
+      <div class="tool-row">
+        <div class="action-with-help">
+          <button
+            (click)="chooseJsonTemplateFile()"
+            [disabled]="!statusService.hpoLoaded()"
+            class="btn-outline-primary home-card__action-btn"
+          >
+            Open Cohort JSON
+          </button>
+          <hpo-help-button
+            title="Open a phenoboard cohort"
+            [lines]="['Open an existing cohort (JSON file).']"
+            helpUrl="https://p2gx.github.io/phenoboard/help/start.html#open-an-existing-cohort"
+          />
+        </div>
+        <div class="tool-info">
+          <span class="tool-title">Continue curation</span>
+          <span class="tool-description">{{
+            jsonTemplateFileMessage() || 'Select a .json file'
+          }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -7,7 +7,7 @@ describe('MoiSelectorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MoiSelectorComponent]
+      imports: [MoiSelectorComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MoiSelectorComponent);

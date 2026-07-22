@@ -7,7 +7,7 @@ describe('CohortDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CohortDialogComponent]
+      imports: [CohortDialogComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CohortDialogComponent);

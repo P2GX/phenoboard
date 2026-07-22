@@ -1,4 +1,3 @@
-
 import { Component, inject, signal, computed, input, output, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
@@ -8,11 +7,11 @@ import { AgeInputService } from '../services/age_service';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './addage.component.html',
-  styleUrl: './addage.component.scss'
+  styleUrl: './addage.component.scss',
 })
 export class AddageComponent {
   private ageService = inject(AgeInputService);
-  
+
   // Clean context-free I/O mapping
   current = input<string>('');
   saved = output<string>();
@@ -21,17 +20,17 @@ export class AddageComponent {
   readonly existingAgeStrings = this.ageService.selectedTerms;
   customAge = signal('');
 
- readonly existingTerms = this.ageService.allAvailableTerms;
+  readonly existingTerms = this.ageService.allAvailableTerms;
 
   filteredTerms = computed(() => {
     const typed = this.customAge().trim().toLowerCase();
-    
+
     // If empty or already a typed exact match or custom format draft, clear suggestions
-    if (!typed || typed.startsWith('p') && typed.length > 3) {
-      return []; 
+    if (!typed || (typed.startsWith('p') && typed.length > 3)) {
+      return [];
     }
 
-    return this.existingTerms().filter(t => t.toLowerCase().includes(typed));
+    return this.existingTerms().filter((t) => t.toLowerCase().includes(typed));
   });
 
   constructor() {
@@ -56,7 +55,7 @@ export class AddageComponent {
   createNewAge(): void {
     const val = this.customAge().trim();
     if (!val) return;
-    
+
     if (this.ageService.validateAgeInput(val)) {
       this.ageService.addSelectedTerm(val);
       this.saved.emit(val);

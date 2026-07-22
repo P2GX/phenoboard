@@ -1,6 +1,4 @@
-
 import { Component } from '@angular/core';
-
 
 @Component({
   selector: 'app-help',
@@ -9,7 +7,4 @@ import { Component } from '@angular/core';
   standalone: true,
   imports: [],
 })
-export class HelpComponent {
-  
-
-}
+export class HelpComponent {}

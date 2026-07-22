@@ -12,7 +12,7 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { HelpService } from '../services/help.service';
-import { HelpButtonComponent } from "ng-hpo-uikit";
+import { HelpButtonComponent } from 'ng-hpo-uikit';
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
@@ -33,18 +33,23 @@ export interface VariantDisplay {
   count: number;
 }
 
-
 @Component({
   selector: 'app-variant_list',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatInputModule,
-    MatFormFieldModule, MatSelectModule, HelpButtonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    HelpButtonComponent,
+  ],
   templateUrl: './variant_list.component.html',
-  styleUrls: ['./variant_list.component.css']
+  styleUrls: ['./variant_list.component.css'],
 })
 export class VariantListComponent implements OnInit, OnDestroy {
-
-
   private cohortService = inject(CohortDtoService);
   private helpService = inject(HelpService);
   private notificationService = inject(NotificationService);
@@ -55,7 +60,7 @@ export class VariantListComponent implements OnInit, OnDestroy {
   cohortData = this.cohortService.cohortData;
 
   readonly variantDisplayList = computed(() => {
-    const cohort = this.cohortData(); 
+    const cohort = this.cohortData();
     if (!cohort) return [];
 
     const varDisplayList: VariantDisplay[] = [];
@@ -63,7 +68,7 @@ export class VariantListComponent implements OnInit, OnDestroy {
     const validatedKeys = new Set<string>();
 
     // 1. Aggregate counts from all rows
-    cohort.rows.forEach(row => {
+    cohort.rows.forEach((row) => {
       Object.entries(row.alleleCountMap).forEach(([allele, count]) => {
         rowToKeyMap[allele] = (rowToKeyMap[allele] ?? 0) + count;
       });
@@ -74,12 +79,12 @@ export class VariantListComponent implements OnInit, OnDestroy {
       varDisplayList.push({
         variantString: hgvs.hgvs,
         variantKey: hgvs.variantKey,
-        consequence: hgvs.pHgvs || "n/a",
-        variantType: "HGVS" as VariantType,
+        consequence: hgvs.pHgvs || 'n/a',
+        variantType: 'HGVS' as VariantType,
         isValidated: true,
         count: rowToKeyMap[vkey] || 0,
         geneSymbol: hgvs.symbol,
-        transcript: hgvs.transcript
+        transcript: hgvs.transcript,
       });
       validatedKeys.add(vkey);
     });
@@ -89,12 +94,12 @@ export class VariantListComponent implements OnInit, OnDestroy {
       varDisplayList.push({
         variantString: sv.label,
         variantKey: sv.variantKey,
-        consequence: "structural",
+        consequence: 'structural',
         variantType: sv.svType,
         isValidated: true,
         count: rowToKeyMap[vkey] || 0,
         geneSymbol: sv.geneSymbol,
-        transcript: sv.transcript
+        transcript: sv.transcript,
       });
       validatedKeys.add(vkey);
     });
@@ -105,61 +110,57 @@ export class VariantListComponent implements OnInit, OnDestroy {
         varDisplayList.push({
           variantString: vkey,
           variantKey: vkey,
-          consequence: "unknown",
-          variantType: "UNKNOWN" as VariantType,
+          consequence: 'unknown',
+          variantType: 'UNKNOWN' as VariantType,
           isValidated: false,
           count,
-          geneSymbol: 'n/a'
+          geneSymbol: 'n/a',
         });
       }
     });
 
     return varDisplayList;
   });
-  
+
   async ngOnInit(): Promise<void> {
-    this.helpService.setHelpContext("variant")
+    this.helpService.setHelpContext('variant');
   }
 
-
-   ngOnDestroy(): void {
-  }
+  ngOnDestroy(): void {}
 
   /** The user clicks on the button to validate a single variant. We therefore send the variant to the back end, where the resulting
    * validated variant is added back to the CohortDto. If successful, we update the cohort Dto in the backend and update it in our service
    */
   deleteVariant(varDto: VariantDisplay): void {
     const cohort = this.cohortData();
-    if (! cohort) {
-      this.notificationService.showError("Cohort not initialized");
+    if (!cohort) {
+      this.notificationService.showError('Cohort not initialized');
       return;
     }
     const variantKey = varDto.variantKey;
-    const newCohort = {...cohort};
+    const newCohort = { ...cohort };
     if (variantKey in cohort.hgvsVariants) {
       delete newCohort.hgvsVariants[variantKey];
       this.cohortService.setCohortData(newCohort);
       this.notificationService.showSuccess(`Removed variant: ${variantKey}`);
-    } else if (variantKey in cohort.structuralVariants){
+    } else if (variantKey in cohort.structuralVariants) {
       delete newCohort.structuralVariants[variantKey];
       this.cohortService.setCohortData(newCohort);
       this.notificationService.showSuccess(`Removed structural variant: ${variantKey}`);
     } else {
-      this.notificationService.showError(`Did not find variant key ${variantKey}`)
+      this.notificationService.showError(`Did not find variant key ${variantKey}`);
     }
   }
-
- 
 
   async editSv(variant: VariantDisplay): Promise<void> {
     const cohort = this.cohortData();
 
-    if (! cohort || variant.variantType === "HGVS") {
+    if (!cohort || variant.variantType === 'HGVS') {
       // Should never happen!
       return;
     }
     const svKey = variant.variantKey;
-   
+
     const currentSv = cohort.structuralVariants[svKey];
     if (!currentSv) {
       this.notificationService.showError(`Could not retrieve data for SV ${svKey}`);
@@ -168,19 +169,22 @@ export class VariantListComponent implements OnInit, OnDestroy {
     const gtdata: GeneTranscriptData = {
       hgncId: currentSv.hgncId,
       geneSymbol: currentSv.geneSymbol,
-      transcript: currentSv.transcript
+      transcript: currentSv.transcript,
     };
-    try{
-          const result = await this.svDialog.openSvDialog(gtdata, variant.variantString, currentSv.chromosome);
-          if (result) {
-            this.cohortService.updateSv(cohort, svKey, result.variantKey);
-            this.notificationService.showSuccess(`Structural variant ${svKey} updated to ${result.variantKey}`);
-          }
-        } catch (error) {
-          this.notificationService.showError(String(error));
-        }
+    try {
+      const result = await this.svDialog.openSvDialog(
+        gtdata,
+        variant.variantString,
+        currentSv.chromosome,
+      );
+      if (result) {
+        this.cohortService.updateSv(cohort, svKey, result.variantKey);
+        this.notificationService.showSuccess(
+          `Structural variant ${svKey} updated to ${result.variantKey}`,
+        );
+      }
+    } catch (error) {
+      this.notificationService.showError(String(error));
+    }
   }
-  
-    
 }
-

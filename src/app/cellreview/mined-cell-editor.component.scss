@@ -1,5 +1,3 @@
-
-
 .mined-cell-container {
   padding: 16px;
   background: #ffffff;
@@ -7,7 +5,7 @@
 
   .cell-header {
     margin-bottom: 20px;
-    
+
     .source-bubble {
       background: #f1f5f9;
       border-left: 4px solid #3b82f6;
@@ -46,7 +44,9 @@
     vertical-align: middle;
   }
 
-  tr:last-child td { border-bottom: none; }
+  tr:last-child td {
+    border-bottom: none;
+  }
 
   .hpo-id-badge {
     font-family: monospace;
@@ -72,11 +72,22 @@
   line-height: 28px !important;
   font-size: 12px !important;
   border-color: #cbd5e1 !important;
-  padding:  0 8px !important;
-  
-  .btn-label { color: #94a3b8; margin-right: 4px; }
-  .current-value { font-weight: 600; color: #1e293b; }
-  mat-icon { font-size: 18px; width: 18px; height: 18px; margin-left: 4px; }
+  padding: 0 8px !important;
+
+  .btn-label {
+    color: #94a3b8;
+    margin-right: 4px;
+  }
+  .current-value {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+  }
 }
 
 /* Onset Picker Grouping */
@@ -91,8 +102,13 @@
   transition: all 0.2s;
   padding: 2px 4px;
 
-  &:hover { border-color: #3b82f6; }
-  &.has-onset { border-color: #3b82f6; background: #eff6ff; }
+  &:hover {
+    border-color: #3b82f6;
+  }
+  &.has-onset {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
 
   .onset-icon {
     padding: 0 8px;
@@ -100,7 +116,11 @@
     align-items: center;
     color: #64748b;
     border-right: 1px solid #e2e8f0;
-    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
   }
 
   .onset-select {
@@ -123,16 +143,17 @@
     height: 100%;
     cursor: pointer;
     font-weight: bold;
-    &:hover { background: #2563eb; }
+    &:hover {
+      background: #2563eb;
+    }
   }
 }
-
 
 $red-light: #fff5f5;
 $red-border: #feb2b2;
 $red-text: #9b2c2c;
 $red-id: #e53e3e;
-$gray-500:       #64748b;
+$gray-500: #64748b;
 
 .shelf-header {
   display: flex;
@@ -140,7 +161,7 @@ $gray-500:       #64748b;
   justify-content: flex-start;
   gap: 16px;
   margin-bottom: 16px;
-  
+
   span {
     font-weight: 600;
     color: $gray-500;
@@ -155,10 +176,10 @@ $gray-500:       #64748b;
   background-color: #fee2e2; // Slightly deeper red than individual terms
   border: 2px solid $red-border; // Thicker border
   font-weight: 600;
-  
+
   mat-icon {
     font-size: 16px;
-    opacity: 1; 
+    opacity: 1;
     width: 16px;
     height: 16px;
     color: $red-text;
@@ -182,14 +203,14 @@ $gray-500:       #64748b;
   gap: 8px;
   padding: 4px 12px;
   margin: 4px;
-  
+
   // Aesthetics
   background-color: $red-light;
   border: 1px solid $red-border;
   border-radius: 20px; // Pill shape
   color: $red-text;
   cursor: pointer;
-  
+
   // Clean up button defaults
   font-family: inherit;
   font-size: 13px;

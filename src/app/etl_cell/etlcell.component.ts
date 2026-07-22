@@ -1,9 +1,19 @@
-import { Component, computed, effect, EventEmitter, HostListener, input, Output, output, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  EventEmitter,
+  HostListener,
+  input,
+  Output,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { EtlCellValue, EtlCellStatus } from "@workspace/ui";
-import { MatDialog } from "@angular/material/dialog";
-import { EtlCellEditDialogComponent } from "./etl-cell-edit-dialog.component";
+import { EtlCellValue, EtlCellStatus } from '@workspace/ui';
+import { MatDialog } from '@angular/material/dialog';
+import { EtlCellEditDialogComponent } from './etl-cell-edit-dialog.component';
 
 @Component({
   selector: 'etl-cell',
@@ -15,14 +25,16 @@ export class EtlCellComponent {
   cell = input.required<EtlCellValue>();
   rowIndex = input.required<number>();
   colIndex = input.required<number>();
-  edited = output<{ rowIndex: number, colIndex: number, newValue: string }>();
+  edited = output<{ rowIndex: number; colIndex: number; newValue: string }>();
   // Signals for reactive display
   current = signal('');
-  status = signal<EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error | EtlCellStatus.Ignored >(EtlCellStatus.Raw);
+  status = signal<
+    EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error | EtlCellStatus.Ignored
+  >(EtlCellStatus.Raw);
   error = signal<string | undefined>(undefined);
 
   constructor(private dialog: MatDialog) {
-  // Whenever the input cell() changes, it pushes the new data into your local signals.
+    // Whenever the input cell() changes, it pushes the new data into your local signals.
     effect(() => {
       const val = this.cell();
       this.current.set(val.current || '');
@@ -33,7 +45,7 @@ export class EtlCellComponent {
 
   ngOnInit() {
     // Initialize signals from the DTO
-   // this.syncSignalsFromDto();
+    // this.syncSignalsFromDto();
   }
 
   @Output() contextMenuRequested = new EventEmitter<{
@@ -52,10 +64,9 @@ export class EtlCellComponent {
       event,
       cell: this.cell(),
       rowIndex: this.rowIndex(),
-      colIndex: this.colIndex()
+      colIndex: this.colIndex(),
     });
   }
-
 
   /** Apply a transformed value */
   setTransformed(newValue: string) {
@@ -99,13 +110,12 @@ export class EtlCellComponent {
       data: { current: this.current() },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result !== undefined) {
         this.setTransformed(result);
       }
     });
   }
-
 
   readonly cellClass = computed(() => {
     const currentStatus = this.status();
@@ -125,7 +135,6 @@ export class EtlCellComponent {
 
   readonly original = computed(() => this.cell().original);
 
-
   readonly tooltipText = computed(() => {
     const origVal = this.original();
     const currentVal = this.current();
@@ -134,12 +143,9 @@ export class EtlCellComponent {
       return `error: ${errorVal}`;
     }
     if (currentVal.length == 0) {
-      return `${origVal} (raw)`
-    }
-    else {
-      return  `original: ${origVal}\ntransformed: ${currentVal}`;
+      return `${origVal} (raw)`;
+    } else {
+      return `original: ${origVal}\ntransformed: ${currentVal}`;
     }
   });
-
-  
 }

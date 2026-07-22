@@ -2,17 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { CohortData, RowData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from "@angular/material/icon";
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MatCard, MatCardModule } from "@angular/material/card";
+import { MatCard, MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { toSignal } from '@angular/core/rxjs-interop';
-
-
-
 
 @Component({
   selector: 'app-phenopacketdetail',
@@ -26,8 +23,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatListModule,
     MatTableModule,
     MatButtonModule,
-    MatIconModule
-]
+    MatIconModule,
+  ],
 })
 export class PhenopacketDetailComponent {
   private cohortService = inject(CohortDtoService);
@@ -35,7 +32,6 @@ export class PhenopacketDetailComponent {
 
   observedTerms: HpoTermDuplet[] = [];
   excludedTerms: HpoTermDuplet[] = [];
-
 
   private params = toSignal(this.route.paramMap);
   readonly id = computed(() => this.params()?.get('id'));
@@ -47,7 +43,7 @@ export class PhenopacketDetailComponent {
   readonly terms = computed(() => {
     const row = this.row();
     const cohort = this.cohort();
-    
+
     const observed: HpoTermDuplet[] = [];
     const excluded: HpoTermDuplet[] = [];
 
@@ -67,30 +63,27 @@ export class PhenopacketDetailComponent {
 
   readonly diseaseMap = computed(() => {
     const map = new Map<string, string>();
-    this.cohort()?.diseaseList.forEach(dx => {
+    this.cohort()?.diseaseList.forEach((dx) => {
       map.set(dx.diseaseId, dx.diseaseLabel);
     });
     return map;
   });
- 
-
-  
 
   getDiseaseLabel(id: string): string {
     return this.diseaseMap().get(id) ?? id;
   }
 
   getOmimUrl(diseaseId: string): string | null {
-    if (!diseaseId.startsWith("OMIM:")) {
+    if (!diseaseId.startsWith('OMIM:')) {
       return null;
     }
-    const omimNumber = diseaseId.replace("OMIM:", "");
+    const omimNumber = diseaseId.replace('OMIM:', '');
     return `https://omim.org/entry/${omimNumber}`;
   }
 
-  getPmidNumber(pmid: string): string  {
-    if (!pmid.startsWith("PMID:")) return pmid;
-    return pmid.replace("PMID:", "");
+  getPmidNumber(pmid: string): string {
+    if (!pmid.startsWith('PMID:')) return pmid;
+    return pmid.replace('PMID:', '');
   }
 
   getVariantString(v: string): string {
@@ -101,8 +94,7 @@ export class PhenopacketDetailComponent {
       const { hgvs, transcript, symbol } = cohort.hgvsVariants[v];
       return `${transcript}(${symbol}):${hgvs}`;
     }
-    
+
     return cohort.structuralVariants[v]?.label ?? v;
   }
-
 }

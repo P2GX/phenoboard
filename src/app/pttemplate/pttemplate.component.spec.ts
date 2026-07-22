@@ -7,7 +7,7 @@ describe('PtTemplateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PtTemplateComponent]
+      imports: [PtTemplateComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PtTemplateComponent);

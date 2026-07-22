@@ -1,33 +1,31 @@
 import { Component, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatInputModule } from "@angular/material/input";
+import { MatInputModule } from '@angular/material/input';
 import { HgvsVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
-
-
 
 @Component({
   selector: 'app-manualhgvs-dialog',
   templateUrl: './manual-hgvs.component.html',
   styleUrls: ['./manual-hgvs.component.scss'],
   standalone: true,
-   imports: [
+  imports: [
     ReactiveFormsModule,
     MatDialogModule,
     MatInputModule,
     MatFormFieldModule,
-    MatButtonModule
+    MatButtonModule,
   ],
 })
-export class ManualHgvsVariantDialog  {
+export class ManualHgvsVariantDialog {
   form: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<HgvsVariant>,
-    @Inject(MAT_DIALOG_DATA) public data: Partial<HgvsVariant>
+    @Inject(MAT_DIALOG_DATA) public data: Partial<HgvsVariant>,
   ) {
     this.form = this.fb.group({
       assembly: [{ value: 'hg38', disabled: true }, Validators.required],
@@ -52,11 +50,7 @@ export class ManualHgvsVariantDialog  {
       const formValue = this.form.getRawValue(); // includes disabled controls like assembly
       const variant: HgvsVariant = {
         ...formValue,
-        variantKey: this.generateVariantKey(
-          formValue.hgvs,
-          formValue.symbol,
-          formValue.transcript
-        )
+        variantKey: this.generateVariantKey(formValue.hgvs, formValue.symbol, formValue.transcript),
       };
       this.dialogRef.close(variant);
     }
@@ -64,13 +58,13 @@ export class ManualHgvsVariantDialog  {
 
   private generateVariantKey(hgvs: string, symbol: string, transcript: string): string {
     // Normalize hgvs
-    let hgvsNorm = hgvs.replace("c.", "c").replace("m.", "m").replace("n.","n").replace(">", "to");
+    let hgvsNorm = hgvs.replace('c.', 'c').replace('m.', 'm').replace('n.', 'n').replace('>', 'to');
     hgvsNorm = Array.from(hgvsNorm)
-      .map(c => /[a-zA-Z0-9]/.test(c) ? c : "_")
-      .join("");
+      .map((c) => (/[a-zA-Z0-9]/.test(c) ? c : '_'))
+      .join('');
 
     // Normalize transcript
-    const transcriptNorm = transcript.replace(/\./g, "v");
+    const transcriptNorm = transcript.replace(/\./g, 'v');
 
     return `${hgvsNorm}_${symbol}_${transcriptNorm}`;
   }

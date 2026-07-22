@@ -2,17 +2,21 @@ import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { DiseaseData, CohortData, CohortType, GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
+import {
+  DiseaseData,
+  CohortData,
+  CohortType,
+  GeneTranscriptData,
+} from '../../../libs/ui/src/lib/models/cohort_dto';
 import { RouterLink } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 import { CohortDialogComponent } from '../cohortdialog/cohortdialog.component';
 import { NotificationService } from 'ng-hpo-uikit';
 import { EtlSessionService } from '../services/etl_session_service';
-import { HelpButtonComponent } from "ng-hpo-uikit";
-import { DisplayMendelianComponent } from "./display-mendelian.component";
-import { DisplayMeldedComponent } from "./display-melded.component";
+import { HelpButtonComponent } from 'ng-hpo-uikit';
+import { DisplayMendelianComponent } from './display-mendelian.component';
+import { DisplayMeldedComponent } from './display-melded.component';
 import { AppStatusService } from '../services/app_status_service';
-
 
 export interface CohortEntry {
   diseaseId: string;
@@ -22,20 +26,20 @@ export interface CohortEntry {
   symbol: string;
   transcript: string;
   // Used for Oligogenic/Digenic additional genes
-  geneTranscriptList?: GeneTranscriptData[]; 
+  geneTranscriptList?: GeneTranscriptData[];
 }
 
 export function toDiseaseData(entry: CohortEntry): DiseaseData {
   const gtd: GeneTranscriptData = {
     hgncId: entry.hgnc,
     geneSymbol: entry.symbol,
-    transcript: entry.transcript
+    transcript: entry.transcript,
   };
   return {
     diseaseId: entry.diseaseId,
     diseaseLabel: entry.diseaseLabel,
     modeOfInheritanceList: [],
-    geneTranscriptList: [gtd]
+    geneTranscriptList: [gtd],
   };
 }
 
@@ -50,12 +54,19 @@ export function toDiseaseData(entry: CohortEntry): DiseaseData {
 @Component({
   selector: 'app-newtemplate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, HelpButtonComponent, DisplayMendelianComponent, DisplayMeldedComponent, CohortDialogComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    HelpButtonComponent,
+    DisplayMendelianComponent,
+    DisplayMeldedComponent,
+    CohortDialogComponent,
+  ],
   templateUrl: './newtemplate.component.html',
   styleUrl: './newtemplate.component.scss',
 })
-export class NewTemplateComponent  {
-
+export class NewTemplateComponent {
   private cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
   private etl_service = inject(EtlSessionService);
@@ -66,26 +77,21 @@ export class NewTemplateComponent  {
   dialogTitle = signal('');
   dialogIsMelded = signal(false);
 
-
   digenicTemplate = false;
   meldedTemplate = false;
   mendelianTemplate = false;
 
   diseases = signal<CohortEntry[]>([]);
-  diseasesData = computed<DiseaseData[]>(() => 
-    this.diseases().map(d => toDiseaseData(d))
-  );
+  diseasesData = computed<DiseaseData[]>(() => this.diseases().map((d) => toDiseaseData(d)));
   mendelianDisease = computed<DiseaseData | null>(() => {
-    const list = this.diseasesData(); 
+    const list = this.diseasesData();
     return list.length > 0 ? list[0] : null;
   });
   cohortAcronym = computed(() => {
     const currentDiseases = this.diseases();
     if (currentDiseases.length === 0) return '';
-    
-    return currentDiseases
-      .map(d => `${d.symbol}_${d.cohortAcronym}`)
-      .join("_");
+
+    return currentDiseases.map((d) => `${d.symbol}_${d.cohortAcronym}`).join('_');
   });
 
   cohortType = signal<CohortType | null>(null);
@@ -98,31 +104,29 @@ export class NewTemplateComponent  {
     this.meldedTemplate = false;
     this.digenicTemplate = false;
     this.collectedEntries = [];
-    this.openCohortDialog( 'Create Mendelian Cohort', false);
+    this.openCohortDialog('Create Mendelian Cohort', false);
   }
 
- melded(): void {
+  melded(): void {
     this.mendelianTemplate = false;
     this.meldedTemplate = true;
     this.digenicTemplate = false;
     this.collectedEntries = [];
-    this.openCohortDialog("Create Melded Cohort", true);
+    this.openCohortDialog('Create Melded Cohort', true);
   }
 
   digenic(): void {
-    alert("digenic template not currently implemented");
+    alert('digenic template not currently implemented');
   }
 
-
-
   openCohortDialog(title: string, isMelded: boolean) {
-     this.dialogTitle.set(title);
-   this.dialogIsMelded.set(isMelded);  
+    this.dialogTitle.set(title);
+    this.dialogIsMelded.set(isMelded);
     this.cohortDialogRef().open();
   }
   private collectedEntries: CohortEntry[] = [];
 
-    onEntrySubmitted(entry: CohortEntry): void {
+  onEntrySubmitted(entry: CohortEntry): void {
     const fullEntry: CohortEntry = { ...entry, geneTranscriptList: [] };
     this.collectedEntries.push(fullEntry);
   }
@@ -145,42 +149,44 @@ export class NewTemplateComponent  {
     }
   }
 
-
-
   private async createMeldedTemplate(): Promise<void> {
     const currentDiseases = this.diseases();
     if (currentDiseases.length < 2) {
-      this.notificationService.showError(`Only ${currentDiseases.length} diseases but need at least 2 for melded cohort`);
+      this.notificationService.showError(
+        `Only ${currentDiseases.length} diseases but need at least 2 for melded cohort`,
+      );
       return;
     }
 
-  
-    const cohort = await this.configService.createNewMeldedTemplate(this.diseasesData(), this.cohortAcronym());
-      this.resetCohort();
+    const cohort = await this.configService.createNewMeldedTemplate(
+      this.diseasesData(),
+      this.cohortAcronym(),
+    );
+    this.resetCohort();
     this.pendingCohort.set(cohort);
-    this.cohortType.set("melded");
+    this.cohortType.set('melded');
   }
 
-private async createMendelianTemplate(): Promise<void> {
-  this.etl_service.clearEtlDto();
-  const diseases = this.diseases();
-  if (diseases.length != 1) {
-    this.notificationService.showError(`Expected to get one disease for Mendelian cohort, but got ${diseases.length}`);
-    return;
+  private async createMendelianTemplate(): Promise<void> {
+    this.etl_service.clearEtlDto();
+    const diseases = this.diseases();
+    if (diseases.length != 1) {
+      this.notificationService.showError(
+        `Expected to get one disease for Mendelian cohort, but got ${diseases.length}`,
+      );
+      return;
+    }
+    const disease = diseases[0];
+    const ctype: CohortType = 'mendelian';
+    const template = await this.configService.createNewTemplate(
+      toDiseaseData(disease),
+      ctype,
+      this.cohortAcronym(),
+    );
+    this.resetCohort();
+    this.pendingCohort.set(template);
+    this.cohortType.set('mendelian');
   }
-  const disease = diseases[0];
-  const ctype: CohortType = "mendelian";
-  const template = await this.configService.createNewTemplate(
-    toDiseaseData(disease),
-    ctype,
-    this.cohortAcronym()
-  );
-  this.resetCohort();
-  this.pendingCohort.set(template);
-  this.cohortType.set("mendelian");
-}
-   
-  
 
   resetCohort(): void {
     this.mendelianTemplate = false;
@@ -194,38 +200,40 @@ private async createMendelianTemplate(): Promise<void> {
 
   onConfirm(): void {
     const cohort = this.pendingCohort();
-    if (! cohort) {
-      this.notificationService.showError("CohortData not initialized");
+    if (!cohort) {
+      this.notificationService.showError('CohortData not initialized');
       return;
     }
     this.cohortService.setCohortData(cohort);
     this.showSuccessMessage.set(true);
   }
   /* helper for displaying info in the termplate */
-readonly cohortModes = [
-  { 
-    id: 'mendelian', 
-    label: 'Mendelian', 
-    action: () => this.mendelian(),
-    disabled: false,
-    helpTitle: 'Mendelian Template',
-    helpLines: ['A Mendelian disorder is caused by mutations in a single gene.']
-  },
-  { 
-    id: 'melded', 
-    label: 'Melded (Multiple Genetic Diagnosis)', 
-    action: () => this.melded(),
-    disabled: false,
-    helpTitle: 'Melded Diagnosis',
-    helpLines: ['A clinical presentation resulting from two or more independent genetic diagnoses.']
-  },
-  { 
-    id: 'digenic', 
-    label: 'Digenic', 
-    action: () => this.digenic(),
-    disabled: true,
-    helpTitle: 'Digenic Inheritance',
-    helpLines: ['Support for digenic disease curation has not yet been implemented.']
-  }
-];
+  readonly cohortModes = [
+    {
+      id: 'mendelian',
+      label: 'Mendelian',
+      action: () => this.mendelian(),
+      disabled: false,
+      helpTitle: 'Mendelian Template',
+      helpLines: ['A Mendelian disorder is caused by mutations in a single gene.'],
+    },
+    {
+      id: 'melded',
+      label: 'Melded (Multiple Genetic Diagnosis)',
+      action: () => this.melded(),
+      disabled: false,
+      helpTitle: 'Melded Diagnosis',
+      helpLines: [
+        'A clinical presentation resulting from two or more independent genetic diagnoses.',
+      ],
+    },
+    {
+      id: 'digenic',
+      label: 'Digenic',
+      action: () => this.digenic(),
+      disabled: true,
+      helpTitle: 'Digenic Inheritance',
+      helpLines: ['Support for digenic disease curation has not yet been implemented.'],
+    },
+  ];
 }

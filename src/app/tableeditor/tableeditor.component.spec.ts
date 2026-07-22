@@ -7,7 +7,7 @@ describe('TableEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TableEditorComponent]
+      imports: [TableEditorComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TableEditorComponent);

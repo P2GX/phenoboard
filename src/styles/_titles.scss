@@ -6,7 +6,10 @@
   margin-bottom: 8px;
   opacity: 1 !important;
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 700;
@@ -14,9 +17,15 @@
     letter-spacing: -0.01em;
   }
 
-  h1 { font-size: 1.875rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.1rem; }
+  h1 {
+    font-size: 1.875rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+  }
+  h3 {
+    font-size: 1.1rem;
+  }
 
   app-help-button {
     display: inline-flex;
@@ -43,10 +52,10 @@
         align-items: center;
         justify-content: center;
       }
-      
+
       &:hover mat-icon {
         color: #2563eb !important; /* Blue hover effect */
       }
     }
   }
-} 
+}

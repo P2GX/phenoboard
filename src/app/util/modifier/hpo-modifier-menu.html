@@ -2,48 +2,51 @@
   <label class="section-label">Severity</label>
   <div class="quick-select-row">
     @for (mod of quickModifiers; track mod) {
-      <button mat-stroked-button color="primary" class="btn-small" (click)="selectQuickModifier(mod)">
-        {{ mod }}
-      </button>
+    <button mat-stroked-button color="primary" class="btn-small" (click)="selectQuickModifier(mod)">
+      {{ mod }}
+    </button>
     }
   </div>
 
   <div class="inline-modifier-header">
     <span class="inline-label">Modifiers</span>
-    
+
     <mat-form-field class="compact-form-field" appearance="outline">
-      <input type="text"
+      <input
+        type="text"
         #hpoInput
         [placeholder]="placeholder()"
         matInput
         [formControl]="control"
         [matAutocomplete]="auto"
         spellcheck="false"
-        autocomplete="off">
+        autocomplete="off"
+      />
 
       @if (control.value) {
-        <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
-          <mat-icon>close</mat-icon>
-        </button>
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
+        <mat-icon>close</mat-icon>
+      </button>
       }
-      
-      <mat-autocomplete 
-        #auto="matAutocomplete" 
-        [displayWith]="displayFn" 
-        (optionSelected)="onOptionSelected($event)">
+
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [displayWith]="displayFn"
+        (optionSelected)="onOptionSelected($event)"
+      >
         @for (option of options(); track $index) {
-          <mat-option [value]="option">
-            <div class="option-container">
-              <span class="option-matched-text">{{ option.hpoLabel }}</span>
-              <small class="option-id"> ({{ option.hpoId }})</small>
-            </div>
-          </mat-option>
+        <mat-option [value]="option">
+          <div class="option-container">
+            <span class="option-matched-text">{{ option.hpoLabel }}</span>
+            <small class="option-id"> ({{ option.hpoId }})</small>
+          </div>
+        </mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>
   </div>
 
   @if (control.hasError('invalidSelection') && control.touched) {
-    <div class="error-text-fallback">Please select a term from the list</div>
+  <div class="error-text-fallback">Please select a term from the list</div>
   }
 </div>

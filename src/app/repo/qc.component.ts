@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatIconModule } from "@angular/material/icon";
-import { RouterModule } from '@angular/router'; 
+import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 import { SourcePmid } from '@workspace/ui';
 import { RepoErrorType, RepoQc } from '../models/repo_qc';
 import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';
-import { HelpButtonComponent } from "ng-hpo-uikit";
+import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { CompareDialogComponent, CompareFiles } from '../util/comparewidget/comparewidget';
 import { MatDialog } from '@angular/material/dialog';
 import { ComparisonReport } from '../models/comparison';
@@ -21,17 +21,16 @@ import { ComparisonReport } from '../models/comparison';
   imports: [CommonModule, MatIconModule, RouterModule, HelpButtonComponent],
 })
 export class QcComponent implements OnInit {
-
-  private configService = inject(ConfigService); 
+  private configService = inject(ConfigService);
   private helpService = inject(HelpService);
   private notificationService = inject(NotificationService);
   private dialog = inject(MatDialog);
   copySuccess = signal(false);
-  
+
   ngOnInit(): void {
-    this.helpService.setHelpContext("repo");
+    this.helpService.setHelpContext('repo');
   }
-  
+
   diseaseList!: DiseaseData[];
   pmidList: SourcePmid[] = [];
   showPmid = false;
@@ -48,12 +47,14 @@ export class QcComponent implements OnInit {
   isIdentical = computed(() => {
     const report = this.comparisonResult();
     if (!report) return false;
-    
-    return report.idMatch && 
-           report.addedHpo.length === 0 && 
-           report.removedHpo.length === 0 &&
-           report.addedVariants.length === 0 &&
-           report.removedVariants.length === 0;
+
+    return (
+      report.idMatch &&
+      report.addedHpo.length === 0 &&
+      report.removedHpo.length === 0 &&
+      report.addedVariants.length === 0 &&
+      report.removedVariants.length === 0
+    );
   });
 
   async fetchRepoQc(): Promise<void> {
@@ -62,48 +63,50 @@ export class QcComponent implements OnInit {
     try {
       this.repoQc = await this.configService.fetchRepoQc();
     } catch (err: unknown) {
-      this.notificationService.showError(`Could not load QC data: ${err instanceof Error ? err: String(err)}`)
+      this.notificationService.showError(
+        `Could not load QC data: ${err instanceof Error ? err : String(err)}`,
+      );
     }
   }
 
   errorTypeLabel(type: RepoErrorType): string {
-  switch (type) {
-    case 'unexpectedFile':
-      return 'Unexpected file';
-    case 'moiMismatch':
-      return 'MOI mismatch';
-    case 'ppktExportError':
-      return 'Export error';
-    case 'noHpoTermError':
-      return 'No HPO terms';
-    default:
-      return 'Unknown';
+    switch (type) {
+      case 'unexpectedFile':
+        return 'Unexpected file';
+      case 'moiMismatch':
+        return 'MOI mismatch';
+      case 'ppktExportError':
+        return 'Export error';
+      case 'noHpoTermError':
+        return 'No HPO terms';
+      default:
+        return 'Unknown';
+    }
   }
-}
 
-errorTypeClass(type: RepoErrorType): string {
-  switch (type) {
-    case 'unexpectedFile':
-      return 'status-pill-warn';
-    case 'moiMismatch':
-      return 'status-pill-err';
-    case 'ppktExportError':
-      return 'status-pill-err';
-    case 'noHpoTermError':
-      return 'status-pill-warn';
-    default:
-      return 'status-pill-neutral';
+  errorTypeClass(type: RepoErrorType): string {
+    switch (type) {
+      case 'unexpectedFile':
+        return 'status-pill-warn';
+      case 'moiMismatch':
+        return 'status-pill-err';
+      case 'ppktExportError':
+        return 'status-pill-err';
+      case 'noHpoTermError':
+        return 'status-pill-warn';
+      default:
+        return 'status-pill-neutral';
+    }
   }
-}
 
   openCompareDialog() {
     const dialogRef = this.dialog.open(CompareDialogComponent, {
-        width: '450px',
-      });
+      width: '450px',
+    });
 
     dialogRef.componentInstance.compareRequested.subscribe((files: CompareFiles) => {
       this.comparisonFiles.set(files); // Store the paths
-      this.runComparison();            // Trigger the logic
+      this.runComparison(); // Trigger the logic
       dialogRef.close();
     });
 
@@ -123,8 +126,8 @@ errorTypeClass(type: RepoErrorType): string {
       console.log(report);
     } catch (err) {
       this.errorMessage.set('Failed to compare phenopackets.');
-      this.notificationService.showError(`Failed to compare phenopackets: ${err}.`)
-       this.comparisonResult.set(null);
+      this.notificationService.showError(`Failed to compare phenopackets: ${err}.`);
+      this.comparisonResult.set(null);
     } finally {
       this.loading.set(false);
     }
@@ -143,5 +146,4 @@ errorTypeClass(type: RepoErrorType): string {
       console.error('Failed to copy!', err);
     }
   }
-
 }

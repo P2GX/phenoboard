@@ -1,96 +1,96 @@
 <h2 mat-dialog-title>Edit Individual</h2>
 <mat-dialog-content>
-    <form [formGroup]="form">
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>PMID</mat-label>
-        <input matInput formControlName="pmid" />
-        </mat-form-field>
+  <form [formGroup]="form">
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>PMID</mat-label>
+      <input matInput formControlName="pmid" />
+    </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Title</mat-label>
-        <input matInput formControlName="title" />
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" />
+    </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Individual ID</mat-label>
-        <input matInput formControlName="individualId" />
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Individual ID</mat-label>
+      <input matInput formControlName="individualId" />
+    </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Comment</mat-label>
-        <textarea matInput formControlName="comment"></textarea>
-        </mat-form-field>
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Comment</mat-label>
+      <textarea matInput formControlName="comment"></textarea>
+    </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Age of onset</mat-label>
-          <input
-            matInput
-            placeholder="Enter ISO8601 (e.g. P12Y6M)"
-            formControlName="ageOfOnset"
-            [matAutocomplete]="auto"
-          >
-          <!-- dropdown list -->
-          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
-            @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
-              <mat-option [value]="term">
-                {{ term }}
-              </mat-option>
-            }
-          </mat-autocomplete>
-          @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
-            <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
-          }
-        </mat-form-field>
-
-           <mat-form-field appearance="fill">
-          <mat-label>Age at last encounter</mat-label>
-          <input
-            matInput
-            placeholder="Enter ISO8601 (e.g. P12Y6M)"
-            formControlName="ageAtLastEncounter"
-            [matAutocomplete]="auto"
-          >
-          <!-- dropdown list -->
-          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
-            @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
-              <mat-option [value]="term">
-                {{ term }}
-              </mat-option>
-            }
-          </mat-autocomplete>
-          @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
-            <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Sex</mat-label>
-        <mat-select formControlName="sex" required>
-            <mat-option value="M">Male (M)</mat-option>
-            <mat-option value="F">Female (F)</mat-option>
-            <mat-option value="O">Other (O)</mat-option>
-            <mat-option value="U">Unknown (U)</mat-option>
-        </mat-select>
-        @if (form.get('sex')?.invalid) {
-          <mat-error>Sex is required</mat-error>
+    <mat-form-field appearance="fill">
+      <mat-label>Age of onset</mat-label>
+      <input
+        matInput
+        placeholder="Enter ISO8601 (e.g. P12Y6M)"
+        formControlName="ageOfOnset"
+        [matAutocomplete]="auto"
+      />
+      <!-- dropdown list -->
+      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
+          <mat-option [value]="term">
+            {{ term }}
+          </mat-option>
         }
-        </mat-form-field>
+      </mat-autocomplete>
+      @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
+        <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
+      }
+    </mat-form-field>
 
-        <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Deceased</mat-label>
-        <mat-select formControlName="deceased" required>
-            <mat-option value="yes">yes</mat-option>
-            <mat-option value="no">no</mat-option>
-            <mat-option value="na">na</mat-option>
-        </mat-select>
-        @if (form.get('deceased')?.invalid) {
-          <mat-error>Deceased is required</mat-error>
+    <mat-form-field appearance="fill">
+      <mat-label>Age at last encounter</mat-label>
+      <input
+        matInput
+        placeholder="Enter ISO8601 (e.g. P12Y6M)"
+        formControlName="ageAtLastEncounter"
+        [matAutocomplete]="auto"
+      />
+      <!-- dropdown list -->
+      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        @for (term of ageInputService.ALLOWED_AGE_LABELS; track term) {
+          <mat-option [value]="term">
+            {{ term }}
+          </mat-option>
         }
-        </mat-form-field>
+      </mat-autocomplete>
+      @if (!ageInputService.validateAgeInput(form.get('ageOfOnset')?.value)) {
+        <mat-error>Invalid age format (must be ISO8601 or known HPO onset term)</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Sex</mat-label>
+      <mat-select formControlName="sex" required>
+        <mat-option value="M">Male (M)</mat-option>
+        <mat-option value="F">Female (F)</mat-option>
+        <mat-option value="O">Other (O)</mat-option>
+        <mat-option value="U">Unknown (U)</mat-option>
+      </mat-select>
+      @if (form.get('sex')?.invalid) {
+        <mat-error>Sex is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Deceased</mat-label>
+      <mat-select formControlName="deceased" required>
+        <mat-option value="yes">yes</mat-option>
+        <mat-option value="no">no</mat-option>
+        <mat-option value="na">na</mat-option>
+      </mat-select>
+      @if (form.get('deceased')?.invalid) {
+        <mat-error>Deceased is required</mat-error>
+      }
+    </mat-form-field>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button class="btn-outline-cancel" (click)="cancel()">Cancel</button>
-  <span style="width: 8px;"></span>
+  <span style="width: 8px"></span>
   <button class="btn-outline-primary" (click)="save()" [disabled]="form.invalid">Save</button>
 </mat-dialog-actions>

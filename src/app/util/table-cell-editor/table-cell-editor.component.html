@@ -1,101 +1,102 @@
-
-
-<div class="dialog-frame" >
+<div class="dialog-frame">
   <div class="hpo-panel" (click)="$event.stopPropagation()">
-  
-  <header class="panel-header">
-    <h3>{{ columnTitle() }}</h3>
-  </header>
+    <header class="panel-header">
+      <h3>{{ columnTitle() }}</h3>
+    </header>
 
-  <hr class="panel-divider" />
+    <hr class="panel-divider" />
 
-  <section class="panel-section">
-    <label class="section-label">Clinical Status</label>
-    <div class="status-toggle-group">
-      <button 
-        type="button"
-        [class.active]="cellType() === 'Observed'"
-        (click)="updateStatus('Observed')"
-        class="btn-toggle status-observed">
-        Observed
-      </button>
-      <button 
-        type="button"
-        [class.active]="cellType() === 'Excluded'"
-        (click)="updateStatus('Excluded')"
-        class="btn-toggle status-excluded">
-        Excluded
-      </button>
-       <button 
-        type="button"
-        [class.active]="cellType() === 'Na'"
-        (click)="updateStatus('Na')"
-        class="btn-toggle status-na">
-        na
-      </button>
-      <button 
-      type="button"
-        [class.active]="cellType() === 'OnsetAge' || showOnsetPicker()"
-        (click)="toggleOnsetSelection()"
-      class="btn-toggle status-onset">
-      {{ onsetLabel() }}
-    </button>
-    </div>
-    @if (cellType() === 'OnsetAge' || showOnsetPicker()) {
-      <div class="onset-select-container">
-        <div class="onset-input-row">
-          <select 
-            [ngModel]="onsetText()"
-            (ngModelChange)="updateStatus('OnsetAge', $event)"
-            class="onset-select">
-            <option value="" disabled selected hidden>Select onset age...</option>
-            @for (option of availableOnsetTerms(); track option) {  
-              <option [value]="option">{{ option }}</option>
-            }
-          </select>
-
-          <button 
-            type="button" 
-            class="btn-add-onset" 
-            (click)="openAddAgeDialog()" 
-            title="Create new age term">
-            + New
-          </button>
-        </div>
+    <section class="panel-section">
+      <label class="section-label">Clinical Status</label>
+      <div class="status-toggle-group">
+        <button
+          type="button"
+          [class.active]="cellType() === 'Observed'"
+          (click)="updateStatus('Observed')"
+          class="btn-toggle status-observed"
+        >
+          Observed
+        </button>
+        <button
+          type="button"
+          [class.active]="cellType() === 'Excluded'"
+          (click)="updateStatus('Excluded')"
+          class="btn-toggle status-excluded"
+        >
+          Excluded
+        </button>
+        <button
+          type="button"
+          [class.active]="cellType() === 'Na'"
+          (click)="updateStatus('Na')"
+          class="btn-toggle status-na"
+        >
+          na
+        </button>
+        <button
+          type="button"
+          [class.active]="cellType() === 'OnsetAge' || showOnsetPicker()"
+          (click)="toggleOnsetSelection()"
+          class="btn-toggle status-onset"
+        >
+          {{ onsetLabel() }}
+        </button>
       </div>
-    }
-  </section>
+      @if (cellType() === 'OnsetAge' || showOnsetPicker()) {
+        <div class="onset-select-container">
+          <div class="onset-input-row">
+            <select
+              [ngModel]="onsetText()"
+              (ngModelChange)="updateStatus('OnsetAge', $event)"
+              class="onset-select"
+            >
+              <option value="" disabled selected hidden>Select onset age...</option>
+              @for (option of availableOnsetTerms(); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
 
-  <section class="panel-section">
-    <label class="section-label">
-      Active Modifiers 
-      <span class="badge-count">{{ cellData().modifiers?.length || 0 }}</span>
-    </label>
-    
-    <div class="modifiers-list">
-      @for (mod of cellData().modifiers; track mod) {
-        <span class="modifier-chip">
-          {{ modifierService.getModifierLabel(mod) }}
-          <button 
-            type="button" 
-            class="btn-remove-modifier" 
-            aria-label="Remove modifier"
-            (click)="removeModifier(mod)">
-            &times;
-          </button>
-        </span>
-      } @empty {
-        <p class="empty-state">No modifiers applied to this term.</p>
+            <button
+              type="button"
+              class="btn-add-onset"
+              (click)="openAddAgeDialog()"
+              title="Create new age term"
+            >
+              + New
+            </button>
+          </div>
+        </div>
       }
-    </div>
-  </section>
+    </section>
 
-  <section class="panel-section add-modifiers-section">
-    <app-hpo-modifier-menu 
-      [cellData]="cellData()"
-      (modifierSelected)="addModifier($event)">
-    </app-hpo-modifier-menu>
-  </section>
-</div>
-</div>
+    <section class="panel-section">
+      <label class="section-label">
+        Active Modifiers
+        <span class="badge-count">{{ cellData().modifiers?.length || 0 }}</span>
+      </label>
 
+      <div class="modifiers-list">
+        @for (mod of cellData().modifiers; track mod) {
+          <span class="modifier-chip">
+            {{ modifierService.getModifierLabel(mod) }}
+            <button
+              type="button"
+              class="btn-remove-modifier"
+              aria-label="Remove modifier"
+              (click)="removeModifier(mod)"
+            >
+              &times;
+            </button>
+          </span>
+        } @empty {
+          <p class="empty-state">No modifiers applied to this term.</p>
+        }
+      </div>
+    </section>
+
+    <section class="panel-section add-modifiers-section">
+      <app-hpo-modifier-menu [cellData]="cellData()" (modifierSelected)="addModifier($event)">
+      </app-hpo-modifier-menu>
+    </section>
+  </div>
+</div>

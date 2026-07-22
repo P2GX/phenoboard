@@ -1,9 +1,19 @@
 @if (showSuccessMessage()) {
-   <div class="success-panel">
+  <div class="success-panel">
     <div class="success-panel__icon-wrap">
       <div class="success-panel__icon">
-        <svg class="success-panel__checkmark w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <svg
+          class="success-panel__checkmark w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       </div>
       <h2 class="success-panel__title">Template Created Successfully!</h2>
@@ -13,7 +23,9 @@
     <div class="success-panel__cards">
       <div class="action-card">
         <h3 class="action-card__title">Bulk Editing</h3>
-        <p class="action-card__description">Open the External Table Editor to manage multiple entries in a spreadsheet view.</p>
+        <p class="action-card__description">
+          Open the External Table Editor to manage multiple entries in a spreadsheet view.
+        </p>
         <a routerLink="/tableeditor" class="btn-outline-primary action-card__btn">
           Go to Table Editor
         </a>
@@ -21,60 +33,57 @@
 
       <div class="action-card">
         <h3 class="action-card__title">Add Case</h3>
-        <p class="action-card__description">Add information about an individual (e.g., from a case report).</p>
-        <a routerLink="/addcase" class="btn-primary action-card__btn">
-          Add Phenopacket
-        </a>
+        <p class="action-card__description">
+          Add information about an individual (e.g., from a case report).
+        </p>
+        <a routerLink="/addcase" class="btn-primary action-card__btn"> Add Phenopacket </a>
       </div>
     </div>
 
-    <button (click)="showSuccessMessage.set(false)" class="link-subtle">
-      Go back
-    </button>
+    <button (click)="showSuccessMessage.set(false)" class="link-subtle">Go back</button>
   </div>
-} 
 
-@else {
+} @else {
   <div class="page-body">
     <h1 class="h1-primary">Create Phenopacket Cohort Template</h1>
-    
+
     @if (!cohortType()) {
       @if (statusService.hpoLoaded()) {
-        <p class="mode-list__subtext">Choose a cohort type to get started.
-         <hpo-help-button
-              title="Cohort types"
-              [lines]="['Phenoblend supports Mendelian and Melded cohort types.']" 
-              helpUrl="https://p2gx.github.io/phenoboard/help/cohort-type.html"/></p>
+        <p class="mode-list__subtext">
+          Choose a cohort type to get started.
+          <hpo-help-button
+            title="Cohort types"
+            [lines]="['Phenoblend supports Mendelian and Melded cohort types.']"
+            helpUrl="https://p2gx.github.io/phenoboard/help/cohort-type.html"
+          />
+        </p>
       } @else {
-        <p class="mode-list__subtext mode-list__subtext--warning">Load the HPO from the Home page before creating cohort.</p>
+        <p class="mode-list__subtext mode-list__subtext--warning">
+          Load the HPO from the Home page before creating cohort.
+        </p>
       }
       <div class="mode-list">
-        <button 
-          class="btn-outline-primary mode-list__btn"
-          (click)="mendelian()">Mendelian cohort</button>
-        <button 
-          class="btn-outline-primary mode-list__btn"
-          (click)="melded()">Melded cohort</button>
-          <app-cohort-dialog 
-            #cohortDialog
-              [title]="dialogTitle()"
-              [isMelded]="dialogIsMelded()"
-              (entrySubmitted)="onEntrySubmitted($event)"
-              (closed)="onDialogClosed($event)"
-          ></app-cohort-dialog>
+        <button class="btn-outline-primary mode-list__btn" (click)="mendelian()">
+          Mendelian cohort
+        </button>
+        <button class="btn-outline-primary mode-list__btn" (click)="melded()">Melded cohort</button>
+        <app-cohort-dialog
+          #cohortDialog
+          [title]="dialogTitle()"
+          [isMelded]="dialogIsMelded()"
+          (entrySubmitted)="onEntrySubmitted($event)"
+          (closed)="onDialogClosed($event)"
+        ></app-cohort-dialog>
       </div>
-    }
 
-    @else {
+    } @else {
       @let type = cohortType();
       @let cohort = pendingCohort();
 
       <div class="template-section section-animate">
         <div class="template-section__header">
           <h2 class="template-section__title">🧬 {{ type | titlecase }} Cohort</h2>
-          <button class="btn-danger-text" (click)="resetCohort()">
-            ✕ Reset & Start Over
-          </button>
+          <button class="btn-danger-text" (click)="resetCohort()">✕ Reset & Start Over</button>
         </div>
 
         @switch (type) {
@@ -86,9 +95,7 @@
           @case ('melded') {
             <div class="melded-list">
               <h3 class="melded-list__title">Melded diseases:</h3>
-              <app-display-melded 
-                [diseases]="diseasesData()" 
-                [acronym]="cohortAcronym()" />
+              <app-display-melded [diseases]="diseasesData()" [acronym]="cohortAcronym()" />
             </div>
           }
         }

@@ -85,8 +85,8 @@ interface Option {
     OntologyAutocompleteComponent,
     PtContextMenuComponent,
     AddageComponent,
-    ConfirmDialogComponent
-],
+    ConfirmDialogComponent,
+  ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -398,7 +398,7 @@ export class PtTemplateComponent {
   isConfirmDialogOpen = signal(false);
   private resolveConfirm?: (value: boolean) => void;
 
-    /**
+  /**
    * Opens the confirmation dialog for sanitization and returns the user's choice.
    * @param errorMessage The error message to display in the dialog
    * @returns A promise that resolves to true if the user chooses 'Sanitize'
@@ -408,9 +408,9 @@ export class PtTemplateComponent {
       title: 'Validation Issues',
       message: `The cohort has errors: "${errorMessage}". Would you like to automatically sanitize the data?`,
       confirmText: 'Sanitize',
-      cancelText: 'Cancel'
+      cancelText: 'Cancel',
     });
-    
+
     this.isConfirmDialogOpen.set(true);
 
     return new Promise((resolve) => {
@@ -423,9 +423,6 @@ export class PtTemplateComponent {
     this.isConfirmDialogOpen.set(false);
     this.resolveConfirm?.(confirmed); // Resolves the promise from openSanitizeDialog
   }
-
-
-
 
   async validateCohort(): Promise<void> {
     const cohortData = this.cohortData();
@@ -520,9 +517,6 @@ export class PtTemplateComponent {
     this.currentHpoLabel.set(`${header.hpoLabel} (${header.hpoId})`);
   }
 
-
-
-
   shouldDisplayHpoColumn(index: number): boolean {
     if (this.focusedHpoIndex === null) return true;
     return (
@@ -555,8 +549,6 @@ export class PtTemplateComponent {
     };
   }
 
-
-
   @HostListener('document:click', ['$event'])
   @HostListener('document:contextmenu', ['$event'])
   closeContextMenu(event: MouseEvent): void {
@@ -565,9 +557,10 @@ export class PtTemplateComponent {
     const hpoContextMenu = this.hpoContextMenu?.nativeElement;
     const target = event.target as Node;
     if (
-      (menu && menu.contains(target)) || 
-      (individualMenu && individualMenu.contains(target)) || 
-      (hpoContextMenu && hpoContextMenu.contains(target))) {
+      (menu && menu.contains(target)) ||
+      (individualMenu && individualMenu.contains(target)) ||
+      (hpoContextMenu && hpoContextMenu.contains(target))
+    ) {
       return;
     }
     this.contextMenuVisible = false;
@@ -949,12 +942,10 @@ export class PtTemplateComponent {
     this.ageService.addSelectedTerms(cohortAges);
   }
 
-
-    /* Called when the user has changed something following a right-click on an HPO cell but not yet confirmed. */
+  /* Called when the user has changed something following a right-click on an HPO cell but not yet confirmed. */
   handleTableDataUpdate(updatedCellData: CellValue): void {
-      this.interactionService.updateActiveCell(updatedCellData);
+    this.interactionService.updateActiveCell(updatedCellData);
   }
-
 
   handleConfirm(ctx: TableContext) {
     const currentDto = this.cohortData();
@@ -963,16 +954,11 @@ export class PtTemplateComponent {
       return;
     }
     const finalValue = this.interactionService.getActivateCell();
-    if (! finalValue) {
-      this.notificationService.showError("Cell value was null");
+    if (!finalValue) {
+      this.notificationService.showError('Cell value was null');
       return;
     }
-    const updatedCohort = this.updateHpoCell(
-    currentDto, 
-    ctx.rowId, 
-    ctx.colIndex, 
-    finalValue
-  );
+    const updatedCohort = this.updateHpoCell(currentDto, ctx.rowId, ctx.colIndex, finalValue);
 
     this.cohortService.setCohortData(updatedCohort);
     this.interactionService.close();
@@ -1036,7 +1022,7 @@ export class PtTemplateComponent {
     }
   }
 
-  protected activeContextForAge = signal<TableContext | null>(null); 
+  protected activeContextForAge = signal<TableContext | null>(null);
   activeAgeString = computed(() => {
     const ctx = this.activeContextForAge();
     if (!ctx) return '';
@@ -1056,18 +1042,18 @@ export class PtTemplateComponent {
   handleAgeSaved(newOnset: string) {
     const ctx = this.activeContextForAge();
     if (!ctx) {
-      this.notificationService.showError("Attempt to update age without active Age context");
+      this.notificationService.showError('Attempt to update age without active Age context');
       return;
     }
     const cohort = this.cohortService.cohortData();
-    if (! cohort) {
-      return; 
+    if (!cohort) {
+      return;
     }
     const { colIndex, rowId, cell } = ctx;
     let updatedCell: CellValue = {
       ...cell,
-      type: 'OnsetAge', 
-      data: newOnset
+      type: 'OnsetAge',
+      data: newOnset,
     };
     this.updateHpoCell(cohort, rowId, colIndex, updatedCell);
     this.interactionService.updateActiveCell(updatedCell);
@@ -1096,7 +1082,7 @@ export class PtTemplateComponent {
           data: newOnset,
         };
         const cohort = this.cohortData();
-        if (!cohort ) {
+        if (!cohort) {
           this.notificationService.showError('Cohort data missing.');
           return;
         }
@@ -1109,7 +1095,6 @@ export class PtTemplateComponent {
   }
 
   hasExtraInfo(cell: CellValue): boolean {
-  return cell.type === 'OnsetAge' || !!cell.modifiers?.length;
-}
-
+    return cell.type === 'OnsetAge' || !!cell.modifiers?.length;
+  }
 }

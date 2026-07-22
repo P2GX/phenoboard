@@ -1,4 +1,4 @@
-@use "../../styles/variables" as *;
+@use '../../styles/variables' as *;
 
 .review-header {
   display: flex;
@@ -7,7 +7,7 @@
   padding: 1rem 1.5rem;
   background-color: $gray-50;
   border-bottom: 1px solid $gray-200;
-  
+
   h2 {
     margin: 0;
     font-size: 1.1rem;
@@ -23,7 +23,7 @@
   padding: 4px 12px;
   border-radius: 20px;
   border: 1px solid $gray-200;
-  
+
   .progress-text {
     font-size: 0.85rem;
     color: $gray-700;

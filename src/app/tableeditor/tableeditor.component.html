@@ -1,37 +1,36 @@
 <div class="primary-box">
-<app-table-editor-header></app-table-editor-header>
-@if (errorMessage) {
-  <div class="error-container">
-    <div class="error-message">
-      {{ errorMessage }}
+  <app-table-editor-header></app-table-editor-header>
+  @if (errorMessage) {
+    <div class="error-container">
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
     </div>
-  </div>
-}
-@if (!this.etl_service.etlDto()) {
-  <div>
-    <p>No table loaded yet.</p>
-  </div>
-}
+  }
+  @if (!this.etl_service.etlDto()) {
+    <div>
+      <p>No table loaded yet.</p>
+    </div>
+  }
 
-<app-table-progress-bar 
-  [visible]="isProcessing()" 
-  [progressValue]="statusService.progress()">
-</app-table-progress-bar>
+  <app-table-progress-bar [visible]="isProcessing()" [progressValue]="statusService.progress()">
+  </app-table-progress-bar>
 
-@if(this.etl_service.etlDto()) {
-  <div class="pt-table-container">
-    <app-table-merge-columns
-      [colA]="colAforMerge()"
-      [colB]="colBforMerge()"
-      [(separator)]="mergeSeparator"
-      [(labelColumns)]="labelMergedColumn"
-      [undoVisible]="undoVisible()"
-      (mergeRequested)="executeMerge()"
-      (cancelMerge)="colAforMerge.set(null); colBforMerge.set(null)"
-      (undoRequested)="undoMerge()"
-      (dismissUndo)="undoVisible.set(false)">
-    </app-table-merge-columns>
-  </div>
+  @if (this.etl_service.etlDto()) {
+    <div class="pt-table-container">
+      <app-table-merge-columns
+        [colA]="colAforMerge()"
+        [colB]="colBforMerge()"
+        [(separator)]="mergeSeparator"
+        [(labelColumns)]="labelMergedColumn"
+        [undoVisible]="undoVisible()"
+        (mergeRequested)="executeMerge()"
+        (cancelMerge)="colAforMerge.set(null); colBforMerge.set(null)"
+        (undoRequested)="undoMerge()"
+        (dismissUndo)="undoVisible.set(false)"
+      >
+      </app-table-merge-columns>
+    </div>
     @if (this.etl_service.etlDto()?.table?.columns) {
       <app-etl-data-table
         [columns]="this.etl_service.etlDto()!.table.columns"
@@ -39,91 +38,107 @@
         [colBforMerge]="colBforMerge()"
         (headerContextMenuRequested)="openHeaderMenu($event)"
         (cellContextMenuRequested)="openCellMenu($event)"
-        (cellDoubleClicked)="onCellDoubleClicked($event)">
+        (cellDoubleClicked)="onCellDoubleClicked($event)"
+      >
       </app-etl-data-table>
     }
-  <div style="height: 40px;"></div>
-}
+    <div style="height: 40px"></div>
+  }
 
-<!-- Context menu for column headers -->
- @if (headerMenuState(); as menu) {
-  <app-column-context-menu
-    [x]="menu.x"
-    [y]="menu.y"
-    [headerOriginalName]="menu.header.original"
-    [columnType]="menu.header.columnType"
-    [simpleColumnOperations]="simpleColumnOperations"
-    [transformCategories]="transformCategories"
-    (simpleOpRequested)="simpleColumnOp(menu.colIdx, $event); headerMenuState.set(null)"
-    (transformRequested)="applyNamedTransform(menu.colIdx, $any($event)); headerMenuState.set(null)"
-    (mergeActionRequested)="
-      $event === 'SET_A' ? colAforMerge.set(menu.colIdx) : 
-      $event === 'SET_B' ? colBforMerge.set(menu.colIdx) : executeMerge();
-      headerMenuState.set(null)
-    "
-    (close)="headerMenuState.set(null)">
-  </app-column-context-menu>
-}
+  <!-- Context menu for column headers -->
+  @if (headerMenuState(); as menu) {
+    <app-column-context-menu
+      [x]="menu.x"
+      [y]="menu.y"
+      [headerOriginalName]="menu.header.original"
+      [columnType]="menu.header.columnType"
+      [simpleColumnOperations]="simpleColumnOperations"
+      [transformCategories]="transformCategories"
+      (simpleOpRequested)="simpleColumnOp(menu.colIdx, $event); headerMenuState.set(null)"
+      (transformRequested)="
+        applyNamedTransform(menu.colIdx, $any($event)); headerMenuState.set(null)
+      "
+      (mergeActionRequested)="
+        $event === 'SET_A'
+          ? colAforMerge.set(menu.colIdx)
+          : $event === 'SET_B'
+            ? colBforMerge.set(menu.colIdx)
+            : executeMerge();
+        headerMenuState.set(null)
+      "
+      (close)="headerMenuState.set(null)"
+    >
+    </app-column-context-menu>
+  }
 
-@if (contextMenuCellVisible) {
-  <div class="menu-overlay-backdrop" (click)="contextMenuCellVisible = false" (contextmenu)="$event.preventDefault(); contextMenuCellVisible = false">
-    
-    <div class="context-menu-visible"
-         [style.top.px]="contextMenuPosition().y" 
-         [style.left.px]="contextMenuPosition().x"
-         (click)="$event.stopPropagation()"> <header class="menu-header">
-        <div class="header-row">
-          <span class="label">Original:</span>
-          <span class="value">{{ contextMenuCellValue?.original }}</span>
-        </div>
-        <div class="header-row secondary-text">
-          Status: {{ getStatusSymbol(contextMenuCellValue) }} {{ contextMenuCellValue?.status }}
-        </div>
-      </header>
+  @if (contextMenuCellVisible) {
+    <div
+      class="menu-overlay-backdrop"
+      (click)="contextMenuCellVisible = false"
+      (contextmenu)="$event.preventDefault(); contextMenuCellVisible = false"
+    >
+      <div
+        class="context-menu-visible"
+        [style.top.px]="contextMenuPosition().y"
+        [style.left.px]="contextMenuPosition().x"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="menu-header">
+          <div class="header-row">
+            <span class="label">Original:</span>
+            <span class="value">{{ contextMenuCellValue?.original }}</span>
+          </div>
+          <div class="header-row secondary-text">
+            Status: {{ getStatusSymbol(contextMenuCellValue) }} {{ contextMenuCellValue?.status }}
+          </div>
+        </header>
 
-      <ul class="menu-list">
-        <li (click)="handleMenuAction(() => editCellValueManually()); $event.stopPropagation()">
-          <mat-icon>edit</mat-icon> <span>Edit cell contents</span>
-        </li>
-        <li (click)="handleMenuAction(() => deleteRow()); $event.stopPropagation()">
-          <mat-icon>delete</mat-icon> <span>Delete row</span>
-        </li>
-        @if (hasValueAbove()) {
-          <li (click)="handleMenuAction(() => useValueFromAbove()); $event.stopPropagation()">
-            <mat-icon>content_copy</mat-icon> <span>Copy value from above</span>
+        <ul class="menu-list">
+          <li (click)="handleMenuAction(() => editCellValueManually()); $event.stopPropagation()">
+            <mat-icon>edit</mat-icon> <span>Edit cell contents</span>
           </li>
-        }
-        <hr class="menu-divider" />
-        <li (click)="handleMenuAction(() =>openHgvsEditor()); $event.stopPropagation()">
-          <mat-icon>science</mat-icon> <span>Manually add HGVS</span>
-        </li>
-        <li (click)="handleMenuAction(() =>openSvEditor()); $event.stopPropagation()">
-          <mat-icon>account_tree</mat-icon> <span>Manually add SV</span>
-        </li>
-      </ul>
+          <li (click)="handleMenuAction(() => deleteRow()); $event.stopPropagation()">
+            <mat-icon>delete</mat-icon> <span>Delete row</span>
+          </li>
+          @if (hasValueAbove()) {
+            <li (click)="handleMenuAction(() => useValueFromAbove()); $event.stopPropagation()">
+              <mat-icon>content_copy</mat-icon> <span>Copy value from above</span>
+            </li>
+          }
+          <hr class="menu-divider" />
+          <li (click)="handleMenuAction(() => openHgvsEditor()); $event.stopPropagation()">
+            <mat-icon>science</mat-icon> <span>Manually add HGVS</span>
+          </li>
+          <li (click)="handleMenuAction(() => openSvEditor()); $event.stopPropagation()">
+            <mat-icon>account_tree</mat-icon> <span>Manually add SV</span>
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
-}
+  }
 
-<!-- "Popup components "-->
-@if (activeStep() === 'SELECT_TERM') {
-  <app-hpo-popup-dialog
-    [title]="columnTitle()"
-    [bestMatch]="bestHpoMatch()"
-    [autocompleteProvider]="performHpoAutocomplete"
-    (confirmed)="onHpoTermSelected($event)"
-    (cancel)="onHpoTermSelected(null)">
-  </app-hpo-popup-dialog>
-}
-@if (activeStep() === 'MAP_VALUES') {
-  <div class="mapping-container">
-    <app-hpo-mapping-step
-      [header]="columnTitle()"
-      [hpoLabel]="bestHpoMatch()?.label ?? 'Custom Term'"
-      [hpoId]="bestHpoMatch()?.id ?? ''"
-      [uniqueValues]="uniqueValuesToMap()"
-      (mappingConfirmed)="onMappingCompleted($event)"
-      (cancelled)="onMappingCompleted(null)">
-    </app-hpo-mapping-step>
-  </div>
-}
+  <!-- "Popup components "-->
+  @if (activeStep() === 'SELECT_TERM') {
+    <app-hpo-popup-dialog
+      [title]="columnTitle()"
+      [bestMatch]="bestHpoMatch()"
+      [autocompleteProvider]="performHpoAutocomplete"
+      (confirmed)="onHpoTermSelected($event)"
+      (cancel)="onHpoTermSelected(null)"
+    >
+    </app-hpo-popup-dialog>
+  }
+  @if (activeStep() === 'MAP_VALUES') {
+    <div class="mapping-container">
+      <app-hpo-mapping-step
+        [header]="columnTitle()"
+        [hpoLabel]="bestHpoMatch()?.label ?? 'Custom Term'"
+        [hpoId]="bestHpoMatch()?.id ?? ''"
+        [uniqueValues]="uniqueValuesToMap()"
+        (mappingConfirmed)="onMappingCompleted($event)"
+        (cancelled)="onMappingCompleted(null)"
+      >
+      </app-hpo-mapping-step>
+    </div>
+  }
+</div>

@@ -8,10 +8,9 @@ describe('StatusComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [QcComponent]
-    })
-    .compileComponents();
-    
+      imports: [QcComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(QcComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

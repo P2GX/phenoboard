@@ -7,7 +7,7 @@ describe('TableEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManualStructuralVariantDialog]
+      imports: [ManualStructuralVariantDialog],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ManualStructuralVariantDialog);

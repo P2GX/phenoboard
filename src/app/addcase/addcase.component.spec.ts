@@ -8,10 +8,9 @@ describe('AddcaseComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddcaseComponent]
-    })
-    .compileComponents();
-    
+      imports: [AddcaseComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(AddcaseComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

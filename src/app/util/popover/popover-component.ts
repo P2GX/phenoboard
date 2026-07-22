@@ -6,7 +6,7 @@ import { CdkOverlayOrigin, ConnectedPosition, OverlayModule } from '@angular/cdk
   standalone: true,
   imports: [OverlayModule],
   host: {
-    'style': 'display: contents;'
+    style: 'display: contents;',
   },
   template: `
     <ng-template
@@ -24,7 +24,7 @@ import { CdkOverlayOrigin, ConnectedPosition, OverlayModule } from '@angular/cdk
         <ng-content></ng-content>
       </div>
     </ng-template>
-  `
+  `,
 })
 export class PopoverComponent {
   // Only accepts a real UI element origin now
@@ -34,6 +34,6 @@ export class PopoverComponent {
   positions: ConnectedPosition[] = [
     { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
     { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
-    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 }
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
   ];
 }

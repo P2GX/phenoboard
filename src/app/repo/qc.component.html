@@ -5,7 +5,6 @@
   </header>
 
   <div class="qc-actions">
-
     <div class="action-row">
       <button (click)="fetchRepoQc()" [disabled]="loading()" class="btn-primary-fixed">
         @if (loading()) {
@@ -15,11 +14,12 @@
       </button>
       <hpo-help-button
         title="Repository QC"
-          [lines]="[
-            'This function performs a number of Q/C operations on a directory of cohort subdirectories.',
-            'For instance, the GitHub repository of phenopacket store is structured in this way.',
-            'This function is intended for the internal HPO team, but may be useful for others with analogous repositories or directories.'
-          ]" />
+        [lines]="[
+          'This function performs a number of Q/C operations on a directory of cohort subdirectories.',
+          'For instance, the GitHub repository of phenopacket store is structured in this way.',
+          'This function is intended for the internal HPO team, but may be useful for others with analogous repositories or directories.',
+        ]"
+      />
     </div>
 
     <div class="action-row">
@@ -28,13 +28,13 @@
       </button>
       <hpo-help-button
         title="Compare Phenopackets"
-          [lines]="[
-            'Choose two phenopacket files for comparison.',
-            'Alternatively, choose two phenoboard cohort files that contain one phenopacket each.',
-            'A page will be opened showing commonalities and differences.'
-          ]" />
+        [lines]="[
+          'Choose two phenopacket files for comparison.',
+          'Alternatively, choose two phenoboard cohort files that contain one phenopacket each.',
+          'A page will be opened showing commonalities and differences.',
+        ]"
+      />
     </div>
-
   </div>
 
   @if (errorMessage()) {
@@ -79,10 +79,7 @@
                 <td class="font-bold">{{ err.cohortName }}</td>
                 <td class="message-cell">"{{ err.message }}"</td>
                 <td class="text-center">
-                  <span
-                    class="status-pill"
-                    [ngClass]="errorTypeClass(err.errorType)"
-                    >
+                  <span class="status-pill" [ngClass]="errorTypeClass(err.errorType)">
                     {{ errorTypeLabel(err.errorType) }}
                   </span>
                 </td>
@@ -96,13 +93,13 @@
 
   @if (comparisonResult(); as report) {
     <div class="comparison-card">
-
       <div class="card-header">
         <h2>Phenopacket Comparison</h2>
         <button (click)="comparisonResult.set(null)" class="btn-clear">Clear Result</button>
       </div>
       <pre
-        class="p-4 bg-gray-100 text-green-700 text-xs rounded-lg overflow-x-auto shadow-inner leading-relaxed font-mono">{{ comparisonResult() | json }}
+        class="p-4 bg-gray-100 text-green-700 text-xs rounded-lg overflow-x-auto shadow-inner leading-relaxed font-mono"
+        >{{ comparisonResult() | json }}
       </pre>
       <div class="flex gap-2">
         <button
@@ -113,19 +110,32 @@
           [class.border-green-600]="copySuccess()"
           [class.bg-white]="!copySuccess()"
           [class.text-gray-700]="!copySuccess()"
-          [class.hover:bg-gray-50]="!copySuccess()">
-
+          [class.hover:bg-gray-50]="!copySuccess()"
+        >
           @if (copySuccess()) {
             <span>✓ Copied JSON</span>
           } @else {
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
             </svg>
             <span>Copy to Clipboard</span>
           }
         </button>
 
-        <button (click)="comparisonResult.set(null)" class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1">
+        <button
+          (click)="comparisonResult.set(null)"
+          class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1"
+        >
           Clear
         </button>
       </div>
@@ -138,16 +148,15 @@
         <div class="id-box" [class.mismatch]="!report.idMatch">
           <span class="id-label">File B ID</span>
           <code>{{ report.idB }}</code>
-          @if (!report.idMatch) { <span class="mismatch-badge">Mismatch</span> }
+          @if (!report.idMatch) {
+            <span class="mismatch-badge">Mismatch</span>
+          }
         </div>
       </div>
 
       <div class="diff-columns">
-
         <div class="diff-column">
-          <h3 class="diff-title blue-dot">
-            Phenotypic Features (HPO)
-          </h3>
+          <h3 class="diff-title blue-dot">Phenotypic Features (HPO)</h3>
           <div class="diff-list">
             @for (hpo of report.addedHpo; track hpo) {
               <div class="diff-entry added">
@@ -166,9 +175,7 @@
         </div>
 
         <div class="diff-column">
-          <h3 class="diff-title purple-dot">
-            Genomic Interpretations
-          </h3>
+          <h3 class="diff-title purple-dot">Genomic Interpretations</h3>
 
           <div class="diff-list">
             @for (variant of report.addedVariants; track variant) {
@@ -188,12 +195,13 @@
             }
           </div>
         </div>
-
       </div>
 
       @if (isIdentical()) {
         <div class="mt-8 p-4 bg-green-100 border border-green-200 rounded-lg text-center">
-          <p class="text-green-800 font-medium">✨ These phenopackets are semantically identical!</p>
+          <p class="text-green-800 font-medium">
+            ✨ These phenopackets are semantically identical!
+          </p>
         </div>
       }
     </div>

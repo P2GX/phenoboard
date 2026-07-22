@@ -96,7 +96,6 @@
   padding-left: 8px;
 }
 
-
 .action-row {
   display: flex;
   align-items: center;
@@ -127,7 +126,6 @@
   margin: 0;
   font-size: 1.1rem;
 }
-
 
 .button-group {
   display: flex;
@@ -184,7 +182,6 @@
   margin-top: 1.5rem;
 }
 
-
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -194,7 +191,7 @@
   width: 100vw;
   height: 100vh;
   background-color: rgba(15, 23, 42, 0.4);
-  
+
   /* Forces absolute centering of the child window grid */
   display: flex;
   align-items: center;

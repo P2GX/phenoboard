@@ -1,7 +1,3 @@
-<div
-  class="etl-cell"
-  [ngClass]="cellClass()"
-  (contextmenu)="onRightClick($event)"
->
+<div class="etl-cell" [ngClass]="cellClass()" (contextmenu)="onRightClick($event)">
   {{ current() || original() }}
 </div>

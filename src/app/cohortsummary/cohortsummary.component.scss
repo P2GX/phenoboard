@@ -1,9 +1,9 @@
 /* Container to hold both the paragraph and the button inline */
 .summary-row {
   display: flex;
-  align-items: center;   /* Centers the button vertically with the text line */
-  gap: 10px;             /* Space between the text and the button */
-  margin-top: 12px;      /* Generates separation from the <ul> above */
+  align-items: center; /* Centers the button vertically with the text line */
+  gap: 10px; /* Space between the text and the button */
+  margin-top: 12px; /* Generates separation from the <ul> above */
 }
 
 /* Remove default paragraph margin so it doesn't push the button down */
@@ -18,15 +18,15 @@
   align-items: center;
   gap: 4px;
   background-color: #f0f4f8; /* Soft neutral/blue background */
-  color: #0066cc;            /* High contrast blue text/icon */
+  color: #0066cc; /* High contrast blue text/icon */
   border: 1px solid #cbd5e1;
   border-radius: 4px;
   font-family: inherit;
-  font-size: 11px;           /* Tiny, micro-utility text scale */
+  font-size: 11px; /* Tiny, micro-utility text scale */
   font-weight: 600;
-  padding: 3px 8px;          /* Minimal padding */
+  padding: 3px 8px; /* Minimal padding */
   cursor: pointer;
-  white-space: nowrap;       /* Prevents the button text from wrapping */
+  white-space: nowrap; /* Prevents the button text from wrapping */
   transition: all 0.1s ease;
 }
 
@@ -42,8 +42,8 @@
 
 .disease-summary ul {
   list-style-type: none; /* Removes the dots */
-  padding-left: 0;       /* Removes the default left indentation */
-  margin: 0 0 16px 0;    /* Optional: Sets a clean bottom margin before the text row */
+  padding-left: 0; /* Removes the default left indentation */
+  margin: 0 0 16px 0; /* Optional: Sets a clean bottom margin before the text row */
 }
 
 .disease-summary li {
@@ -51,7 +51,7 @@
 }
 
 .disease-summary li:last-child {
-  margin-bottom: 0;   /* Keeps the bottom clean */
+  margin-bottom: 0; /* Keeps the bottom clean */
 }
 
 .disease-summary li a {
@@ -67,7 +67,7 @@
 /* Ensure the gene links span stays inline and has a little breathing room */
 .disease-summary .gene-links {
   display: inline;
-  margin-left: 6px; 
+  margin-left: 6px;
 }
 
 .modal-overlay {
@@ -89,5 +89,5 @@
   border-radius: 8px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }

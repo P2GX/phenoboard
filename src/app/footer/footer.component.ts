@@ -6,7 +6,7 @@ import { getVersion, getName } from '@tauri-apps/api/app';
 @Component({
   selector: 'app-footer',
   templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.css']
+  styleUrls: ['./footer.component.css'],
 })
 export class FooterComponent implements OnInit {
   private helpService = inject(HelpService);
@@ -21,9 +21,7 @@ export class FooterComponent implements OnInit {
   }
 
   async openHelp(): Promise<void> {
-    const url = this.helpService.getCurrentUrlValue();   
+    const url = this.helpService.getCurrentUrlValue();
     await openUrl(url);
   }
-
-    
 }

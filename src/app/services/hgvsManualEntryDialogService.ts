@@ -12,7 +12,7 @@ export class VariantDialogService {
   async openVariantDialog(data: Partial<HgvsVariant> = {}): Promise<HgvsVariant | null> {
     const dialogRef = this.dialog.open(ManualHgvsVariantDialog, {
       width: '600px',
-      data
+      data,
     });
 
     return firstValueFrom(dialogRef.afterClosed());

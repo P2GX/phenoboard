@@ -2,12 +2,15 @@
   <!-- Available PMIDs Dropdown -->
   <div class="form-group">
     <label for="available-pmids">Available PMIDs:</label>
-    <select id="available-pmids" [(ngModel)]="selectedPmid" (change)="onPmidSelection($event)" class="form-control">
+    <select
+      id="available-pmids"
+      [(ngModel)]="selectedPmid"
+      (change)="onPmidSelection($event)"
+      class="form-control"
+    >
       <option value="">-- New PMID --</option>
       @for (pmid of availablePmids(); track pmid) {
-      <option [value]="pmid.pmid">
-        {{ pmid.pmid }} - {{ pmid.title }}
-      </option>
+        <option [value]="pmid.pmid">{{ pmid.pmid }} - {{ pmid.title }}</option>
       }
     </select>
   </div>
@@ -16,9 +19,18 @@
   <div class="form-group">
     <label for="pmid-input">PMID:</label>
     <div class="input-group">
-      <input id="pmid-input" [(ngModel)]="pmidDto().pmid" (ngModelChange)="onPmidChange($event)"
-        placeholder="Enter PMID" class="form-control">
-      <button (click)="retrieve_pmid_title()" [disabled]="isRetrieveDisabled()" class="btn btn-primary">
+      <input
+        id="pmid-input"
+        [(ngModel)]="pmidDto().pmid"
+        (ngModelChange)="onPmidChange($event)"
+        placeholder="Enter PMID"
+        class="form-control"
+      />
+      <button
+        (click)="retrieve_pmid_title()"
+        [disabled]="isRetrieveDisabled()"
+        class="btn btn-primary"
+      >
         Retrieve Title
       </button>
     </div>
@@ -27,40 +39,40 @@
   <!-- Title Input -->
   <div class="form-group">
     <label for="title-input">Title:</label>
-    <textarea id="title-input" [(ngModel)]="pmidDto().title" placeholder="Enter title (auto or manual)"
-      class="form-control title-textarea" rows="2"></textarea>
+    <textarea
+      id="title-input"
+      [(ngModel)]="pmidDto().title"
+      placeholder="Enter title (auto or manual)"
+      class="form-control title-textarea"
+      rows="2"
+    ></textarea>
   </div>
 
   <!-- Retrieved Title Display -->
   @if (pmidDto().title) {
-  <div class="form-group">
-    <label>Retrieved:</label>
+    <div class="form-group">
+      <label>Retrieved:</label>
       <div class="title-display">
         <div class="title-display__text">{{ pmidDto().title }}</div>
         <div class="title-display__pmid">{{ pmidDto().pmid }}</div>
       </div>
-  </div>
+    </div>
   }
 
   <!-- Error Message -->
   @if (pmidDto().hasError) {
-  <div class="error-message">
-    {{ pmidDto().errorMessage }}
-  </div>
+    <div class="error-message">
+      {{ pmidDto().errorMessage }}
+    </div>
   }
 
   <div class="dialog-actions">
-    <button (click)="accept()" [disabled]="!isReady()" class="btn-outline-primary">
-      Accept
-    </button>
+    <button (click)="accept()" [disabled]="!isReady()" class="btn-outline-primary">Accept</button>
 
-    <button (click)="cancel()" class="btn-outline-cancel">
-      Cancel
-    </button>
+    <button (click)="cancel()" class="btn-outline-cancel">Cancel</button>
 
     <button (click)="clearPmids()" class="btn-outline-cancel dialog-actions__right">
       Clear PMIDs
     </button>
   </div>
-
 </dialog>

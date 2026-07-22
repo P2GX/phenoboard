@@ -8,10 +8,9 @@ describe('CohortSummaryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CohortSummaryComponent]
-    })
-    .compileComponents();
-    
+      imports: [CohortSummaryComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(CohortSummaryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

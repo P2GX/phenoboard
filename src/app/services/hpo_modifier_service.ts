@@ -9,12 +9,12 @@ export interface HpoOption {
 }
 
 @Injectable({
-  providedIn: 'root', 
+  providedIn: 'root',
 })
 export class HpoModifierService {
   private configService = inject(ConfigService);
   private notificationService = inject(NotificationService);
-  
+
   // Cache the master list of ~250 modifiers
   private modifierList = signal<HpoTermDuplet[]>([]);
   private isLoading = signal<boolean>(false);
@@ -26,7 +26,7 @@ export class HpoModifierService {
       const terms = await this.configService.getModifiers();
       this.modifierList.set(terms);
     } catch (error) {
-        this.notificationService.showError(`Failed to load HPO modifiers: ${error}.`);
+      this.notificationService.showError(`Failed to load HPO modifiers: ${error}.`);
     } finally {
       this.isLoading.set(false);
     }
@@ -37,14 +37,15 @@ export class HpoModifierService {
     const cleanQuery = query.toLowerCase().trim();
     if (!cleanQuery) return this.modifierList();
 
-    return this.modifierList().filter(option => 
-      option.hpoLabel.toLowerCase().includes(cleanQuery) || 
-      option.hpoId.toLowerCase().includes(cleanQuery)
+    return this.modifierList().filter(
+      (option) =>
+        option.hpoLabel.toLowerCase().includes(cleanQuery) ||
+        option.hpoId.toLowerCase().includes(cleanQuery),
     );
   }
 
   getModifierLabel(id: string): string {
-    const match = this.modifierList().find(option => option.hpoId === id);
+    const match = this.modifierList().find((option) => option.hpoId === id);
     return match ? match.hpoLabel : id;
   }
 }

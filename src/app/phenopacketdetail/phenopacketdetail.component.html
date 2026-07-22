@@ -10,14 +10,19 @@
           <div><strong>ID:</strong> {{ r.individualData.individualId }}</div>
           <div><strong>Sex:</strong> {{ r.individualData.sex }}</div>
           <div><strong>Age of onset:</strong> {{ r.individualData.ageOfOnset }}</div>
-          <div><strong>Age at last encounter:</strong> {{ r.individualData.ageAtLastEncounter }}</div>
+          <div>
+            <strong>Age at last encounter:</strong> {{ r.individualData.ageAtLastEncounter }}
+          </div>
           <div><strong>Deceased:</strong> {{ r.individualData.deceased }}</div>
-          <div class="full"><strong>Comment:</strong> {{r.individualData.comment }}</div>
-          <div class="full"><strong>Publication:</strong>
-            <a mat-button 
-               [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmidNumber(r.individualData.pmid)" 
-               target="_blank"
-               color="primary">
+          <div class="full"><strong>Comment:</strong> {{ r.individualData.comment }}</div>
+          <div class="full">
+            <strong>Publication:</strong>
+            <a
+              mat-button
+              [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmidNumber(r.individualData.pmid)"
+              target="_blank"
+              color="primary"
+            >
               {{ r.individualData.pmid }}
             </a>
           </div>
@@ -36,15 +41,15 @@
             @for (diseaseId of r.diseaseIdList; track diseaseId) {
               <mat-list-item>
                 <mat-icon mat-list-icon>medical_services</mat-icon>
-                 @if (getOmimUrl(diseaseId)) {
-                    <a [href]="getOmimUrl(diseaseId)" target="_blank">
-                      {{ getDiseaseLabel(diseaseId) }}
-                    </a>
-                  } @else {
-                    <span>
-                      {{ getDiseaseLabel(diseaseId) }}
-                    </span>
-                  }
+                @if (getOmimUrl(diseaseId)) {
+                  <a [href]="getOmimUrl(diseaseId)" target="_blank">
+                    {{ getDiseaseLabel(diseaseId) }}
+                  </a>
+                } @else {
+                  <span>
+                    {{ getDiseaseLabel(diseaseId) }}
+                  </span>
+                }
               </mat-list-item>
             }
           </mat-list>
@@ -72,7 +77,7 @@
                   <td>{{ getVariantString(allele.key) }}</td>
                   <td>{{ allele.value }}</td>
                 </tr>
-            }
+              }
             </tbody>
           </table>
         </mat-card-content>
@@ -92,10 +97,12 @@
               @for (h of observedTerms; track h.hpoId) {
                 <mat-list-item class="hpo-item">
                   <div mat-line>
-                    <a [href]="'https://hpo.jax.org/browse/term/' + h.hpoId" 
-                       target="_blank" 
-                       class="hpo-link">
-                     {{ h.hpoLabel }} ({{ h.hpoId }})
+                    <a
+                      [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
+                      target="_blank"
+                      class="hpo-link"
+                    >
+                      {{ h.hpoLabel }} ({{ h.hpoId }})
                     </a>
                   </div>
                 </mat-list-item>
@@ -109,10 +116,12 @@
               @for (h of excludedTerms; track h.hpoId) {
                 <mat-list-item class="hpo-item">
                   <div mat-line>
-                    <a [href]="'https://hpo.jax.org/browse/term/' + h.hpoId" 
-                       target="_blank" 
-                       class="hpo-link">
-                     {{ h.hpoLabel }} ({{ h.hpoId }})
+                    <a
+                      [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
+                      target="_blank"
+                      class="hpo-link"
+                    >
+                      {{ h.hpoLabel }} ({{ h.hpoId }})
                     </a>
                   </div>
                 </mat-list-item>

@@ -7,7 +7,7 @@ describe('AddVariantComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddVariantComponent]
+      imports: [AddVariantComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddVariantComponent);

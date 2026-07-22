@@ -7,7 +7,7 @@
 
 /* 3. The magic: this expands to push the footer down */
 .content-area {
-  flex: 1 0 auto; 
+  flex: 1 0 auto;
   /* If you want the dashboard main area to scroll 
      while nav/footer stay static, use:
      flex: 1;

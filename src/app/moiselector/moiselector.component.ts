@@ -1,12 +1,21 @@
-import { Component, computed, EventEmitter, inject, OnChanges, Output, signal, SimpleChanges, WritableSignal } from "@angular/core";
-import { PubmedComponent } from "../pubmed/pubmed.component";
+import {
+  Component,
+  computed,
+  EventEmitter,
+  inject,
+  OnChanges,
+  Output,
+  signal,
+  SimpleChanges,
+  WritableSignal,
+} from '@angular/core';
+import { PubmedComponent } from '../pubmed/pubmed.component';
 import { FormsModule } from '@angular/forms';
-import { ModeOfInheritance } from "../../../libs/ui/src/lib/models/cohort_dto";
-import { defaultPmidDto, PmidDto } from "../models/pmid_dto";
-import { MatDialog } from "@angular/material/dialog";
-import { firstValueFrom } from "rxjs";
-import { PmidService } from "../services/pmid_service";
-
+import { ModeOfInheritance } from '../../../libs/ui/src/lib/models/cohort_dto';
+import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { PmidService } from '../services/pmid_service';
 
 interface MoiTerm {
   id: string;
@@ -45,70 +54,64 @@ export class MoiSelector {
 
   existingPmids = computed(() => {
     const allDtos = this.pmidService.pmidsSignal();
-    const stringIds = allDtos.map(dto => dto.pmid).filter(id => !!id);
+    const stringIds = allDtos.map((dto) => dto.pmid).filter((id) => !!id);
     return [...new Set(stringIds)];
   });
 
-  selectedMoiWithPmids = computed(() =>
-    this.moiTerms().filter(m => m.selected)
-  );
+  selectedMoiWithPmids = computed(() => this.moiTerms().filter((m) => m.selected));
 
   confirmSelection(): void {
-    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map(m => ({
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map((m) => ({
       hpoId: m.id,
       hpoLabel: m.label,
-      citation: m.pmid!  
+      citation: m.pmid!,
     }));
     this.moiChange.emit(moiList);
     this.showMoi.set(false);
   }
 
   cancelSelection(): void {
-    this.moiTerms.update(current =>
-      current.map(m => ({ ...m, selected: false, pmid: undefined }))
+    this.moiTerms.update((current) =>
+      current.map((m) => ({ ...m, selected: false, pmid: undefined })),
     );
     this.showMoi.set(false);
   }
 
   get confirmDisabled(): boolean {
     const selected = this.selectedMoiWithPmids();
-    return selected.length === 0 || selected.some(m => !m.pmid);
+    return selected.length === 0 || selected.some((m) => !m.pmid);
   }
 
   // Explicitly assign an existing PMID to an inheritance term
   selectExistingPmid(moi: MoiTerm, pmid: string): void {
-    this.moiTerms.update(current =>
-      current.map(m => m.id === moi.id ? { ...m, selected: true, pmid: pmid } : m)
+    this.moiTerms.update((current) =>
+      current.map((m) => (m.id === moi.id ? { ...m, selected: true, pmid: pmid } : m)),
     );
-    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map(m => ({
+    const moiList: ModeOfInheritance[] = this.selectedMoiWithPmids().map((m) => ({
       hpoId: m.id,
       hpoLabel: m.label,
-      citation: m.pmid!  
+      citation: m.pmid!,
     }));
     this.moiChange.emit(moiList);
     this.showMoi.set(false);
   }
 
   private async selectPmid(): Promise<PmidDto | null> {
-      const dialogRef = this.dialog.open(PubmedComponent, {
-        width: '700px',
-        data: { pmidDto: this.pmidDto() }
-      });
-  
-      return firstValueFrom(dialogRef.afterClosed());
-    }
+    const dialogRef = this.dialog.open(PubmedComponent, {
+      width: '700px',
+      data: { pmidDto: this.pmidDto() },
+    });
 
-   async openPubmedDialog(moi: MoiTerm): Promise<void> {
+    return firstValueFrom(dialogRef.afterClosed());
+  }
+
+  async openPubmedDialog(moi: MoiTerm): Promise<void> {
     const result: PmidDto | null = await this.selectPmid();
     if (!result) return;
     this.pmidService.addPmid(result);
     this.pmidDto.set(result);
-    this.moiTerms.update(current =>
-          current.map(m =>
-            m.id === moi.id ? { ...m, selected: true, pmid: result.pmid } : m
-          )
-        );
+    this.moiTerms.update((current) =>
+      current.map((m) => (m.id === moi.id ? { ...m, selected: true, pmid: result.pmid } : m)),
+    );
   }
-
-
 }

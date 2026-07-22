@@ -1,4 +1,12 @@
-import { Component, computed, ElementRef, inject, signal, viewChild, WritableSignal } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+  WritableSignal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { PmidService } from '../services/pmid_service';
@@ -9,7 +17,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './pubmed.component.html',
-  styleUrls: ['./pubmed.component.css']
+  styleUrls: ['./pubmed.component.css'],
 })
 export class PubmedComponent {
   private configService = inject(ConfigService);
@@ -20,7 +28,7 @@ export class PubmedComponent {
   availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal;
   selectedPmid = computed(() => this.pmidDto().pmid);
 
-  private resolvePromise: ((value: PmidDto|null)=> void) | null = null;
+  private resolvePromise: ((value: PmidDto | null) => void) | null = null;
 
   /**
    * Opens the native dialog and returns a Promise resolving to the result.
@@ -59,7 +67,7 @@ export class PubmedComponent {
       this.pmidDto.set({
         ...result,
         hasError: false,
-        retrievedPmid: true
+        retrievedPmid: true,
       });
     } catch (error) {
       this.pmidDto.set({
@@ -77,10 +85,7 @@ export class PubmedComponent {
     return !pmid || pmid.trim() === '';
   });
 
-  readonly isReady = computed(() =>
-    !!this.pmidDto().pmid && !!this.pmidDto().title
-  );
-
+  readonly isReady = computed(() => !!this.pmidDto().pmid && !!this.pmidDto().title);
 
   // accept a new PMID
   accept(): void {
@@ -100,7 +105,7 @@ export class PubmedComponent {
   private closeDialog(result: PmidDto | null): void {
     const dialogEl = this.dialogRef()?.nativeElement;
     dialogEl?.close();
-    
+
     if (this.resolvePromise) {
       this.resolvePromise(result);
       this.resolvePromise = null;
@@ -109,16 +114,13 @@ export class PubmedComponent {
 
   /* remove stray whitespaces */
   onPmidChange(value: string): void {
-    this.pmidDto.update(prev => ({
+    this.pmidDto.update((prev) => ({
       ...prev,
-      pmid: value.replace(/\s+/g, '')
+      pmid: value.replace(/\s+/g, ''),
     }));
   }
 
   clearPmids(): void {
     this.availablePmids.set([]);
   }
-
 }
-
-

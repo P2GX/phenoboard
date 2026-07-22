@@ -7,79 +7,80 @@ import { MatDialog } from '@angular/material/dialog';
 import { OrcidDialogComponent } from './orcid-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FormsModule } from '@angular/forms';
-import { MatCheckboxModule } from '@angular/material/checkbox'
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
-import { HelpButtonComponent } from "ng-hpo-uikit";
-import { MatIcon } from "@angular/material/icon";
+import { HelpButtonComponent } from 'ng-hpo-uikit';
+import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStatusService } from '../services/app_status_service';
-
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MatProgressBarModule, FormsModule, MatCheckboxModule, HelpButtonComponent, MatIcon, MatProgressSpinnerModule],
+  imports: [
+    CommonModule,
+    MatProgressBarModule,
+    FormsModule,
+    MatCheckboxModule,
+    HelpButtonComponent,
+    MatIcon,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrl: './home.component.scss',
 })
 export class HomeComponent {
-
-  cohortService= inject(CohortDtoService);
+  cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private pmidService = inject(PmidService);
-  private router= inject(Router);
+  private router = inject(Router);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
   private cancelMessage = signal<string | null>(null);
   public statusService = inject(AppStatusService);
 
-
   hpoMessage = computed(() => {
     const s = this.statusService.state();
     const cancel = this.cancelMessage();
     if (s.hpoLoaded) {
-      return `${s.hpoVersion} (${s.nHpoTerms})` || "Loaded";
+      return `${s.hpoVersion} (${s.nHpoTerms})` || 'Loaded';
     }
-    if (this.statusService.hpoLoading()) return "Loading hp.json ...";
+    if (this.statusService.hpoLoading()) return 'Loading hp.json ...';
     if (cancel) return cancel;
-    return "uninitialized";
+    return 'uninitialized';
   });
 
-  templateFileMessage = computed(()=> {
+  templateFileMessage = computed(() => {
     const path = this.statusService.state().ptTemplatePath;
     return path ? path : this.NOT_INIT;
   });
-  NOT_INIT = "not initialized";
+  NOT_INIT = 'not initialized';
   jsonTemplateFileMessage = signal(this.NOT_INIT);
 
   ptTemplateLoaded = computed(() => !!this.statusService.state().ptTemplatePath);
-  
+
   // Updated by checkbox in front end, should we update outdated HPO loabels upon import of Excel legacy files?
   updateLabels = false;
-  
-  newTemplateMessage = this.NOT_INIT;
- 
 
+  newTemplateMessage = this.NOT_INIT;
 
   progressValue = 0;
   isRunning = false;
 
   readonly biocuratorOrcid = computed(() => this.statusService.state().biocuratorOrcid);
- 
-    
 
   async loadHpo(): Promise<void> {
     try {
       await this.configService.loadHPO();
     } catch (error: unknown) {
       this.notificationService.showError(
-        `Failed to load HPO: ${error instanceof Error ? error.message : error}`
+        `Failed to load HPO: ${error instanceof Error ? error.message : error}`,
       );
-    } 
+    }
   }
 
   // select an Excel file with a cohort of phenopackets
@@ -89,20 +90,19 @@ export class HomeComponent {
       const data = await this.configService.loadPtExcelTemplate(this.updateLabels);
       this.isRunning = false;
       if (data == null) {
-        const errorMessage = "Could not retrieve template (null error)"
+        const errorMessage = 'Could not retrieve template (null error)';
         this.notificationService.showError(errorMessage);
         return;
       }
       this.clearData();
-      this.resetBackend();  
+      this.resetBackend();
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
-      } catch (error: unknown) {
-        const errorMessage = String(error);
-        this.notificationService.showError(errorMessage);
-      }
+    } catch (error: unknown) {
+      const errorMessage = String(error);
+      this.notificationService.showError(errorMessage);
     }
-
+  }
 
   /* After loading HPO, we may create a new template (new cohort) */
   async createNewPhetoolsTemplate(): Promise<void> {
@@ -112,35 +112,32 @@ export class HomeComponent {
     await this.router.navigate(['/newtemplate']);
   }
 
-
-  async setBiocuratorOrcid(): Promise<void>{
+  async setBiocuratorOrcid(): Promise<void> {
     const currentOrcid = this.biocuratorOrcid();
     const dialogRef = this.dialog.open(OrcidDialogComponent, {
       width: '500px',
-      data: { 
-        currentOrcid: currentOrcid
-      }
+      data: {
+        currentOrcid: currentOrcid,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
       this.ngZone.run(async () => {
         const updatedStatus = await this.configService.saveCurrentOrcid(result);
-        this.statusService.state.set(updatedStatus); 
+        this.statusService.state.set(updatedStatus);
       });
     });
   }
 
-
   async chooseJsonTemplateFile(): Promise<void> {
-  
     try {
       this.isRunning = true;
       const data = await this.configService.loadPtJson();
-       this.isRunning = false;
+      this.isRunning = false;
       if (data == null) {
-        const errorMessage = "Could not retrieve JSON template (null error)"
+        const errorMessage = 'Could not retrieve JSON template (null error)';
         this.notificationService.showError(errorMessage);
         return;
       }
@@ -148,10 +145,10 @@ export class HomeComponent {
       this.resetBackend();
       this.cohortService.setCohortData(data);
       this.router.navigate(['/pttemplate']);
-      } catch (error: unknown) {
-        const errorMessage = String(error);
-         this.notificationService.showError(errorMessage);
-      }
+    } catch (error: unknown) {
+      const errorMessage = String(error);
+      this.notificationService.showError(errorMessage);
+    }
   }
 
   openExternalTemplate(): void {
@@ -172,5 +169,4 @@ export class HomeComponent {
     this.configService.resetPtTemplate();
     this.ageService.clearSelectedTerms();
   }
-
 }

@@ -3,7 +3,7 @@ import { NgControl } from '@angular/forms';
 
 @Directive({
   selector: '[appDiseaseIdSanitizer]',
-  standalone: true
+  standalone: true,
 })
 export class DiseaseIdSanitizerDirective {
   constructor(private ngControl: NgControl) {}
@@ -20,5 +20,4 @@ export class DiseaseIdSanitizerDirective {
       }
     }
   }
-  
 }

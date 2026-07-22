@@ -3,18 +3,17 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class HelpService {
- 
   private readonly HELP_MAP: Record<string, string> = {
-    'home': 'overview',
-    'start': 'start',
-    'addcase': 'case',
+    home: 'overview',
+    start: 'start',
+    addcase: 'case',
     'cohort-editor': 'cohort-editor',
     'table-editor': 'table-editor',
-    'repo': 'repo',
-    'variant': 'variant'
+    repo: 'repo',
+    variant: 'variant',
   };
-  
-  private readonly  BASE_HELP_URL = 'https://p2gx.github.io/phenoboard/help/';
+
+  private readonly BASE_HELP_URL = 'https://p2gx.github.io/phenoboard/help/';
   private currentUrlSource = new BehaviorSubject<string>(this.BASE_HELP_URL + 'overview');
   currentUrl$ = this.currentUrlSource.asObservable();
 

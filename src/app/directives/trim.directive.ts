@@ -6,14 +6,12 @@ import { NgControl } from '@angular/forms';
   standalone: true,
 })
 export class TrimDirective {
-  constructor(
-    private ngControl: NgControl,
-  ) {}
+  constructor(private ngControl: NgControl) {}
 
   @HostListener('input', ['$event'])
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const trimmedValue = input.value.trim(); 
+    const trimmedValue = input.value.trim();
 
     if (trimmedValue !== input.value) {
       input.value = trimmedValue;

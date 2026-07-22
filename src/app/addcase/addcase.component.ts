@@ -8,7 +8,11 @@ import { AddageComponent } from '../addages/addage.component';
 import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
-import { GeneVariantData, IndividualData, CohortData } from '../../../libs/ui/src/lib/models/cohort_dto';
+import {
+  GeneVariantData,
+  IndividualData,
+  CohortData,
+} from '../../../libs/ui/src/lib/models/cohort_dto';
 import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
@@ -24,11 +28,13 @@ import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { AppStatusService } from '../services/app_status_service';
-import { HierarchyMapItem, HpoTwostepData, OntologyMatch, PolishedHpoAnnotation } from 'ng-hpo-uikit';
+import {
+  HierarchyMapItem,
+  HpoTwostepData,
+  OntologyMatch,
+  PolishedHpoAnnotation,
+} from 'ng-hpo-uikit';
 import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';
-
-
-
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -98,36 +104,36 @@ export class AddcaseComponent {
 
   readonly ageEntries = computed(() => this.ageService.selectedTerms());
 
-demographicSummary = computed<string | null>(() => {
-  const value = this.demographData(); // Angular automatically tracks this dependency
-  if (!value?.individualId) {
-    return null;
-  }
-  const details = [
-    value.ageAtLastEncounter !== 'na' && `age: ${value.ageAtLastEncounter}`,
-    value.ageOfOnset !== 'na' && `onset: ${value.ageOfOnset}`
-  ].filter(Boolean).join(', ');
-  const sexLabels: Record<string, string> = {
-    'M': 'male',
-    'F': 'female',
-    'U': 'unknown sex',
-    'O': 'other sex'
-  };
-  const deceasedLabels: Record<string,string> = {
-    'yes': 'deceased',
-    'no': 'alive'
-  };
+  demographicSummary = computed<string | null>(() => {
+    const value = this.demographData(); // Angular automatically tracks this dependency
+    if (!value?.individualId) {
+      return null;
+    }
+    const details = [
+      value.ageAtLastEncounter !== 'na' && `age: ${value.ageAtLastEncounter}`,
+      value.ageOfOnset !== 'na' && `onset: ${value.ageOfOnset}`,
+    ]
+      .filter(Boolean)
+      .join(', ');
+    const sexLabels: Record<string, string> = {
+      M: 'male',
+      F: 'female',
+      U: 'unknown sex',
+      O: 'other sex',
+    };
+    const deceasedLabels: Record<string, string> = {
+      yes: 'deceased',
+      no: 'alive',
+    };
 
-  const humanReadableSex = sexLabels[value.sex] || 'unknown sex';
-  const deceasedLab = deceasedLabels[value.deceased] || 'unknown vital status';
-  const baseInfo = [
-    details && `${details}`,
-    `${humanReadableSex}`,
-    `${deceasedLab}`
-  ].filter(Boolean).join('; ');
-  const mainSummary = `Individual: ${value.individualId} - ${baseInfo}`;
-  return value.comment ? `${mainSummary} (${value.comment})` : mainSummary;
-});
+    const humanReadableSex = sexLabels[value.sex] || 'unknown sex';
+    const deceasedLab = deceasedLabels[value.deceased] || 'unknown vital status';
+    const baseInfo = [details && `${details}`, `${humanReadableSex}`, `${deceasedLab}`]
+      .filter(Boolean)
+      .join('; ');
+    const mainSummary = `Individual: ${value.individualId} - ${baseInfo}`;
+    return value.comment ? `${mainSummary} (${value.comment})` : mainSummary;
+  });
 
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
@@ -333,19 +339,9 @@ demographicSummary = computed<string | null>(() => {
     this.pmidDto.set(defaultPmidDto());
   }
 
-
   private async selectPmid(): Promise<PmidDto | null> {
     const result = await this.pubmedModal().open();
     return result;
-  }
-
-  private async selectPmidOld(): Promise<PmidDto | null> {
-    const dialogRef = this.dialog.open(PubmedComponent, {
-      width: '600px',
-      data: { pmidDto: this.pmidDto() },
-    });
-
-    return firstValueFrom(dialogRef.afterClosed());
   }
 
   private async confirmDuplicatePmid(pmid: string): Promise<boolean> {
@@ -394,31 +390,30 @@ demographicSummary = computed<string | null>(() => {
     this.pmidDto.set(defaultPmidDto());
   }
 
-
   openHpoTwoStepDialog(): void {
-     const dialogData: HpoTwostepData = {
+    const dialogData: HpoTwostepData = {
       mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
       autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
       hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
-      availableModifiers: () => this.configService.getHpoModifiers()
+      availableModifiers: () => this.configService.getHpoModifiers(),
     };
 
-      const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
+    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
       width: '85vw',
       maxWidth: '1200px',
       height: '80vh',
       disableClose: true,
-      data: dialogData
+      data: dialogData,
     });
     dialogRef.afterClosed().subscribe((polishedAnnotations?: PolishedHpoAnnotation[]) => {
       if (polishedAnnotations) {
-        const hpoTermDataList: HpoTermData[] = polishedAnnotations.map(pa => {
-          const htd:HpoTermData = {
+        const hpoTermDataList: HpoTermData[] = polishedAnnotations.map((pa) => {
+          const htd: HpoTermData = {
             termDuplet: {
               hpoLabel: pa.label,
-              hpoId: pa.termId
+              hpoId: pa.termId,
             },
-            entry: toCellValue(pa)
+            entry: toCellValue(pa),
           };
           return htd;
         });
@@ -434,9 +429,7 @@ demographicSummary = computed<string | null>(() => {
   openAgeDialog(): void {
     const dialogRef = this.dialog.open(AddageComponent, {
       width: '400px',
-      data: {
-        /* pass inputs if needed */
-      },
+      data: {/* pass inputs if needed */},
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -445,7 +438,6 @@ demographicSummary = computed<string | null>(() => {
       }
     });
   }
-
 
   isDemoDialogOpen = signal<boolean>(false);
 
@@ -466,8 +458,6 @@ demographicSummary = computed<string | null>(() => {
       this.notificationService.showError('Could not get demographic data');
     }
   }
-
-
 
   /** Do we have all of the information needed to submit a row? */
   readonly canSubmitRow = computed(
@@ -496,25 +486,23 @@ demographicSummary = computed<string | null>(() => {
     }
   }
 
-   performHpoAutocomplete = (query: string): Observable<OntologyMatch[]> => {
+  performHpoAutocomplete = (query: string): Observable<OntologyMatch[]> => {
     return from(this.configService.performHpoAutocomplete(query)).pipe(
-      catchError(err => {
+      catchError((err) => {
         this.notificationService.showError(String(err));
         return of([]);
-      })
+      }),
     );
   };
 
-     
   fetchHpoHierarchy = (termId: string): Promise<HierarchyMapItem> => {
     const cached = this.hierarchyCache()[termId];
     if (cached) {
       return Promise.resolve(cached);
     }
-    return this.configService.getHpoParentAndChildrenTerms(termId).then(data => {
-      this.hierarchyCache.update(cache => ({ ...cache, [termId]: data }));
+    return this.configService.getHpoParentAndChildrenTerms(termId).then((data) => {
+      this.hierarchyCache.update((cache) => ({ ...cache, [termId]: data }));
       return data;
     });
   };
-   
 }
