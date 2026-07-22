@@ -1,4 +1,4 @@
-import { Component, inject, Input, NgZone } from '@angular/core';
+import { Component, ElementRef, inject, Input, NgZone, viewChild } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
@@ -9,7 +9,7 @@ import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import { GeneVariantData, IndividualData, CohortData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { CellValue, CellValueInner, HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
+import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MatIconModule } from '@angular/material/icon';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
@@ -36,7 +36,7 @@ import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component'
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, MatIconModule, HelpButtonComponent, AdddemoComponent],
+  imports: [FormsModule, MatIconModule, HelpButtonComponent, AdddemoComponent, PubmedComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })
@@ -58,6 +58,7 @@ export class AddcaseComponent {
 
   public VariantKind = VariantKind;
 
+  readonly pubmedModal = viewChild.required(PubmedComponent);
 
   pastedText = '';
   showTextArea = true;
@@ -332,7 +333,13 @@ demographicSummary = computed<string | null>(() => {
     this.pmidDto.set(defaultPmidDto());
   }
 
+
   private async selectPmid(): Promise<PmidDto | null> {
+    const result = await this.pubmedModal().open();
+    return result;
+  }
+
+  private async selectPmidOld(): Promise<PmidDto | null> {
     const dialogRef = this.dialog.open(PubmedComponent, {
       width: '600px',
       data: { pmidDto: this.pmidDto() },

@@ -1,4 +1,4 @@
-<div class="pubmed-dialog">
+<dialog class="pubmed-dialog" #pubmedDialog (close)="onDialogClose()">
   <!-- Available PMIDs Dropdown -->
   <div class="form-group">
     <label for="available-pmids">Available PMIDs:</label>
@@ -50,7 +50,7 @@
   }
 
   <div class="dialog-actions">
-    <button (click)="accept()" [disabled]="!isReady()" class="btn-primary">
+    <button (click)="accept()" [disabled]="!isReady()" class="btn-outline-primary">
       Accept
     </button>
 
@@ -63,4 +63,4 @@
     </button>
   </div>
 
-</div>
+</dialog>

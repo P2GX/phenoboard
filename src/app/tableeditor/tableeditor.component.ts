@@ -169,6 +169,8 @@ export class TableEditorComponent  {
   readonly ELEMENTWISE_MAP: Partial<Record<TransformType, StringTransformFn>> = {
     [TransformType.ONSET_AGE]: (val) => this.ageService.mapEtlAgeString(val),
     [TransformType.LAST_ENCOUNTER_AGE]: (val) => this.ageService.mapEtlAgeString(val),
+    [TransformType.ONSET_AGE_ASSUME_YEARS]: (val) => this.ageService.numericYearToIso(val),
+    [TransformType.LAST_ECOUNTER_AGE_ASSUME_YEARS]: (val) => this.ageService.numericYearToIso(val),
     [TransformType.SEX_COLUMN]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.SEX_COLUMN_TYPE]: (val) => this.etl_service.parseSexColumn(val),
     [TransformType.INDIVIDUAL_ID_COLUMN_TYPE]: (val) => sanitizeString(val),
@@ -1218,7 +1220,11 @@ async saveManualEdit(newValue: string): Promise<void> {
     this.etl_service.updateColumns(newColumns);
   }
 
+  /*
+  * This is applied from the app-column-context-menu component depending on the choice of the user.
+  */
   async applyNamedTransform(colIndex: number | null, rawTransform: TransformType): Promise<void> {
+    console.log("applyNamedTransform rawtransform = ", rawTransform);
     const dto = this.etl_service.etlDto();
     if (colIndex == null || !dto) return;
     let transform: TransformType = rawTransform;
@@ -1226,6 +1232,7 @@ async saveManualEdit(newValue: string): Promise<void> {
       const matchingKey = Object.keys(TransformType).find(
         key => TransformType[key as keyof typeof TransformType] === rawTransform
       );
+      console.log("Matchking key", matchingKey);
       if (matchingKey) {
         transform = TransformType[matchingKey as keyof typeof TransformType];
       }
@@ -1831,7 +1838,14 @@ async saveManualEdit(newValue: string): Promise<void> {
     }
   }
 
+  /** This method is wired to the EtlDataTableComponent componet -- when the user rightclicks on a column header. We open
+   * a context menu here so that the user can say what type of column it is and trigger processing. A dialog is opened
+   * in the template by " @if (headerMenuState();", which in turn opens the component ColumnContextMenuComponent, which is a relatively
+   * simple component with three outputs that are connected to simpleColumnOp, applyNamedTransform, and a merge Action that
+   * is implemented in the template itself.
+   */
   openHeaderMenu(data: { event: MouseEvent; index: number; header: any }): void {
+    console.log("openHeaderMenu data=", data)
     this.headerMenuState.set({
       x: data.event.clientX,
       y: data.event.clientY,
@@ -1869,31 +1883,6 @@ async saveManualEdit(newValue: string): Promise<void> {
     } else {
       this.triggerInlineCellEdit(eventData);
     }
-  }
-
-  getSafeMenuPosition(x: number, y: number): { x: number; y: number } {
-    // Estimated dimensions of your context menu (adjust width/height if needed)
-    const menuWidth = 220; 
-    const menuHeight = 300; 
-
-    let safeX = x;
-    let safeY = y;
-
-    // Check right edge overflow
-    if (x + menuWidth > window.innerWidth) {
-      safeX = x - menuWidth;
-    }
-
-    // Check bottom edge overflow
-    if (y + menuHeight > window.innerHeight) {
-      safeY = y - menuHeight;
-    }
-
-    // Ensure coordinates don't go negative
-    return {
-      x: Math.max(10, safeX),
-      y: Math.max(10, safeY)
-    };
   }
 
 }

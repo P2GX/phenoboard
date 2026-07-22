@@ -1,8 +1,12 @@
 <!-- Invisible full-screen backdrop to capture dismiss clicks cleanly -->
-    <div class="menu-overlay-backdrop" (click)="close.emit()" (contextmenu)="$event.preventDefault(); close.emit()">
+    <div 
+    class="menu-overlay-backdrop" 
+    (click)="close.emit()" 
+    (contextmenu)="$event.preventDefault(); close.emit()">
       <div
-        [style.top.px]="y() ?? 0"
-        [style.left.px]="x() ?? 0"
+       #menuEl
+        [style.top.px]="safeY()"
+        [style.left.px]="safeX()"
         class="context-menu"
         (click)="$event.stopPropagation()"
       >
@@ -17,7 +21,7 @@
           <!-- Submenu: Ignore/Reset -->
           <li class="has-submenu">
             Ignore/Reset 
-            <ul class="submenu">
+            <ul class="submenu" appSubmenuPosition>
               @for (category of simpleColumnOperations(); track category) {
                 <li (click)="simpleOpRequested.emit(category); $event.stopPropagation()">
                   {{ category }}
@@ -29,11 +33,11 @@
           <!-- Submenu: Transform Column -->
           <li class="has-submenu">
             Transform Column 
-            <ul class="submenu">
+            <ul class="submenu" appSubmenuPosition>
               @for (category of transformCategories(); track category.label) {
                 <li class="has-submenu">
                   {{ category.label }} 
-                  <ul class="submenu">
+                  <ul class="submenu" appSubmenuPosition>
                     @for (t of category.transforms; track t) {
                       <li (click)="transformRequested.emit(t); $event.stopPropagation()">
                         {{ getTransformDisplayName(t) }}
@@ -48,7 +52,7 @@
           <!-- Submenu: Merge Columns -->
           <li class="has-submenu">
             Merge Columns
-            <ul class="submenu">
+            <ul class="submenu" appSubmenuPosition>
               <li (click)="mergeActionRequested.emit('SET_A'); $event.stopPropagation()">
                 Mark as Column A (Merge)
               </li>

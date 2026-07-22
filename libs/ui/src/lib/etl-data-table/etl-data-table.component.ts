@@ -48,19 +48,10 @@ export class EtlDataTableComponent {
    * @param event The native mouse event triggered by the context click.
    * @param index The zero-based index of the column within the active grid array.
    * @param header The metadata configuration structure for the target column.
-   * 
-   * @remarks
-   * CRITICAL PERFORMANCE NOTE: The inner `emit` payload is intentionally deferred inside 
-   * a `setTimeout(..., 0)` macro-task wrapper. This breaks synchronous execution and 
-   * prevents an Angular `ExpressionChangedAfterItHasBeenCheckedError` (NG0100). 
-   * 
-   * Without this delay, parent components responding to this output event (e.g., updating 
-   * active selection indexes or rendering a modal context menu overlay) alter state variables 
-   * while this table child component is actively calculating row index signal dimensions, 
-   * causing Angular to freeze the render cycle and break UI cell color paints.
    */
   onHeaderContextMenu(event: MouseEvent, index: number, header: EtlColumnHeader): void {
     event.preventDefault();
+    console.log("onHeaderContextMenu ", index, header);
     this.headerContextMenuRequested.emit({ event, index, header });
   }
 

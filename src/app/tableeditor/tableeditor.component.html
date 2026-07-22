@@ -47,10 +47,9 @@
 
 <!-- Context menu for column headers -->
  @if (headerMenuState(); as menu) {
-  @let safePos = getSafeMenuPosition(menu.x, menu.y);
   <app-column-context-menu
-    [x]="safePos.x"
-    [y]="safePos.y"
+    [x]="menu.x"
+    [y]="menu.y"
     [headerOriginalName]="menu.header.original"
     [columnType]="menu.header.columnType"
     [simpleColumnOperations]="simpleColumnOperations"
