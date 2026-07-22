@@ -1,84 +1,105 @@
-<p class="dialog-hint">
-    This dialog supports 
-    @if (!isStructural()) { standard HGVS variant formats and }
-    unvalidated (symbolic) structural variant descriptions.
-    @if (!isStructural()) {
-        For more information, visit
-        <a href="#" (click)="openHgvs($event)" class="bluelink">the HGVS website</a>. 
-        <a href="#" (click)="openVariantValidator($event)" class="bluelink">Variant Validator</a> 
-        is used for validation.
-    }
-</p>
+<div class="dialog-header">
+  <h2>Variant Entry</h2>
+</div>
 
-<mat-card class="p-4">
-    <mat-card-title class="text-lg mb-4">Variant Entry</mat-card-title>
-    <div class="variant-fields">
-        <mat-form-field appearance="fill">
-            <mat-label>Variant</mat-label>
-            <input matInput [(ngModel)]="variant_string" 
-                    (input)="onVariantInput()" 
-                    [disabled]="variantValidated" 
-                    autofocus
-                    autocapitalize="none"
-                    spellcheck="false"
-                    autocomplete="off" />
-        </mat-form-field>
+<div class="dialog-body">
+  <p class="dialog-hint">
+      This dialog supports 
+      @if (!isStructural()) { standard HGVS variant formats and }
+      unvalidated (symbolic) structural variant descriptions.
+      @if (!isStructural()) {
+          For more information, visit
+          <a href="#" (click)="openHgvs($event)" class="bluelink">the HGVS website</a>. 
+          <a href="#" (click)="openVariantValidator($event)" class="bluelink">Variant Validator</a> 
+          is used for validation.
+      }
+  </p>
 
-        <mat-form-field appearance="fill">
-            <mat-label>Gene</mat-label>
-            <mat-select [(ngModel)]="selectedGene" [disabled]="variantValidated">
-                @for (gene of geneOptions; track gene.geneSymbol) {
-                    <mat-option [value]="gene">{{ gene.geneSymbol }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
+  <div class="variant-card">
+      <div class="variant-fields">
+          <!-- Variant Input Field -->
+          <div class="form-group">
+              <label for="variant-input">Variant</label>
+              <input id="variant-input" 
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="variant_string" 
+                      (input)="onVariantInput()" 
+                      [disabled]="variantValidated" 
+                      autofocus
+                      autocapitalize="none"
+                      spellcheck="false"
+                      autocomplete="off" />
+          </div>
 
-        @if (isStructural()) {
-            <mat-form-field appearance="fill">
-                <mat-label>Structural Variant Type</mat-label>
-                <mat-select [(ngModel)]="selectedStructuralType" [disabled]="variantValidated">
-                    @for (type of structuralTypes; track type.label) {
-                        <mat-option [value]="type">{{ type.label }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
-        }
-    </div>
+          <!-- Gene Select Field -->
+          <div class="form-group">
+              <label for="gene-select">Gene</label>
+              <select id="gene-select" 
+                      class="form-control"
+                      [(ngModel)]="selectedGene" 
+                      [disabled]="variantValidated">
+                  <option [ngValue]="null" disabled>Select Gene...</option>
+                  @for (gene of geneOptions; track gene.geneSymbol) {
+                      <option [ngValue]="gene">{{ gene.geneSymbol }}</option>
+                  }
+              </select>
+          </div>
 
-    <div class="variant-actions">
-        
-        <div class="action-buttons">
-            @if (!variantValidated) {
-                <button class="btn-primary" (click)="submit()" 
-                        [disabled]="!selectedGene || isSubmitting">
-                    {{ isSubmitting ? 'Validating...' : getSubmitLabel() }}
-                </button>
-            } @else {
-                <button  class="btn-primary" (click)="addVariantToPpkt()">
-                    Add variant to case
-                </button>
-                
-                <mat-checkbox [(ngModel)]="isBiallelic" color="primary">
-                    Biallelic
-                </mat-checkbox>
+          <!-- Structural Variant Type Select Field -->
+          @if (isStructural()) {
+              <div class="form-group">
+                  <label for="sv-type-select">Structural Variant Type</label>
+                  <select id="sv-type-select" 
+                          class="form-control"
+                          [(ngModel)]="selectedStructuralType" 
+                          [disabled]="variantValidated">
+                      <option [ngValue]="null" disabled>Select SV Type...</option>
+                      @for (type of structuralTypes; track type.label) {
+                          <option [ngValue]="type">{{ type.label }}</option>
+                      }
+                  </select>
+              </div>
+          }
+      </div>
 
-                <button class="btn-primary-outline" (click)="resetVars()" class="text-gray-500">
-                    Edit Variant
-                </button>
-            }
-            
-            <button class="btn-outline-cancel" (click)="cancel()">Cancel</button>
-        </div>
+      <div class="variant-actions">
+          <div class="action-buttons">
+              @if (!variantValidated) {
+                  <button class="btn-primary" (click)="submit()" 
+                          [disabled]="!selectedGene || isSubmitting">
+                      {{ isSubmitting ? 'Validating...' : getSubmitLabel() }}
+                  </button>
+              } @else {
+                  <button class="btn-primary" (click)="addVariantToPpkt()">
+                      Add variant to case
+                  </button>
+                  
+                  <label class="checkbox-label">
+                      <input type="checkbox" [(ngModel)]="isBiallelic" />
+                      Biallelic
+                  </label>
 
-        <div class="validation-status">
-            @if (variantValidated) {
-                <span class="status-dot validated"></span>
-                <span class="status-test validated">{{ validationMessage || 'Validated' }}</span>
-            }
-            
-            @if (errorMessage) {
-                <mat-error>{{ errorMessage }}</mat-error>
-            }
-        </div>
-    </div>
-</mat-card>
+                  <button class="btn-outline-cancel" (click)="resetVars()">
+                      Edit Variant
+                  </button>
+              }
+              
+              <button class="btn-outline-cancel" (click)="cancel()">Cancel</button>
+          </div>
+
+          <div class="validation-status">
+              @if (variantValidated) {
+                  <div class="status-indicator">
+                      <span class="status-dot validated"></span>
+                      <span class="status-text validated">{{ validationMessage || 'Validated' }}</span>
+                  </div>
+              }
+              
+              @if (errorMessage) {
+                  <div class="error-message">{{ errorMessage }}</div>
+              }
+          </div>
+      </div>
+  </div>
+</div>

@@ -1,36 +1,83 @@
-app-addvariant {
-  background-color: #22c55e;
-.dialog-hint {
-  font-size: 0.75rem;       /* text-xs */
-  color: #6b7280;           /* text-gray-500 */
-  margin-top: 0.5rem;       /* mt-2 */
-
-
+.dialog-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
 }
 
-mat-card {
-  padding: 1rem;            /* p-4 */
+.dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  mat-card-title {
-    font-size: 1.125rem;    /* text-lg */
-    margin-bottom: 1rem;    /* mb-4 */
+.dialog-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+  
+  .bluelink {
+    color: #2563eb;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
+}
+
+.variant-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .variant-fields {
   display: flex;
   flex-direction: column;
-  gap: 1rem;                /* gap-4 */
+  gap: 12px;
+}
 
-  mat-form-field {
-    width: 100%;            /* w-full */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
   }
 
-  @media (min-width: 768px) {
-    flex-direction: row;    /* md:flex-row */
+  .form-control {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
 
-    mat-form-field {
-      flex: 1;              /* md:flex-1 */
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+
+    &:disabled {
+      background-color: #f8fafc;
+      color: #94a3b8;
+      cursor: not-allowed;
     }
   }
 }
@@ -38,49 +85,62 @@ mat-card {
 .variant-actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;                /* gap-4 */
-  margin-top: 1.5rem;       /* mt-6 */
-  @media (min-width: 768px) {
-    flex-direction: row;    /* md:flex-row */
-    align-items: center;    /* md:items-center */
-    justify-content: space-between;
-  }
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 1rem;                /* gap-4 */
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.edit-variant-btn {
-  color: #6b7280;           /* text-gray-500 */
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #334155;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+  }
 }
 
 .validation-status {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;              /* gap-2 */
+  flex-direction: column;
+  gap: 4px;
 
-  .status-dot {
-    display: inline-block;
-    width: 0.75rem;         /* w-3 */
-    height: 0.75rem;        /* h-3 */
-    border-radius: 50%;     /* rounded-full */
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
 
-    &.validated {
-      background-color: #22c55e;  /* bg-green-500 */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      &.validated {
+        background-color: #10b981;
+      }
+    }
+
+    .status-text.validated {
+      color: #059669;
+      font-weight: 500;
     }
   }
 
-  .status-text {
-    font-size: 0.875rem;    /* text-sm */
-    font-weight: 500;       /* font-medium */
-
-    &.validated {
-      color: #16a34a;       /* text-green-600 */
-    }
+  .error-message {
+    color: #dc2626;
+    font-size: 0.85rem;
   }
-}
 }

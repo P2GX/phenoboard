@@ -1,70 +1,46 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, ViewEncapsulation } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatOption } from '@angular/material/core';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog'; // Keep if you use Angular Material Dialog container overlay, otherwise replace with custom dialog reference if fully migrated
 import { ConfigService } from '../services/config.service';
-import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs, displayIntergenic,IntergenicHgvsVariant } from '../../../libs/ui/src/lib/models/variant_dto';
+import { HgvsVariant, StructuralType, StructuralVariant, VariantDto, displaySv, displayHgvs, displayIntergenic, IntergenicHgvsVariant } from '../../../libs/ui/src/lib/models/variant_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 
-/* This widget can validate small HGVS variants (e.g., small number of nucleotides, "c."("n.")),
-structural variants (symbolic, e.g., DEL ex3), and intergenic variants (not located in transcripts,
-represented using chromosomal accession numbers). */
 export enum VariantKind {
   HGVS = 'HGVS',
   SV = 'SV',
   INTERGENIC = 'INTERGENIC'
 }
 
-
 export interface AddVariantDialogData {
   rowId: string;
   kind: VariantKind;
 }
 
-
 export interface VariantAcceptedEvent {
   variant: string;
-  alleleCount: number; // mono or biallelic
+  alleleCount: number;
 }
 
 type ValidatorFn = () => Promise<void>;
 
-/**
- * A modal component that pops up when the user clicks on Add Allele
- * It can enter HGVS or SV
- * The component validates each variant using VariantValidator and
- * creates either an HgvsVariant or a StructuralVariant object. It also 
- * creates a key (string) that is used to represent the variant in the
- * HGVS or SV maps of our CohortDto. 
- */
 @Component({
   selector: 'app-addvariant',
   standalone: true,
-  imports: [FormsModule, MatButtonModule, MatCardModule, MatCheckboxModule, MatInputModule, MatFormFieldModule, MatOption, MatSelectModule],
+  imports: [FormsModule],
   templateUrl: './addvariant.component.html',
   styleUrl: './addvariant.component.scss',
   encapsulation: ViewEncapsulation.None,  
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddVariantComponent implements OnInit{
-  
+export class AddVariantComponent implements OnInit {
   private configService = inject(ConfigService); 
-  private cohortService= inject(CohortDtoService);
-  private dialogRef= inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
+  private cohortService = inject(CohortDtoService);
+  private dialogRef = inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
   readonly data = inject<AddVariantDialogData>(MAT_DIALOG_DATA);
   readonly kind: VariantKind = this.data.kind;
   private cdr = inject(ChangeDetectorRef);
-
-
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
@@ -73,21 +49,15 @@ export class AddVariantComponent implements OnInit{
     }
   }
 
-  
-
   private validators: Record<VariantKind, ValidatorFn> = {
     [VariantKind.HGVS]: () => this.submitHgvsDto(),
     [VariantKind.SV]: () => this.submitSvDto(),
     [VariantKind.INTERGENIC]: () => this.submitIntergenicDto(),
   };
 
-  
-  /* If the current variant was HGVS and was validated, this variant is non-null */
   currentHgvsVariant: HgvsVariant | null = null;
-  /* If the current variant was structural and was validated, this variant is non-null */
   currentStructuralVariant: StructuralVariant | null = null;
-  /* If the current variant was intergenic and was validated, this variant is non-null */
-  currentIntergenicVariant: IntergenicHgvsVariant |null = null;
+  currentIntergenicVariant: IntergenicHgvsVariant | null = null;
 
   isHgvs(): boolean {
     return this.kind === VariantKind.HGVS;
@@ -101,7 +71,6 @@ export class AddVariantComponent implements OnInit{
     return this.kind == VariantKind.INTERGENIC;
   }
 
-
   variant_string = '';
   isBiallelic = false;
 
@@ -114,7 +83,8 @@ export class AddVariantComponent implements OnInit{
     {'label':'duplication', 'id':'DUP'},
     {'label':'inversion', 'id':'INV'},
     {'label':'translocation', 'id':'TRANSL'},
-    {'label':'sv (general)', 'id':'SV'},];
+    {'label':'sv (general)', 'id':'SV'}
+  ];
 
   geneOptions: GeneTranscriptData[] = []; 
   selectedGene: GeneTranscriptData | null = null;
@@ -124,14 +94,9 @@ export class AddVariantComponent implements OnInit{
   isSubmitting = false;
   validationComplete = false;
 
-  /** This is called from -   (input)="onVariantInput()" -- everytime the value of the input field changes.
-   * The main purpose is to determine if we have an HGVS variant or not. If we do, then the SV drop down is hidden,
-   * if not, we show the Sv dropdown menu with the SV types.
-   */
   onVariantInput(): void {
     this.resetVars();
     if (this.isHgvs()) {
-      // we strip whitespace from HGVS variants because it is common for publications to add space e.c., c.123 A > T
       this.variant_string = this.variant_string.replace(/\s+/g, '');
     }
     if (!this.variant_string) {
@@ -152,21 +117,12 @@ export class AddVariantComponent implements OnInit{
     this.variantValidated = false;
   }
 
-  /** This function is called if the user has entered data about a structural variant and
-   * clicks on the "Submit SV" button. We send the current cohortDto to the backend so that
-   * the backend calculates the variantKey and sees if we have already validated this variant,
-   * in which case, we return a copy of it. Otherwise, the backend creates a new variant.
-   * In either case, when the user activates addVariantToPpkt the new variant will be stored
-   * in the HashMap. This function itself only initializes the variant currentStructuralVariant,
-   * so that the user can cancel the variant for whatever reason.
-   */
   async submitSvDto(): Promise<void> {
     if (!this.variant_string || !this.selectedGene || !this.selectedStructuralType) {
       this.errorMessage = 'Please enter a valid variant and select a gene and a SV type';
       this.variantValidated = false;
       return;
     }
-    console.log("submitSvDto, ", this.variant_string);
     this.errorMessage = null;
     const vv_dto: VariantDto = {
       variantString: this.variant_string,
@@ -193,16 +149,13 @@ export class AddVariantComponent implements OnInit{
       });
   }
 
-
-  
   private fail(message: string): void {
     this.errorMessage = message;
     this.variantValidated = false;
-    return;
   }
 
   async submit(): Promise<void> {
-    if (! this.kind) return;
+    if (!this.kind) return;
     await this.validators[this.kind]();
   }
 
@@ -210,9 +163,8 @@ export class AddVariantComponent implements OnInit{
     if (!this.variant_string || !this.selectedGene) {
       return this.fail('Please enter a valid variant and select a gene.');
     }
-    console.log("submitIntergenicDto=", this.variant_string);
     const cohortData = this.cohortService.getCohortData();
-    if (! cohortData) {
+    if (!cohortData) {
       return this.fail("Attempt to validate intergenic HGVS with null cohortData");
     }
     this.errorMessage = null;
@@ -226,22 +178,16 @@ export class AddVariantComponent implements OnInit{
         alert(String(error));
       });
   }
-  
 
-  /** This is called when the user has finished entering an HGVS variant 
-   * and clicks on the "Submit HGVS" button. If we are successful, the methods
-   * sets the currentHgvsVariant variable and adds it to the HGVS map
-   */
   async submitHgvsDto(): Promise<void> {
      if (!this.variant_string || !this.selectedGene) {
       return this.fail('Please enter a valid variant and select a gene.');
     }
     this.errorMessage = null;
     const cohortDto = this.cohortService.getCohortData();
-    if (! cohortDto) {
+    if (!cohortDto) {
       return this.fail("Attempt to validate HGVS with null cohortDto");
     }
-    console.log("add variant, ", this.selectedGene);
     this.configService.validateHgvsVariant(this.selectedGene.geneSymbol, this.selectedGene.hgncId, this.selectedGene.transcript, this.variant_string)
       .then((hgvs) => {
         this.currentHgvsVariant = hgvs;
@@ -256,25 +202,14 @@ export class AddVariantComponent implements OnInit{
 
   openHgvs($event: MouseEvent): void {
     $event.preventDefault();
-    const url = "https://hgvs-nomenclature.org/"
-    openUrl(url)
+    openUrl("https://hgvs-nomenclature.org/");
   }
+
   openVariantValidator($event: MouseEvent): void {
     $event.preventDefault();
-    const url = "https://variantvalidator.org/";
-    openUrl(url);
+    openUrl("https://variantvalidator.org/");
   }
 
-  /**
-   * Open a URL in the (external) system browser
-  */
-  async openLink(url: string): Promise<void> {
-    await openUrl(url);
-  }
-
-  /**
-   * Close the dialog without changing state
-  */
   cancel(): void {
     this.dialogRef.close();
   }
@@ -286,36 +221,29 @@ export class AddVariantComponent implements OnInit{
     return 'Cannot determine variant type';
   }
 
-  /**
-   * Emits the validated variant to the parent component so it can be added
-   * to the current phenopacket row object.
-   */
-  addVariantToPpkt(): void{
-    if (! this.variantValidated) {
+  addVariantToPpkt(): void {
+    if (!this.variantValidated) {
       alert("Could not add variant");
       return;
     }
     if (this.currentHgvsVariant != null) {
        this.cohortService.addHgvsVariant(this.currentHgvsVariant);
        const hgvsVarDto: VariantDto = displayHgvs(this.currentHgvsVariant, true);
-       hgvsVarDto.count = this.isBiallelic ? 2: 1;
+       hgvsVarDto.count = this.isBiallelic ? 2 : 1;
        this.dialogRef.close(hgvsVarDto);
     } else if (this.currentStructuralVariant != null) {
       this.cohortService.addStructuralVariant(this.currentStructuralVariant);
       const svVarDto: VariantDto = displaySv(this.currentStructuralVariant, true);
-      svVarDto.count = this.isBiallelic ? 2: 1;
+      svVarDto.count = this.isBiallelic ? 2 : 1;
       this.dialogRef.close(svVarDto);
     } else if (this.currentIntergenicVariant != null) {
       this.cohortService.addIntergenicVariant(this.currentIntergenicVariant);
       const IgVarDto: VariantDto = displayIntergenic(this.currentIntergenicVariant, true);
-      IgVarDto.count = this.isBiallelic ? 2: 1;
+      IgVarDto.count = this.isBiallelic ? 2 : 1;
       this.dialogRef.close(IgVarDto);
     } else {
-      alert("Unable to add variant")
+      alert("Unable to add variant");
       this.errorMessage = "attempt to add invalid variant";
     }
   }
-
 }
-
-
