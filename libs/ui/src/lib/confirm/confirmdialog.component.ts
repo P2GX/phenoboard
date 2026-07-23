@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, afterNextRender, effect, input, output, viewChild } from '@angular/core';
 import { HelpButtonComponent as HelpButtonComponent } from "ng-hpo-uikit";
 
 export interface ConfirmDialogData {
@@ -51,23 +51,15 @@ export interface ConfirmDialogData {
 })
 export class ConfirmDialogComponent {
   data = input.required<ConfirmDialogData>();
-  isOpen = input<boolean>(false);
   result = output<boolean>();
 
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('nativeDialog');
   private emitted = false;
 
   constructor() {
-    effect(() => {
+    afterNextRender(() => {
       const modal = this.dialogEl().nativeElement;
-      if (this.isOpen()) {
-        this.emitted = false; // reset guard each time it's (re)opened
-        if (!modal.open) {
-          modal.showModal();
-        }
-      } else if (modal.open) {
-        modal.close();
-      }
+      modal.showModal();
     });
   }
 

@@ -142,3 +142,11 @@
     </div>
   }
 </div>
+
+@if (deleteColumnConfirmData(); as data) {
+  <app-confirm-dialog
+        [data]="data"
+        (result)="handleDeleteColumnConfirmation($event)"
+      >
+      </app-confirm-dialog>
+}

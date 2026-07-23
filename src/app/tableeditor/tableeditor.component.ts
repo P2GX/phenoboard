@@ -6,7 +6,8 @@ import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, ColumnContextMenuComponent, EtlDataTableComponent, IconComponent } from '@workspace/ui';
+import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, 
+  ColumnContextMenuComponent, EtlDataTableComponent, IconComponent, ConfirmDialogData, ConfirmDialogComponent } from '@workspace/ui';
 import {
   ColumnDto,
   EtlCellStatus,
@@ -21,13 +22,11 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DeleteConfirmationDialogComponent } from './delete-confirmation.component';
 import { removeAllWhitespace, sanitizeString } from '@workspace/ui';
 import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../../../libs/ui/src/lib/models/variant_dto';
-import { ConfirmDialogComponent } from '../confirm/confirmation-dialog.component';
 import { SplitColumnDialogComponent } from './split-column.component';
 import { HelpService } from '../services/help.service';
 import {
@@ -72,7 +71,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     TableFloatingControlsComponent,
     ColumnContextMenuComponent,
     EtlDataTableComponent,
-    IconComponent
+    IconComponent,
+    ConfirmDialogComponent
 ],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
@@ -664,12 +664,50 @@ export class TableEditorComponent {
     return indices;
   });
 
+  deleteColumnIdx = signal<number|null>(null);
+  deleteColumnConfirmData = signal<ConfirmDialogData|null>(null);
+
+   deleteColumn(index: number | null): void {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    if (index === null) return;
+    const uniqueValues: string[] = this.getUniqueValues(index);
+    const columnName = dto.table.columns[index].header.original || `Column ${index}`;
+    const data: ConfirmDialogData = {
+      message: `Delete column ${columnName}?`,
+      title: "Delete column",
+      helpTitle: "Inspect column value",
+      helpLines: uniqueValues
+    };
+    this.deleteColumnConfirmData.set(data);
+    this.deleteColumnIdx.set(index);
+   }
+
+   handleDeleteColumnConfirmation(confirmed: boolean): void {
+    const dto = this.etl_service.etlDto();
+    if (! dto) {
+      return;
+    }
+    const index = this.deleteColumnIdx();
+    if (index === null) {
+      this.notificationService.showError("Could not fine column index to delete");
+      return;
+    }
+    if (confirmed) {
+        // User confirmed deletion
+        const newColumns = dto.table.columns.filter((_, i) => i !== index);
+        this.etl_service.updateColumns(newColumns);
+      } else {
+        this.notificationService.showWarning("Cancelling delete column operation");
+      }
+   }
+
   /**
    * External templates often have columns with no relevant information that we can delete.
    * @param index
    * @returns
-   */
-  deleteColumn(index: number | null): void {
+  
+  deleteColumnOld(index: number | null): void {
     const dto = this.etl_service.etlDto();
     if (!dto) return;
     if (index === null) return;
@@ -690,7 +728,7 @@ export class TableEditorComponent {
       }
       // If result is false or undefined, do nothing (probably, user cancelled)
     });
-  }
+  } */
 
   duplicateColumn(index: number | null): void {
     const dto = this.etl_service.etlDto();

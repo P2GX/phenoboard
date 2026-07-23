@@ -846,6 +846,46 @@ export class PtTemplateComponent {
     return row.hpoData.some((cell) => cell.type !== 'Excluded' && cell.type !== 'Na');
   }
 
+
+  deleteRowId = signal<string|null>(null);
+  deleteRowConfirmData = signal<ConfirmDialogData|null>(null);
+
+
+  openDeleteRow(rowId: string | null): void {
+    if (rowId === null){
+      this.notificationService.showError("Attempt to delete row with null rowId");
+      return;
+    }
+    this.deleteRowId.set(rowId);
+    const data: ConfirmDialogData ={
+      title: "Confirm Delete Row",
+      message: `Delete row ${rowId}?`,
+      helpTitle: "Delete row",
+      helpLines: ["Click yes to remove the current row from the cohort"]
+    };
+    this.deleteRowConfirmData.set(data);      
+  }
+
+  handleDeleteRowConfirmation(confirmed: boolean): void {
+    if (!confirmed) return;
+    const currentCohort = this.cohortData();
+    if (!currentCohort) return;
+    const rowId = this.deleteRowId();
+    if (rowId === null) {
+      this.notificationService.showError("Could not find row id to delete");
+      return;
+    }
+    const updatedRows = currentCohort.rows.filter((r) => getRowId(r.individualData) !== rowId);
+
+    this.cohortService.setCohortData({
+      ...currentCohort,
+      rows: updatedRows,
+    });
+    this.deleteRowId.set(null);
+    this.deleteRowConfirmData.set(null);
+  }
+
+  /*
   async deleteRow(rowId: string | null): Promise<void> {
     if (!rowId) return;
 
@@ -876,7 +916,7 @@ export class PtTemplateComponent {
       ...currentCohort,
       rows: updatedRows,
     });
-  }
+  }*/
 
   /* Get Links for display with summary of cohort */
   getGeneLinks(

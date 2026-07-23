@@ -435,7 +435,7 @@
         </li>
         <li class="context-menu-item" (click)="showAllRows()">Show all rows</li>
         <li class="context-menu-item" (click)="showInfoForRow(contextRowId, $event)">Show info</li>
-        <li class="context-menu-item" (click)="deleteRow(contextRowId)">Delete row</li>
+        <li class="context-menu-item" (click)="openDeleteRow(contextRowId)">Delete row</li>
       </ul>
     </div>
   }
@@ -480,9 +480,17 @@
   @if (confirmDialogData(); as data) {
     <app-confirm-dialog
       [data]="data"
-      [isOpen]="isConfirmDialogOpen()"
       (result)="handleConfirmResult($event)"
     >
     </app-confirm-dialog>
   }
+
+
+    @if (deleteRowConfirmData(); as data) {
+      <app-confirm-dialog
+        [data]="data"
+        (result)="handleDeleteRowConfirmation($event)"
+      >
+      </app-confirm-dialog>
+    }
 </div>
