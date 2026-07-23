@@ -45,7 +45,9 @@ export default {
         text: 'Variants',
         link: '/variants/overview',
         items: [
+          { text: 'HGVS variants', link: '/variants/hgvs' },
           { text: 'Structural variants', link: '/variants/structural' },
+          { text: 'Intergenic variants', link: '/variants/intergenic' },
         ]
       },
       {

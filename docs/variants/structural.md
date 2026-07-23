@@ -14,3 +14,6 @@ Structural variants (SVs) represent genomic variations that involve breakage and
 ## Nomenclature
 
 For most of the history of human genetics, it has been difficult to determine the precise boundaries and architecture of SVs because of technical limitations. In contrast to small variants that can be easily captured with HGVS nomenclature, SVs are often refered to using natural-language descriptions in the medical literature (e.g., "Deletion of exon 5"). This is changing with the increasingly important role of long-read genome sequencing (LRS) and new LRS technologies, but because so much of the literature has what we call "symbolic" SV notation, this is currently what phenoboard supports.
+
+## Symbolic structural variants
+Data about large structural variants is often provided in an imprecise fashion in the literature, e.g., "DEL ex3-5". Phenoboard supports this. Users should provide the category of structural variant (DEL, DUP, INS, INV, TRANSLOCATION) if possible or otherwise indicate simply "SV".
