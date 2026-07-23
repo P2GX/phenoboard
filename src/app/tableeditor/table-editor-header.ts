@@ -214,12 +214,17 @@ export class TableEditorHeader implements OnInit {
     }
   }
 
+  /*
   private async selectPmid(): Promise<PmidDto | null> {
     const result = await this.pubmedModal().open();
     return result;
-  }
+  }*/
 
-  async openPubmedDialog(): Promise<void> {
+     openPmid = signal(false);
+
+   openPubmedDialog():void {
+    this.openPmid.set(true);
+    /*
     const dto = this.etl_service.etlDto();
     const result = await this.selectPmid();
     if (result && dto) {
@@ -227,7 +232,19 @@ export class TableEditorHeader implements OnInit {
       this.etl_service.setPmidData(pmidDto);
     } else {
       this.notificationService.showWarning('PMID import cancelled');
+    }*/
+  }
+  handleClosePmidDialog(dto: PmidDto|null) : void {
+    if (!dto) {
+      this.notificationService.showError("Could not retrieve PMID");
+      return;
     }
+    const etlDto = this.etl_service.etlDto();
+    if (! etlDto) {
+      this.notificationService.showError("Could not retrieve cohort ETL DTO");
+      return;
+    }
+    this.etl_service.setPmidData(dto);
   }
 
   /** Add the data from the external data to the current CohortData object. If there is no

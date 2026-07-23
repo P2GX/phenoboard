@@ -1,12 +1,4 @@
-import {
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  signal,
-  viewChild,
-  WritableSignal,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, viewChild, ElementRef, WritableSignal, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { PmidService } from '../services/pmid_service';
@@ -23,22 +15,22 @@ export class PubmedComponent {
   private configService = inject(ConfigService);
   private pmidService = inject(PmidService);
 
+  initialData = input<PmidDto | null>(null);
+  closeDialog = output<PmidDto | null>();
+
   readonly dialogRef = viewChild<ElementRef<HTMLDialogElement>>('pubmedDialog');
   pmidDto: WritableSignal<PmidDto> = signal<PmidDto>(defaultPmidDto());
   availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal;
   selectedPmid = computed(() => this.pmidDto().pmid);
 
-  private resolvePromise: ((value: PmidDto | null) => void) | null = null;
-
-  /**
-   * Opens the native dialog and returns a Promise resolving to the result.
-   */
-  public open(initialData?: PmidDto | null): Promise<PmidDto | null> {
-    const dialogEl = this.dialogRef()?.nativeElement;
-    if (!dialogEl) return Promise.resolve(null);
-    dialogEl.showModal();
-    return new Promise((resolve) => {
-      this.resolvePromise = resolve;
+  constructor() {
+    // seed from initialData once, and open the dialog as soon as it exists in the DOM
+    afterNextRender(() => {
+      const dialogEl = this.dialogRef()?.nativeElement;
+      if (dialogEl && !dialogEl.open) {
+        this.pmidDto.set(this.initialData() ?? defaultPmidDto());
+        dialogEl.showModal();
+      }
     });
   }
 
@@ -64,11 +56,7 @@ export class PubmedComponent {
     const input = this.pmidDto().pmid.trim();
     try {
       const result: PmidDto = await this.configService.retrieve_pmid_title(input);
-      this.pmidDto.set({
-        ...result,
-        hasError: false,
-        retrievedPmid: true,
-      });
+      this.pmidDto.set({ ...result, hasError: false, retrievedPmid: true });
     } catch (error) {
       this.pmidDto.set({
         ...this.pmidDto(),
@@ -87,40 +75,26 @@ export class PubmedComponent {
 
   readonly isReady = computed(() => !!this.pmidDto().pmid && !!this.pmidDto().title);
 
-  // accept a new PMID
   accept(): void {
-    this.closeDialog(this.pmidDto());
+    this.dialogRef()?.nativeElement.close();
+    this.closeDialog.emit(this.pmidDto());
   }
 
   cancel(): void {
-    this.closeDialog(null);
-  }
-  onDialogClose(): void {
-    if (this.resolvePromise) {
-      this.resolvePromise(null);
-      this.resolvePromise = null;
-    }
+    this.dialogRef()?.nativeElement.close();
+    this.closeDialog.emit(null);
   }
 
-  private closeDialog(result: PmidDto | null): void {
-    const dialogEl = this.dialogRef()?.nativeElement;
-    dialogEl?.close();
-
-    if (this.resolvePromise) {
-      this.resolvePromise(result);
-      this.resolvePromise = null;
-    }
-  }
-
-  /* remove stray whitespaces */
   onPmidChange(value: string): void {
-    this.pmidDto.update((prev) => ({
-      ...prev,
-      pmid: value.replace(/\s+/g, ''),
-    }));
+    this.pmidDto.update((prev) => ({ ...prev, pmid: value.replace(/\s+/g, '') }));
   }
 
   clearPmids(): void {
     this.availablePmids.set([]);
+  }
+  onDialogClose(): void {
+    // fires for ANY native close — Escape key, or dialog.close() called
+    // programmatically from accept()/cancel(). 
+    this.closeDialog.emit(null);
   }
 }

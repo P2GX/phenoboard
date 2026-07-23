@@ -12,7 +12,6 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
-import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStatusService } from '../services/app_status_service';
 import { IconComponent } from "@workspace/ui";
@@ -26,7 +25,6 @@ import { IconComponent } from "@workspace/ui";
     FormsModule,
     MatCheckboxModule,
     HelpButtonComponent,
-    MatIcon,
     MatProgressSpinnerModule,
     IconComponent
 ],

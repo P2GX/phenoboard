@@ -13,9 +13,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MiningConcept, MiningStatus, IconComponent } from '@workspace/ui';
+import { MiningConcept, MiningStatus, IconComponent, SplitDialogComponent } from '@workspace/ui';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { SplitDialogComponent } from './splitdialog.component';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '../services/config.service';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -24,6 +23,7 @@ import {
   OntologyAutocompleteProvider,
   OntologyMatch,
   OntologyAutocompleteComponent,
+  NotificationService,
 } from 'ng-hpo-uikit';
 
 /// symbols for not applicable or unknown status
@@ -63,7 +63,8 @@ const NOT_APPLICABLE = new Set([
     MatCheckboxModule,
     MatButtonToggleModule,
     OntologyAutocompleteComponent,
-    IconComponent
+    IconComponent,
+    SplitDialogComponent
 ],
 })
 export class MultiHpoComponent {
@@ -74,6 +75,7 @@ export class MultiHpoComponent {
   private dialogRef = inject(MatDialogRef<MultiHpoComponent>);
   private dialog = inject(MatDialog);
   public data = inject(MAT_DIALOG_DATA) as { concepts: MiningConcept[]; title: string };
+  private notificationService = inject(NotificationService);
   title: string = this.data.title;
   hpoAutocompleteString = '';
   constructor() {
@@ -255,7 +257,42 @@ export class MultiHpoComponent {
     }
   }
 
-  async openSplitDialog(index: number) {
+
+  splitIndex = signal<number|null>(null);
+  splitTargetText = signal<string|null>(null);
+
+  openSplit(index: number) {
+    const concept = this.concepts()[index];
+    if (!concept.originalText?.trim()) {
+      this.notificationService.showError('Nothing to split — text is empty.');
+      return;
+    }
+    this.splitTargetText.set(concept.originalText);
+    this.splitIndex.set(index);
+
+  }
+
+  protected clearSplitData() {
+    this.splitIndex.set(null);
+    this.  splitTargetText.set(null);
+  }
+
+onSplitApplied(delimiter: string) {
+  this.splitTargetText.set(null);
+  if (delimiter === '') {
+    this.notificationService.showError("Cannot split on empty string");
+    return;
+  }
+  const idx = this.splitIndex();
+  if (idx !== null) {
+    this.executeSplit(idx, delimiter);
+  } else {
+    this.notificationService.showError(`Could not perform split with idx=${idx} and delimiter=${delimiter}`);
+  }
+  this.clearSplitData();
+}
+
+  async openSplitDialogOLD(index: number) {
     const concept = this.concepts()[index];
 
     const splitDialogRef = this.dialog.open(SplitDialogComponent, {

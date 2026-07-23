@@ -20,7 +20,7 @@
                   mat-icon-button
                   color="primary"
                   class="split-btn"
-                  (click)="openSplitDialog(i)"
+                  (click)="openSplit(i)"
                 >
                   <app-icon name="content_cut" [size]="20" />
                 </button>
@@ -89,3 +89,11 @@
     Apply {{ concepts().length }} Mappings
   </button>
 </mat-dialog-actions>
+
+
+@if (splitTargetText(); as text) {
+  <app-split-dialog
+    [text]="text"
+    (applied)="onSplitApplied($event)"
+    (cancel)="clearSplitData()" />
+}

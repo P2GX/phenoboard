@@ -338,10 +338,34 @@ export class AddcaseComponent {
     this.pmidDto.set(defaultPmidDto());
   }
 
-  private async selectPmid(): Promise<PmidDto | null> {
-    const result = await this.pubmedModal().open();
-    return result;
+
+  openPmid = signal(false);
+pmidDialogInitialData = signal<PmidDto | null>(null);
+ openPubmedDialog(): void {
+  this.pmidDialogInitialData.set(this.pmidDto());
+  this.openPmid.set(true);
+}
+  handleClosePmidDialog(result: PmidDto | null): void {
+  this.openPmid.set(false);
+  if (!result) return;
+
+  const pmid = result.pmid;
+
+  if (this.cohortService.pmidExists(pmid)) {
+    this.confirmDuplicatePmid(pmid).then((confirmed) => {
+      if (!confirmed) {
+        this.notificationService.showWarning('Cancelled adding duplicate PMID.');
+        this.pmidDto.set(defaultPmidDto());
+        return;
+      }
+      this.notificationService.showWarning(`Continuing with duplicate PMID ${pmid}`);
+      this.pmidDto.set(result);
+    });
+    return;
   }
+
+  this.pmidDto.set(result);
+}
 
   private async confirmDuplicatePmid(pmid: string): Promise<boolean> {
     const ref = this.dialog.open(ConfirmDialogComponent, {
@@ -364,6 +388,7 @@ export class AddcaseComponent {
     return firstValueFrom(ref.afterClosed());
   }
 
+  /*
   async openPubmedDialog(): Promise<void> {
     const result = await this.selectPmid();
     if (!result) return;
@@ -384,6 +409,7 @@ export class AddcaseComponent {
 
     this.pmidDto.set(result);
   }
+  */
 
   resetPmidDto(): void {
     this.pmidDto.set(defaultPmidDto());

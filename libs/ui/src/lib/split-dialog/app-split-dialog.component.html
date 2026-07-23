@@ -1,0 +1,52 @@
+<dialog #nativeDialog class="split-modal" (cancel)="onCancel()">
+  <div class="modal-content">
+    <header class="modal-header">
+      <h2>Split Text</h2>
+      <button class="close-btn" type="button" (click)="onCancel()">&times;</button>
+    </header>
+
+    <main class="modal-body">
+      <div class="original-text-box">
+        <span class="section-label">Original Text</span>
+        <span class="font-mono">{{ text() }}</span>
+      </div>
+
+      <div class="section-label">Select Delimiter</div>
+      <div class="delimiter-grid" role="radiogroup" aria-label="Delimiter">
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === ','" (click)="selectDelimiter(',')">Comma (,)</button>
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === '/'" (click)="selectDelimiter('/')">Slash (/)</button>
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === '.'" (click)="selectDelimiter('.')">Period (.)</button>
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === 'and'" (click)="selectDelimiter('and')">"and"</button>
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === 'space'" (click)="selectDelimiter(' ')">"and"</button>
+        <button type="button" class="radio-card" [class.selected]="selectedDelimiter() === 'custom'" (click)="selectDelimiter('custom')">Custom</button>
+      </div>
+
+      @if (selectedDelimiter() === 'custom') {
+        <div class="custom-input-row">
+          <input
+            class="custom-delimiter-input"
+            [ngModel]="customDelimiter()"
+            (ngModelChange)="customDelimiter.set($event)"
+            placeholder="Type delimiter (e.g. ; or |)"
+            autofocus />
+        </div>
+      }
+
+      <div class="preview-box">
+        <div class="section-label">Resulting Fragments ({{ previewParts().length }})</div>
+        <div class="fragment-list">
+          @for (part of previewParts(); track part) {
+            <span class="fragment-chip">{{ part }}</span>
+          }
+        </div>
+      </div>
+    </main>
+
+    <footer class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="onCancel()">Cancel</button>
+      <button class="btn-outline-primary" type="button" [disabled]="!canApply()" (click)="apply()">
+        Apply Split
+      </button>
+    </footer>
+  </div>
+</dialog>

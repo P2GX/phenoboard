@@ -3,19 +3,18 @@ import {
   computed,
   EventEmitter,
   inject,
-  OnChanges,
   Output,
   signal,
-  SimpleChanges,
+  viewChild,
   WritableSignal,
 } from '@angular/core';
 import { PubmedComponent } from '../pubmed/pubmed.component';
 import { FormsModule } from '@angular/forms';
 import { ModeOfInheritance } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
-import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { PmidService } from '../services/pmid_service';
+import { NotificationService } from 'ng-hpo-uikit';
+
 
 interface MoiTerm {
   id: string;
@@ -28,10 +27,10 @@ interface MoiTerm {
   selector: 'app-moiselector',
   templateUrl: './moiselector.component.html',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, PubmedComponent],
 })
 export class MoiSelector {
-  private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
   private pmidService = inject(PmidService);
 
   @Output() moiChange = new EventEmitter<ModeOfInheritance[]>();
@@ -96,22 +95,31 @@ export class MoiSelector {
     this.showMoi.set(false);
   }
 
-  private async selectPmid(): Promise<PmidDto | null> {
-    const dialogRef = this.dialog.open(PubmedComponent, {
-      width: '700px',
-      data: { pmidDto: this.pmidDto() },
-    });
 
-    return firstValueFrom(dialogRef.afterClosed());
+  openPmid = signal(false);
+  currentMoi = signal<MoiTerm | null>(null);
+  pmidDialogInitialData = signal<PmidDto | null>(null);
+
+  openPubmedDialog(moi: MoiTerm): void {
+    this.currentMoi.set(moi);
+    this.pmidDialogInitialData.set(this.pmidDto());
+    this.openPmid.set(true);
   }
 
-  async openPubmedDialog(moi: MoiTerm): Promise<void> {
-    const result: PmidDto | null = await this.selectPmid();
-    if (!result) return;
-    this.pmidService.addPmid(result);
-    this.pmidDto.set(result);
+  handleClosePmidDialog(dto: PmidDto | null) {
+    this.openPmid.set(false);
+    if (!dto) {
+      this.notificationService.showError('Could not retrieve PubMed data');
+      return;
+    }
+    const moi = this.currentMoi();
+    if (!moi) {
+      this.notificationService.showError('Cannot add PubMed data because moi is not set');
+      return;
+    }
+    this.pmidDto.set(dto);
     this.moiTerms.update((current) =>
-      current.map((m) => (m.id === moi.id ? { ...m, selected: true, pmid: result.pmid } : m)),
+      current.map((m) => (m.id === moi.id ? { ...m, selected: true, pmid: dto.pmid } : m)),
     );
   }
 }

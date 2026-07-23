@@ -81,7 +81,6 @@
       >
         🔍 PubMed
       </button>
-      <app-pubmed #pubmedModal />
       <hpo-help-button
         title="Load"
         [lines]="['Assign the PMID of the article from which the ETL data came.']"
@@ -111,4 +110,12 @@
     >
   </div>
 </div>
+}
+
+@if (openPmid()) {
+  <app-pubmed
+    (closeDialog)="handleClosePmidDialog($event)"
+  >
+
+  </app-pubmed>
 }

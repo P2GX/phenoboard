@@ -180,3 +180,8 @@
     </div>
   </div>
 }
+@if (openPmid()) {
+  <app-pubmed
+    [initialData]="pmidDialogInitialData()"
+    (closeDialog)="handleClosePmidDialog($event)" />
+}
