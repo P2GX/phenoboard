@@ -66,6 +66,7 @@ interface Option {
     OverlayModule,
     CohortSummaryComponent,
     HelpButtonComponent,
+    IndividualEditComponent,
     CohortMetadataComponent,
     RouterLink,
     PopoverComponent,
@@ -74,7 +75,8 @@ interface Option {
     PtContextMenuComponent,
     AddageComponent,
     ConfirmDialogComponent,
-    IconComponent
+    IconComponent,
+    IndividualEditComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -254,39 +256,41 @@ export class PtTemplateComponent {
     });
   }
 
-  openIndividualEditor(): void {
-    this.individualContextMenuVisible = false;
+
+  editingIndividual = signal<IndividualData | null>(null);
+
+  openIndividualEditDialog(individual: IndividualData): void {
+    this.editingIndividual.set(individual);
+  }
+
+  handleIndividualSaved(newIndividualData: IndividualData | null): void {
+    if (newIndividualData === null) {
+      this.notificationService.showError("Could not retrieve updated individual data");
+      return;
+    }
+    this.editingIndividual.set(null);
     const row = this.activeInfoRow();
     if (!row) return;
+    const cohort = this.cohortData();
+    if (!cohort) return; // safeguard, but should never happen
     const rowId = getRowId(row.individualData);
     const individualCopy = { ...row.individualData };
-
-    const dialogRef = this.dialog.open(IndividualEditComponent, {
-      width: '500px',
-      panelClass: 'edit-dialog', // Ensures above the current dialog
-      data: individualCopy, // pass a copy
-    });
-    dialogRef.afterClosed().subscribe((result: IndividualData | null) => {
-      if (result) {
-        const cohort = this.cohortData();
-        if (!cohort) return; // safeguard, but should never happen
-        const updatedRows = cohort.rows.map((row) => {
+    const updatedRows = cohort.rows.map((row) => {
           // Use the stable rowId captured when the dialog opened
           if (getRowId(row.individualData) === rowId) {
             return {
               ...row,
-              individualData: { ...result },
+              individualData: { ...newIndividualData },
             };
           }
           return row;
         });
-        const newCohort = { ...cohort, rows: updatedRows };
-        this.cohortService.setCohortData(newCohort);
-        // Update the info key (e.g., if the individual id was changed inthe dialog)
-        this.rowInfoKey = getRowId(result);
-      }
-    });
+    const newCohort = { ...cohort, rows: updatedRows };
+    this.cohortService.setCohortData(newCohort);
+    // Update the info key (e.g., if the individual id was changed inthe dialog)
+    this.rowInfoKey = getRowId(newIndividualData);
   }
+
 
   onAlleleCountChange(alleleString: string, rowId: string, newCount: number): void {
     const cohort = this.cohortData();
@@ -884,39 +888,6 @@ export class PtTemplateComponent {
     this.deleteRowId.set(null);
     this.deleteRowConfirmData.set(null);
   }
-
-  /*
-  async deleteRow(rowId: string | null): Promise<void> {
-    if (!rowId) return;
-
-    this.individualContextMenuVisible = false;
-
-    const confirmed = await firstValueFrom(
-      this.dialog
-        .open(ConfirmDialogComponent, {
-          width: '300px',
-          data: {
-            title: 'Delete row?',
-            message: `row ${rowId}`,
-            confirmText: 'delete',
-            cancelText: 'cancel',
-          },
-        })
-        .afterClosed(),
-    );
-
-    if (!confirmed) return;
-
-    const currentCohort = this.cohortData();
-    if (!currentCohort) return;
-
-    const updatedRows = currentCohort.rows.filter((r) => getRowId(r.individualData) !== rowId);
-
-    this.cohortService.setCohortData({
-      ...currentCohort,
-      rows: updatedRows,
-    });
-  }*/
 
   /* Get Links for display with summary of cohort */
   getGeneLinks(

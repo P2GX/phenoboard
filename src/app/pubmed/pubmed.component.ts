@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal, viewChild, ElementRef, WritableSignal, afterNextRender } from '@angular/core';
+import { Component, computed, inject, input, output, signal, viewChild, ElementRef, WritableSignal, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { PmidService } from '../services/pmid_service';
