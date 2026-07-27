@@ -37,11 +37,11 @@ export class MinedCellEditorComponent {
   isHelpOpen = signal(false);
 
   readonly observedTerms = computed(() =>
-    this.cell().mappedTermList.filter((t) => t.status !== 'excluded'),
+    this.cell()?.mappedTermList.filter((t) => t.status !== 'excluded'),
   );
 
   readonly excludedTerms = computed(() =>
-    this.cell().mappedTermList.filter((t) => t.status === 'excluded'),
+    this.cell()?.mappedTermList.filter((t) => t.status === 'excluded'),
   );
   readonly hasExclusions = computed(() => (this.excludedTerms().length ?? 0) > 0);
 
