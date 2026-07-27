@@ -1,43 +1,140 @@
-/* Compacting Angular Material Form Field even further */
-.compact-form-field {
-  flex: 1;
-  width: 100%;
+.modifier-menu-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  min-width: 300px;
 
-  --mdc-outlined-text-field-container-height: 28px;
-  font-size: 11px;
+  .section-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666666;
+  }
 
-  ::ng-deep {
-    // Hide the built-in padding area meant for error messages beneath the input
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none !important;
+  .quick-select-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    button.btn-stroked {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 4px;
+      background-color: transparent;
+      border: 1px solid #006699;
+      color: #006699;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+
+      &:hover {
+        background-color: rgba(0, 102, 153, 0.04);
+      }
+    }
+  }
+
+  .inline-modifier-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .inline-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #333333;
     }
 
-    .mat-mdc-text-field-wrapper {
-      padding-left: 8px;
-      padding-right: 2px;
-    }
+    .custom-autocomplete-container {
+      position: relative;
+      width: 100%;
 
-    .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-form-field-infix {
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-      display: flex;
-      align-items: center;
-    }
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
 
-    .mat-mdc-form-field-icon-suffix {
-      display: flex;
-      align-items: center;
+        input {
+          width: 100%;
+          padding: 10px 36px 10px 12px;
+          border: 1px solid #cccccc;
+          border-radius: 4px;
+          font-size: 0.95rem;
+          color: #333333;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          box-sizing: border-box;
 
-      .mat-mdc-icon-button {
-        width: 20px;
-        height: 20px;
-        padding: 0;
+          &:focus {
+            border-color: #006699;
+            box-shadow: 0 0 0 2px rgba(0, 102, 153, 0.15);
+          }
+        }
 
-        .mat-icon {
-          font-size: 14px;
-          width: 14px;
-          height: 14px;
-          line-height: 14px;
+        .clear-btn {
+          position: absolute;
+          right: 8px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666666;
+          padding: 4px;
+          border-radius: 50%;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+          }
+        }
+      }
+
+      .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin: 4px 0 0 0;
+        padding: 4px 0;
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        list-style: none;
+
+        li {
+          padding: 8px 12px;
+          cursor: pointer;
+          transition: background-color 0.15s;
+
+          &:hover {
+            background-color: #f5f5f5;
+          }
+
+          .option-container {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            width: 100%;
+
+            .option-matched-text {
+              font-weight: 500;
+              color: #333333;
+            }
+
+            .option-id {
+              color: #777777;
+              font-size: 0.8rem;
+            }
+          }
         }
       }
     }

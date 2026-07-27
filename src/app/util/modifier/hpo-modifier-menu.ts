@@ -1,12 +1,6 @@
-import { Component, inject, OnInit, input, output, signal } from '@angular/core';
+import { Component, inject, OnInit, input, output, signal, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import {
-  MatAutocompleteModule,
-  MatAutocompleteSelectedEvent,
-} from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 import { HpoModifierService } from '../../services/hpo_modifier_service';
 import { HpoTermDuplet } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
 import { IconComponent } from "ng-hpo-uikit";
@@ -15,25 +9,24 @@ import { IconComponent } from "ng-hpo-uikit";
   selector: 'app-hpo-modifier-menu',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatButtonModule,
     IconComponent
-],
+  ],
   templateUrl: './hpo-modifier-menu.html',
   styleUrls: ['./hpo-modifier-menu.scss'],
 })
 export class HpoModifierMenuComponent implements OnInit {
   private modifierService = inject(HpoModifierService);
+  private elementRef = inject(ElementRef);
 
   cellData = input.required<any>();
   modifierSelected = output<string>();
 
-  control = new FormControl<string | HpoTermDuplet | null>('');
+  control = new FormControl<string>('');
   placeholder = signal('Search modifiers...');
   options = signal<HpoTermDuplet[]>([]);
+  isOpen = signal(false);
 
   quickModifiers = ['Mild', 'Moderate', 'Severe'];
 
@@ -42,16 +35,20 @@ export class HpoModifierMenuComponent implements OnInit {
     this.options.set(this.modifierService.filterLocalTerms(''));
 
     this.control.valueChanges.subscribe((value) => {
-      const query = typeof value === 'string' ? value : (value?.hpoLabel ?? '');
+      const query = typeof value === 'string' ? value : '';
       const filtered = this.modifierService.filterLocalTerms(query);
       this.options.set(filtered);
     });
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isOpen.set(false);
+    }
+  }
+
   selectQuickModifier(mod: string) {
-    // Mild  HP:0012825
-    // Moderate  HP:0012826
-    // Severe HP:0012828
     if (mod === 'Mild') {
       mod = 'HP:0012825';
     } else if (mod === 'Moderate') {
@@ -62,17 +59,18 @@ export class HpoModifierMenuComponent implements OnInit {
     this.modifierSelected.emit(mod);
   }
 
-  onOptionSelected(event: MatAutocompleteSelectedEvent) {
-    const selectedOption = event.option.value as HpoTermDuplet;
-    this.modifierSelected.emit(selectedOption.hpoId);
-    this.clear();
+  onFocus() {
+    this.isOpen.set(true);
   }
 
-  displayFn(option: HpoTermDuplet | null): string {
-    return option ? option.hpoLabel : '';
+  selectOption(option: HpoTermDuplet) {
+    this.modifierSelected.emit(option.hpoId);
+    this.control.setValue('');
+    this.isOpen.set(false);
   }
 
   clear() {
     this.control.setValue('');
+    this.isOpen.set(true);
   }
 }

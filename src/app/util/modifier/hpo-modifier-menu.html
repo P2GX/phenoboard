@@ -2,7 +2,7 @@
   <label class="section-label">Severity</label>
   <div class="quick-select-row">
     @for (mod of quickModifiers; track mod) {
-    <button mat-stroked-button color="primary" class="btn-small" (click)="selectQuickModifier(mod)">
+    <button type="button" class="btn-stroked" (click)="selectQuickModifier(mod)">
       {{ mod }}
     </button>
     }
@@ -11,42 +11,37 @@
   <div class="inline-modifier-header">
     <span class="inline-label">Modifiers</span>
 
-    <mat-form-field class="compact-form-field" appearance="outline">
-      <input
-        type="text"
-        #hpoInput
-        [placeholder]="placeholder()"
-        matInput
-        [formControl]="control"
-        [matAutocomplete]="auto"
-        spellcheck="false"
-        autocomplete="off"
-      />
+    <div class="custom-autocomplete-container">
+      <div class="input-wrapper">
+        <input
+          type="text"
+          #hpoInput
+          [placeholder]="placeholder()"
+          [formControl]="control"
+          (focus)="onFocus()"
+          spellcheck="false"
+          autocomplete="off"
+        />
 
-      @if (control.value) {
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
-        <app-icon name="close" [size]="20" />
-      </button>
-      }
-
-      <mat-autocomplete
-        #auto="matAutocomplete"
-        [displayWith]="displayFn"
-        (optionSelected)="onOptionSelected($event)"
-      >
-        @for (option of options(); track $index) {
-        <mat-option [value]="option">
-          <div class="option-container">
-            <span class="option-matched-text">{{ option.hpoLabel }}</span>
-            <small class="option-id"> ({{ option.hpoId }})</small>
-          </div>
-        </mat-option>
+        @if (control.value) {
+        <button type="button" class="icon-btn clear-btn" aria-label="Clear" (click)="clear()">
+          <app-icon name="close" [size]="16" />
+        </button>
         }
-      </mat-autocomplete>
-    </mat-form-field>
-  </div>
+      </div>
 
-  @if (control.hasError('invalidSelection') && control.touched) {
-  <div class="error-text-fallback">Please select a term from the list</div>
-  }
+      @if (isOpen() && options().length > 0) {
+        <ul class="autocomplete-dropdown">
+          @for (option of options(); track $index) {
+          <li (click)="selectOption(option)">
+            <div class="option-container">
+              <span class="option-matched-text">{{ option.hpoLabel }}</span>
+              <small class="option-id">({{ option.hpoId }})</small>
+            </div>
+          </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
 </div>
