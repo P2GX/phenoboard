@@ -1,5 +1,5 @@
 // 1. ALL @use rules must be first
-@use '@angular/material' as mat;
+
 @use 'styles/animations';
 @use 'styles/buttons';
 @use 'styles/forms';
@@ -12,16 +12,13 @@
 @use 'styles/variables' as *;
 
 // 2. Then @include
-@include mat.core();
+
 
 // 3. Then @import
 @import '@angular/cdk/overlay-prebuilt.css';
 
 // 5. Then any plain CSS rules
-.mat-mdc-dialog-container,
-.mat-mdc-dialog-surface {
-  background-color: white;
-}
+
 
 .cdk-overlay-backdrop {
   background: rgba(0, 0, 0, 0.32);
@@ -32,7 +29,7 @@
 
 /* Ensure the dropdown panel has a solid background */
 .cdk-overlay-pane {
-  background-color: var(--mat-select-panel-background-color, white);
+  background-color: var(--background-color, white);
   opacity: 1 !important;
   box-shadow:
     0px 5px 5px -3px rgba(0, 0, 0, 0.2),
@@ -40,73 +37,8 @@
     0px 3px 14px 2px rgba(0, 0, 0, 0.12);
 }
 
-// Force dialog padding that build optimizer strips
-.mat-mdc-dialog-container .mat-mdc-dialog-surface {
-  padding: 24px;
-}
 
-.mat-mdc-dialog-content {
-  padding: 0 24px;
-}
 
-.mat-mdc-dialog-actions {
-  padding: 8px 24px 24px;
-}
-
-.mat-mdc-dialog-title {
-  padding: 24px 24px 0;
-}
-
-/* Ensure the autocomplete panel has a solid background and shadow */
-.mat-mdc-autocomplete-panel {
-  background-color: #ffffff !important; /* Forces white background */
-  border-radius: 4px;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 4px 0;
-}
-
-/* Style the individual options */
-.mat-mdc-option {
-  font-size: 14px !important;
-  color: #374151 !important; /* gray-700 */
-}
-
-/* Style the hover/focus state of options */
-.mat-mdc-option:hover,
-.mat-mdc-option.mdc-list-item--selected {
-  background-color: #f3f4f6 !important; /* gray-100 */
-}
-
-/* Style the text inside the option */
-.mdc-list-item__primary-text {
-  font-weight: 400;
-}
-
-/* Targets the container that holds the input and the floating label */
-.mat-mdc-text-field-wrapper .mat-mdc-form-field-flex {
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-}
-
-/* Specifically ensures the input text isn't touching the walls */
-.mat-mdc-form-field-input-control {
-  padding-left: 4px !important;
-}
-
-/* Adjust the floating label so it stays aligned with the padded text */
-.mat-mdc-form-field-label-wrapper {
-  left: 12px !important;
-}
-
-.mat-chip-set mat-chip {
-  font-size: 12px;
-}
-
-.edit-dialog .mat-mdc-dialog-container {
-  z-index: 2001 !important;
-}
 
 *,
 *::before,
@@ -148,12 +80,7 @@
   padding: var(--dialog-padding);
 }
 
-/* Helper to remove Material's default styling */
-.custom-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
+
 
 .tool-row {
   display: flex;
@@ -213,29 +140,4 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  app-help-button {
-    ::ng-deep {
-      .mat-mdc-icon-button {
-        width: 16px !important;
-        height: 16px !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-      }
-      mat-icon {
-        font-size: 14px !important;
-        width: 14px !important;
-        height: 14px !important;
-        margin: 0 !important;
-        color: #94a3b8 !important;
-        opacity: 0.6;
-      }
-    }
-    &:hover mat-icon {
-      opacity: 1;
-      color: #2563eb !important;
-    }
-  }
 }
