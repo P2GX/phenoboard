@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
-pub mod io_util;
 pub mod pubmed_retrieval;
 mod hgnc_rest;
 

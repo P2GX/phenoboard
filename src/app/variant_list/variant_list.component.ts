@@ -7,12 +7,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
+import { VariantDto, VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
 import { NotificationService } from 'ng-hpo-uikit';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { HelpService } from '../services/help.service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
+import { VariantKind } from '../addvariant/addvariant.component';
 
 export interface VariantDisplay {
   /** either an HGVS String (e.g., c.123T>G) or a SV String: DEL: deletion of exon 5 */
@@ -187,4 +188,13 @@ export class VariantListComponent implements OnInit, OnDestroy {
       this.notificationService.showError(String(error));
     }
   }
+
+  isStructuralV(v: VariantDisplay): boolean {
+    if (v.variantType === VariantKind.SV) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }

@@ -548,22 +548,3 @@ impl Default for PhenoboardSingleton {
     }
 }
 
-
-#[cfg(test)]
-mod tests {
-    
-
-    use std::io::BufReader;
-
-    use super::*;
-    pub fn hpo() -> Arc<FullCsrOntology> {
-        let path = "/Users/robin/data/hpo/hp.json";
-        let reader = BufReader::new(File::open(path).unwrap());
-        let loader = OntologyLoaderBuilder::new().obographs_parser().build();
-        let hpo = loader.load_from_read(reader).unwrap();
-        Arc::new(hpo)
-    }
-
-   
-
-}

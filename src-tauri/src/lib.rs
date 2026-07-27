@@ -405,7 +405,7 @@ async fn get_hpo_parent_and_children_terms(
 
 
 /// format matching the TypeScript `HpoTermMinimal` interface in ng-hpo-uikit.
-#[deprecated="Figure out better way to do this"]
+#[deprecated="can we just subsitute HpoTermDuplet in the ng-hpo-uikit?"]
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HpoTermMinimalDto {
