@@ -10,9 +10,10 @@
   <table class="compact-table">
     <thead>
       <tr>
-        <th>HPO Terminology</th>
-        <th>Identifier</th>
-        <th class="text-right">Configuration</th>
+        <th>Term</th>
+        <th>HPO id</th>
+        <th class="text-right">Status</th>
+        <th class="text-right">Onset</th>
       </tr>
     </thead>
     <tbody>
@@ -26,7 +27,7 @@
           </td>
           <td class="action-col">
             <div class="controls-wrapper">
-              <!-- Custom Dropdown Trigger -->
+
               <div class="custom-dropdown-container">
                 <button
                   type="button"
@@ -49,11 +50,10 @@
                   </div>
                 }
               </div>
-
+            </div>
+            </td>
+             <td class="action-col">
               <div class="onset-group" [class.has-onset]="term.onset && term.onset !== 'na'">
-                <div class="onset-icon">
-                  <app-icon name="schedule" [size]="20" />
-                </div>
                 <select
                   #onsetSelect
                   (change)="updateOnset(term, onsetSelect.value)"
@@ -74,8 +74,7 @@
                   +
                 </button>
               </div>
-            </div>
-          </td>
+                </td>
         </tr>
       }
     </tbody>

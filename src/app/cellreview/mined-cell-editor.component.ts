@@ -97,8 +97,7 @@ export class MinedCellEditorComponent {
     const componentRef: ComponentRef<AddageComponent> = createComponent(AddageComponent, {
       environmentInjector: this.injector,
     });
-    
-    componentRef.setInput('data', { existingAges: this.ageService.selectedTerms() });
+    // the age service will input the existing ages, we do not need to pass that here.    
 
     this.appRef.attachView(componentRef.hostView);
     const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;

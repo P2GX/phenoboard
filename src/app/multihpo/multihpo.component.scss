@@ -238,3 +238,17 @@
     }
   }
 }
+
+.chip-copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  color: #64748b;
+
+  app-icon {
+    pointer-events: none; // Ensures clicks hit the button directly
+  }
+}

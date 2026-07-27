@@ -1,4 +1,4 @@
-import { Component, inject, signal, ElementRef, ViewChild, AfterViewInit, output } from '@angular/core';
+import { Component, inject, signal, ElementRef, ViewChild, AfterViewInit, output, input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MiningConcept, MiningStatus, SplitDialogComponent } from '@workspace/ui';
@@ -42,8 +42,8 @@ export class MultiHpoComponent implements AfterViewInit {
   @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
 
   // Inputs / Outputs replacing MatDialog data & refs
-  readonly title = signal<string>('Map HPO Terms');
-  readonly initialConcepts = signal<MiningConcept[]>([]);
+  readonly title = input.required<string>();
+  readonly initialConcepts = input.required<MiningConcept[]>();
   readonly closed = output<MiningConcept[] | null>();
 
   hpoAutocompleteString = '';
@@ -219,4 +219,11 @@ export class MultiHpoComponent implements AfterViewInit {
     }
     this.clearSplitData();
   }
+
+  copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Optional: show a quick notification if you want feedback
+    console.log('Copied to clipboard:', text);
+  });
+}
 }

@@ -41,9 +41,10 @@
                         <button type="button" class="chip-remove-btn" (click)="removeTerm(i, termIdx)">
                           <app-icon name="cancel" [size]="16" />
                         </button>
-                        <button type="button" class="chip-copy-btn" [cdkCopyToClipboard]="term.label" title="Copy label">
-                          <app-icon name="content_copy" [size]="16" />
-                        </button>
+                          <button type="button" class="chip-copy-btn" (click)="copyToClipboard(term.label)" title="Copy label">
+                            <app-icon name="content_copy" [size]="16" />
+                          </button>
+                        
                       </div>
                     }
 
