@@ -4,13 +4,13 @@ import {
   MatDialogActions,
   MatDialogContent,
 } from '@angular/material/dialog';
-import { ClinicalStatus, MappedTerm, MinedCell, IconComponent } from '@workspace/ui';
+import { ClinicalStatus, MappedTerm, MinedCell } from '@workspace/ui';
 import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { FormsModule } from '@angular/forms'; // 1. Import from @angular/forms
-
+import { FormsModule } from '@angular/forms'; 
+import { IconComponent } from 'ng-hpo-uikit';
 import { inject } from '@angular/core';
 import { ask } from '@tauri-apps/plugin-dialog';
 import { MinedCellEditorComponent } from './mined-cell-editor.component';

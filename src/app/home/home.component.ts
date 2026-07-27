@@ -3,41 +3,34 @@ import { ConfigService } from '../services/config.service';
 import { CommonModule } from '@angular/common';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { OrcidDialogComponent } from './orcid-dialog.component';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { OrcidDialogComponent } from 'ng-hpo-uikit';
 import { FormsModule } from '@angular/forms';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NotificationService } from 'ng-hpo-uikit';
 import { AgeInputService } from '../services/age_service';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStatusService } from '../services/app_status_service';
-import { IconComponent } from "@workspace/ui";
+import { IconComponent } from "ng-hpo-uikit";
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
     CommonModule,
-    MatProgressBarModule,
     FormsModule,
-    MatCheckboxModule,
     HelpButtonComponent,
-    MatProgressSpinnerModule,
-    IconComponent
+    IconComponent,
+    OrcidDialogComponent
 ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
-  cohortService = inject(CohortDtoService);
+  protected cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
   private pmidService = inject(PmidService);
   private router = inject(Router);
-  private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
   private cancelMessage = signal<string | null>(null);
@@ -112,23 +105,29 @@ export class HomeComponent {
     await this.router.navigate(['/newtemplate']);
   }
 
-  async setBiocuratorOrcid(): Promise<void> {
-    const currentOrcid = this.biocuratorOrcid();
-    const dialogRef = this.dialog.open(OrcidDialogComponent, {
-      width: '500px',
-      data: {
-        currentOrcid: currentOrcid,
-      },
-    });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
-
+  isOrcidDialogOpen = signal(false);
+  handleOrcidDialogClose(orcid: string | null): void {
+    this.isOrcidDialogOpen.set(false);
+    if (! orcid) {
+      this.notificationService.showError("Could not retried new ORCID");
+      return;
+    }
+    try {
       this.ngZone.run(async () => {
-        const updatedStatus = await this.configService.saveCurrentOrcid(result);
+        const updatedStatus = await this.configService.saveCurrentOrcid(orcid);
         this.statusService.state.set(updatedStatus);
       });
-    });
+    } catch(error) {
+      this.notificationService.showError(
+        `Failed to save ORCID: ${error}`
+      );
+    }
+    
+  }
+
+   setBiocuratorOrcid(): void{
+    this.isOrcidDialogOpen.set(true);
   }
 
   async chooseJsonTemplateFile(): Promise<void> {

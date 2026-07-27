@@ -1,5 +1,5 @@
 import { Component, input, output, model } from '@angular/core';
-import { IconComponent } from "../svg-icons/svg-icon.component";
+import { IconComponent } from "ng-hpo-uikit";
 
 
 

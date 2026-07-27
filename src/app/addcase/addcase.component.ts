@@ -22,10 +22,10 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent, toCellValue, IconComponent } from '@workspace/ui';
+import { ConfirmDialogComponent, toCellValue } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
-import { HelpButtonComponent } from 'ng-hpo-uikit';
+import { HelpButtonComponent, IconComponent } from 'ng-hpo-uikit';
 import { AppStatusService } from '../services/app_status_service';
 import {
   HierarchyMapItem,

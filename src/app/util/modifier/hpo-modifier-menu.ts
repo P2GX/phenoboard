@@ -9,7 +9,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { HpoModifierService } from '../../services/hpo_modifier_service';
 import { HpoTermDuplet } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
-import { IconComponent } from "@workspace/ui";
+import { IconComponent } from "ng-hpo-uikit";
 
 @Component({
   selector: 'app-hpo-modifier-menu',

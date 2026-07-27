@@ -9,7 +9,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { IconComponent } from "@workspace/ui";
+import { IconComponent } from "ng-hpo-uikit";
 
 @Component({
   selector: 'app-phenopacketdetail',

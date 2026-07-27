@@ -33,7 +33,7 @@
             class="btn-outline-primary home-card__action-btn"
           >
             @if (statusService.hpoLoading()) {
-              <mat-spinner diameter="15"></mat-spinner>
+              <span class="inline-spinner" style="width: 15px; height: 15px;"></span>
               <span>Loading...</span>
             } @else {
               <span>Load HPO</span>
@@ -116,3 +116,10 @@
     </div>
   </div>
 </div>
+
+@if (isOrcidDialogOpen()) {
+  <app-orcid-dialog
+    [currentOrcid]="biocuratorOrcid()"
+    (closed)="handleOrcidDialogClose($event)"
+  />
+}

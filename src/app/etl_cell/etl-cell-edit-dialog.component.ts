@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { IconComponent } from "@workspace/ui";
+import { IconComponent } from "ng-hpo-uikit";
 
 @Component({
   selector: 'etl-cell-edit-dialog',

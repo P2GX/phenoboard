@@ -2,13 +2,14 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MinedCell, MappedTerm, ClinicalStatus, IconComponent } from '@workspace/ui';
+import { MinedCell, MappedTerm, ClinicalStatus } from '@workspace/ui';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { AgeInputService } from '../services/age_service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddageComponent } from '../addages/addage.component';
+import { IconComponent } from 'ng-hpo-uikit';
 
 @Component({
   selector: 'app-mined-cell-editor',

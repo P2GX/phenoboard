@@ -7,7 +7,7 @@ import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, 
-  ColumnContextMenuComponent, EtlDataTableComponent, IconComponent, ConfirmDialogData, ConfirmDialogComponent } from '@workspace/ui';
+  ColumnContextMenuComponent, EtlDataTableComponent, ConfirmDialogData, ConfirmDialogComponent } from '@workspace/ui';
 import {
   ColumnDto,
   EtlCellStatus,
@@ -18,7 +18,7 @@ import {
 import { EtlSessionService } from '../services/etl_session_service';
 import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
-import { NotificationService } from 'ng-hpo-uikit';
+import { IconComponent, NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';

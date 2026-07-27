@@ -13,11 +13,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MiningConcept, MiningStatus, IconComponent, SplitDialogComponent } from '@workspace/ui';
+import { MiningConcept, MiningStatus, SplitDialogComponent } from '@workspace/ui';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '../services/config.service';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { IconComponent } from 'ng-hpo-uikit';
 
 import {
   OntologyAutocompleteProvider,
