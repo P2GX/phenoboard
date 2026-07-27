@@ -1,19 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogContent,
-  MatDialogModule,
-} from '@angular/material/dialog';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatInputModule } from '@angular/material/input';
+import { Component, ElementRef, ViewChild, AfterViewInit, input, output, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HpoStatus, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatTableModule } from '@angular/material/table';
 
 const VALUE_TO_STATE: Record<string, HpoStatus> = {
   '+': 'observed',
@@ -50,53 +38,56 @@ export interface ValueMappingData {
 @Component({
   selector: 'app-value-mapping',
   standalone: true,
-  imports: [
-    MatDialogContent,
-    MatDialogModule,
-    MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    MatAutocompleteModule,
-    FormsModule,
-    MatButtonToggleModule,
-    MatTableModule,
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './valuemapping.component.html',
-  styleUrls: ['./valuemapping.component.css'],
+  styleUrls: ['./valuemapping.component.scss'],
 })
-export class ValueMappingComponent implements OnInit {
+export class ValueMappingComponent implements OnInit, AfterViewInit {
+  readonly data = input.required<ValueMappingData>();
+  readonly closed = output<{ valueToStateMap: { [key: string]: HpoStatus }; hpoId: string; hpoLabel: string } | null>();
+
+  @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
+
   /* key: An entry in a column, e.g., 'yes'; value: corresponding phenoboard value, e.g., 'observed' */
   valueToStateMap: { [key: string]: HpoStatus } = {};
 
-  public data = inject<ValueMappingData>(MAT_DIALOG_DATA);
-  public dialogRef = inject(MatDialogRef<ValueMappingComponent>);
-  public hpoId = signal(this.data.hpoTerm.hpoId);
-  public hpoLabel = signal(this.data.hpoTerm.hpoLabel);
-  public header = signal(this.data.header);
-  public uniqueValues = signal(this.data.uniqueValues);
+  public hpoId = signal('');
+  public hpoLabel = signal('');
+  public header = signal('');
+  public uniqueValues = signal<string[]>([]);
 
   ngOnInit(): void {
-    this.data.uniqueValues.forEach((val) => {
-      this.valueToStateMap[val] = VALUE_TO_STATE[val.trim()] ?? 'na';
-    });
+    const inputData = this.data();
+    if (inputData) {
+      this.hpoId.set(inputData.hpoTerm.hpoId);
+      this.hpoLabel.set(inputData.hpoTerm.hpoLabel);
+      this.header.set(inputData.header);
+      this.uniqueValues.set(inputData.uniqueValues);
+
+      inputData.uniqueValues.forEach((val) => {
+        this.valueToStateMap[val] = VALUE_TO_STATE[val.trim()] ?? 'na';
+      });
+    }
+  }
+
+  ngAfterViewInit() {
+    if (this.dialogEl?.nativeElement) {
+      this.dialogEl.nativeElement.showModal();
+    }
   }
 
   onSave(): void {
     const hpoMapResult = {
       valueToStateMap: this.valueToStateMap,
-      hpoId: this.hpoId,
-      hpoLabel: this.hpoLabel,
+      hpoId: this.hpoId(),
+      hpoLabel: this.hpoLabel(),
     };
-    this.dialogRef.close(hpoMapResult);
-  }
-
-  /* Add a new entry to the map to relate an entry in the column (e.g. 'y') to a phenoboard value (e.g., 'observed'). */
-  onInput(val: string, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.valueToStateMap[val] = input.value as HpoStatus;
+    this.dialogEl?.nativeElement.close();
+    this.closed.emit(hpoMapResult);
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.dialogEl?.nativeElement.close();
+    this.closed.emit(null);
   }
 }

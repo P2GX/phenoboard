@@ -17,3 +17,4 @@ export * from './lib/column-context-menu/column-context-menu.component';
 export * from './lib/etl-data-table/etl-data-table.component';
 export * from './lib/pt-context-menu.component/pt-context-menu.component';
 export * from './lib/split-dialog/app-split-dialog.component';
+export * from './lib/constant-column/add-constant-column-dialog.component';
