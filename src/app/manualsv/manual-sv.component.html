@@ -1,46 +1,52 @@
-<h1 mat-dialog-title>Add Structural Variant</h1>
+<dialog #dialogEl class="orcid-modal manual-sv-modal">
+  <div class="dialog-content">
+    <div class="review-header">
+      <h2>Add Structural Variant</h2>
+    </div>
 
-<div mat-dialog-content>
-  <form [formGroup]="form" class="form-container">
-    <mat-form-field appearance="fill">
-      <mat-label>Chromosome</mat-label>
-      <input matInput formControlName="chromosome" />
-    </mat-form-field>
+    <div class="dialog-body">
+      <form [formGroup]="form" class="form-container">
+        <div class="form-field">
+          <label for="chromosome">Chromosome</label>
+          <input id="chromosome" type="text" formControlName="chromosome" autocomplete="off" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Label</mat-label>
-      <input matInput formControlName="label" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="label">Label</label>
+          <input id="label" type="text" formControlName="label" autocomplete="off" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Gene Symbol</mat-label>
-      <input matInput formControlName="geneSymbol" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="geneSymbol">Gene Symbol</label>
+          <input id="geneSymbol" type="text" formControlName="geneSymbol" autocomplete="off" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Transcript</mat-label>
-      <input matInput formControlName="transcript" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="transcript">Transcript</label>
+          <input id="transcript" type="text" formControlName="transcript" autocomplete="off" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>HGNC ID</mat-label>
-      <input matInput formControlName="hgncId" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="hgncId">HGNC ID</label>
+          <input id="hgncId" type="text" formControlName="hgncId" autocomplete="off" />
+        </div>
 
-    <mat-form-field>
-      <mat-label>Structural variant category</mat-label>
-      <mat-select formControlName="svType">
-        @for (option of svTypeOptions; track option.value) {
-          <mat-option [value]="option.value">
-            {{ option.label }}
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-  </form>
-</div>
+        <div class="form-field">
+          <label for="svType">Structural variant category</label>
+          <select id="svType" formControlName="svType">
+            @for (option of svTypeOptions; track option.value) {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </div>
+      </form>
+    </div>
 
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="onSave()">Save</button>
-</div>
+    <div class="dialog-actions">
+      <button type="button" class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
+      <button type="button" class="btn-outline-primary" [disabled]="form.invalid" (click)="onSave()">Save</button>
+    </div>
+  </div>
+</dialog>

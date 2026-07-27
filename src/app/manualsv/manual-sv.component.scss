@@ -1,66 +1,116 @@
-/* sv-editor-dialog.component.css */
-
-/* Dialog title */
-h1[mat-dialog-title] {
-  margin: 0 0 12px 0; /* less bottom spacing */
-  font-size: 1.25rem; /* slightly smaller */
-  font-weight: 500;
-  color: #1a202c;
-}
-
-/* Dialog content */
-div[mat-dialog-content] {
-  min-width: 360px;
-  max-width: 460px;
-  padding: 0 16px; /* less horizontal padding */
-}
-
-/* Form layout */
-.form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* reduce gap between fields */
-}
-
-/* Material form fields */
-mat-form-field {
+.orcid-modal {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
-  margin-bottom: 4px; /* reduce spacing */
-}
+  max-width: 480px;
+  background-color: #ffffff;
 
-mat-form-field .mat-form-field-infix {
-  padding: 0.25em 0 0.25em 0; /* reduce vertical padding */
-}
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 
-mat-form-field .mat-form-field-label {
-  font-size: 0.85rem; /* smaller labels */
-}
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+  }
 
-/* Dialog actions */
-div[mat-dialog-actions] {
-  padding: 8px 16px; /* less padding */
-  margin: 0;
-}
+  .review-header {
+    margin-bottom: 20px;
 
-/* Buttons */
-button[mat-button],
-button[mat-flat-button] {
-  margin-left: 6px;
-  padding: 4px 12px; /* slightly smaller buttons */
-  font-size: 0.85rem;
-}
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #333333;
+    }
+  }
 
-button[mat-flat-button][color='primary'] {
-  background-color: #1976d2;
-  color: white;
-}
+  .dialog-body {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
 
-button[mat-flat-button][color='primary']:disabled {
-  background-color: #ccc;
-  color: #999;
-}
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-/* Optional: reduce select dropdown height */
-::ng-deep .mat-select-panel {
-  max-height: 200px;
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #555555;
+      }
+
+      input, select {
+        padding: 10px 12px;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        color: #333333;
+        outline: none;
+        background-color: #ffffff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &:focus {
+          border-color: #006699;
+          box-shadow: 0 0 0 2px rgba(0, 102, 153, 0.15);
+        }
+      }
+
+      select {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+
+      &.btn-outline-cancel {
+        background-color: transparent;
+        border: 1px solid #cccccc;
+        color: #555555;
+
+        &:hover {
+          background-color: #f5f5f5;
+          border-color: #b0b0b0;
+        }
+      }
+
+      &.btn-outline-primary {
+        background-color: #006699;
+        border: 1px solid #006699;
+        color: #ffffff;
+
+        &:hover {
+          background-color: #004d73;
+          border-color: #004d73;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
 }

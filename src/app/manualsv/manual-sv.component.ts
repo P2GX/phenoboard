@@ -1,13 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input, output, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatInputModule } from '@angular/material/input';
+import { CommonModule } from '@angular/common';
 import { StructuralVariant, SvType } from '../../../libs/ui/src/lib/models/variant_dto';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonModule } from '@angular/material/button';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 
 @Component({
   selector: 'app-manualsv-dialog',
@@ -15,17 +9,18 @@ import { MatOptionModule } from '@angular/material/core';
   styleUrls: ['./manual-sv.component.scss'],
   standalone: true,
   imports: [
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatOptionModule,
-    MatSelectModule,
+    CommonModule,
     ReactiveFormsModule,
   ],
 })
-export class ManualStructuralVariantDialog {
+export class ManualStructuralVariantDialog implements AfterViewInit {
+  private fb = inject(FormBuilder);
+
+  readonly data = input<Partial<StructuralVariant>>({});
+  readonly closed = output<StructuralVariant | null>();
+
+  @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
+
   form: FormGroup;
   svTypeOptions = [
     { value: SvType.DEL, label: 'DEL - Chromosomal Deletion' },
@@ -34,28 +29,47 @@ export class ManualStructuralVariantDialog {
     { value: SvType.DUP, label: 'DUP - Chromosomal Duplication' },
     { value: SvType.SV, label: 'SV - Structural Variation (unspecified)' },
   ] as const;
+
   constructor() {
+    const initialData = this.data();
     this.form = this.fb.group({
-      label: [this.data.label ?? '', Validators.required],
-      geneSymbol: [this.data.geneSymbol ?? '', Validators.required],
-      transcript: [this.data.transcript ?? '', Validators.required],
-      hgncId: [this.data.hgncId ?? '', Validators.required],
-      svType: [this.data.svType ?? SvType.SV, Validators.required],
-      chromosome: [this.data.chromosome ?? '', Validators.required],
+      label: [initialData.label ?? '', Validators.required],
+      geneSymbol: [initialData.geneSymbol ?? '', Validators.required],
+      transcript: [initialData.transcript ?? '', Validators.required],
+      hgncId: [initialData.hgncId ?? '', Validators.required],
+      svType: [initialData.svType ?? SvType.SV, Validators.required],
+      chromosome: [initialData.chromosome ?? '', Validators.required],
     });
   }
 
-  private fb = inject(FormBuilder);
-  public dialogRef = inject(MatDialogRef<StructuralVariant>);
-  public data = inject(MAT_DIALOG_DATA) as Partial<StructuralVariant>;
+  ngOnInit() {
+    const initialData = this.data();
+    if (initialData) {
+      this.form.patchValue({
+        label: initialData.label ?? '',
+        geneSymbol: initialData.geneSymbol ?? '',
+        transcript: initialData.transcript ?? '',
+        hgncId: initialData.hgncId ?? '',
+        svType: initialData.svType ?? SvType.SV,
+        chromosome: initialData.chromosome ?? '',
+      });
+    }
+  }
+
+  ngAfterViewInit() {
+    if (this.dialogEl?.nativeElement) {
+      this.dialogEl.nativeElement.showModal();
+    }
+  }
 
   onCancel(): void {
-    this.dialogRef.close(null);
+    this.dialogEl?.nativeElement.close();
+    this.closed.emit(null);
   }
 
   onSave(): void {
     if (this.form.valid) {
-      const formValue = this.form.getRawValue(); // includes disabled controls like assembly
+      const formValue = this.form.getRawValue();
       const variant: StructuralVariant = {
         ...formValue,
         variantKey: this.generateVariantKey(
@@ -64,13 +78,11 @@ export class ManualStructuralVariantDialog {
           formValue.label,
         ),
       };
-      this.dialogRef.close(variant);
+      this.dialogEl?.nativeElement.close();
+      this.closed.emit(variant);
     }
   }
 
-  /**
-   * Provide a key for the variant that we will use for the HashMap
-   */
   private generateVariantKey(symbol: string, svType: SvType, label: string): string {
     const normalize = (val: string): string => val?.trim().replace(/\s+/g, '-') || '-';
     return `${symbol.trim()}_${svType}_${normalize(label)}`;
