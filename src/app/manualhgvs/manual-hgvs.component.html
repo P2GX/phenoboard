@@ -1,54 +1,62 @@
-<h1 mat-dialog-title>Add Variant</h1>
-<div mat-dialog-content>
-  <form [formGroup]="form" class="flex flex-col gap-2">
-    <mat-form-field appearance="fill">
-      <mat-label>Chromosome</mat-label>
-      <input matInput formControlName="chr" />
-    </mat-form-field>
+<dialog #dialogEl class="orcid-modal manual-hgvs-modal">
+  <div class="dialog-content">
+    <div class="review-header">
+      <h2>Add Variant</h2>
+    </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Position</mat-label>
-      <input matInput type="number" formControlName="position" />
-    </mat-form-field>
+    <div class="dialog-body">
+      <form [formGroup]="form" class="flex flex-col gap-3">
+        <div class="form-field">
+         <div class="form-field">
+          <label for="chr">Chromosome</label>
+          <input id="chr" formControlName="chr" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Reference Allele</mat-label>
-      <input matInput formControlName="refAllele" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="position">Position</label>
+          <input id="position" formControlName="position" type="number" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Alternate Allele</mat-label>
-      <input matInput formControlName="altAllele" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="refAllele">Reference Allele</label>
+          <input id="refAllele" formControlName="refAllele" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Gene Symbol</mat-label>
-      <input matInput formControlName="symbol" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="altAllele">Alternate Allele</label>
+          <input id="altAllele" formControlName="altAllele" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>HGNC ID</mat-label>
-      <input matInput formControlName="hgncId" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="symbol">Gene Symbol</label>
+          <input id="symbol" formControlName="symbol" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>HGVS</mat-label>
-      <input matInput formControlName="hgvs" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="hgncId">HGNC ID</label>
+          <input id="hgncId" formControlName="hgncId" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Transcript</mat-label>
-      <input matInput formControlName="transcript" />
-    </mat-form-field>
+        <div class="form-field">
+          <label for="hgvs">HGVS</label>
+          <input id="hgvs" formControlName="hgvs" type="text" />
+        </div>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Genomic HGVS</mat-label>
-      <input matInput formControlName="gHgvs" />
-    </mat-form-field>
-  </form>
-</div>
+        <div class="form-field">
+          <label for="transcript">Transcript</label>
+          <input id="transcript" formControlName="transcript" type="text" />
+        </div>
 
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="onSave()">Save</button>
-</div>
+        <div class="form-field">
+          <label for="gHgvs">Genomic HGVS</label>
+          <input id="gHgvs" formControlName="gHgvs" type="text" />
+        </div>
+      </form>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
+      <button type="button" class="btn-outline-primary" [disabled]="form.invalid" (click)="onSave()">Save</button>
+    </div>
+  </div>
+</dialog>
