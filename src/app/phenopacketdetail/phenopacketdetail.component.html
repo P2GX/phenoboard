@@ -1,11 +1,11 @@
 @if (row(); as r) {
   <div class="phenopacket-container">
-    <!-- Individual info using mat-card -->
-    <mat-card class="card">
-      <mat-card-header>
-        <mat-card-title>Individual</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
+    <!-- Individual info card -->
+    <div class="custom-card">
+      <div class="card-header">
+        <h2>Individual</h2>
+      </div>
+      <div class="card-content">
         <div class="grid">
           <div><strong>ID:</strong> {{ r.individualData.individualId }}</div>
           <div><strong>Sex:</strong> {{ r.individualData.sex }}</div>
@@ -18,28 +18,27 @@
           <div class="full">
             <strong>Publication:</strong>
             <a
-              mat-button
+              class="btn-link"
               [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmidNumber(r.individualData.pmid)"
               target="_blank"
-              color="primary"
             >
               {{ r.individualData.pmid }}
             </a>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
 
     <!-- Diseases -->
     @if (r.diseaseIdList.length) {
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title>Diseases</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-list>
+      <div class="custom-card">
+        <div class="card-header">
+          <h2>Diseases</h2>
+        </div>
+        <div class="card-content">
+          <ul class="custom-list">
             @for (diseaseId of r.diseaseIdList; track diseaseId) {
-              <mat-list-item>
+              <li class="custom-list-item">
                 <app-icon name="medical_services" [size]="20" />
                 @if (getOmimUrl(diseaseId)) {
                   <a [href]="getOmimUrl(diseaseId)" target="_blank">
@@ -50,21 +49,21 @@
                     {{ getDiseaseLabel(diseaseId) }}
                   </span>
                 }
-              </mat-list-item>
+              </li>
             }
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
+          </ul>
+        </div>
+      </div>
     }
 
     <!-- Variants -->
     @if (r.alleleCountMap | keyvalue; as alleleCounts) {
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title>Variants</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <table>
+      <div class="custom-card">
+        <div class="card-header">
+          <h2>Variants</h2>
+        </div>
+        <div class="card-content">
+          <table class="custom-table">
             <thead>
               <tr>
                 <th>Variant</th>
@@ -80,62 +79,58 @@
               }
             </tbody>
           </table>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     }
 
     <!-- Phenotypic Features -->
     @if (terms().observed.length || terms().excluded.length) {
-      <mat-card class="card">
-        <mat-card-header>
-          <mat-card-title>Phenotypic Features (HPO)</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+      <div class="custom-card">
+        <div class="card-header">
+          <h2>Phenotypic Features (HPO)</h2>
+        </div>
+        <div class="card-content">
           @if (terms().observed.length) {
             <h3>Observed</h3>
-            <mat-list class="hpo-observed">
-              @for (h of observedTerms; track h.hpoId) {
-                <mat-list-item class="hpo-item">
-                  <div mat-line>
-                    <a
-                      [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
-                      target="_blank"
-                      class="hpo-link"
-                    >
-                      {{ h.hpoLabel }} ({{ h.hpoId }})
-                    </a>
-                  </div>
-                </mat-list-item>
+            <ul class="custom-list hpo-observed">
+              @for (h of terms().observed; track h.hpoId) {
+                <li class="custom-list-item hpo-item">
+                  <a
+                    [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
+                    target="_blank"
+                    class="hpo-link"
+                  >
+                    {{ h.hpoLabel }} ({{ h.hpoId }})
+                  </a>
+                </li>
               }
-            </mat-list>
+            </ul>
           }
 
           @if (terms().excluded.length) {
             <h3>Excluded</h3>
-            <mat-list class="hpo-excluded">
-              @for (h of excludedTerms; track h.hpoId) {
-                <mat-list-item class="hpo-item">
-                  <div mat-line>
-                    <a
-                      [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
-                      target="_blank"
-                      class="hpo-link"
-                    >
-                      {{ h.hpoLabel }} ({{ h.hpoId }})
-                    </a>
-                  </div>
-                </mat-list-item>
+            <ul class="custom-list hpo-excluded">
+              @for (h of terms().excluded; track h.hpoId) {
+                <li class="custom-list-item hpo-item">
+                  <a
+                    [href]="'https://hpo.jax.org/browse/term/' + h.hpoId"
+                    target="_blank"
+                    class="hpo-link"
+                  >
+                    {{ h.hpoLabel }} ({{ h.hpoId }})
+                  </a>
+                </li>
               }
-            </mat-list>
+            </ul>
           }
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     }
   </div>
 } @else {
-  <mat-card>
-    <mat-card-content>
+  <div class="custom-card">
+    <div class="card-content">
       <p>Phenopacket not found.</p>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 }

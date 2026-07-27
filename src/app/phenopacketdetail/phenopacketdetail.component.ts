@@ -1,13 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { CohortData, RowData } from '../../../libs/ui/src/lib/models/cohort_dto';
+import { CohortData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { ActivatedRoute } from '@angular/router';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
-import { MatCard, MatCardModule } from '@angular/material/card';
-import { MatListModule } from '@angular/material/list';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { IconComponent } from "ng-hpo-uikit";
 
@@ -18,20 +14,12 @@ import { IconComponent } from "ng-hpo-uikit";
   standalone: true,
   imports: [
     CommonModule,
-    MatCard,
-    MatCardModule,
-    MatListModule,
-    MatTableModule,
-    MatButtonModule,
     IconComponent
-],
+  ],
 })
 export class PhenopacketDetailComponent {
   private cohortService = inject(CohortDtoService);
   private route = inject(ActivatedRoute);
-
-  observedTerms: HpoTermDuplet[] = [];
-  excludedTerms: HpoTermDuplet[] = [];
 
   private params = toSignal(this.route.paramMap);
   readonly id = computed(() => this.params()?.get('id'));
@@ -40,6 +28,7 @@ export class PhenopacketDetailComponent {
     const currentId = this.id();
     return currentId ? this.cohortService.findPhenopacketById(currentId) : undefined;
   });
+
   readonly terms = computed(() => {
     const row = this.row();
     const cohort = this.cohort();

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, input, output, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, input, output, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HpoStatus, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
