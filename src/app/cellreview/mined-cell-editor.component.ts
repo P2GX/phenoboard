@@ -1,15 +1,11 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MinedCell, MappedTerm, ClinicalStatus } from '@workspace/ui';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTableModule } from '@angular/material/table';
 import { AgeInputService } from '../services/age_service';
-import { MatDialog } from '@angular/material/dialog';
 import { AddageComponent } from '../addages/addage.component';
 import { IconComponent } from 'ng-hpo-uikit';
+import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
 
 @Component({
   selector: 'app-mined-cell-editor',
@@ -17,12 +13,8 @@ import { IconComponent } from 'ng-hpo-uikit';
   imports: [
     CommonModule,
     FormsModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatTableModule,
     IconComponent
-],
+  ],
   templateUrl: './mined-cell-editor.component.html',
   styleUrls: ['./mined-cell-editor.component.scss'],
 })
@@ -35,7 +27,15 @@ export class MinedCellEditorComponent {
   restoreTerm = output<MappedTerm>();
 
   private ageService = inject(AgeInputService);
-  private dialog = inject(MatDialog);
+  private appRef = inject(ApplicationRef);
+  private injector = inject(EnvironmentInjector);
+  private elementRef = inject(ElementRef);
+
+  // Active status menu open state tracker per term (keyed by hpoId)
+  activeMenuId = signal<string | null>(null);
+  // Help menu open state tracker
+  isHelpOpen = signal(false);
+
   readonly observedTerms = computed(() =>
     this.cell().mappedTermList.filter((t) => t.status !== 'excluded'),
   );
@@ -46,11 +46,28 @@ export class MinedCellEditorComponent {
   readonly hasExclusions = computed(() => (this.excludedTerms().length ?? 0) > 0);
 
   readonly Status = ClinicalStatus;
-
-  // Available statuses for the quick-setter
   readonly statusOptions = ['observed', 'excluded', 'na'];
 
-  // called if the user changes status from observed to excluded or na
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.activeMenuId.set(null);
+      this.isHelpOpen.set(false);
+    }
+  }
+
+  toggleStatusMenu(hpoId: string, event: MouseEvent) {
+    event.stopPropagation();
+    this.isHelpOpen.set(false);
+    this.activeMenuId.set(this.activeMenuId() === hpoId ? null : hpoId);
+  }
+
+  toggleHelpMenu(event: MouseEvent) {
+    event.stopPropagation();
+    this.activeMenuId.set(null);
+    this.isHelpOpen.update((val) => !val);
+  }
+
   updateStatus(term: MappedTerm, newStatus: string): void {
     const updatedCell: MinedCell = {
       ...this.cell(),
@@ -59,15 +76,14 @@ export class MinedCellEditorComponent {
       ),
     };
     this.cellChange.emit(updatedCell);
+    this.activeMenuId.set(null);
   }
 
   get availableOnsetTerms(): string[] {
     return this.ageService.selectedTerms();
   }
 
-  /* Set the onset of the indicated HPO term */
   updateOnset(term: MappedTerm, newOnset: string): void {
-    console.log('updateOnset term=', term, 'newOnset=', newOnset);
     const updatedCell: MinedCell = {
       ...this.cell(),
       mappedTermList: this.cell().mappedTermList.map((t) =>
@@ -78,16 +94,25 @@ export class MinedCellEditorComponent {
   }
 
   addOnsetString(term: MappedTerm): void {
-    const dialogRef = this.dialog.open(AddageComponent, {
-      width: '400px',
-      data: { data: { existingAges: this.ageService.selectedTerms() } },
+    const componentRef: ComponentRef<AddageComponent> = createComponent(AddageComponent, {
+      environmentInjector: this.injector,
     });
+    
+    componentRef.setInput('data', { existingAges: this.ageService.selectedTerms() });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    this.appRef.attachView(componentRef.hostView);
+    const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
+    document.body.appendChild(domElem);
+
+    const sub = componentRef.instance.saved.subscribe((result: any) => {
+      sub.unsubscribe();
+      this.appRef.detachView(componentRef.hostView);
+      componentRef.destroy();
+      domElem.remove();
+
       if (!result) return;
       if (typeof result !== 'string') {
-        // should never happen...
-        alert(`Addagecomponent did not return a string but instead: ${result} `);
+        alert(`Addagecomponent did not return a string but instead: ${result}`);
         return;
       }
       this.ageService.addSelectedTerm(result);

@@ -1,95 +1,105 @@
-<h2 mat-dialog-title style="margin-bottom: 0">{{ title }}</h2>
-<mat-dialog-content class="mat-typography">
-  <div class="review-table-container">
-    <table class="custom-curation-table">
-      <thead>
-        <tr>
-          <th class="col-source-header">Source Fragment</th>
-          <th class="col-mapping-header">HPO Mappings</th>
-          <th class="col-actions-header">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (c of concepts(); track $index; let i = $index) {
-          <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
-            <td class="col-source">
-              <div class="source-cell-content">
-                <app-icon name="description" [size]="20" class="source-icon" />
-                <code class="source-code">"{{ c.originalText }}"</code>
-                <button
-                  mat-icon-button
-                  color="primary"
-                  class="split-btn"
-                  (click)="openSplit(i)"
-                >
-                  <app-icon name="content_cut" [size]="20" />
-                </button>
-              </div>
-            </td>
+<dialog #dialogEl class="orcid-modal multihpo-modal">
+  <div class="dialog-content">
+    <div class="review-header">
+      <h2 style="margin-bottom: 0">{{ title() }}</h2>
+    </div>
 
-            <td class="col-mapping">
-              <div class="mapping-cell-content">
-                @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
-                  <mat-chip-row (removed)="removeTerm(i, termIdx)" class="hpo-chip">
-                    <span class="hpo-chip-id">{{ term.id }}</span>
-                    <span>{{ term.label }}</span>
-                    <button matChipRemove><app-icon name="cancel" [size]="20" /></button>
-                    <button mat-icon-button [cdkCopyToClipboard]="term.label" class="chip-copy-btn">
-                      <app-icon name="content_copy" [size]="20" />
+    <div class="dialog-body mat-typography">
+      <div class="review-table-container">
+        <table class="custom-curation-table">
+          <thead>
+            <tr>
+              <th class="col-source-header">Source Fragment</th>
+              <th class="col-mapping-header">HPO Mappings</th>
+              <th class="col-actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of concepts(); track $index; let i = $index) {
+              <tr [class.is-confirmed]="c.miningStatus === 'confirmed'">
+                <td class="col-source">
+                  <div class="source-cell-content">
+                    <app-icon name="description" [size]="20" class="source-icon" />
+                    <code class="source-code">"{{ c.originalText }}"</code>
+                    <button
+                      type="button"
+                      class="icon-action-btn split-btn"
+                      (click)="openSplit(i)"
+                      title="Split fragment"
+                    >
+                      <app-icon name="content_cut" [size]="20" />
                     </button>
-                  </mat-chip-row>
-                }
+                  </div>
+                </td>
 
-                @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
-                  <hpo-ontology-autocomplete
-                    [inputString]="hpoAutocompleteString"
-                    [autocompleteProvider]="autocompleteProvider"
-                    [requireConfirmation]="true"
-                    (selected)="handleAutocompleteSelection(i, $event)"
-                  >
-                  </hpo-ontology-autocomplete>
-                } @else {
-                  <button mat-icon-button (click)="startSearch(i)" class="add-btn">
-                    <app-icon name="add_circle_outline" [size]="20" />
-                  </button>
-                }
-              </div>
-            </td>
+                <td class="col-mapping">
+                  <div class="mapping-cell-content">
+                    @for (term of c.suggestedTerms; track $index; let termIdx = $index) {
+                      <div class="hpo-chip">
+                        <span class="hpo-chip-id">{{ term.id }}</span>
+                        <span>{{ term.label }}</span>
+                        <button type="button" class="chip-remove-btn" (click)="removeTerm(i, termIdx)">
+                          <app-icon name="cancel" [size]="16" />
+                        </button>
+                        <button type="button" class="chip-copy-btn" [cdkCopyToClipboard]="term.label" title="Copy label">
+                          <app-icon name="content_copy" [size]="16" />
+                        </button>
+                      </div>
+                    }
 
-            <td class="col-actions">
-              <div class="actions-cell-content">
-                <button
-                  mat-icon-button
-                  (click)="toggleConfirm(i)"
-                  [color]="c.miningStatus === 'confirmed' ? 'primary' : ''"
-                >
-                <app-icon [name]="c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
-                </button>
-                <button mat-icon-button color="warn" (click)="removeConcept(i)">
-                  <app-icon name="delete_outline" [size]="20" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+                    @if (searchingIndices.has(i) || c.suggestedTerms.length === 0) {
+                      <hpo-ontology-autocomplete
+                        [inputString]="hpoAutocompleteString"
+                        [autocompleteProvider]="autocompleteProvider"
+                        [requireConfirmation]="true"
+                        (selected)="handleAutocompleteSelection(i, $event)"
+                      >
+                      </hpo-ontology-autocomplete>
+                    } @else {
+                      <button type="button" class="icon-action-btn add-btn" (click)="startSearch(i)" title="Add Term">
+                        <app-icon name="add_circle_outline" [size]="20" />
+                      </button>
+                    }
+                  </div>
+                </td>
+
+                <td class="col-actions">
+                  <div class="actions-cell-content">
+                    <button
+                      type="button"
+                      class="icon-action-btn"
+                      (click)="toggleConfirm(i)"
+                      [class.confirmed]="c.miningStatus === 'confirmed'"
+                      title="Toggle Confirmation Status"
+                    >
+                      <app-icon [name]="c.miningStatus === 'confirmed' ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
+                    </button>
+                    <button type="button" class="icon-action-btn warn" (click)="removeConcept(i)" title="Delete Concept">
+                      <app-icon name="delete_outline" [size]="20" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dialog-actions dialog-actions-bar">
+      <button type="button" class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
+      <button
+        type="button"
+        class="btn-outline-primary"
+        (click)="save()"
+        [disabled]="concepts().length === 0"
+      >
+        <app-icon name="done_all" [size]="20" class="mr-1" />
+        Apply {{ concepts().length }} Mappings
+      </button>
+    </div>
   </div>
-</mat-dialog-content>
-<mat-dialog-actions align="end" class="dialog-actions-bar">
-  <button mat-button class="btn-outline-cancel" (click)="cancel()">Discard Changes</button>
-  <button
-    mat-raised-button
-    color="primary"
-    class="btn-outline-primary"
-    (click)="save()"
-    [disabled]="concepts().length === 0"
-  >
-    <app-icon name="done_all" [size]="20" class="mr-1" />
-    Apply {{ concepts().length }} Mappings
-  </button>
-</mat-dialog-actions>
-
+</dialog>
 
 @if (splitTargetText(); as text) {
   <app-split-dialog

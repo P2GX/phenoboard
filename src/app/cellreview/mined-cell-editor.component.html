@@ -26,15 +26,29 @@
           </td>
           <td class="action-col">
             <div class="controls-wrapper">
-              <button
-                mat-stroked-button
-                [matMenuTriggerFor]="statusMenu"
-                class="status-btn"
-                [class.status-set]="term.status"
-              >
-                <span class="current-value">{{ term.status || 'na' | titlecase }}</span>
-                <app-icon name="arrow_drop_down" [size]="20" />
-              </button>
+              <!-- Custom Dropdown Trigger -->
+              <div class="custom-dropdown-container">
+                <button
+                  type="button"
+                  class="status-btn"
+                  [class.status-set]="term.status"
+                  (click)="toggleStatusMenu(term.hpoId, $event)"
+                >
+                  <span class="current-value">{{ term.status || 'na' | titlecase }}</span>
+                  <app-icon name="arrow_drop_down" [size]="20" />
+                </button>
+
+                @if (activeMenuId() === term.hpoId) {
+                  <div class="custom-dropdown-menu">
+                    @for (opt of statusOptions; track opt) {
+                      <button type="button" class="dropdown-item" (click)="updateStatus(term, opt)">
+                        <app-icon [name]="term.status === opt ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
+                        <span>{{ opt | titlecase }}</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
 
               <div class="onset-group" [class.has-onset]="term.onset && term.onset !== 'na'">
                 <div class="onset-icon">
@@ -52,58 +66,56 @@
                   }
                 </select>
                 <button
+                  type="button"
                   (click)="addOnsetString(term)"
                   class="add-onset-btn"
-                  matTooltip="Add Custom Onset"
+                  title="Add Custom Onset"
                 >
                   +
                 </button>
               </div>
             </div>
-
-            <mat-menu #statusMenu="matMenu">
-              @for (opt of statusOptions; track opt) {
-                <button mat-menu-item (click)="updateStatus(term, opt)">
-                    <app-icon [name]="term.status === opt ? 'check_circle' : 'radio_button_unchecked'" [size]="20" />
-                  <span>{{ opt | titlecase }}</span>
-                </button>
-              }
-            </mat-menu>
           </td>
         </tr>
       }
     </tbody>
   </table>
 </div>
+
 <div class="exclusion-container">
   <div class="shelf-header">
     <div class="title-group">
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="helpMenu"
-        class="help-btn"
-        aria-label="Toggle explanation"
-      >
-        <app-icon name="help_outline" [size]="20" />
-      </button>
-    </div>
-    <mat-menu #helpMenu="matMenu" class="help-bubble">
-      <div class="help-content" (click)="$event.stopPropagation()">
-        <h3>About Other Terms</h3>
-        <p>
-          These HPO terms were annotated for other individuals (rows in the current column), but
-          haven't been assigned to this specific cell yet.
-        </p>
-        <p>
-          Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if
-          appropriate. Alternatively, click on individual terms (below) to mark only specific terms
-          as excluded.
-        </p>
+      <div class="custom-dropdown-container">
+        <button
+          type="button"
+          class="help-btn"
+          aria-label="Toggle explanation"
+          (click)="toggleHelpMenu($event)"
+        >
+          <app-icon name="help_outline" [size]="20" />
+        </button>
+
+        @if (isHelpOpen()) {
+          <div class="help-bubble help-content" (click)="$event.stopPropagation()">
+            <h3>About Other Terms</h3>
+            <p>
+              These HPO terms were annotated for other individuals (rows in the current column), but
+              haven't been assigned to this specific cell yet.
+            </p>
+            <p>
+              Use <strong>Exclude All</strong> to mark all of the terms as explicitly excluded if
+              appropriate. Alternatively, click on individual terms (below) to mark only specific terms
+              as excluded.
+            </p>
+          </div>
+        }
       </div>
-    </mat-menu>
+    </div>
+    
     <span class="shelf-title">Other terms ({{ toExclude().length || 0 }})</span>
     @if (toExclude().length > 0) {
       <button
+        type="button"
         class="shelf-badge bulk-action"
         [disabled]="toExclude().length === 0"
         (click)="excludeAll.emit()"
@@ -116,7 +128,7 @@
 
   <div class="shelf-content">
     @for (term of toExclude(); track term.id) {
-      <button class="shelf-badge" (click)="excludeTerm.emit(term)">
+      <button type="button" class="shelf-badge" (click)="excludeTerm.emit(term)">
         <span class="badge-label">{{ term.label }}</span>
         <span class="badge-id"> ({{ term.id }})</span>
         <app-icon name="add" [size]="20" />

@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, signal, Signal, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, Component, ComponentRef, computed, createComponent, EnvironmentInjector, HostListener, inject, signal, Signal, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
@@ -98,6 +98,8 @@ export class TableEditorComponent {
   public readonly TransformType = TransformType;
   readonly diseaseDataSignal = signal<DiseaseData | null>(null);
   readonly isProcessing = signal<boolean>(false);
+  private appRef = inject(ApplicationRef);
+  private injector = inject(EnvironmentInjector);
 
   readonly activeStep = signal<'NONE' | 'SELECT_TERM' | 'MAP_VALUES'>('NONE');
 
@@ -520,24 +522,41 @@ export class TableEditorComponent {
    * ancestorString field, and this allows us to distribute the mappings back the each specific row.
    */
   private async getInitialMultipleHpoMapping(col: ColumnDto): Promise<MinedCell[]> {
-    const originalEntries = col.values.map((v) => v.current || v.original); // Use the current value if available (this means the user update the original value)
-    const initialConcepts: MiningConcept[] =
-      await this.configService.mapColumnToMiningConcepts(originalEntries);
-    const uniqueDictionary: MiningConcept[] =
-      await this.configService.create_canonical_dictionary(initialConcepts);
-    const globalRef = this.dialog.open(MultiHpoComponent, {
-      width: '1200px',
-      maxWidth: '95vw',
-      data: { concepts: uniqueDictionary, title: col.header.original },
+  const originalEntries = col.values.map((v) => v.current || v.original);
+  const initialConcepts: MiningConcept[] =
+    await this.configService.mapColumnToMiningConcepts(originalEntries);
+  const uniqueDictionary: MiningConcept[] =
+    await this.configService.create_canonical_dictionary(initialConcepts);
+
+  const componentRef: ComponentRef<MultiHpoComponent> = createComponent(MultiHpoComponent, {
+    environmentInjector: this.injector,
+  });
+
+  componentRef.setInput('initialConcepts', uniqueDictionary);
+  componentRef.setInput('title', col.header.original);
+
+  this.appRef.attachView(componentRef.hostView);
+  const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
+  document.body.appendChild(domElem);
+
+  const confirmedDictionary: MiningConcept[] | null = await new Promise((resolve) => {
+    const sub = componentRef.instance.closed.subscribe((result: MiningConcept[] | null) => {
+      sub.unsubscribe();
+      this.appRef.detachView(componentRef.hostView);
+      componentRef.destroy();
+      domElem.remove();
+      resolve(result);
     });
-    const confirmedDictionary: MiningConcept[] = await firstValueFrom(globalRef.afterClosed());
-    if (!confirmedDictionary) return [];
-    const cellMappings = this.configService.createCellMappings(
-      confirmedDictionary,
-      originalEntries,
-    );
-    return cellMappings;
-  }
+  });
+
+  if (!confirmedDictionary) return [];
+
+  const cellMappings = this.configService.createCellMappings(
+    confirmedDictionary,
+    originalEntries,
+  );
+  return cellMappings;
+}
 
   isCellReviewOpen = signal(false);
   cellReviewData = signal<{ minedCells: MinedCell[]; title: string }>({ minedCells: [], title: '' });

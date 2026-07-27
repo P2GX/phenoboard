@@ -1,0 +1,108 @@
+.compare-modal {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 520px;
+  background-color: #ffffff;
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  .review-header {
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #333333;
+    }
+  }
+
+  .dialog-body {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+
+    .dialog-hint {
+      margin: 0 0 16px 0;
+      font-size: 0.9rem;
+      color: #666666;
+    }
+
+    .file-selectors {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .file-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .file-path {
+          font-size: 0.85rem;
+          color: #555555;
+          word-break: break-all;
+          font-family: monospace;
+          background-color: #f8f9fa;
+          padding: 6px 10px;
+          border-radius: 4px;
+          flex: 1;
+          border: 1px solid #e9ecef;
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+
+      &.btn-outline-cancel {
+        background-color: transparent;
+        border: 1px solid #cccccc;
+        color: #555555;
+
+        &:hover {
+          background-color: #f5f5f5;
+          border-color: #b0b0b0;
+        }
+      }
+
+      &.btn-outline-primary {
+        background-color: #006699;
+        border: 1px solid #006699;
+        color: #ffffff;
+
+        &:hover {
+          background-color: #004d73;
+          border-color: #004d73;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}

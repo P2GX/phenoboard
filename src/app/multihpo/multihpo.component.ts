@@ -1,33 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
+import { Component, inject, signal, ElementRef, ViewChild, AfterViewInit, output } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
+import { CommonModule } from '@angular/common';
 import { MiningConcept, MiningStatus, SplitDialogComponent } from '@workspace/ui';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '../services/config.service';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-import { IconComponent } from 'ng-hpo-uikit';
+import { IconComponent, OntologyAutocompleteProvider, OntologyMatch, OntologyAutocompleteComponent, NotificationService } from 'ng-hpo-uikit';
 
-import {
-  OntologyAutocompleteProvider,
-  OntologyMatch,
-  OntologyAutocompleteComponent,
-  NotificationService,
-} from 'ng-hpo-uikit';
-
-/// symbols for not applicable or unknown status
 const NOT_APPLICABLE = new Set([
   'na',
   'n.a.',
@@ -37,61 +15,64 @@ const NOT_APPLICABLE = new Set([
   'n.d.',
   '?',
   '/',
-  'n.d.',
   'unknown',
 ]);
 
-/* Component to map columns that contain strings representing one to many HPO terms */
 @Component({
   selector: 'app-multihpo',
   standalone: true,
   templateUrl: './multihpo.component.html',
-  styleUrl: './multihpo.component.scss',
+  styleUrls: ['./multihpo.component.scss'],
   imports: [
+    CommonModule,
     ClipboardModule,
     FormsModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatTableModule,
-    MatCheckboxModule,
-    MatButtonToggleModule,
     OntologyAutocompleteComponent,
     IconComponent,
     SplitDialogComponent
-],
+  ],
 })
-export class MultiHpoComponent {
+export class MultiHpoComponent implements AfterViewInit {
   readonly concepts = signal<MiningConcept[]>([]);
   private configService = inject(ConfigService);
-  // Track which row indices are currently showing the search input field
   searchingIndices = new Set<number>();
-  private dialogRef = inject(MatDialogRef<MultiHpoComponent>);
-  private dialog = inject(MatDialog);
-  public data = inject(MAT_DIALOG_DATA) as { concepts: MiningConcept[]; title: string };
   private notificationService = inject(NotificationService);
-  title: string = this.data.title;
+
+  @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
+
+  // Inputs / Outputs replacing MatDialog data & refs
+  readonly title = signal<string>('Map HPO Terms');
+  readonly initialConcepts = signal<MiningConcept[]>([]);
+  readonly closed = output<MiningConcept[] | null>();
+
   hpoAutocompleteString = '';
+
   constructor() {
-    const processed = (this.data.concepts ?? [])
+    // If instantiated dynamically via service, use input signals
+    // Fallback parsing from initial configuration if needed
+  }
+
+  ngOnInit() {
+    // Standard initialization block for concepts
+    const conceptsData = this.initialConcepts() ?? [];
+    const processed = conceptsData
       .filter((c) => {
         const text = c.originalText.toLowerCase().trim();
         return !NOT_APPLICABLE.has(text) && text.length > 0;
       })
       .map((c) => ({
         ...c,
-        // Auto-confirm if terms exist
         miningStatus: c.suggestedTerms.length > 0 ? MiningStatus.Confirmed : c.miningStatus,
       }));
 
     this.concepts.set(processed);
+  }
+
+  ngAfterViewInit() {
+    if (this.dialogEl?.nativeElement) {
+      this.dialogEl.nativeElement.showModal();
+    }
   }
 
   autocompleteProvider: OntologyAutocompleteProvider = (query: string) =>
@@ -101,31 +82,12 @@ export class MultiHpoComponent {
     this.addNewTerm(conceptIndex, match);
   }
 
-  // Update a specific concept when user uses autocomplete
-  updateMapping(index: number, newTerm: HpoTermDuplet) {
-    this.concepts.update((list) => {
-      const cloned = [...list];
-      const concept = cloned[index];
-
-      concept.suggestedTerms.push({
-        id: newTerm.hpoId,
-        label: newTerm.hpoLabel,
-        matchedText: concept.originalText,
-      });
-
-      concept.miningStatus = MiningStatus.Confirmed;
-      return cloned;
-    });
-  }
-
   toggleConfirm(index: number) {
     this.concepts.update((list) => {
       const cloned = [...list];
       const c = cloned[index];
-
       c.miningStatus =
         c.miningStatus === MiningStatus.Confirmed ? MiningStatus.Pending : MiningStatus.Confirmed;
-
       return cloned;
     });
   }
@@ -139,43 +101,20 @@ export class MultiHpoComponent {
   }
 
   cancel() {
-    this.dialogRef.close();
+    this.dialogEl?.nativeElement.close();
+    this.closed.emit(null);
   }
 
   save() {
-    // Return the refined list of concepts back to processMultipleHpoColumn
-    this.dialogRef.close(this.concepts());
-  }
-
-  resetMapping(index: number) {
-    this.concepts.update((list) => {
-      const cloned = [...list];
-      cloned[index] = {
-        ...cloned[index],
-        miningStatus: MiningStatus.Pending,
-        suggestedTerms: [],
-      };
-      return cloned;
-    });
-  }
-
-  prepareConcepts() {
-    const processed = this.data.concepts.map((c) => ({
-      ...c,
-      isSearching: false,
-      suggestedTerms: Array.isArray(c.suggestedTerms) ? [...c.suggestedTerms] : [],
-    }));
-
-    this.concepts.set(processed);
+    this.dialogEl?.nativeElement.close();
+    this.closed.emit(this.concepts());
   }
 
   addNewTerm(conceptIndex: number, newMatch: OntologyMatch) {
     const concept: MiningConcept = this.concepts()[conceptIndex];
-    // Prevent duplicates
     if (!concept.suggestedTerms.some((t) => t.id === newMatch.id)) {
       concept.suggestedTerms.push(newMatch);
     }
-
     concept.miningStatus = MiningStatus.Confirmed;
     this.searchingIndices.delete(conceptIndex);
   }
@@ -196,13 +135,6 @@ export class MultiHpoComponent {
     });
   }
 
-  onBlur(index: number) {
-    // Only collapse if we have terms; otherwise keep search open
-    if (this.concepts()[index].suggestedTerms.length > 0) {
-      this.searchingIndices.delete(index);
-    }
-  }
-
   startSearch(index: number) {
     this.searchingIndices.add(index);
   }
@@ -214,15 +146,13 @@ export class MultiHpoComponent {
     const parts = concept.originalText
       .split(delimiter)
       .map((s) => s.trim())
-      .filter((s) => s.length > 0); // Allow short strings, filter empty
+      .filter((s) => s.length > 0);
 
     if (parts.length > 1) {
-      // 1. Create a typed map of what we already know to auto-fill the new rows
       const knowledgeMap = new Map<string, OntologyMatch[]>(
         currentList.map((c) => [c.originalText.toLowerCase(), c.suggestedTerms]),
       );
 
-      // 2. Generate the new row objects
       const newConcepts: MiningConcept[] = await Promise.all(
         parts.map(async (p) => {
           const lowerP = p.toLowerCase();
@@ -249,7 +179,6 @@ export class MultiHpoComponent {
         }),
       );
 
-      // 3. Update the Signal
       this.concepts.update((old) => {
         const cloned = [...old];
         cloned.splice(index, 1, ...newConcepts);
@@ -258,9 +187,8 @@ export class MultiHpoComponent {
     }
   }
 
-
-  splitIndex = signal<number|null>(null);
-  splitTargetText = signal<string|null>(null);
+  splitIndex = signal<number | null>(null);
+  splitTargetText = signal<string | null>(null);
 
   openSplit(index: number) {
     const concept = this.concepts()[index];
@@ -270,42 +198,25 @@ export class MultiHpoComponent {
     }
     this.splitTargetText.set(concept.originalText);
     this.splitIndex.set(index);
-
   }
 
   protected clearSplitData() {
     this.splitIndex.set(null);
-    this.  splitTargetText.set(null);
+    this.splitTargetText.set(null);
   }
 
-onSplitApplied(delimiter: string) {
-  this.splitTargetText.set(null);
-  if (delimiter === '') {
-    this.notificationService.showError("Cannot split on empty string");
-    return;
-  }
-  const idx = this.splitIndex();
-  if (idx !== null) {
-    this.executeSplit(idx, delimiter);
-  } else {
-    this.notificationService.showError(`Could not perform split with idx=${idx} and delimiter=${delimiter}`);
-  }
-  this.clearSplitData();
-}
-
-  async openSplitDialogOLD(index: number) {
-    const concept = this.concepts()[index];
-
-    const splitDialogRef = this.dialog.open(SplitDialogComponent, {
-      width: '400px',
-      data: { text: concept.originalText },
-    });
-
-    // Wait for the delimiter (e.g., ",", ".", or a custom string)
-    const resultDelimiter = await firstValueFrom(splitDialogRef.afterClosed());
-
-    if (resultDelimiter) {
-      this.executeSplit(index, resultDelimiter);
+  onSplitApplied(delimiter: string) {
+    this.splitTargetText.set(null);
+    if (delimiter === '') {
+      this.notificationService.showError("Cannot split on empty string");
+      return;
     }
+    const idx = this.splitIndex();
+    if (idx !== null) {
+      this.executeSplit(idx, delimiter);
+    } else {
+      this.notificationService.showError(`Could not perform split with idx=${idx} and delimiter=${delimiter}`);
+    }
+    this.clearSplitData();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, afterNextRender, effect, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
 import { HelpButtonComponent as HelpButtonComponent } from "ng-hpo-uikit";
 
 export interface ConfirmDialogData {

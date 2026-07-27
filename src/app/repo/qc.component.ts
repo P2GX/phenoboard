@@ -8,7 +8,7 @@ import { RepoErrorType, RepoQc } from '../models/repo_qc';
 import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
-import { CompareDialogComponent, CompareFiles } from '../util/comparewidget/comparewidget';
+import { CompareDialogComponent, CompareFiles } from '../util/comparewidget/compare-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ComparisonReport } from '../models/comparison';
 

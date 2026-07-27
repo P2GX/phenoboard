@@ -1,158 +1,240 @@
-.review-table-container {
-  border: 1px solid #e5e7eb;
+.multihpo-modal {
+  padding: 0;
+  border: none;
   border-radius: 8px;
-  overflow: hidden;
-  max-height: 65vh;
-  overflow-y: auto;
-}
-
-.custom-curation-table {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
   width: 100%;
-  border-collapse: collapse;
-  background: white;
+  max-width: 900px;
+  background-color: #ffffff;
 
-  th {
-    background: #f9fafb;
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: #6b7280;
-    border-bottom: 2px solid #e5e7eb;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
-  td {
-    padding: 12px 16px;
-    vertical-align: top; /* Keeps everything aligned at the top */
-    border-bottom: 1px solid #f3f4f6;
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    max-height: 85vh;
   }
 
-  tr:hover {
-    background-color: #f0f7ff;
+  .review-header {
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #333333;
+    }
   }
 
-  tr.is-confirmed {
-    background-color: #f0fdf4;
-  }
+  .dialog-body {
+    overflow-y: auto;
+    margin-bottom: 20px;
+    flex: 1;
 
-  /* Column specific logic */
-  .col-source {
-    .source-code {
-      display: block;
-      white-space: normal;
-      word-break: break-word;
-      background: #f3f4f6;
-      padding: 6px 10px;
+    .review-table-container {
+      border: 1px solid #e0e0e0;
       border-radius: 6px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: #374151;
-      border: 1px solid #e5e7eb;
+      overflow: hidden;
+
+      .custom-curation-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.9rem;
+
+        thead {
+          background-color: #f8f9fa;
+          border-bottom: 1px solid #e0e0e0;
+
+          th {
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #555555;
+          }
+        }
+
+        tbody {
+          tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.15s;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            &.is-confirmed {
+              background-color: rgba(0, 128, 0, 0.02);
+            }
+
+            td {
+              padding: 12px 16px;
+              vertical-align: middle;
+            }
+          }
+        }
+
+        .col-source-header, .col-source {
+          width: 30%;
+        }
+
+        .col-mapping-header, .col-mapping {
+          width: 55%;
+        }
+
+        .col-actions-header, .col-actions {
+          width: 15%;
+          text-align: right;
+        }
+
+        .source-cell-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .source-icon {
+            color: #94a3b8;
+            flex-shrink: 0;
+          }
+
+          .source-code {
+            font-family: monospace;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #334155;
+            word-break: break-word;
+            flex: 1;
+          }
+        }
+
+        .mapping-cell-content {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+
+          .hpo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            color: #1e293b;
+
+            .hpo-chip-id {
+              font-weight: 600;
+              color: #0f172a;
+              background-color: #cbd5e1;
+              padding: 1px 6px;
+              border-radius: 10px;
+              font-size: 0.75rem;
+            }
+
+            button {
+              background: none;
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              padding: 0;
+              color: #64748b;
+              transition: color 0.15s;
+
+              &:hover {
+                color: #0f172a;
+              }
+            }
+          }
+        }
+
+        .actions-cell-content {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+        }
+
+        .icon-action-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 6px;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+          transition: background-color 0.15s, color 0.15s;
+
+          &:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+          }
+
+          &.confirmed {
+            color: #16a34a;
+          }
+
+          &.warn {
+            color: #dc2626;
+            &:hover {
+              background-color: #fee2e2;
+            }
+          }
+        }
+      }
     }
   }
 
-  .col-actions {
-    padding-right: 20px; /* Ensures delete button doesn't hit the border */
-  }
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 16px;
 
-  /* Compact button tweaks */
-  .mat-icon-button {
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    .mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+    button {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+
+      &.btn-outline-cancel {
+        background-color: transparent;
+        border: 1px solid #cccccc;
+        color: #555555;
+
+        &:hover {
+          background-color: #f5f5f5;
+          border-color: #b0b0b0;
+        }
+      }
+
+      &.btn-outline-primary {
+        background-color: #006699;
+        border: 1px solid #006699;
+        color: #ffffff;
+
+        &:hover {
+          background-color: #004d73;
+          border-color: #004d73;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
     }
   }
-}
-
-// --- Column widths ---
-.col-source-header {
-  width: 30%;
-}
-.col-mapping-header {
-  width: 55%;
-}
-.col-actions-header {
-  width: 15%;
-  text-align: right;
-}
-
-// --- Source cell ---
-.source-cell-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.source-icon {
-  color: #9e9e9e; // gray-400 equivalent
-  transform: scale(0.75);
-  margin-top: 4px;
-  flex-shrink: 0;
-}
-
-// --- Mapping cell ---
-.mapping-cell-content {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.hpo-chip-id {
-  font-family: monospace;
-  font-weight: 700;
-  margin-right: 4px;
-  opacity: 0.7;
-}
-
-.autocomplete-grow {
-  flex-grow: 1;
-}
-
-// --- Actions cell ---
-.actions-cell-content {
-  display: flex;
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-// --- Button icon spacing ---
-.btn-icon {
-  margin-right: 4px;
-}
-
-// --- Dialog actions bar ---
-.dialog-actions-bar {
-  padding: 16px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #fafafa; // gray-50 equivalent
-}
-
-.chip-copy-btn {
-  width: 24px !important;
-  height: 24px !important;
-  line-height: 24px !important;
-  padding: 0 !important;
-  margin-left: 4px;
-}
-
-.chip-copy-btn .mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.chip-copy-btn:active {
-  transform: scale(0.85);
-}
-
-.chip-copy-btn:hover .mat-icon {
-  color: #3f51b5;
 }

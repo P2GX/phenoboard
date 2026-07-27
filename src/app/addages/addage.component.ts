@@ -12,7 +12,6 @@ import { AgeInputService } from '../services/age_service';
 export class AddageComponent {
   private ageService = inject(AgeInputService);
 
-  // Clean context-free I/O mapping
   current = input<string>('');
   saved = output<string>();
   cancelled = output<void>();
