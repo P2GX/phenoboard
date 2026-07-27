@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, signal, Signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal, Signal, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
@@ -22,12 +22,11 @@ import { IconComponent, NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { removeAllWhitespace, sanitizeString } from '@workspace/ui';
-import { AddConstantColumnDialogComponent } from './add-constant-column-dialog.component';
+import { AddConstantColumnDialogComponent, SplitColumnDialogComponent, removeAllWhitespace, sanitizeString } from '@workspace/ui';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../../../libs/ui/src/lib/models/variant_dto';
-import { SplitColumnDialogComponent } from './split-column.component';
+
 import { HelpService } from '../services/help.service';
 import {
   TransformType,
@@ -777,54 +776,63 @@ export class TableEditorComponent {
   }
 
   /** Split a column into two according to a token such as "/" or ":" */
+  private viewContainerRef = inject(ViewContainerRef);
   splitColumn(index: number | null): void {
-    const dto = this.etl_service.etlDto();
-    if (!dto || index === null) return;
-    const columns = dto.table.columns;
-    const originalColumn = columns[index];
-    if (!originalColumn) return;
-    if (originalColumn.values.length < 1) return;
-    const example = originalColumn.values[0].original;
+  const dto = this.etl_service.etlDto();
+  if (!dto || index === null) return;
+  const columns = dto.table.columns;
+  const originalColumn = columns[index];
+  if (!originalColumn) return;
+  if (originalColumn.values.length < 1) return;
+  const example = originalColumn.values[0].original;
 
-    const dialogRef = this.dialog.open(SplitColumnDialogComponent, {
-      width: '400px',
-      data: { originalHeader: originalColumn.header.original, example: example },
+  // 1. Create the component dynamically in the view
+  const componentRef = this.viewContainerRef.createComponent(SplitColumnDialogComponent);
+
+  // 2. Pass input data using Angular's input binding API
+  componentRef.setInput('data', { 
+    originalHeader: originalColumn.header.original, 
+    example: example 
+  });
+
+  // 3. Subscribe to the custom 'closed' output
+  componentRef.instance.closed.subscribe((result: string | null) => {
+    // Clean up the dynamically created component from the DOM
+    componentRef.destroy();
+
+    if (!result) return; // user cancelled
+    const separator = result;
+
+    // deep copy original column
+    const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    const columnB: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+    columnA.id = crypto.randomUUID();
+    columnB.id = crypto.randomUUID();
+
+    columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
+    columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
+
+    originalColumn.values.forEach((cell, i) => {
+      const text = cell?.original ?? '';
+      const firstIdx = text.indexOf(separator);
+      let valA: string;
+      let valB: string;
+      if (firstIdx === -1 || separator === '') {
+        valA = text || 'na';
+        valB = 'na';
+      } else {
+        valA = text.substring(0, firstIdx).trim() || 'na';
+        valB = text.substring(firstIdx + separator.length).trim() || 'na';
+      }
+      columnA.values[i] = { ...cell, original: valA, current: valA, status: RAW };
+      columnB.values[i] = { ...cell, original: valB, current: valB, status: RAW };
     });
 
-    dialogRef.afterClosed().subscribe((result: string) => {
-      if (!result) return; // user cancelled
-      const separator = result;
-
-      // deep copy original column
-      const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
-      const columnB: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
-      columnA.id = crypto.randomUUID();
-      columnB.id = crypto.randomUUID();
-
-      columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
-      columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
-
-      originalColumn.values.forEach((cell, i) => {
-        const text = cell?.original ?? '';
-        const firstIdx = text.indexOf(separator);
-        let valA: string;
-        let valB: string;
-        if (firstIdx === -1 || separator === '') {
-          valA = text || 'na';
-          valB = 'na';
-        } else {
-          valA = text.substring(0, firstIdx).trim() || 'na';
-          valB = text.substring(firstIdx + separator.length).trim() || 'na';
-        }
-        columnA.values[i] = { ...cell, original: valA, current: valA, status: RAW };
-        columnB.values[i] = { ...cell, original: valB, current: valB, status: RAW };
-      });
-
-      const newColumns = [...columns];
-      newColumns.splice(index, 1, columnA, columnB);
-      this.etl_service.updateColumns(newColumns);
-    });
-  }
+    const newColumns = [...columns];
+    newColumns.splice(index, 1, columnA, columnB);
+    this.etl_service.updateColumns(newColumns);
+  });
+}
 
   /** Use Variant Validator in the backend to annotate each variant string in the column.
    * Upon successful validation, add the variant key to the ETL DTO.  

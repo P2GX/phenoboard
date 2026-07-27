@@ -1,0 +1,104 @@
+ <dialog #dialogEl class="orcid-modal split-column-modal">
+      <div class="dialog-content">
+        <h2 class="!mb-0 text-slate-700 font-semibold text-lg">Split Column: {{ data().originalHeader }}</h2>
+
+        <div class="dialog-body !pt-4">
+          <div class="text-[10px] uppercase font-bold text-slate-400 mb-2 tracking-wider">
+            Select Delimiter
+          </div>
+          
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            @for (opt of [
+              { label: 'Comma (,)', val: ',' },
+              { label: 'Slash (/)', val: '/' },
+              { label: 'Period (.)', val: '.' },
+              { label: 'Space', val: ' ' }
+            ]; track opt.val) {
+              <label class="compact-radio" [class.selected]="selectedDelimiter() === opt.val">
+                <input 
+                  type="radio" 
+                  name="delimiter" 
+                  [value]="opt.val" 
+                  [ngModel]="selectedDelimiter()" 
+                  (ngModelChange)="selectedDelimiter.set($event)"
+                  class="sr-only"
+                />
+                <span>{{ opt.label }}</span>
+              </label>
+            }
+            
+            <label class="compact-radio col-span-2" [class.selected]="selectedDelimiter() === 'custom'">
+              <input 
+                type="radio" 
+                name="delimiter" 
+                value="custom" 
+                [ngModel]="selectedDelimiter()" 
+                (ngModelChange)="selectedDelimiter.set($event)"
+                class="sr-only"
+              />
+              <span [class.text-indigo-600]="selectedDelimiter() === 'custom'" class="font-medium">Custom</span>
+            </label>
+          </div>
+
+          @if (selectedDelimiter() === 'custom') {
+            <input
+              class="w-full border-b border-indigo-500 outline-none py-1 mb-4 text-sm bg-transparent"
+              [ngModel]="customValue()"
+              (ngModelChange)="customValue.set($event)"
+              placeholder="e.g. ; or |"
+              autofocus
+            />
+          }
+
+          <div class="mt-4 p-3 bg-slate-900 rounded-lg shadow-inner overflow-hidden">
+            <div class="text-[10px] text-indigo-300 uppercase font-black mb-2 tracking-widest">
+              Row 1 Preview
+            </div>
+            <div class="flex-1 mb-2">
+              <div class="text-[9px] text-slate-500 mb-1 uppercase tracking-tighter font-bold">
+                Original:
+              </div>
+              <div
+                class="px-2 py-1.5 bg-slate-800 rounded text-xs font-mono text-emerald-400 truncate border border-slate-700"
+              >
+                {{ data().example }}
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex-1">
+                <div class="text-[9px] text-slate-500 mb-1 uppercase tracking-tighter font-bold">
+                  Part A
+                </div>
+                <div
+                  class="px-2 py-1.5 bg-slate-800 rounded text-xs font-mono text-emerald-400 truncate border border-slate-700"
+                >
+                  {{ splitExample().a }}
+                </div>
+              </div>
+
+              <div class="text-slate-600 font-bold self-end pb-1.5">→</div>
+
+              <div class="flex-1">
+                <div class="text-[9px] text-slate-500 mb-1 uppercase tracking-tighter font-bold">
+                  Part B
+                </div>
+                <div
+                  class="px-2 py-1.5 bg-slate-800 rounded text-xs font-mono text-emerald-400 truncate border border-slate-700"
+                >
+                  {{ splitExample().b }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-actions flex justify-end gap-2 !pb-4 !px-6 pt-2">
+          <button type="button" class="btn-outline-cancel" (click)="cancel()">
+            Cancel
+          </button>
+          <button type="button" class="btn-outline-primary" (click)="confirm()" [disabled]="!finalDelimiter()">
+            Apply Split
+          </button>
+        </div>
+      </div>
+    </dialog>

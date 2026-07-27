@@ -1,0 +1,81 @@
+.orcid-modal {
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 380px;
+  background-color: #ffffff;
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  .compact-radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+
+    &.selected {
+      border-color: #6366f1;
+      background-color: rgba(99, 102, 241, 0.05);
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    button {
+      padding: 6px 14px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+
+      &.btn-outline-cancel {
+        background-color: transparent;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+
+        &:hover {
+          background-color: #f1f5f9;
+        }
+      }
+
+      &.btn-outline-primary {
+        background-color: #006699;
+        border: 1px solid #006699;
+        color: #ffffff;
+
+        &:hover {
+          background-color: #004d73;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
