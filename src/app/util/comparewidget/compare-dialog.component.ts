@@ -11,7 +11,7 @@ export interface CompareFiles {
 @Component({
   selector: 'app-compare-dialog',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [CommonModule],
   template: `
     <dialog #dialogEl class="orcid-modal compare-modal">
       <div class="dialog-content">
