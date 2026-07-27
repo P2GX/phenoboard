@@ -150,3 +150,10 @@
       >
       </app-confirm-dialog>
 }
+
+@if (isCellReviewOpen()) {
+  <app-cell-review
+    [data]="cellReviewData()"
+    (closed)="handleCellReviewClosed($event)"
+  />
+}

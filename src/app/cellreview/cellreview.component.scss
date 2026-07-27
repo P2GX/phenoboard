@@ -1,17 +1,43 @@
-@use '../../styles/variables' as *;
+dialog.cell-review-modal {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 700px;
+}
+
+dialog.cell-review-modal::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+dialog.cell-review-modal:not([open]) {
+  display: none;
+}
+
+.dialog-content {
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
 
 .review-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: $gray-50;
-  border-bottom: 1px solid $gray-200;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
 
   h2 {
     margin: 0;
-    font-size: 1.1rem;
-    color: $gray-800;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
   }
 }
 
@@ -19,18 +45,40 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid $gray-200;
+}
 
-  .progress-text {
-    font-size: 0.85rem;
-    color: $gray-700;
+.icon-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }
 
-mat-dialog-content {
-  min-height: 400px;
-  padding: 20px !important;
+.progress-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.dialog-body {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 4px 0;
+}
+
+.dialog-actions {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

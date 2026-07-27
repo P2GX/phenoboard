@@ -72,7 +72,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     ColumnContextMenuComponent,
     EtlDataTableComponent,
     IconComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    CellReviewComponent
 ],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
@@ -539,30 +540,32 @@ export class TableEditorComponent {
     return cellMappings;
   }
 
-  /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
-  async processMultipleHpoColumn(colIndex: number): Promise<void> {
-    const dto = this.etl_service.etlDto();
-    if (!dto) return;
-    const col = dto.table.columns[colIndex];
-    if (!col) return;
-    try {
-      // Stage 1. Divide the cell entries into individual word groups (";" and new line) and
-      // map each one
-      const minedCellList: MinedCell[] = await this.getInitialMultipleHpoMapping(col);
-      const cellReviewRef = this.dialog.open(CellReviewComponent, {
-        width: '1100px',
-        disableClose: true,
-        data: {
-          minedCells: minedCellList, // Mappings for each uniquq string in the original column
-          title: col.header.original,
-        },
-      });
-      const finalResults: MinedCell[] = await firstValueFrom(cellReviewRef.afterClosed());
-      if (!finalResults) return;
-      /// Assign the concepts to the corresponding rows
-      const rowMultiHpoStrings = await this.configService.getMultiHpoStrings(finalResults);
+  isCellReviewOpen = signal(false);
+  cellReviewData = signal<{ minedCells: MinedCell[]; title: string }>({ minedCells: [], title: '' });
 
-      const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
+  // Open the review dialog
+  openCellReview(minedCellList: MinedCell[], headerOriginal: string) {
+    this.cellReviewData.set({
+      minedCells: minedCellList,
+      title: headerOriginal,
+    });
+    this.isCellReviewOpen.set(true);
+  }
+
+  async handleCellReviewClosed(finalResults: MinedCell[] | null): Promise<void> {
+    this.isCellReviewOpen.set(false);
+    const colIndex = this.activeColIndex();
+    if (! colIndex) {
+      this.notificationService.showError("Could not retrieve active column index");
+      return;
+    }
+    const dto = this.etl_service.etlDto();
+      if (!dto) return;
+      const col = dto.table.columns[colIndex];
+      if (!col) return;
+      if (!finalResults) return;
+    const rowMultiHpoStrings = await this.configService.getMultiHpoStrings(finalResults);
+    const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
         if (i !== colIndex) return column;
         const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
           const mappedValue = rowMultiHpoStrings[rowIndex];
@@ -580,6 +583,25 @@ export class TableEditorComponent {
         return updatedCol;
       });
       this.etl_service.updateColumns(newColumns);
+  }
+
+  /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
+  async processMultipleHpoColumn(colIndex: number): Promise<void> {
+    const dto = this.etl_service.etlDto();
+    if (!dto) return;
+    const col = dto.table.columns[colIndex];
+    if (!col) return;
+    this.activeColIndex.set(colIndex);
+    try {
+      // Stage 1. Divide the cell entries into individual word groups (";" and new line) and map each one
+      const minedCellList: MinedCell[] = await this.getInitialMultipleHpoMapping(col);
+      
+      // Open the custom native dialog via signal states
+      this.cellReviewData.set({
+        minedCells: minedCellList,
+        title: col.header.original,
+      });
+      this.isCellReviewOpen.set(true);
     } catch (error) {
       this.notificationService.showError(`Mapping Error: ${error}`);
     }

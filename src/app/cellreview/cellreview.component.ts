@@ -1,50 +1,49 @@
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogActions,
-  MatDialogContent,
-} from '@angular/material/dialog';
 import { ClinicalStatus, MappedTerm, MinedCell } from '@workspace/ui';
-import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
+import { Component, computed, output, input, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms'; 
 import { IconComponent } from 'ng-hpo-uikit';
-import { inject } from '@angular/core';
 import { ask } from '@tauri-apps/plugin-dialog';
 import { MinedCellEditorComponent } from './mined-cell-editor.component';
+import { CommonModule } from '@angular/common';
 
-/* This component cycles thought each row (for a column) and allows the user to confirm/edit the HPO mapping. The input consists
-in the strings from the original column and a list of MiningConcept objects, each of which has an arraw of row indices that show
-which rows correspond to the concepts. The point of this widget is to review the mappings and add onsets if possible. The user can also delete mappings. */
 @Component({
   selector: 'app-cell-review',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
-    MatButtonModule,
-    MatDialogActions,
-    MatDialogContent,
-    MatMenuModule,
-    MatTableModule,
     MinedCellEditorComponent,
     IconComponent
-],
+  ],
   templateUrl: './cellreview.component.html',
   styleUrls: ['./cellreview.component.scss'],
 })
-export class CellReviewComponent {
-  public data = inject(MAT_DIALOG_DATA) as {
+export class CellReviewComponent implements AfterViewInit {
+  readonly update = output<MinedCell>();
+  readonly closed = output<MinedCell[] | null>();
+
+  readonly data = input.required<{
     minedCells: MinedCell[];
     title: string;
-  };
+  }>();
 
-  @Output() update = new EventEmitter<MinedCell>();
+  @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
 
-  public dialogRef = inject(MatDialogRef<CellReviewComponent>);
   currentIndex = signal(0);
-  allMinedCells = signal<MinedCell[]>(this.data.minedCells);
+  allMinedCells = signal<MinedCell[]>([]);
+
+  ngOnInit() {
+    if (this.data()?.minedCells) {
+      this.allMinedCells.set(this.data().minedCells);
+    }
+  }
+
+  ngAfterViewInit() {
+    if (this.dialogEl?.nativeElement) {
+      this.dialogEl.nativeElement.showModal();
+    }
+  }
+
   readonly currentCell = computed(() => {
     return this.allMinedCells()[this.currentIndex()];
   });
@@ -52,7 +51,7 @@ export class CellReviewComponent {
   readonly allAvailableTerms = computed(() => {
     const termsMap = new Map<string, { id: string; label: string }>();
     this.allMinedCells().forEach((cell) => {
-      cell.mappedTermList.forEach((term) => {
+      cell.mappedTermList?.forEach((term) => {
         termsMap.set(term.hpoId, { id: term.hpoId, label: term.hpoLabel });
       });
     });
@@ -61,7 +60,6 @@ export class CellReviewComponent {
 
   readonly termsToExclude = computed(() => {
     const cell = this.currentCell();
-    // Early return if no cell is loaded or active yet
     if (!cell || !cell.mappedTermList) {
       return this.allAvailableTerms();
     }
@@ -73,7 +71,8 @@ export class CellReviewComponent {
     if (this.currentIndex() < this.allMinedCells().length - 1) {
       this.currentIndex.update((i) => i + 1);
     } else {
-      this.dialogRef.close(this.allMinedCells());
+      this.dialogEl?.nativeElement.close();
+      this.closed.emit(this.allMinedCells());
     }
   }
 
@@ -98,17 +97,16 @@ export class CellReviewComponent {
     });
 
     if (confirmExit) {
-      this.dialogRef.close(null);
+      this.dialogEl?.nativeElement.close();
+      this.closed.emit(null);
     }
   }
 
-  /* This gets called by an output in MinedCellEditor when the user wants to exclude a specific term in a row */
   handleExcludeTerm(term: { id: string; label: string }): void {
     this.allMinedCells.update((cells) => {
       const newCells = [...cells];
       const current = newCells[this.currentIndex()];
 
-      // Create the new term object with Excluded status
       const newExcludedTerm: MappedTerm = {
         hpoId: term.id,
         hpoLabel: term.label,
@@ -116,12 +114,11 @@ export class CellReviewComponent {
         onset: 'na',
       };
 
-      current.mappedTermList = [...current.mappedTermList, newExcludedTerm];
+      current.mappedTermList = [...(current.mappedTermList || []), newExcludedTerm];
       return newCells;
     });
   }
 
-  /* Called from MinedCellEditorComponent if user wants to exclude all not-mentioned terms for a row */
   handleExcludeAll(): void {
     const shelf = this.termsToExclude();
     if (shelf.length === 0) return;
@@ -129,7 +126,7 @@ export class CellReviewComponent {
     this.allMinedCells.update((cells) => {
       const newCells = [...cells];
       const current = { ...newCells[this.currentIndex()] };
-      const existingIds = new Set(current.mappedTermList.map((t) => t.hpoId));
+      const existingIds = new Set(current.mappedTermList?.map((t) => t.hpoId) || []);
       const newExclusions: MappedTerm[] = shelf
         .filter((term) => !existingIds.has(term.id))
         .map((term) => ({
@@ -138,7 +135,7 @@ export class CellReviewComponent {
           status: ClinicalStatus.Excluded,
           onset: 'na',
         }));
-      current.mappedTermList = [...current.mappedTermList, ...newExclusions];
+      current.mappedTermList = [...(current.mappedTermList || []), ...newExclusions];
       newCells[this.currentIndex()] = current;
 
       return newCells;

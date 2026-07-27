@@ -1,37 +1,38 @@
-<div class="review-container">
-  <div class="review-header">
-    <h2>{{ data.title }}</h2>
-    <div class="stepper-controls">
-      <button mat-icon-button (click)="prev()" [disabled]="currentIndex() === 0">
-        <app-icon name="chevron_left" [size]="20" />
-      </button>
-      <span class="progress-text">
-        Record <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
-      </span>
-      <button mat-icon-button (click)="next()">
-        <app-icon [name]="currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right'" [size]="20" />
-      </button>
+<dialog #dialogEl class="orcid-modal cell-review-modal">
+  <div class="dialog-content">
+    <div class="review-header">
+      <h2>{{ data().title }}</h2>
+      <div class="stepper-controls">
+        <button type="button" class="icon-btn" (click)="prev()" [disabled]="currentIndex() === 0">
+          <app-icon name="chevron_left" [size]="20" />
+        </button>
+        <span class="progress-text">
+          Record <strong>{{ currentIndex() + 1 }}</strong> of {{ allMinedCells().length }}
+        </span>
+        <button type="button" class="icon-btn" (click)="next()">
+          <app-icon [name]="currentIndex() === allMinedCells().length - 1 ? 'check' : 'chevron_right'" [size]="20" />
+        </button>
+      </div>
+    </div>
+
+    <div class="dialog-body">
+      <app-mined-cell-editor
+        [cell]="currentCell()"
+        [toExclude]="termsToExclude()"
+        (excludeTerm)="handleExcludeTerm($event)"
+        (excludeAll)="handleExcludeAll()"
+        (cellChange)="handleCellChange($event)"
+      >
+      </app-mined-cell-editor>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
+      @if (allMinedCells().length > 0) {
+        <button type="button" class="btn-outline-primary" (click)="next()">
+          {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
+        </button>
+      }
     </div>
   </div>
-
-  <mat-dialog-content>
-    <app-mined-cell-editor
-      [cell]="currentCell()"
-      [toExclude]="termsToExclude()"
-      (excludeTerm)="handleExcludeTerm($event)"
-      (excludeAll)="handleExcludeAll()"
-      (cellChange)="handleCellChange($event)"
-    >
-    </app-mined-cell-editor>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
-    @if (allMinedCells().length > 0) {
-      <span style="width: 8px"></span>
-      <button class="btn-outline-primary" (click)="next()">
-        {{ currentIndex() === allMinedCells().length - 1 ? 'Finish & Save' : 'Next Record' }}
-      </button>
-    }
-  </mat-dialog-actions>
-</div>
+</dialog>
