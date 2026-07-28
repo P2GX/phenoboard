@@ -104,6 +104,8 @@ export class AddcaseComponent {
 
   readonly ageEntries = computed(() => this.ageService.selectedTerms());
 
+
+
   demographicSummary = computed<string | null>(() => {
     const value = this.demographData(); // Angular automatically tracks this dependency
     if (!value?.individualId) {
@@ -134,6 +136,16 @@ export class AddcaseComponent {
     const mainSummary = `Individual: ${value.individualId} - ${baseInfo}`;
     return value.comment ? `${mainSummary} (${value.comment})` : mainSummary;
   });
+
+    readonly pmidDisplay = computed(() => {
+      const dto = this.pmidDto();
+      if (!dto || dto.pmid.length < 7) {
+        return "n/a";
+      }
+      const title = dto.title;
+      const truncatedTitle = title.length > 55 ? title.slice(0, 50) + '...' : title;
+      return `${truncatedTitle} (${dto.pmid})`;
+    });
 
   /** This function is called when the user wants to finalize
    * the creation of a new Phenopacket row with all information
@@ -341,10 +353,12 @@ export class AddcaseComponent {
 
   openPmid = signal(false);
   pmidDialogInitialData = signal<PmidDto | null>(null);
+
   openPubmedDialog(): void {
     this.pmidDialogInitialData.set(this.pmidDto());
     this.openPmid.set(true);
   }
+
   handleClosePmidDialog(result: PmidDto | null): void {
     this.openPmid.set(false);
     if (!result) return;

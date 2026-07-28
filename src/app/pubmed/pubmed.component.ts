@@ -23,6 +23,7 @@ export class PubmedComponent {
   availablePmids: WritableSignal<PmidDto[]> = this.pmidService.pmidsSignal;
   selectedPmid = computed(() => this.pmidDto().pmid);
 
+
   constructor() {
     // seed from initialData once, and open the dialog as soon as it exists in the DOM
     afterNextRender(() => {

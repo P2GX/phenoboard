@@ -210,3 +210,10 @@
   flex-direction: column;
   overflow: hidden; /* Keeps actions inside the container boundary */
 }
+
+.result-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}

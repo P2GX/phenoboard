@@ -46,20 +46,15 @@
           'Whitespace characters are removed automatically.',
         ]"
       />
-      <app-pubmed #pubmedModal />
+
     } @else {
-      <!-- Show result box with reset button when successful -->
-      <div style="result-box">
-        <div style="result-info">
-          <div style="result-title">
-            {{ pmidDto().title }}
-          </div>
-          <div class="result-subtitle">
-            {{ pmidDto().pmid }}
+        <div class="result-flex">
+          <div class="result-title">
+            {{ pmidDisplay() }}
           </div>
           <button (click)="resetPmidDto()" class="btn-outline-primary btn-small">Reset</button>
         </div>
-      </div>
+      
     }
   </section>
 
@@ -183,5 +178,6 @@
 @if (openPmid()) {
   <app-pubmed
     [initialData]="pmidDialogInitialData()"
-    (closeDialog)="handleClosePmidDialog($event)" />
+    (closeDialog)="handleClosePmidDialog($event)"
+  />
 }
