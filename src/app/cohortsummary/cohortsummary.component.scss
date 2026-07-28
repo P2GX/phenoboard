@@ -12,33 +12,6 @@
   display: inline;
 }
 
-/* Ultra-compact, subtle inline button style */
-.btn-show-pmids-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #f0f4f8; /* Soft neutral/blue background */
-  color: #0066cc; /* High contrast blue text/icon */
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 11px; /* Tiny, micro-utility text scale */
-  font-weight: 600;
-  padding: 3px 8px; /* Minimal padding */
-  cursor: pointer;
-  white-space: nowrap; /* Prevents the button text from wrapping */
-  transition: all 0.1s ease;
-}
-
-.btn-show-pmids-inline:hover {
-  background-color: #0066cc;
-  color: #ffffff;
-  border-color: #0066cc;
-}
-
-.btn-show-pmids-inline:active {
-  transform: scale(0.96);
-}
 
 .disease-summary ul {
   list-style-type: none; /* Removes the dots */
@@ -92,15 +65,3 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.cohort-acronym-input {
-  border: 1px solid #93c5fd; // border-blue-300
-  border-radius: 0.25rem;   // rounded
-  padding: 0.125rem 0.25rem; // px-1 py-0.5
-  width: 5rem;               // w-20
-  outline: none;             // outline-none
-  
-  &:focus {
-    box-shadow: 0 0 0 1px #3b82f6; // ring-1 ring-blue-500
-    border-color: #3b82f6;
-  }
-}

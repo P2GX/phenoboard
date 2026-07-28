@@ -1,0 +1,21 @@
+.moi-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.moi-badge {
+  background-color: #f1f5f9; // slate-100
+  color: #475569; // slate-600
+  padding: 0.125rem 0.375rem; // py-0.5 px-1.5
+  border-radius: 0.125rem; // rounded-sm
+  border: 1px solid #e2e8f0; // slate-200
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.moi-badges__empty {
+  font-size: 9px;
+  color: #94a3b8; // slate-400
+  font-style: italic;
+}

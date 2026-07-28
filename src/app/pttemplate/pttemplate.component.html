@@ -2,12 +2,13 @@
   @if (cohortData(); as cohort) {
     <app-cohort-summary 
     [cohort]="cohort"
-    (updateAcronym)="handleAcronym($any($event))"/>
+    (updateAcronym)="handleAcronym($any($event))"
+    (updateMoi)="handleMoi($any($event))"/>
   } @else {
     <p>Cohort not initialized.</p>
   }
 
-  <!-- String input section -->
+  <!-- String input section 
   <div class="section-gap-top">
     <app-cohort-metadata
       [cohortData]="cohortData()!"
@@ -15,7 +16,7 @@
       (updateAcronym)="handleAcronym($any($event))"
       (updateMoi)="handleMoi($any($event))"
     >
-    </app-cohort-metadata>
+    </app-cohort-metadata>-->
 
     <div class="hpo-filter-row">
       <label for="hpoFilter" class="hint-text">Filter HPO columns:</label>
@@ -501,4 +502,5 @@
       (saved)="handleIndividualSaved($event)">
     </app-individual-edit>
   }
-</div>
+
+  

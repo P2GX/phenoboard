@@ -3,10 +3,13 @@ import {
   CohortData,
   DiseaseData,
   GeneTranscriptData,
+  ModeOfInheritance,
 } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { PmidDialogComponent } from '../util/pmidvis/pmid-dialog.component';
 import { FormsModule } from '@angular/forms';
+import { MoiSummaryDialogComponent } from '../moi-summary-dialog/moi-summary-dialog.component';
+import { DocumentButtonComponent } from 'ng-hpo-uikit';
 
 
 /* Display a summary of the salient characteristics of the Cohort */
@@ -15,7 +18,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './cohortsummary.component.html',
   styleUrls: ['./cohortsummary.component.scss'],
   standalone: true,
-  imports: [PmidDialogComponent, FormsModule],
+  imports: [DocumentButtonComponent, PmidDialogComponent, FormsModule, MoiSummaryDialogComponent],
 })
 export class CohortSummaryComponent {
   cohort = input.required<CohortData>();
@@ -30,6 +33,12 @@ export class CohortSummaryComponent {
    displayAcronym = computed(() => this.cohort().cohortAcronym || '---');
   showCohortAcronym = signal(false);
   showMoiIndex = signal<number | null>(null);
+  updateMoi = output<{ diseaseIndex: number; moi: ModeOfInheritance }>();
+  showMoiDialog = signal<boolean>(false);
+  toggleMoiDialog() {
+    this.showMoiDialog.update((v) => !v);
+  }
+
 
   /* return the total count of distinct variants */
   numVariants = computed((): number => {
@@ -73,5 +82,21 @@ export class CohortSummaryComponent {
   submitAcronym(): void {
     this.updateAcronym.emit(this.acronymInput());
     this.showCohortAcronym.set(false);
+  }
+
+  showMoiModalIndex = signal<number | null>(null);
+  openMoiModal(index: number) {
+    this.showMoiModalIndex.set(index);
+  }
+
+  closeMoiModal() {
+    this.showMoiModalIndex.set(null);
+  }
+
+  onMoiChange(selectedMoi: any) {
+    const currentIndex = this.showMoiModalIndex();
+    if (currentIndex !== null) {
+      this.updateMoi.emit({ diseaseIndex: currentIndex, moi: selectedMoi });
+    }
   }
 }

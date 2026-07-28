@@ -5,6 +5,7 @@ export * from './lib/models/transform-operations';
 export * from './lib/models/cohort_dto';
 export * from './lib/models/variant_dto';
 export * from './lib/models/hpo_term_dto';
+export * from './lib/models/moi-abbreviations';
 export * from './lib/individual-comment/individual-comment.component';
 
 export * from './lib/confirm/confirmdialog.component';

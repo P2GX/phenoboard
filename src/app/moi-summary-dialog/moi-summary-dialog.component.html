@@ -1,0 +1,20 @@
+@for (disease of diseases(); track disease.diseaseId; let i = $index) {
+  <div class="moi-row">
+    <div class="moi-row__header">
+      <span class="moi-row__label">{{ disease.diseaseLabel }}</span>
+      <button (click)="toggleMoi(i)" class="moi-row__toggle">
+        {{ showMoiIndex() === i ? 'close' : 'edit moi' }}
+      </button>
+    </div>
+
+    <hpo-moi-badges [modeOfInheritanceList]="disease.modeOfInheritanceList" />
+
+    @if (showMoiIndex() === i) {
+      <div class="moi-row__editor">
+        <app-moiselector
+          (moiChange)="updateMoi.emit({ diseaseIndex: i, moi: $any($event) })"
+        ></app-moiselector>
+      </div>
+    }
+  </div>
+}
