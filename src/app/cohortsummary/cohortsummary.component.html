@@ -52,10 +52,32 @@
       </svg>
       <span>PMIDs</span>
     </button>
+    <span class="text-slate-500">Acronym:</span>
+      @if (!showCohortAcronym()) {
+        <span
+          class="font-mono font-bold text-blue-600 px-1.5 py-0.5 bg-blue-50 rounded border border-blue-100"
+        >
+          {{ displayAcronym() }}
+        </span>
+        <button
+          (click)="showCohortAcronym.set(true); acronymInput.set(displayAcronym())"
+          class="hover:scale-110 transition-transform text-[10px]"
+        >
+          ✏️
+        </button>
+      } @else {
+        <div class="flex items-center gap-1">
+          <input
+          [(ngModel)]="acronymInput"
+            class="cohort-acronym-input"
+          />
+          <button (click)="submitAcronym()" class="text-green-600 font-bold px-1">✓</button>
+          <button (click)="showCohortAcronym.set(false)" class="text-slate-400 px-1">✕</button>
+        </div>
+      }
   </div>
 </div>
-
-<button (click)="togglePmidModal()">View Citations</button>
+      
 
 @if (showPmid()) {
   <div class="modal-overlay" (click)="togglePmidModal()">

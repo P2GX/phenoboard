@@ -1,6 +1,8 @@
 <div class="page-container">
   @if (cohortData(); as cohort) {
-    <app-cohort-summary [cohort]="cohort"></app-cohort-summary>
+    <app-cohort-summary 
+    [cohort]="cohort"
+    (updateAcronym)="handleAcronym($any($event))"/>
   } @else {
     <p>Cohort not initialized.</p>
   }

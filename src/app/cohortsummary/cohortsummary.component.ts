@@ -1,13 +1,13 @@
-import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import {
   CohortData,
   DiseaseData,
   GeneTranscriptData,
 } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { SourcePmid } from '@workspace/ui';
 import { PmidDialogComponent } from '../util/pmidvis/pmid-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+
 
 /* Display a summary of the salient characteristics of the Cohort */
 @Component({
@@ -15,7 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './cohortsummary.component.html',
   styleUrls: ['./cohortsummary.component.scss'],
   standalone: true,
-  imports: [PmidDialogComponent],
+  imports: [PmidDialogComponent, FormsModule],
 })
 export class CohortSummaryComponent {
   cohort = input.required<CohortData>();
@@ -24,6 +24,12 @@ export class CohortSummaryComponent {
   citations = computed(() => {
     return this.cohortService.getAllPmids();
   });
+  updateAcronym = output<string>();
+
+  acronymInput = signal('');
+   displayAcronym = computed(() => this.cohort().cohortAcronym || '---');
+  showCohortAcronym = signal(false);
+  showMoiIndex = signal<number | null>(null);
 
   /* return the total count of distinct variants */
   numVariants = computed((): number => {
@@ -62,5 +68,10 @@ export class CohortSummaryComponent {
 
   togglePmidModal() {
     this.showPmid.update((v) => !v);
+  }
+
+  submitAcronym(): void {
+    this.updateAcronym.emit(this.acronymInput());
+    this.showCohortAcronym.set(false);
   }
 }
