@@ -94,14 +94,14 @@
   background-color: #eff6ff; /* blue-50 */
   border: 1px solid #bfdbfe; /* blue-200 */
   border-radius: 8px;
-  padding: 4px 12px;
+  padding: 4px 10px;
+  gap: 8px;
 }
 
 .age-value {
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e3a8a;
-  margin-right: 8px;
 }
 
 .age-actions {
@@ -130,6 +130,25 @@
   color: #dc2626;
 }
 
+/* Even smaller reset button for ages */
+.age-reset-xs {
+  background-color: #e2e8f0;
+  border: none;
+  border-radius: 4px;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  margin-left: auto;
+
+  &:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
 /* Radio Buttons */
 .radio-stack {
   display: flex;
@@ -146,15 +165,6 @@
 
 .radio-item input {
   margin-right: 8px;
-}
-
-/* Footer */
-.form-footer {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding-bottom: 6px;
 }
 
 .modal-backdrop {
@@ -236,10 +246,10 @@
   color: #334155;
 }
 
-/* The active state highlighting card */
+/* The active state highlighting card: Solid blue with white text */
 .segment-item.is-active {
-  background-color: #ffffff;
-  color: #2563eb; /* Clean modern blue */
+  background-color: #2563eb;
+  color: #ffffff;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.1),
     0 1px 2px rgba(0, 0, 0, 0.06);

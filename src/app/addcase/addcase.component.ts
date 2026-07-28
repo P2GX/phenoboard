@@ -25,10 +25,11 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { ConfirmDialogComponent, toCellValue } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
-import { HelpButtonComponent, IconComponent } from 'ng-hpo-uikit';
 import { AppStatusService } from '../services/app_status_service';
 import {
+  HelpButtonComponent,
   HierarchyMapItem,
+  IconComponent,
   HpoTwostepData,
   OntologyMatch,
   PolishedHpoAnnotation,

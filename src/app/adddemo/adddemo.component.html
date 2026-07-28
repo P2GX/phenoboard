@@ -1,4 +1,3 @@
-<!-- adddemo.component.html -->
 <form [formGroup]="demoForm" (ngSubmit)="submitDemo(true)" class="form-container">
   <h2 class="form-header">Demographic Information</h2>
 
@@ -34,36 +33,15 @@
 
       <!-- 2. Age of Onset -->
       <div class="field-group">
-        <div class="label-with-help">
-          <label class="compact-label">Age of Onset</label>
-          <hpo-help-button
-            title="Age of Onset"
-            [lines]="[
-              'The age of the individual in the phenopacket at the time of the initial disease manifestation.',
-              'The onset of specific disease manifestations (HPO terms) can additionally be recorded as part of the PhenotypicFeatures.',
-            ]"
-            helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
-          />
-        </div>
+        <label class="compact-label">Age of Onset</label>
         <div class="age-slot">
           @if (isAgeEmpty('ageOfOnset')) {
             <button
               type="button"
               (click)="openAgeWizard('ageOfOnset')"
-              class="btn btn-outline btn-small icon-gap"
+              class="btn-primary-sm"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="icon-svg"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
+              <app-icon name="add_circle_outline"/>
               Set Age
             </button>
           } @else {
@@ -107,6 +85,14 @@
                   </svg>
                 </button>
               </div>
+              <button
+                type="button"
+                (click)="demoForm.get('ageOfOnset')?.setValue('')"
+                class="age-reset-xs"
+                title="Reset Age"
+              >
+                Reset
+              </button>
             </div>
           }
         </div>
@@ -114,35 +100,15 @@
 
       <!-- 3. Age at Last Encounter -->
       <div class="field-group">
-        <div class="label-with-help">
-          <label class="compact-label">Age at last encounter</label>
-          <hpo-help-button
-            title="Age at last encounter"
-            [lines]="[
-              'The age of the individual in the phenopacket at the time of the last recorded medical encounter.',
-            ]"
-            helpUrl="https://p2gx.github.io/phenoboard/help/case.html#add-and-edit-age-entries"
-          />
-        </div>
+        <label class="compact-label">Age at last encounter</label>
         <div class="age-slot">
           @if (isAgeEmpty('ageAtLastEncounter')) {
             <button
               type="button"
               (click)="openAgeWizard('ageAtLastEncounter')"
-              class="btn btn-outline btn-small icon-gap"
+              class="btn-primary-sm"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="icon-svg"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
+               <app-icon name="add_circle_outline"/>
               Set Age
             </button>
           } @else {
@@ -186,6 +152,14 @@
                   </svg>
                 </button>
               </div>
+              <button
+                type="button"
+                (click)="demoForm.get('ageAtLastEncounter')?.setValue('')"
+                class="age-reset-xs"
+                title="Reset Age"
+              >
+                Reset
+              </button>
             </div>
           }
         </div>

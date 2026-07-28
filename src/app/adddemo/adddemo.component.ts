@@ -12,7 +12,7 @@ import { AgeInputService } from '../services/age_service';
 import { AddageComponent } from '../addages/addage.component';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { asciiValidator, IndividualCommentComponent } from '@workspace/ui';
-import { HelpButtonComponent } from 'ng-hpo-uikit';
+import { IconComponent, HelpButtonComponent } from 'ng-hpo-uikit';
 
 @Component({
   selector: 'app-adddemo',
@@ -22,6 +22,7 @@ import { HelpButtonComponent } from 'ng-hpo-uikit';
     FormsModule,
     ReactiveFormsModule,
     HelpButtonComponent,
+    IconComponent,
     IndividualCommentComponent,
   ],
   templateUrl: './adddemo.component.html',
