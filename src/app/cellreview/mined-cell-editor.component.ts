@@ -19,7 +19,7 @@ import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector } fr
   styleUrls: ['./mined-cell-editor.component.scss'],
 })
 export class MinedCellEditorComponent {
-  cell = input.required<MinedCell>();
+  cell = input.required<MinedCell | undefined>();
   toExclude = input.required<{ id: string; label: string }[]>();
   cellChange = output<MinedCell>();
   excludeTerm = output<{ id: string; label: string }>();

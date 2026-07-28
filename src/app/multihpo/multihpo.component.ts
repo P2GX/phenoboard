@@ -41,20 +41,13 @@ export class MultiHpoComponent implements AfterViewInit {
 
   @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
 
-  // Inputs / Outputs replacing MatDialog data & refs
   readonly title = input.required<string>();
   readonly initialConcepts = input.required<MiningConcept[]>();
   readonly closed = output<MiningConcept[] | null>();
 
   hpoAutocompleteString = '';
 
-  constructor() {
-    // If instantiated dynamically via service, use input signals
-    // Fallback parsing from initial configuration if needed
-  }
-
   ngOnInit() {
-    // Standard initialization block for concepts
     const conceptsData = this.initialConcepts() ?? [];
     const processed = conceptsData
       .filter((c) => {
@@ -221,9 +214,6 @@ export class MultiHpoComponent implements AfterViewInit {
   }
 
   copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).then(() => {
-    // Optional: show a quick notification if you want feedback
-    console.log('Copied to clipboard:', text);
-  });
-}
+    navigator.clipboard.writeText(text);
+  }
 }

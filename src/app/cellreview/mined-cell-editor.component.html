@@ -4,7 +4,7 @@
       <app-icon name="subject" [size]="20" class="text-slate-400" />
       <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Source text</span>
     </div>
-    <div class="source-bubble">"{{ cell().cellText }}"</div>
+    <div class="source-bubble">"{{ cell()?.cellText }}"</div>
   </div>
 
   <table class="compact-table">
@@ -17,7 +17,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (term of cell().mappedTermList; track term.hpoId) {
+      @for (term of cell()?.mappedTermList; track term.hpoId) {
         <tr>
           <td class="term-label">
             <strong>{{ term.hpoLabel || 'Unknown Term' }}</strong>
