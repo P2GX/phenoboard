@@ -51,7 +51,6 @@ export class EtlDataTableComponent {
    */
   onHeaderContextMenu(event: MouseEvent, index: number, header: EtlColumnHeader): void {
     event.preventDefault();
-    console.log("onHeaderContextMenu ", index, header);
     this.headerContextMenuRequested.emit({ event, index, header });
   }
 

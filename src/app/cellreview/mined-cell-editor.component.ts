@@ -40,9 +40,10 @@ export class MinedCellEditorComponent {
     this.cell()?.mappedTermList.filter((t) => t.status !== 'excluded'),
   );
 
-  readonly excludedTerms = computed(() =>
-    this.cell()?.mappedTermList.filter((t) => t.status === 'excluded'),
-  );
+  readonly excludedTerms = computed(() => {
+    const currentCell = this.cell();
+    return currentCell?.mappedTermList?.filter((t) => t.status === 'excluded') ?? [];
+  });
   readonly hasExclusions = computed(() => (this.excludedTerms().length ?? 0) > 0);
 
   readonly Status = ClinicalStatus;
@@ -69,9 +70,11 @@ export class MinedCellEditorComponent {
   }
 
   updateStatus(term: MappedTerm, newStatus: string): void {
+    const currentCell = this.cell();
+    if (!currentCell) return;
     const updatedCell: MinedCell = {
-      ...this.cell(),
-      mappedTermList: this.cell().mappedTermList.map((t) =>
+      ...currentCell,
+      mappedTermList: currentCell.mappedTermList.map((t) =>
         t.hpoId === term.hpoId ? { ...t, status: newStatus as ClinicalStatus } : t,
       ),
     };
@@ -84,9 +87,11 @@ export class MinedCellEditorComponent {
   }
 
   updateOnset(term: MappedTerm, newOnset: string): void {
+    const currentCell = this.cell();
+    if (!currentCell) return;
     const updatedCell: MinedCell = {
-      ...this.cell(),
-      mappedTermList: this.cell().mappedTermList.map((t) =>
+      ...currentCell,
+      mappedTermList: currentCell.mappedTermList.map((t) =>
         t.hpoId === term.hpoId ? { ...t, onset: newOnset } : t,
       ),
     };
@@ -94,6 +99,8 @@ export class MinedCellEditorComponent {
   }
 
   addOnsetString(term: MappedTerm): void {
+    const currentCell = this.cell();
+    if (!currentCell) return;
     const componentRef: ComponentRef<AddageComponent> = createComponent(AddageComponent, {
       environmentInjector: this.injector,
     });
@@ -116,8 +123,8 @@ export class MinedCellEditorComponent {
       }
       this.ageService.addSelectedTerm(result);
       const updatedCell: MinedCell = {
-        ...this.cell(),
-        mappedTermList: this.cell().mappedTermList.map((t) =>
+        ...currentCell,
+        mappedTermList: currentCell.mappedTermList.map((t) =>
           t.hpoId === term.hpoId ? { ...t, onset: result } : t,
         ),
       };

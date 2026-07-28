@@ -251,11 +251,6 @@ export class AddcaseComponent {
     annot.isObserved = !annot.isObserved;
   }
 
-  /* The following commands deal with the table of annotated terms */
-  annotateSelectedText(): void {
-    throw new Error('Method not implemented.');
-  }
-
   /* This is called by the button to submit the annotations obtained by fenominal text mining
     of an input text. */
   submitAnnotations(): void {

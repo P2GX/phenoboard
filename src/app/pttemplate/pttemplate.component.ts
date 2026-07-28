@@ -30,7 +30,6 @@ import { CohortSummaryComponent } from '../cohortsummary/cohortsummary.component
 import { ConfirmDialogComponent, ConfirmDialogData } from '@workspace/ui';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { CohortMetadataComponent } from '../util/cohortmetadata/cohort-metadata.component';
 import { RouterLink } from '@angular/router';
 import { OntologyMatch } from '@workspace/ui';
 import { PopoverComponent } from '../util/popover/popover-component';
@@ -67,7 +66,6 @@ interface Option {
     CohortSummaryComponent,
     HelpButtonComponent,
     IndividualEditComponent,
-    CohortMetadataComponent,
     RouterLink,
     PopoverComponent,
     TableCellEditorComponent,
