@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, input, output, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, inject, signal, computed, input, output, effect, ViewChild, ElementRef, AfterViewInit, viewChild, afterEveryRender, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgeInputService } from '../services/age_service';
 
@@ -9,8 +9,8 @@ import { AgeInputService } from '../services/age_service';
   templateUrl: './addage.component.html',
   styleUrl: './addage.component.scss',
 })
-export class AddageComponent implements AfterViewInit {
-  @ViewChild('ageDialogElement') dialogEl!: ElementRef<HTMLDialogElement>;
+export class AddageComponent {
+  private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('ageDialogElement');
   private ageService = inject(AgeInputService);
 
   current = input<string>('');
@@ -19,14 +19,7 @@ export class AddageComponent implements AfterViewInit {
 
   readonly existingAgeStrings = this.ageService.selectedTerms;
   customAge = signal('');
-
   readonly existingTerms = this.ageService.allAvailableTerms;
-
-  ngAfterViewInit() {
-    if (this.dialogEl?.nativeElement) {
-      this.dialogEl.nativeElement.showModal();
-    }
-  }
 
   filteredTerms = computed(() => {
     const typed = this.customAge().trim().toLowerCase();
@@ -47,12 +40,19 @@ export class AddageComponent implements AfterViewInit {
         this.customAge.set(initial);
       }
     });
+
+    afterNextRender(()=> {
+      const modal = this.dialogEl().nativeElement;
+      if (!modal.open) {
+        modal.showModal();
+      }
+    });
   }
 
   selectExisting(term: string): void {
     if (term) {
       this.ageService.addSelectedTerm(term);
-      this.dialogEl?.nativeElement.close();
+      this.close();
       this.saved.emit(term);
     }
   }
@@ -63,7 +63,7 @@ export class AddageComponent implements AfterViewInit {
 
     if (this.ageService.validateAgeInput(val)) {
       this.ageService.addSelectedTerm(val);
-      this.dialogEl?.nativeElement.close();
+      this.close();
       this.saved.emit(val);
     } else {
       alert('Invalid format. Please use ISO8601 (e.g. P1Y) or Gestational (e.g. G20w).');
@@ -71,7 +71,20 @@ export class AddageComponent implements AfterViewInit {
   }
 
   onCancel(): void {
-    this.dialogEl?.nativeElement.close();
+    this.close();
     this.cancelled.emit();
+  }
+
+  private close(): void {
+    const modal = this.dialogEl().nativeElement;
+    if (modal.open) {
+      modal.close();
+    }
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === this.dialogEl().nativeElement) {
+      this.onCancel();
+    }
   }
 }

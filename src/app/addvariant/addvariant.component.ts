@@ -1,14 +1,18 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   inject,
+  input,
   OnInit,
+  output,
+  viewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog'; // Keep if you use Angular Material Dialog container overlay, otherwise replace with custom dialog reference if fully migrated
 import { ConfigService } from '../services/config.service';
 import {
   HgvsVariant,
@@ -53,10 +57,28 @@ type ValidatorFn = () => Promise<void>;
 export class AddVariantComponent implements OnInit {
   private configService = inject(ConfigService);
   private cohortService = inject(CohortDtoService);
-  private dialogRef = inject(MatDialogRef<AddVariantComponent, VariantDto | null>);
-  readonly data = inject<AddVariantDialogData>(MAT_DIALOG_DATA);
-  readonly kind: VariantKind = this.data.kind;
   private cdr = inject(ChangeDetectorRef);
+
+  data = input.required<AddVariantDialogData>();
+  result = output<VariantDto | undefined>();
+
+
+  private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('variantDialogElement');
+  private emitted = false;
+  private pendingResult?: VariantDto;
+ 
+  get kind(): VariantKind {
+    return this.data().kind;
+  }
+  
+  constructor() {
+    afterNextRender(() => {
+      const modal = this.dialogEl().nativeElement;
+      if (!modal.open) {
+        modal.showModal();
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
@@ -241,7 +263,7 @@ export class AddVariantComponent implements OnInit {
   }
 
   cancel(): void {
-    this.dialogRef.close();
+    this.close();
   }
 
   getSubmitLabel(): string {
@@ -260,20 +282,32 @@ export class AddVariantComponent implements OnInit {
       this.cohortService.addHgvsVariant(this.currentHgvsVariant);
       const hgvsVarDto: VariantDto = displayHgvs(this.currentHgvsVariant, true);
       hgvsVarDto.count = this.isBiallelic ? 2 : 1;
-      this.dialogRef.close(hgvsVarDto);
+      this.finish(hgvsVarDto);
     } else if (this.currentStructuralVariant != null) {
       this.cohortService.addStructuralVariant(this.currentStructuralVariant);
       const svVarDto: VariantDto = displaySv(this.currentStructuralVariant, true);
       svVarDto.count = this.isBiallelic ? 2 : 1;
-      this.dialogRef.close(svVarDto);
+      this.finish(svVarDto);
     } else if (this.currentIntergenicVariant != null) {
       this.cohortService.addIntergenicVariant(this.currentIntergenicVariant);
       const IgVarDto: VariantDto = displayIntergenic(this.currentIntergenicVariant, true);
       IgVarDto.count = this.isBiallelic ? 2 : 1;
-      this.dialogRef.close(IgVarDto);
+      this.finish(IgVarDto);
     } else {
       alert('Unable to add variant');
       this.errorMessage = 'attempt to add invalid variant';
+    }
+  }
+
+  private finish(dto: VariantDto): void {
+    this.pendingResult = dto;
+    this.close();
+  }
+
+  private close(): void {
+    const modal = this.dialogEl().nativeElement;
+    if (modal.open) {
+      modal.close();
     }
   }
 }

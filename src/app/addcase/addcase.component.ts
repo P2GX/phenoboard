@@ -1,5 +1,4 @@
 import { Component, inject, Input, NgZone, viewChild } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
@@ -9,20 +8,20 @@ import { AdddemoComponent } from '../adddemo/adddemo.component';
 import { AgeInputService } from '../services/age_service';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import {
-  GeneVariantData,
-  IndividualData,
   CohortData,
-} from '../../../libs/ui/src/lib/models/cohort_dto';
-import { HpoTermData, HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
+  ConfirmDialogComponent, ConfirmDialogData, toCellValue ,
+  GeneVariantData,
+  HpoTermData, HpoTermDuplet,
+  IndividualData,
+  VariantDto, VariantType
+} from '@workspace/ui';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
-import { VariantDto, VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
+import { AddVariantComponent, AddVariantDialogData, VariantKind } from '../addvariant/addvariant.component';
 import { MatDialog } from '@angular/material/dialog';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent, ConfirmDialogData, toCellValue } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
 import { catchError, firstValueFrom, from, Observable, of, Subject } from 'rxjs';
 import { AppStatusService } from '../services/app_status_service';
@@ -34,7 +33,7 @@ import {
   OntologyMatch,
   PolishedHpoAnnotation,
 } from 'ng-hpo-uikit';
-import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';
+import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper/hpo-dialog-wrapper.component';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -42,7 +41,7 @@ import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component'
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent, ConfirmDialogComponent],
+  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent, ConfirmDialogComponent, HpoDialogWrapperComponent, AddageComponent, AddVariantComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })
@@ -275,7 +274,50 @@ export class AddcaseComponent {
     annotation.onsetString = newValue;
   }
 
-  openVariantEditor(varKind: VariantKind): void {
+
+  showVariantEditor = signal(false);
+variantEditorData: AddVariantDialogData | null = null;
+
+openVariantEditor(varKind: VariantKind): void {
+  this.variantEditorData = { rowId: /* whatever rowId this dialog is scoped to */, kind: varKind };
+  this.showVariantEditor.set(true);
+}
+
+onVariantEditorResult(result: VariantDto | undefined): void {
+  this.showVariantEditor.set(false);
+  if (!result) return;
+
+  const { variantKey, count: alleleCount, isValidated } = result;
+  if (variantKey == null) {
+    this.notificationService.showError('Could not retrieve variantKey');
+    return;
+  }
+  if (!isValidated) {
+    this.notificationService.showError('Variant could not be validated');
+    return;
+  }
+  const typeMapping: Record<VariantKind, string> = {
+    [VariantKind.HGVS]: 'HGVS',
+    [VariantKind.SV]: 'SV',
+    [VariantKind.INTERGENIC]: 'INTERGENICHGVS',
+  };
+  const variantType = typeMapping[this.variantEditorData!.kind];
+  if (!variantType) {
+    return this.notificationService.showError(`Could not identify variant kind ${this.variantEditorData!.kind}`);
+  }
+  const dto: VariantDto = {
+    ...result,
+    variantType: variantType as VariantType,
+    transcript: variantType === 'INTERGENIC' ? '' : result.transcript,
+    isValidated: false,
+  };
+
+  const entriesToAdd = alleleCount === 2 ? [dto, dto] : [dto];
+  this.alleles.update((current) => [...current, ...entriesToAdd]);
+}
+
+
+  openVariantEditorOLD(varKind: VariantKind): void {
     const dialogRef = this.dialog.open(AddVariantComponent, {
       data: { kind: varKind },
       width: '600px',
@@ -406,54 +448,37 @@ onConfirmDialogResult(confirmed: boolean): void {
     this.pmidDto.set(defaultPmidDto());
   }
 
+  showHpoTwoStepDialog = signal(false);
+  protected hpoDialogData?: HpoTwostepData;
+
   openHpoTwoStepDialog(): void {
-    const dialogData: HpoTwostepData = {
+    this.hpoDialogData = {
       mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
       autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
       hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
       availableModifiers: () => this.configService.getHpoModifiers(),
     };
+    this.showHpoTwoStepDialog.set(true);
+  }
 
-    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
-      width: '85vw',
-      maxWidth: '1200px',
-      height: '80vh',
-      disableClose: true,
-      data: dialogData,
-    });
-    dialogRef.afterClosed().subscribe((polishedAnnotations?: PolishedHpoAnnotation[]) => {
-      if (polishedAnnotations) {
-        const hpoTermDataList: HpoTermData[] = polishedAnnotations.map((pa) => {
-          const htd: HpoTermData = {
-            termDuplet: {
-              hpoLabel: pa.label,
-              hpoId: pa.termId,
-            },
-            entry: toCellValue(pa),
-          };
-          return htd;
-        });
-        this.hpoAnnotations.set(hpoTermDataList);
-      }
-    });
+  onHpoDialogResult(polishedAnnotations?: PolishedHpoAnnotation[]): void {
+    this.showHpoTwoStepDialog.set(false);
+    if (polishedAnnotations) {
+      const hpoTermDataList: HpoTermData[] = polishedAnnotations.map((pa) => {
+        const htd: HpoTermData = {
+          termDuplet: { hpoLabel: pa.label, hpoId: pa.termId },
+          entry: toCellValue(pa),
+        };
+        return htd;
+      });
+      this.hpoAnnotations.set(hpoTermDataList);
+    }
   }
 
   resetAnnotations(): void {
     this.hpoAnnotations.set([]);
   }
 
-  openAgeDialog(): void {
-    const dialogRef = this.dialog.open(AddageComponent, {
-      width: '400px',
-      data: {/* pass inputs if needed */},
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.notificationService.showSuccess(`Added age "${result}"`);
-      }
-    });
-  }
 
   isDemoDialogOpen = signal<boolean>(false);
 

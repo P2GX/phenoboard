@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { HierarchyMapItem, HpoTwostepData, PolishedHpoAnnotation } from 'ng-hpo-uikit';
-import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component';
+import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper/hpo-dialog-wrapper.component';
 import { HpoTermData, toCellValue } from '@workspace/ui';
 
 @Injectable({

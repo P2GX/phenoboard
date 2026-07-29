@@ -187,3 +187,17 @@
     [data]="data"
     (result)="onConfirmDialogResult($event)" />
 }
+
+@if (showHpoTwoStepDialog()) {
+  <app-hpo-dialog-wrapper
+    [dialogData]="hpoDialogData!"
+    (result)="onHpoDialogResult($event)"
+  ></app-hpo-dialog-wrapper>
+}
+
+@if (showVariantEditor()) {
+  <app-addvariant
+    [data]="variantEditorData!"
+    (result)="onVariantEditorResult($event)"
+  ></app-addvariant>
+}
