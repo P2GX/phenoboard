@@ -22,9 +22,9 @@ import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { ConfirmDialogComponent, toCellValue } from '@workspace/ui';
+import { ConfirmDialogComponent, ConfirmDialogData, toCellValue } from '@workspace/ui';
 import { signal, computed } from '@angular/core';
-import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
+import { catchError, firstValueFrom, from, Observable, of, Subject } from 'rxjs';
 import { AppStatusService } from '../services/app_status_service';
 import {
   HelpButtonComponent,
@@ -42,7 +42,7 @@ import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper.component'
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent],
+  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent, ConfirmDialogComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })
@@ -376,25 +376,30 @@ export class AddcaseComponent {
     this.pmidDto.set(result);
   }
 
+
+confirmDialogData = signal<ConfirmDialogData | undefined>(undefined);
+private confirmResult$ = new Subject<boolean>();
+
+onConfirmDialogResult(confirmed: boolean): void {
+  this.confirmDialogData.set(undefined); // triggers @if to remove it from DOM
+  this.confirmResult$.next(confirmed);
+}
+
   private async confirmDuplicatePmid(pmid: string): Promise<boolean> {
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: 'Duplicate PMID',
-        message: `${pmid} is already in the database. Continue anyway?`,
-        confirmText: 'Continue',
-        cancelText: 'Cancel',
-        helpTitle: 'PMID Management',
-        helpLines: [
-          'Duplicate entries should be avoided!.',
-          'Only one entry per PMID/individual is allowed.',
-          '<strong>Proceed only</strong> if you are sure this PMID/individual has not been previously entered.',
-        ],
-        helpUrl: 'https://p2gx.github.io/phenoboard/help/case.html#lookup-pubMed',
-      },
+      this.confirmDialogData.set({
+      title: 'Duplicate PMID',
+      message: `${pmid} is already in the database. Continue anyway?`,
+      confirmText: 'Continue',
+      cancelText: 'Cancel',
+      helpTitle: 'PMID Management',
+      helpLines: [
+        'Duplicate entries should be avoided!.',
+        'Only one entry per PMID/individual is allowed.',
+        '<strong>Proceed only</strong> if you are sure this PMID/individual has not been previously entered.',
+      ],
     });
 
-    return firstValueFrom(ref.afterClosed());
+    return firstValueFrom(this.confirmResult$);
   }
 
   resetPmidDto(): void {

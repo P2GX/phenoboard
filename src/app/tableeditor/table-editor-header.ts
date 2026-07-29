@@ -1,25 +1,17 @@
 import {
   Component,
-  computed,
-  HostListener,
   inject,
-  OnDestroy,
   OnInit,
   signal,
-  Signal,
   viewChild,
 } from '@angular/core';
-
-import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ColumnTableDto, EtlCellStatus, EtlDto, fromColumnDto } from '@workspace/ui';
 import { EtlSessionService } from '../services/etl_session_service';
 import { IconComponent, NotificationService } from 'ng-hpo-uikit';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
 import { Router } from '@angular/router';
@@ -39,9 +31,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   selector: 'app-table-editor-header',
   standalone: true,
   imports: [
-    MatTableModule,
     FormsModule,
-    MatTooltipModule,
     ReactiveFormsModule,
     HelpButtonComponent,
     PubmedComponent,
@@ -57,7 +47,6 @@ export class TableEditorHeader implements OnInit {
   private notificationService = inject(NotificationService);
   public etl_service = inject(EtlSessionService);
   diseaseDataSignal = signal<DiseaseData | null>(null);
-  private dialog = inject(MatDialog);
   pmidForm: FormGroup;
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -223,18 +212,12 @@ export class TableEditorHeader implements OnInit {
      openPmid = signal(false);
 
    openPubmedDialog():void {
+     console.log("openPubmedDialog");
     this.openPmid.set(true);
-    /*
-    const dto = this.etl_service.etlDto();
-    const result = await this.selectPmid();
-    if (result && dto) {
-      const pmidDto = result;
-      this.etl_service.setPmidData(pmidDto);
-    } else {
-      this.notificationService.showWarning('PMID import cancelled');
-    }*/
   }
+  
   handleClosePmidDialog(dto: PmidDto|null) : void {
+    console.log("Handle close PMID, dt=", dto);
     if (!dto) {
       this.notificationService.showError("Could not retrieve PMID");
       return;

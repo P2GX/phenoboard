@@ -6,9 +6,7 @@
     </header>
     
     <main class="modal-body">
-      <p class="hpo-badge">Target Term: <strong>{{ hpoLabel() }}</strong> <code>{{ hpoId() }}</code></p>
-      <p class="instruction-text">Specify how each unique raw cell string maps to this phenotype concept state:</p>
-      
+      <p class="hpo-badge">Term: <strong>{{ hpoLabel() }}</strong> <code>{{ hpoId() }}</code></p>     
       <div class="mapping-grid">
         @for (value of uniqueValues(); track value) {
           <div class="mapping-card">

@@ -1,13 +1,8 @@
 import { Component, computed, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { VariantDto, VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
+import { VariantType } from '../../../libs/ui/src/lib/models/variant_dto';
 import { NotificationService } from 'ng-hpo-uikit';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { GeneTranscriptData } from '../../../libs/ui/src/lib/models/cohort_dto';
@@ -40,11 +35,6 @@ export interface VariantDisplay {
   imports: [
     CommonModule,
     FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
     HelpButtonComponent,
   ],
   templateUrl: './variant_list.component.html',

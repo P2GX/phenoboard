@@ -1,6 +1,5 @@
 import { ApplicationRef, Component, ComponentRef, computed, createComponent, EnvironmentInjector, HostListener, inject, signal, Signal, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
@@ -21,7 +20,6 @@ import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { IconComponent, NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { AddConstantColumnDialogComponent, SplitColumnDialogComponent, removeAllWhitespace, sanitizeString } from '@workspace/ui';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
@@ -59,9 +57,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   standalone: true,
   imports: [
     CommonModule,
-    MatTableModule,
     FormsModule,
-    MatTooltipModule,
     ReactiveFormsModule,
     TableEditorHeader,
     TableProgressBarComponent,

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal, viewChild, ElementRef, WritableSignal, afterNextRender } from '@angular/core';
+import { Component, computed, inject, input, output, signal, viewChild, ElementRef, WritableSignal, afterNextRender, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { PmidService } from '../services/pmid_service';
@@ -11,7 +11,7 @@ import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
   templateUrl: './pubmed.component.html',
   styleUrls: ['./pubmed.component.css'],
 })
-export class PubmedComponent {
+export class PubmedComponent implements AfterViewInit{
   private configService = inject(ConfigService);
   private pmidService = inject(PmidService);
 
@@ -34,7 +34,15 @@ export class PubmedComponent {
       }
     });
   }
-
+  
+  ngAfterViewInit(): void {
+    // Automatically open the native dialog whenever this component is mounted
+    const dialog = this.dialogRef()?.nativeElement;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }
+  
   onPmidSelection(event: Event): void {
     const target = event.target as HTMLSelectElement;
     const selectedPmidNumber = target.value;
@@ -77,8 +85,9 @@ export class PubmedComponent {
   readonly isReady = computed(() => !!this.pmidDto().pmid && !!this.pmidDto().title);
 
   accept(): void {
-    this.dialogRef()?.nativeElement.close();
+    this.isAcceptAction = true;
     this.closeDialog.emit(this.pmidDto());
+    this.dialogRef()?.nativeElement.close();
   }
 
   cancel(): void {
@@ -93,9 +102,14 @@ export class PubmedComponent {
   clearPmids(): void {
     this.availablePmids.set([]);
   }
+
+  private isAcceptAction = false;
   onDialogClose(): void {
-    // fires for ANY native close — Escape key, or dialog.close() called
-    // programmatically from accept()/cancel(). 
-    this.closeDialog.emit(null);
+    // Only emit null if it wasn't an explicit accept action, e.g., user closes dialog by escape key
+    if (!this.isAcceptAction) {
+      this.closeDialog.emit(null);
+    }
+    // Reset flag just in case
+    this.isAcceptAction = false;
   }
 }

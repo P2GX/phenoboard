@@ -181,3 +181,9 @@
     (closeDialog)="handleClosePmidDialog($event)"
   />
 }
+
+@if (confirmDialogData(); as data) {
+  <app-confirm-dialog
+    [data]="data"
+    (result)="onConfirmDialogResult($event)" />
+}

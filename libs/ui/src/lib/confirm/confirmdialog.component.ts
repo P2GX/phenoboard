@@ -1,4 +1,4 @@
-import { Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, afterNextRender, input, output, viewChild } from '@angular/core';
 import { HelpButtonComponent as HelpButtonComponent } from "ng-hpo-uikit";
 
 export interface ConfirmDialogData {
@@ -16,56 +16,62 @@ export interface ConfirmDialogData {
   imports: [HelpButtonComponent],
   template: `
     <dialog #nativeDialog (close)="onNativeClose()" (click)="onBackdropClick($event)" class="dialog">
-      <div class="dialog__wrapper">
+      @if (data(); as resolvedData) {
+        <div class="dialog__wrapper">
 
-        <header class="dialog__header">
-          <div class="dialog__title-group">
-            <span class="dialog__icon">⚠️</span>
-            <h2 class="dialog__title">{{ data().title || 'Confirm Action' }}</h2>
-          </div>
+          <header class="dialog__header">
+            <div class="dialog__title-group">
+              <span class="dialog__icon">⚠️</span>
+              <h2 class="dialog__title">{{ resolvedData.title || 'Confirm Action' }}</h2>
+            </div>
 
-          @if (data().helpTitle || data().helpLines) {
-            <hpo-help-button
-              [title]="data().helpTitle || ''"
-              [lines]="data().helpLines || []" />
-          }
-        </header>
+            @if (resolvedData.helpTitle || resolvedData.helpLines) {
+              <hpo-help-button
+                [title]="resolvedData.helpTitle || ''"
+                [lines]="resolvedData.helpLines || []" />
+            }
+          </header>
 
-        <section class="dialog__body">
-          <p class="dialog__message">{{ data().message }}</p>
-        </section>
+          <section class="dialog__body">
+            <p class="dialog__message">{{ resolvedData.message }}</p>
+          </section>
 
-        <footer class="dialog__footer">
-          <button type="button" class="btn-cancel" (click)="close(false)">
-            {{ data().cancelText || 'Cancel' }}
-          </button>
-          <button type="button" class="btn-confirm" (click)="close(true)">
-            {{ data().confirmText || 'Confirm' }}
-          </button>
-        </footer>
+          <footer class="dialog__footer">
+            <button type="button" class="btn-cancel" (click)="close(false)">
+              {{ resolvedData.cancelText || 'Cancel' }}
+            </button>
+            <button type="button" class="btn-confirm" (click)="close(true)">
+              {{ resolvedData.confirmText || 'Confirm' }}
+            </button>
+          </footer>
 
-      </div>
+        </div>
+        }
     </dialog>
   `,
   styleUrl: './confirmdialog.component.scss'
 })
-export class ConfirmDialogComponent {
-  data = input.required<ConfirmDialogData>();
+export class ConfirmDialogComponent implements AfterViewInit {
+  data = input<ConfirmDialogData>();
   result = output<boolean>();
 
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('nativeDialog');
   private emitted = false;
 
-  constructor() {
-    afterNextRender(() => {
-      const modal = this.dialogEl().nativeElement;
+  ngAfterViewInit(): void {
+    this.emitted = false;
+    const modal = this.dialogEl().nativeElement;
+    if (! modal.open) {
       modal.showModal();
-    });
+    }
   }
 
   /** Only entry point that should close the dialog — Esc and backdrop route here too. */
   close(confirmed: boolean): void {
-    this.dialogEl().nativeElement.close(confirmed ? 'true' : 'false');
+    const modal = this.dialogEl().nativeElement;
+    if (modal.open) {
+      modal.close(confirmed ? 'true' : 'false');
+    }
   }
 
   onBackdropClick(event: MouseEvent): void {
