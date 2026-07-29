@@ -72,7 +72,6 @@ export class AdddemoComponent {
   /* Age Wizard State Machine Operations */
   openAgeWizard(controlName: string): void {
     const control = this.demoForm.get(controlName);
-    console.log('openAgeWizard contrl = ', control);
     if (control) {
       this.activeAgeControl.set(control);
       this.isAgeWizardOpen.set(true);

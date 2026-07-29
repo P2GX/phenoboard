@@ -300,39 +300,6 @@
           />
         </div>
       </div>
-
-      <div class="toolbar-divider"></div>
-
-      <div class="toolbar-age-group">
-        <div class="toolbar-btn-group">
-          <button mat-button (click)="openAgeDialog()" class="toolbar-btn">
-            <app-icon class="toolbar-btn-icon" name="edit" [size]="20" />
-            <span>Add onset age</span>
-          </button>
-          <div class="toolbar-btn-inner-divider"></div>
-          <button mat-button (click)="addAllCohortAges()" class="toolbar-btn toolbar-btn-muted">
-            <app-icon name="group_add" [size]="20"  class="toolbar-btn-icon"/>
-            <span>Add ages from cohort</span>
-          </button>
-        </div>
-
-        @if (ageEntries().length > 0) {
-          <div class="age-badge">
-            <span class="age-badge-label">Latest:</span>
-            <span class="age-badge-value">{{ ageEntries().at(-1) }}</span>
-            <span class="age-badge-count">{{ ageEntries().length }}</span>
-          </div>
-        }
-
-        <hpo-help-button
-          title="Managing age data"
-          [lines]="[
-            'Right-click HPO cells to add specific onset ages.',
-            'Format examples: <b>Congenital onset</b>, <b>P3Y2M</b>, or <b>G28w1d</b>.',
-            'Use <i>Cohort</i> to pull all ages existing in current data.',
-          ]"
-        />
-      </div>
     </div>
 
     <div class="action-toolbar">
@@ -492,4 +459,10 @@
     </app-individual-edit>
   }
 
-  
+  @if (showVariantEditor() && variantEditorKind(); as kind) {
+    <app-addvariant
+      [data]="kind"
+      (result)="onVariantEditorResult($event)"
+    ></app-addvariant>
+  }
+

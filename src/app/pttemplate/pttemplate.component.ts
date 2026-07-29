@@ -10,17 +10,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfigService } from '../services/config.service';
-import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, DiseaseData, getRowId, PtContextMenuComponent } from '@workspace/ui';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, DiseaseData, getRowId, PtContextMenuComponent, VariantDto } from '@workspace/ui';
 import { AddageComponent } from '../addages/addage.component';
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component';
 import { AgeInputService } from '../services/age_service';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { firstValueFrom } from 'rxjs';
 import { IconComponent, NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '@workspace/ui';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
@@ -36,7 +31,6 @@ import { PopoverComponent } from '../util/popover/popover-component';
 import { OverlayModule, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { HelpService } from '../services/help.service';
 import {
-  formatCellValue,
   TableCellEditorComponent,
 } from '../util/table-cell-editor/table-cell-editor.component';
 import { CohortWorkflowService } from '../services/cohort-workflow.service';
@@ -57,11 +51,6 @@ interface Option {
     CdkOverlayOrigin,
     CommonModule,
     FormsModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatDialogModule,
     OverlayModule,
     CohortSummaryComponent,
     HelpButtonComponent,
@@ -74,7 +63,8 @@ interface Option {
     AddageComponent,
     ConfirmDialogComponent,
     IconComponent,
-    IndividualEditComponent
+    IndividualEditComponent,
+    AddVariantComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -114,7 +104,6 @@ export class PtTemplateComponent {
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
-  private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
   readonly ageEntries = this.ageService.selectedTerms;
   protected showAgeDialog = signal<boolean>(false);
@@ -329,7 +318,52 @@ export class PtTemplateComponent {
     return current !== null && current.rowId === rowId && current.alleleId === alleleId;
   }
 
-  async addAllele(rowId: string, varKind: VariantKind): Promise<void> {
+  showVariantEditor = signal(false);
+  protected variantEditorKind = signal<VariantKind | null>(null);
+  private variantEditorRowId: string | null = null;
+
+  addAllele(rowId: string, varKind: VariantKind): void {
+    const row = this.rowMapById().get(rowId);
+    if (!row) return;
+
+    this.variantEditorRowId = rowId;
+    this.variantEditorKind.set(varKind);
+    this.showVariantEditor.set(true);
+  }
+
+  onVariantEditorResult(result: VariantDto | undefined): void {
+    this.showVariantEditor.set(false);
+
+    if (!result) {
+      this.notificationService.showError('Error in open Allele Dialog: Could not retrieve result');
+      return;
+    }
+    const { variantKey, isValidated, count } = result;
+    if (!variantKey) {
+      this.notificationService.showError('Could not retrieve variantKey');
+      return;
+    }
+    if (!isValidated) {
+      this.notificationService.showError('Variant could not be validated');
+      return;
+    }
+    const rowId = this.variantEditorRowId;
+    if (!rowId) {
+      this.notificationService.showError('Missing rowId for allele addition');
+      return;
+    }
+    const ok = this.cohortService.addAlleleToRow(rowId, variantKey, count);
+    if (!ok) {
+      this.notificationService.showError('Failed to add allele');
+      return;
+    }
+    this.notificationService.showSuccess(`Allele ${variantKey} added`);
+    this.variantEditorKind.set(null);
+  }
+
+
+/*
+  async addAlleleOLD(rowId: string, varKind: VariantKind): Promise<void> {
     const row = this.rowMapById().get(rowId);
     if (!row) return;
     const dialogRef = this.dialog.open(AddVariantComponent, {
@@ -356,7 +390,7 @@ export class PtTemplateComponent {
       return;
     }
     this.notificationService.showSuccess(`Allele ${variantKey} added`);
-  }
+  }*/
 
   get diseaseDescription(): string {
     const cohort = this.cohortData();
@@ -713,17 +747,8 @@ export class PtTemplateComponent {
     return typeof value === 'object' && value !== null;
   }
 
-  openAgeDialog(): void {
-    const dialogRef = this.dialog.open(AddageComponent, {
-      width: '400px',
-    });
 
-    dialogRef.afterClosed().subscribe((result: string | undefined) => {
-      if (result) {
-        this.ageService.addSelectedTerm(result);
-      }
-    });
-  }
+
 
   async recordBiocuration(): Promise<void> {
     this.workflowService.recordBiocuration();
@@ -1063,35 +1088,7 @@ export class PtTemplateComponent {
   closeAgeDialog() {
     this.showAgeDialog.set(false);
   }
-
-  /* This is opened if the user has open the dialog to modify one cell to add Onset/Modifer/Change status*/
-  openGlobalAgeDialogOLF(context: TableContext) {
-    const dialogRef = this.dialog.open(AddageComponent, {
-      width: '400px',
-    });
-    const selectedCell = context.cell;
-
-    dialogRef.afterClosed().subscribe((newOnset: string | undefined) => {
-      if (newOnset && selectedCell) {
-        this.ageService.addSelectedTerm(newOnset);
-        const updatedData: CellValue = {
-          ...selectedCell,
-          type: 'OnsetAge',
-          data: newOnset,
-        };
-        const cohort = this.cohortData();
-        if (!cohort) {
-          this.notificationService.showError('Cohort data missing.');
-          return;
-        }
-        const colIdx = context.colIndex;
-        const updatedCohort = this.updateHpoCell(cohort, context.rowId, colIdx, updatedData);
-        this.cohortService.setCohortData(updatedCohort);
-        this.notificationService.showSuccess(`Updated cell to "${formatCellValue(updatedData)}"`);
-      }
-    });
-  }
-
+  
   hasExtraInfo(cell: CellValue): boolean {
     return cell.type === 'OnsetAge' || !!cell.modifiers?.length;
   }

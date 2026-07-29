@@ -62,15 +62,14 @@ export class AddVariantComponent implements OnInit {
   data = input.required<VariantKind>();
   result = output<VariantDto | undefined>();
 
-
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('variantDialogElement');
   private emitted = false;
   private pendingResult?: VariantDto;
- 
+
   get kind(): VariantKind {
     return this.data();
   }
-  
+
   constructor() {
     afterNextRender(() => {
       const modal = this.dialogEl().nativeElement;
@@ -82,7 +81,7 @@ export class AddVariantComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
-    console.log("gene Options", this.geneOptions);
+    console.log('gene Options', this.geneOptions);
     if (this.geneOptions && this.geneOptions.length === 1) {
       this.selectedGene = this.geneOptions[0];
     }

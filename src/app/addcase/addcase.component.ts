@@ -16,8 +16,7 @@ import {
   VariantDto, VariantType
 } from '@workspace/ui';
 import { CohortDtoService } from '../services/cohort_dto_service';
-import { AddVariantComponent, AddVariantDialogData, VariantKind } from '../addvariant/addvariant.component';
-import { MatDialog } from '@angular/material/dialog';
+import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { Router } from '@angular/router';
 import { defaultPmidDto, PmidDto } from '../models/pmid_dto';
@@ -50,7 +49,6 @@ export class AddcaseComponent {
   private configService = inject(ConfigService);
   public ageService = inject(AgeInputService);
   private cohortService = inject(CohortDtoService);
-  private dialog = inject(MatDialog);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
@@ -317,7 +315,7 @@ onVariantEditorResult(result: VariantDto | undefined): void {
   this.alleles.update((current) => [...current, ...entriesToAdd]);
 }
 
-
+/*
   openVariantEditorOLD(varKind: VariantKind): void {
     const dialogRef = this.dialog.open(AddVariantComponent, {
       data: { kind: varKind },
@@ -355,7 +353,7 @@ onVariantEditorResult(result: VariantDto | undefined): void {
       this.alleles.update((current) => [...current, ...entriesToAdd]);
     });
   }
-
+*/
   removeAllele(allele: VariantDto): void {
     this.alleles.update((list) => list.filter((a) => a !== allele));
   }
