@@ -195,9 +195,9 @@
   ></app-hpo-dialog-wrapper>
 }
 
-@if (showVariantEditor()) {
+@if (showVariantEditor() && variantEditorData(); as vardat) {
   <app-addvariant
-    [data]="variantEditorData!"
+    [data]="vardat"
     (result)="onVariantEditorResult($event)"
   ></app-addvariant>
 }

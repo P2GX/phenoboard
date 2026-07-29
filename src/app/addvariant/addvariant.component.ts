@@ -59,7 +59,7 @@ export class AddVariantComponent implements OnInit {
   private cohortService = inject(CohortDtoService);
   private cdr = inject(ChangeDetectorRef);
 
-  data = input.required<AddVariantDialogData>();
+  data = input.required<VariantKind>();
   result = output<VariantDto | undefined>();
 
 
@@ -68,7 +68,7 @@ export class AddVariantComponent implements OnInit {
   private pendingResult?: VariantDto;
  
   get kind(): VariantKind {
-    return this.data().kind;
+    return this.data();
   }
   
   constructor() {
@@ -82,6 +82,7 @@ export class AddVariantComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
+    console.log("gene Options", this.geneOptions);
     if (this.geneOptions && this.geneOptions.length === 1) {
       this.selectedGene = this.geneOptions[0];
     }
@@ -308,6 +309,19 @@ export class AddVariantComponent implements OnInit {
     const modal = this.dialogEl().nativeElement;
     if (modal.open) {
       modal.close();
+    }
+  }
+
+  /** Single emission point: fires for successful add, cancel, Esc, and backdrop alike. */
+  onNativeClose(): void {
+    if (this.emitted) return;
+    this.emitted = true;
+    this.result.emit(this.pendingResult);
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === this.dialogEl().nativeElement) {
+      this.cancel();
     }
   }
 }

@@ -1,4 +1,6 @@
-<div class="dialog-header">
+<dialog #variantDialogElement class="addvariant-dialog" (close)="onNativeClose()" (click)="onBackdropClick($event)">
+
+  <div class="dialog-header">
   <h2>Variant Entry</h2>
 </div>
 
@@ -106,3 +108,4 @@
     </div>
   </div>
 </div>
+</dialog>

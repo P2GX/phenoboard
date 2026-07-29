@@ -276,10 +276,11 @@ export class AddcaseComponent {
 
 
   showVariantEditor = signal(false);
-variantEditorData: AddVariantDialogData | null = null;
+  variantEditorData = signal<VariantKind | null>(null);
+  
 
 openVariantEditor(varKind: VariantKind): void {
-  this.variantEditorData = { rowId: /* whatever rowId this dialog is scoped to */, kind: varKind };
+  this.variantEditorData.set(varKind); //= { rowId: /* whatever rowId this dialog is scoped to */, kind: varKind };
   this.showVariantEditor.set(true);
 }
 
@@ -301,9 +302,9 @@ onVariantEditorResult(result: VariantDto | undefined): void {
     [VariantKind.SV]: 'SV',
     [VariantKind.INTERGENIC]: 'INTERGENICHGVS',
   };
-  const variantType = typeMapping[this.variantEditorData!.kind];
+  const variantType = this.variantEditorData();
   if (!variantType) {
-    return this.notificationService.showError(`Could not identify variant kind ${this.variantEditorData!.kind}`);
+    return this.notificationService.showError(`Could not identify variant kind ${variantType}`);
   }
   const dto: VariantDto = {
     ...result,
