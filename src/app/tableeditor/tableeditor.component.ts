@@ -674,6 +674,9 @@ export class TableEditorComponent {
     }));
     this.etl_service.updateColumns(newColumns);
   }
+  
+  confirmDialogData = signal<ConfirmDialogData | undefined>(undefined);
+  private pendingRowIndex?: number;
 
   async deleteRow() {
     const etlDto = this.etl_service.etlDto();
@@ -689,23 +692,27 @@ export class TableEditorComponent {
 
     const firstCell = etlDto.table.columns[0].values[rowIndex]?.current ?? '';
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: `Delete row ${rowIndex}`,
-        message: firstCell,
-        confirmText: 'delete',
-        cancelText: 'cancel',
-      },
+    this.pendingRowIndex = rowIndex;
+    this.confirmDialogData.set({
+      title: `Delete row ${rowIndex}`,
+      message: firstCell,
+      confirmText: 'delete',
+      cancelText: 'cancel',
     });
+  }
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.deleteRowAtI(rowIndex);
-      } else {
-        this.notificationService.showError('Did not delete row');
-      }
-    });
+  onConfirmDeleteRowResult(confirmed: boolean): void {
+    const rowIndex = this.pendingRowIndex;
+    this.confirmDialogData.set(undefined); 
+    this.pendingRowIndex = undefined;
+
+    if (rowIndex == null) return;
+
+    if (confirmed) {
+      this.deleteRowAtI(rowIndex);
+    } else {
+      this.notificationService.showError('Did not delete row');
+    }
   }
 
   /**

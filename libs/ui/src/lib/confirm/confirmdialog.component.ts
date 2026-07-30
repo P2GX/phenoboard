@@ -84,6 +84,9 @@ export class ConfirmDialogComponent implements AfterViewInit {
   onNativeClose(): void {
     if (this.emitted) return;
     this.emitted = true;
-    this.result.emit(this.dialogEl().nativeElement.returnValue === 'true');
+    queueMicrotask(() => {
+      // Let the browser fully finish its own close/inert cleanup first
+      this.result.emit(this.dialogEl().nativeElement.returnValue === 'true');
+    });
   }
 }

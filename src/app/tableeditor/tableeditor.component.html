@@ -165,3 +165,9 @@
     (cancelled)="onManualEditCancelled()"
   />
 }
+
+@if (confirmDialogData(); as data) {
+  <app-confirm-dialog
+    [data]="data"
+    (result)="onConfirmDeleteRowResult($event)" />
+}
