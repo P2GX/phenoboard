@@ -10,42 +10,34 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { EtlCellValue, EtlCellStatus } from '@workspace/ui';
-import { MatDialog } from '@angular/material/dialog';
-import { EtlCellEditDialogComponent } from './etl-cell-edit-dialog.component';
+import { EtlCellEditDialogComponent, CellEditData } from './etl-cell-edit-dialog.component';
 
 @Component({
   selector: 'etl-cell',
   templateUrl: './etlcell.component.html',
   styleUrls: ['./etlcell.component.css'],
-  imports: [CommonModule, MatTooltipModule],
+  imports: [CommonModule, EtlCellEditDialogComponent],
 })
 export class EtlCellComponent {
   cell = input.required<EtlCellValue>();
   rowIndex = input.required<number>();
   colIndex = input.required<number>();
   edited = output<{ rowIndex: number; colIndex: number; newValue: string }>();
-  // Signals for reactive display
   current = signal('');
-  status = signal<
-    EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error | EtlCellStatus.Ignored
+  status = signal<EtlCellStatus.Raw | EtlCellStatus.Transformed | EtlCellStatus.Error | EtlCellStatus.Ignored
   >(EtlCellStatus.Raw);
   error = signal<string | undefined>(undefined);
 
-  constructor(private dialog: MatDialog) {
-    // Whenever the input cell() changes, it pushes the new data into your local signals.
+  editDialogData = signal<CellEditData | null>(null);
+
+  constructor() {
     effect(() => {
       const val = this.cell();
       this.current.set(val.current || '');
       this.status.set(val.status);
       this.error.set(val.error || undefined);
     });
-  }
-
-  ngOnInit() {
-    // Initialize signals from the DTO
-    // this.syncSignalsFromDto();
   }
 
   @Output() contextMenuRequested = new EventEmitter<{
@@ -73,7 +65,6 @@ export class EtlCellComponent {
     this.current.set(newValue);
     this.status.set(EtlCellStatus.Transformed);
     this.error.set(undefined);
-    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
@@ -81,7 +72,6 @@ export class EtlCellComponent {
   setError(errorMessage: string) {
     this.status.set(EtlCellStatus.Error);
     this.error.set(errorMessage);
-    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
@@ -90,7 +80,6 @@ export class EtlCellComponent {
     this.current.set('');
     this.status.set(EtlCellStatus.Raw);
     this.error.set(undefined);
-    //this.syncDtoFromSignals();
     this.emitChange();
   }
 
@@ -105,16 +94,19 @@ export class EtlCellComponent {
 
   /** Open manual edit dialog */
   editManually() {
-    const dialogRef = this.dialog.open(EtlCellEditDialogComponent, {
-      width: '300px',
-      data: { current: this.current() },
+    this.editDialogData.set({
+      original: this.original(),
+      current: this.current(),
     });
+  }
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result !== undefined) {
-        this.setTransformed(result);
-      }
-    });
+  onDialogSaved(newValue: string) {
+    this.editDialogData.set(null);
+    this.setTransformed(newValue);
+  }
+
+  onDialogCancelled() {
+    this.editDialogData.set(null);
   }
 
   readonly cellClass = computed(() => {

@@ -1,8 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, afterNextRender, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { IconComponent } from 'ng-hpo-uikit';
 
-import { IconComponent } from "ng-hpo-uikit";
+export interface CellEditData {
+  original: string;
+  current: string;
+}
 
 @Component({
   selector: 'etl-cell-edit-dialog',
@@ -12,20 +15,30 @@ import { IconComponent } from "ng-hpo-uikit";
   styleUrl: './etl-cell-edit-dialog.component.scss',
 })
 export class EtlCellEditDialogComponent {
-  currentValue: string;
+  data = input.required<CellEditData>();
+  saved = output<string>();
+  cancelled = output<void>();
 
-  constructor(
-    public dialogRef: MatDialogRef<EtlCellEditDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { original: string; current: string },
-  ) {
-    this.currentValue = data.current;
+  currentValue = '';
+
+  @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
+  @ViewChild('inputEl') inputEl?: ElementRef<HTMLInputElement>;
+
+  constructor() {
+    afterNextRender(() => {
+      this.currentValue = this.data().current;
+      this.dialogEl?.nativeElement.showModal();
+      this.inputEl?.nativeElement.focus();
+    });
   }
 
   save() {
-    this.dialogRef.close(this.currentValue);
+    this.dialogEl?.nativeElement.close();
+    this.saved.emit(this.currentValue);
   }
 
   cancel() {
-    this.dialogRef.close();
+    this.dialogEl?.nativeElement.close();
+    this.cancelled.emit();
   }
 }

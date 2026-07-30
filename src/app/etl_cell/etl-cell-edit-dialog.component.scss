@@ -1,6 +1,23 @@
 :host {
-  display: block;
+  display: contents;
+}
+
+.orcid-modal {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
   width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .dialog-header {
@@ -21,12 +38,6 @@
   justify-content: center;
   color: #1a73e8;
   flex-shrink: 0;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
 }
 
 .dialog-title {

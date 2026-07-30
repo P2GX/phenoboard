@@ -1,3 +1,11 @@
 <div class="etl-cell" [ngClass]="cellClass()" (contextmenu)="onRightClick($event)">
   {{ current() || original() }}
 </div>
+
+@if (editDialogData(); as data) {
+  <etl-cell-edit-dialog
+    [data]="data"
+    (saved)="onDialogSaved($event)"
+    (cancelled)="onDialogCancelled()"
+  />
+}
