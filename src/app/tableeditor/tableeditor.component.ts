@@ -738,33 +738,6 @@ export class TableEditorComponent {
       }
    }
 
-  /**
-   * External templates often have columns with no relevant information that we can delete.
-   * @param index
-   * @returns
-  
-  deleteColumnOld(index: number | null): void {
-    const dto = this.etl_service.etlDto();
-    if (!dto) return;
-    if (index === null) return;
-    const uniqueValues: string[] = this.getUniqueValues(index);
-    const columnName = dto.table.columns[index].header.original || `Column ${index}`;
-    const dialogRef = this.dialog.open(DeleteConfirmationDialogComponent, {
-      width: '500px',
-      data: {
-        columnName: columnName,
-        uniqueValues: uniqueValues,
-      },
-    });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === true) {
-        // User confirmed deletion
-        const newColumns = dto.table.columns.filter((_, i) => i !== index);
-        this.etl_service.updateColumns(newColumns);
-      }
-      // If result is false or undefined, do nothing (probably, user cancelled)
-    });
-  } */
 
   duplicateColumn(index: number | null): void {
     const dto = this.etl_service.etlDto();

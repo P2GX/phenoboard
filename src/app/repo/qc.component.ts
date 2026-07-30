@@ -9,7 +9,6 @@ import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { CompareDialogComponent, CompareFiles } from '../util/comparewidget/compare-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 import { ComparisonReport } from '../models/comparison';
 
 @Component({
@@ -17,13 +16,12 @@ import { ComparisonReport } from '../models/comparison';
   templateUrl: './qc.component.html',
   styleUrls: ['./qc.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, HelpButtonComponent],
+  imports: [CommonModule, RouterModule, HelpButtonComponent, CompareDialogComponent],
 })
 export class QcComponent implements OnInit {
   private configService = inject(ConfigService);
   private helpService = inject(HelpService);
   private notificationService = inject(NotificationService);
-  private dialog = inject(MatDialog);
   copySuccess = signal(false);
 
   ngOnInit(): void {
@@ -98,18 +96,20 @@ export class QcComponent implements OnInit {
     }
   }
 
+  showCompareDialog = signal(false);
+
   openCompareDialog() {
-    const dialogRef = this.dialog.open(CompareDialogComponent, {
-      width: '450px',
-    });
+    this.showCompareDialog.set(true);
+  }
 
-    dialogRef.componentInstance.compareRequested.subscribe((files: CompareFiles) => {
-      this.comparisonFiles.set(files); // Store the paths
-      this.runComparison(); // Trigger the logic
-      dialogRef.close();
-    });
+  onCompareRequested(files: CompareFiles) {
+    this.comparisonFiles.set(files);
+    this.runComparison();
+    this.showCompareDialog.set(false);
+  }
 
-    dialogRef.componentInstance.cancelRequested.subscribe(() => dialogRef.close());
+  onCompareCancelled() {
+    this.showCompareDialog.set(false);
   }
 
   async runComparison() {

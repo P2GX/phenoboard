@@ -207,3 +207,10 @@
     </div>
   }
 </div>
+
+@if (showCompareDialog()) {
+  <app-compare-dialog
+    (compareRequested)="onCompareRequested($event)"
+    (cancelRequested)="onCompareCancelled()"
+  />
+}
