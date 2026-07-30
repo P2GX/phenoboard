@@ -3,13 +3,14 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from './footer/footer.component';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { ToastContainerComponent } from "ng-hpo-uikit";
 
 @Component({
   selector: 'app-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css', '../styles.scss'],
-  imports: [NavbarComponent, RouterOutlet, FooterComponent],
+  imports: [NavbarComponent, RouterOutlet, FooterComponent, ToastContainerComponent],
 })
 export class AppComponent implements OnInit {
   async ngOnInit() {

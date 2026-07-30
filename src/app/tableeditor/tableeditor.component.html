@@ -157,3 +157,11 @@
     (closed)="handleCellReviewClosed($event)"
   />
 }
+
+@if (editCellDialogData(); as data) {
+  <etl-cell-edit-dialog
+    [data]="data"
+    (saved)="onManualEditSaved($event)"
+    (cancelled)="onManualEditCancelled()"
+  />
+}

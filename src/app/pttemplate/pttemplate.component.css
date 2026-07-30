@@ -209,14 +209,12 @@ button[mat-icon-button] {
   background-color: #f5f5f5;
 }
 
-/* Selected (checked) state */
 .allele-toggle-group .mat-button-toggle-checked {
   background-color: #1976d2;
   color: white;
   border-color: #1976d2;
 }
 
-/* Remove Material’s focus/ink effects and checkmark overlays */
 .allele-toggle-group .mat-button-toggle-focus-overlay,
 .allele-toggle-group .mat-button-toggle-checked .mat-pseudo-checkbox {
   display: none !important;

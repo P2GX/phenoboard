@@ -1,10 +1,4 @@
-import {
-  Component,
-  inject,
-  OnInit,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
@@ -30,13 +24,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
 @Component({
   selector: 'app-table-editor-header',
   standalone: true,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    HelpButtonComponent,
-    PubmedComponent,
-    IconComponent
-],
+  imports: [FormsModule, ReactiveFormsModule, HelpButtonComponent, PubmedComponent, IconComponent],
   templateUrl: './table-editor-header.html',
   styleUrls: ['./table-editor-header.scss'],
 })
@@ -209,22 +197,22 @@ export class TableEditorHeader implements OnInit {
     return result;
   }*/
 
-     openPmid = signal(false);
+  openPmid = signal(false);
 
-   openPubmedDialog():void {
-     console.log("openPubmedDialog");
+  openPubmedDialog(): void {
+    console.log('openPubmedDialog');
     this.openPmid.set(true);
   }
-  
-  handleClosePmidDialog(dto: PmidDto|null) : void {
-    console.log("Handle close PMID, dt=", dto);
+
+  handleClosePmidDialog(dto: PmidDto | null): void {
+    console.log('Handle close PMID, dt=', dto);
     if (!dto) {
-      this.notificationService.showError("Could not retrieve PMID");
+      this.notificationService.showError('Could not retrieve PMID');
       return;
     }
     const etlDto = this.etl_service.etlDto();
-    if (! etlDto) {
-      this.notificationService.showError("Could not retrieve cohort ETL DTO");
+    if (!etlDto) {
+      this.notificationService.showError('Could not retrieve cohort ETL DTO');
       return;
     }
     this.etl_service.setPmidData(dto);

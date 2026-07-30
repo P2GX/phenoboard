@@ -1,12 +1,33 @@
-import { ApplicationRef, Component, ComponentRef, computed, createComponent, EnvironmentInjector, HostListener, inject, signal, Signal, ViewContainerRef } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  ComponentRef,
+  computed,
+  createComponent,
+  EnvironmentInjector,
+  HostListener,
+  inject,
+  signal,
+  Signal,
+  ViewContainerRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HpoMappingResult, OntologyMatch, MinedCell, MiningConcept, TableFloatingControlsComponent, 
-  ColumnContextMenuComponent, EtlDataTableComponent, ConfirmDialogData, ConfirmDialogComponent } from '@workspace/ui';
+import {
+  HpoMappingResult,
+  OntologyMatch,
+  MinedCell,
+  MiningConcept,
+  TableFloatingControlsComponent,
+  ColumnContextMenuComponent,
+  EtlDataTableComponent,
+  ConfirmDialogData,
+  ConfirmDialogComponent,
+} from '@workspace/ui';
 import {
   ColumnDto,
   EtlCellStatus,
@@ -20,7 +41,12 @@ import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
 import { IconComponent, NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
-import { AddConstantColumnDialogComponent, SplitColumnDialogComponent, removeAllWhitespace, sanitizeString } from '@workspace/ui';
+import {
+  AddConstantColumnDialogComponent,
+  SplitColumnDialogComponent,
+  removeAllWhitespace,
+  sanitizeString,
+} from '@workspace/ui';
 import { VariantDialogService } from '../services/hgvsManualEntryDialogService';
 import { SvDialogService } from '../services/svManualEntryDialogService';
 import { HgvsVariant, StructuralVariant } from '../../../libs/ui/src/lib/models/variant_dto';
@@ -37,7 +63,10 @@ import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { AppStatusService } from '../services/app_status_service';
 import { AgeInputService } from '../services/age_service';
 import { TableEditorHeader } from './table-editor-header';
-import { EtlCellEditDialogComponent } from '../etl_cell/etl-cell-edit-dialog.component';
+import {
+  CellEditData,
+  EtlCellEditDialogComponent,
+} from '../etl_cell/etl-cell-edit-dialog.component';
 import { HpoPopupDialogComponent } from '@workspace/ui';
 import { HpoMappingStepComponent } from '@workspace/ui';
 import { TableProgressBarComponent } from '@workspace/ui';
@@ -68,8 +97,9 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     EtlDataTableComponent,
     IconComponent,
     ConfirmDialogComponent,
-    CellReviewComponent
-],
+    CellReviewComponent,
+    EtlCellEditDialogComponent,
+  ],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })
@@ -518,44 +548,47 @@ export class TableEditorComponent {
    * ancestorString field, and this allows us to distribute the mappings back the each specific row.
    */
   private async getInitialMultipleHpoMapping(col: ColumnDto): Promise<MinedCell[]> {
-  const originalEntries = col.values.map((v) => v.current || v.original);
-  const initialConcepts: MiningConcept[] =
-    await this.configService.mapColumnToMiningConcepts(originalEntries);
-  const uniqueDictionary: MiningConcept[] =
-    await this.configService.create_canonical_dictionary(initialConcepts);
+    const originalEntries = col.values.map((v) => v.current || v.original);
+    const initialConcepts: MiningConcept[] =
+      await this.configService.mapColumnToMiningConcepts(originalEntries);
+    const uniqueDictionary: MiningConcept[] =
+      await this.configService.create_canonical_dictionary(initialConcepts);
 
-  const componentRef: ComponentRef<MultiHpoComponent> = createComponent(MultiHpoComponent, {
-    environmentInjector: this.injector,
-  });
-
-  componentRef.setInput('initialConcepts', uniqueDictionary);
-  componentRef.setInput('title', col.header.original);
-
-  this.appRef.attachView(componentRef.hostView);
-  const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
-  document.body.appendChild(domElem);
-
-  const confirmedDictionary: MiningConcept[] | null = await new Promise((resolve) => {
-    const sub = componentRef.instance.closed.subscribe((result: MiningConcept[] | null) => {
-      sub.unsubscribe();
-      this.appRef.detachView(componentRef.hostView);
-      componentRef.destroy();
-      domElem.remove();
-      resolve(result);
+    const componentRef: ComponentRef<MultiHpoComponent> = createComponent(MultiHpoComponent, {
+      environmentInjector: this.injector,
     });
-  });
 
-  if (!confirmedDictionary) return [];
+    componentRef.setInput('initialConcepts', uniqueDictionary);
+    componentRef.setInput('title', col.header.original);
 
-  const cellMappings = this.configService.createCellMappings(
-    confirmedDictionary,
-    originalEntries,
-  );
-  return cellMappings;
-}
+    this.appRef.attachView(componentRef.hostView);
+    const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
+    document.body.appendChild(domElem);
+
+    const confirmedDictionary: MiningConcept[] | null = await new Promise((resolve) => {
+      const sub = componentRef.instance.closed.subscribe((result: MiningConcept[] | null) => {
+        sub.unsubscribe();
+        this.appRef.detachView(componentRef.hostView);
+        componentRef.destroy();
+        domElem.remove();
+        resolve(result);
+      });
+    });
+
+    if (!confirmedDictionary) return [];
+
+    const cellMappings = this.configService.createCellMappings(
+      confirmedDictionary,
+      originalEntries,
+    );
+    return cellMappings;
+  }
 
   isCellReviewOpen = signal(false);
-  cellReviewData = signal<{ minedCells: MinedCell[]; title: string }>({ minedCells: [], title: '' });
+  cellReviewData = signal<{ minedCells: MinedCell[]; title: string }>({
+    minedCells: [],
+    title: '',
+  });
 
   // Open the review dialog
   openCellReview(minedCellList: MinedCell[], headerOriginal: string) {
@@ -569,34 +602,34 @@ export class TableEditorComponent {
   async handleCellReviewClosed(finalResults: MinedCell[] | null): Promise<void> {
     this.isCellReviewOpen.set(false);
     const colIndex = this.activeColIndex();
-    if (! colIndex) {
-      this.notificationService.showError("Could not retrieve active column index");
+    if (!colIndex) {
+      this.notificationService.showError('Could not retrieve active column index');
       return;
     }
     const dto = this.etl_service.etlDto();
-      if (!dto) return;
-      const col = dto.table.columns[colIndex];
-      if (!col) return;
-      if (!finalResults) return;
+    if (!dto) return;
+    const col = dto.table.columns[colIndex];
+    if (!col) return;
+    if (!finalResults) return;
     const rowMultiHpoStrings = await this.configService.getMultiHpoStrings(finalResults);
     const newColumns: ColumnDto[] = dto.table.columns.map((column, i) => {
-        if (i !== colIndex) return column;
-        const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
-          const mappedValue = rowMultiHpoStrings[rowIndex];
-          return {
-            ...cell,
-            current: mappedValue,
-            status: EtlCellStatus.Transformed,
-            error: undefined,
-          };
-        });
-        const updatedCol = { ...column };
-        updatedCol.values = newValues;
-        updatedCol.header.columnType = EtlColumnType.MultipleHpoTerm;
-        updatedCol.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
-        return updatedCol;
+      if (i !== colIndex) return column;
+      const newValues: EtlCellValue[] = column.values.map((cell, rowIndex) => {
+        const mappedValue = rowMultiHpoStrings[rowIndex];
+        return {
+          ...cell,
+          current: mappedValue,
+          status: EtlCellStatus.Transformed,
+          error: undefined,
+        };
       });
-      this.etl_service.updateColumns(newColumns);
+      const updatedCol = { ...column };
+      updatedCol.values = newValues;
+      updatedCol.header.columnType = EtlColumnType.MultipleHpoTerm;
+      updatedCol.header.hpoTerms = this.extractUniqueHpoTerms(finalResults);
+      return updatedCol;
+    });
+    this.etl_service.updateColumns(newColumns);
   }
 
   /* Process a column whose cells each may contain zero, one, or multiple HPO terms */
@@ -609,7 +642,7 @@ export class TableEditorComponent {
     try {
       // Stage 1. Divide the cell entries into individual word groups (";" and new line) and map each one
       const minedCellList: MinedCell[] = await this.getInitialMultipleHpoMapping(col);
-      
+
       // Open the custom native dialog via signal states
       this.cellReviewData.set({
         minedCells: minedCellList,
@@ -700,10 +733,10 @@ export class TableEditorComponent {
     return indices;
   });
 
-  deleteColumnIdx = signal<number|null>(null);
-  deleteColumnConfirmData = signal<ConfirmDialogData|null>(null);
+  deleteColumnIdx = signal<number | null>(null);
+  deleteColumnConfirmData = signal<ConfirmDialogData | null>(null);
 
-   deleteColumn(index: number | null): void {
+  deleteColumn(index: number | null): void {
     const dto = this.etl_service.etlDto();
     if (!dto) return;
     if (index === null) return;
@@ -711,33 +744,32 @@ export class TableEditorComponent {
     const columnName = dto.table.columns[index].header.original || `Column ${index}`;
     const data: ConfirmDialogData = {
       message: `Delete column ${columnName}?`,
-      title: "Delete column",
-      helpTitle: "Inspect column value",
-      helpLines: uniqueValues
+      title: 'Delete column',
+      helpTitle: 'Inspect column value',
+      helpLines: uniqueValues,
     };
     this.deleteColumnConfirmData.set(data);
     this.deleteColumnIdx.set(index);
-   }
+  }
 
-   handleDeleteColumnConfirmation(confirmed: boolean): void {
+  handleDeleteColumnConfirmation(confirmed: boolean): void {
     const dto = this.etl_service.etlDto();
-    if (! dto) {
+    if (!dto) {
       return;
     }
     const index = this.deleteColumnIdx();
     if (index === null) {
-      this.notificationService.showError("Could not fine column index to delete");
+      this.notificationService.showError('Could not fine column index to delete');
       return;
     }
     if (confirmed) {
-        // User confirmed deletion
-        const newColumns = dto.table.columns.filter((_, i) => i !== index);
-        this.etl_service.updateColumns(newColumns);
-      } else {
-        this.notificationService.showWarning("Cancelling delete column operation");
-      }
-   }
-
+      // User confirmed deletion
+      const newColumns = dto.table.columns.filter((_, i) => i !== index);
+      this.etl_service.updateColumns(newColumns);
+    } else {
+      this.notificationService.showWarning('Cancelling delete column operation');
+    }
+  }
 
   duplicateColumn(index: number | null): void {
     const dto = this.etl_service.etlDto();
@@ -766,61 +798,61 @@ export class TableEditorComponent {
   /** Split a column into two according to a token such as "/" or ":" */
   private viewContainerRef = inject(ViewContainerRef);
   splitColumn(index: number | null): void {
-  const dto = this.etl_service.etlDto();
-  if (!dto || index === null) return;
-  const columns = dto.table.columns;
-  const originalColumn = columns[index];
-  if (!originalColumn) return;
-  if (originalColumn.values.length < 1) return;
-  const example = originalColumn.values[0].original;
+    const dto = this.etl_service.etlDto();
+    if (!dto || index === null) return;
+    const columns = dto.table.columns;
+    const originalColumn = columns[index];
+    if (!originalColumn) return;
+    if (originalColumn.values.length < 1) return;
+    const example = originalColumn.values[0].original;
 
-  // 1. Create the component dynamically in the view
-  const componentRef = this.viewContainerRef.createComponent(SplitColumnDialogComponent);
+    // 1. Create the component dynamically in the view
+    const componentRef = this.viewContainerRef.createComponent(SplitColumnDialogComponent);
 
-  // 2. Pass input data using Angular's input binding API
-  componentRef.setInput('data', { 
-    originalHeader: originalColumn.header.original, 
-    example: example 
-  });
-
-  // 3. Subscribe to the custom 'closed' output
-  componentRef.instance.closed.subscribe((result: string | null) => {
-    // Clean up the dynamically created component from the DOM
-    componentRef.destroy();
-
-    if (!result) return; // user cancelled
-    const separator = result;
-
-    // deep copy original column
-    const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
-    const columnB: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
-    columnA.id = crypto.randomUUID();
-    columnB.id = crypto.randomUUID();
-
-    columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
-    columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
-
-    originalColumn.values.forEach((cell, i) => {
-      const text = cell?.original ?? '';
-      const firstIdx = text.indexOf(separator);
-      let valA: string;
-      let valB: string;
-      if (firstIdx === -1 || separator === '') {
-        valA = text || 'na';
-        valB = 'na';
-      } else {
-        valA = text.substring(0, firstIdx).trim() || 'na';
-        valB = text.substring(firstIdx + separator.length).trim() || 'na';
-      }
-      columnA.values[i] = { ...cell, original: valA, current: valA, status: RAW };
-      columnB.values[i] = { ...cell, original: valB, current: valB, status: RAW };
+    // 2. Pass input data using Angular's input binding API
+    componentRef.setInput('data', {
+      originalHeader: originalColumn.header.original,
+      example: example,
     });
 
-    const newColumns = [...columns];
-    newColumns.splice(index, 1, columnA, columnB);
-    this.etl_service.updateColumns(newColumns);
-  });
-}
+    // 3. Subscribe to the custom 'closed' output
+    componentRef.instance.closed.subscribe((result: string | null) => {
+      // Clean up the dynamically created component from the DOM
+      componentRef.destroy();
+
+      if (!result) return; // user cancelled
+      const separator = result;
+
+      // deep copy original column
+      const columnA: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+      const columnB: ColumnDto = JSON.parse(JSON.stringify(originalColumn));
+      columnA.id = crypto.randomUUID();
+      columnB.id = crypto.randomUUID();
+
+      columnA.header = { ...columnA.header, original: `(A): ${originalColumn.header.original}` };
+      columnB.header = { ...columnA.header, original: `(B): ${originalColumn.header.original}` };
+
+      originalColumn.values.forEach((cell, i) => {
+        const text = cell?.original ?? '';
+        const firstIdx = text.indexOf(separator);
+        let valA: string;
+        let valB: string;
+        if (firstIdx === -1 || separator === '') {
+          valA = text || 'na';
+          valB = 'na';
+        } else {
+          valA = text.substring(0, firstIdx).trim() || 'na';
+          valB = text.substring(firstIdx + separator.length).trim() || 'na';
+        }
+        columnA.values[i] = { ...cell, original: valA, current: valA, status: RAW };
+        columnB.values[i] = { ...cell, original: valB, current: valB, status: RAW };
+      });
+
+      const newColumns = [...columns];
+      newColumns.splice(index, 1, columnA, columnB);
+      this.etl_service.updateColumns(newColumns);
+    });
+  }
 
   /** Use Variant Validator in the backend to annotate each variant string in the column.
    * Upon successful validation, add the variant key to the ETL DTO.  
@@ -937,11 +969,40 @@ export class TableEditorComponent {
     console.log('handle menu');
   }
 
+  editCellDialogData = signal<CellEditData | null>(null);
+
   /**
    * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function
    * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
    */
-  async editCellValueManually(): Promise<void> {
+  editCellValueManually(): void {
+    const dto = this.etl_service.etlDto();
+    const cell = this.contextMenuCellValue;
+    const colIndex = this.contextMenuCellCol;
+    if (!cell || colIndex == null || !dto) {
+      this.notificationService.showError('Could not edit cell: missing context.');
+      this.contextMenuCellVisible = false; // Close it anyway since we can't act
+      return;
+    }
+
+    this.editCellDialogData.set({ original: cell.original, current: cell.current });
+    this.contextMenuCellVisible = false;
+  }
+
+  onManualEditSaved(result: string) {
+    this.editCellDialogData.set(null);
+    this.saveManualEdit(result);
+  }
+
+  onManualEditCancelled() {
+    this.editCellDialogData.set(null);
+  }
+
+  /**
+   * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function
+   * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
+   
+  async editCellValueManuallyOLD(): Promise<void> {
     const dto = this.etl_service.etlDto();
     const cell = this.contextMenuCellValue;
     const colIndex = this.contextMenuCellCol;
@@ -961,7 +1022,7 @@ export class TableEditorComponent {
     }
 
     this.contextMenuCellVisible = false;
-  }
+  }*/
 
   /**
    * Save a manual edit to a table cell.
@@ -1865,7 +1926,6 @@ export class TableEditorComponent {
     }
     this.miningService.openHpoTwoStepDialog().subscribe((hpoTermDataList) => {
       if (!hpoTermDataList) return;
-      console.log('HMINING result structure parsed successfully:', hpoTermDataList);
       const jsonizedCellValue = JSON.stringify(hpoTermDataList);
       const newColumns = dto.table.columns.map((col, cIdx) => {
         if (cIdx !== colIndex) return col;

@@ -110,12 +110,6 @@
     >
   </div>
 </div>
-}
-
-@if (openPmid()) {
-  <app-pubmed
-    (closeDialog)="handleClosePmidDialog($event)"
-  >
-
-  </app-pubmed>
+} @if (openPmid()) {
+<app-pubmed (closeDialog)="handleClosePmidDialog($event)"> </app-pubmed>
 }

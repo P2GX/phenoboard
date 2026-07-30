@@ -6,7 +6,7 @@ import { asciiValidator } from '../validators/validators';
 @Component({
   selector: 'lib-individual-comment-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule], // All Material modules dropped
+  imports: [ReactiveFormsModule],
   templateUrl: './individual-comment.component.html',
   styleUrl: './individual-comment.component.scss'
 })
