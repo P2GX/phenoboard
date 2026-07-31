@@ -171,3 +171,9 @@
     [data]="data"
     (result)="onConfirmDeleteRowResult($event)" />
 }
+
+@if (constantColumnIdex(); as colIdx){
+  <app-add-constant-column-dialog 
+  [colindex]="colIdx"
+  (closed)="handleConstantColumn($event)"/>
+} 

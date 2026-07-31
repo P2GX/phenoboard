@@ -15,7 +15,6 @@ import { CommonModule } from '@angular/common';
 import { ConfigService } from '../services/config.service';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   HpoMappingResult,
@@ -27,6 +26,7 @@ import {
   EtlDataTableComponent,
   ConfirmDialogData,
   ConfirmDialogComponent,
+  ConstantColumnData,
 } from '@workspace/ui';
 import {
   ColumnDto,
@@ -36,8 +36,7 @@ import {
   EtlColumnType,
 } from '@workspace/ui';
 import { EtlSessionService } from '../services/etl_session_service';
-import { HpoHeaderComponent } from '../hpoheader/hpoheader.component';
-import { catchError, firstValueFrom, from, Observable, of } from 'rxjs';
+import { catchError, from, Observable, of } from 'rxjs';
 import { IconComponent, NotificationService } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '../../../libs/ui/src/lib/models/hpo_term_dto';
 import { MultiHpoComponent } from '../multihpo/multihpo.component';
@@ -85,6 +84,7 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
   selector: 'app-tableeditor',
   standalone: true,
   imports: [
+    AddConstantColumnDialogComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -98,8 +98,8 @@ export const ERROR: EtlCellStatus = 'error' as EtlCellStatus;
     IconComponent,
     ConfirmDialogComponent,
     CellReviewComponent,
-    EtlCellEditDialogComponent,
-  ],
+    EtlCellEditDialogComponent
+],
   templateUrl: './tableeditor.component.html',
   styleUrl: './tableeditor.component.scss',
 })
@@ -111,7 +111,6 @@ export class TableEditorComponent {
 
   private configService = inject(ConfigService);
   private ageService = inject(AgeInputService);
-  private dialog = inject(MatDialog);
   public etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private variantDialog = inject(VariantDialogService);
@@ -1006,32 +1005,6 @@ export class TableEditorComponent {
   }
 
   /**
-   * Open a modal dialog to allow the user to manually edit the cell that was clicked. The function
-   * will cause a modal to appear that will activate the function saveManualEdit to perform the save.
-   
-  async editCellValueManuallyOLD(): Promise<void> {
-    const dto = this.etl_service.etlDto();
-    const cell = this.contextMenuCellValue;
-    const colIndex = this.contextMenuCellCol;
-    if (!cell || colIndex == null || !dto) {
-      this.notificationService.showError('Could not edit cell: missing context.');
-      this.contextMenuCellVisible = false; // Close it anyway since we can't act
-      return;
-    }
-
-    const dialogRef = this.dialog.open(EtlCellEditDialogComponent, {
-      data: { original: cell.original, current: cell.current },
-      width: '400px',
-    });
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (result !== undefined) {
-      this.saveManualEdit(result);
-    }
-
-    this.contextMenuCellVisible = false;
-  }*/
-
-  /**
    * Save a manual edit to a table cell.
    * @param newValue The string returned from the dialog or input
    */
@@ -1645,6 +1618,8 @@ export class TableEditorComponent {
     return header.hpoTerms[0];
   }
 
+  /*
+  ALSO DELETE hpoheader.component!!!!!
   async processHpoColumn(colIndex: number | null): Promise<void> {
     const dto = this.etl_service.etlDto();
     if (colIndex == null || !dto || colIndex < 0) {
@@ -1675,7 +1650,7 @@ export class TableEditorComponent {
     const mapping: HpoMappingResult | undefined = await firstValueFrom(dialogRef.afterClosed());
     this.updateColumnWithMap(colIndex, mapping);
     console.log('consider more code to update title of column');
-  }
+  }*/
 
   /** Reset column to RAW and trigger cell signals if needed */
   resetColumnToRaw(colIndex: number | null): void {
@@ -1735,31 +1710,29 @@ export class TableEditorComponent {
     }
   }
 
+
+  constantColumnIdex = signal<number|null>(null);
+
   /** Add a new column with a constant value in each cell */
   async addConstantColumn(index: number | null): Promise<void> {
-    const dto = this.etl_service.etlDto();
-    if (!dto) {
-      this.notificationService.showError('Cannot add column - no table loaded');
-      return;
-    }
     if (index === null) {
       this.notificationService.showError('Cannot add column - no index');
       return;
     }
+    this.constantColumnIdex.set(index);
+  }
 
-    const dialogRef = this.dialog.open(AddConstantColumnDialogComponent, {
-      width: '400px',
-      data: { columnName: '', constantValue: '' },
-    });
-
-    const result = await firstValueFrom(dialogRef.afterClosed());
-
-    if (!result || !result.columnName?.trim()) {
+  handleConstantColumn(data: ConstantColumnData | null): void {
+    if (!data || !data.columnName?.trim()) {
       this.notificationService.showError('Constant column creation cancelled or invalid');
       return;
     }
-
-    const { columnName, constantValue } = result;
+    const dto = this.etl_service.etlDto();
+    if (!dto) {
+      this.notificationService.showError('Cannot add column - no table loaded');
+      return;
+    } 
+    const { colIndex, columnName, constantValue } = data;
     const rowCount = Math.max(...dto.table.columns.map((col) => col.values.length));
     // A convenience function to create an EtlCellValue with the same string val
     const makeCell = (value: string): EtlCellValue => ({
@@ -1779,9 +1752,9 @@ export class TableEditorComponent {
       values: newValues,
     };
     const newColumns = [
-      ...dto.table.columns.slice(0, index + 1),
+      ...dto.table.columns.slice(0, colIndex + 1),
       newColumn,
-      ...dto.table.columns.slice(index + 1),
+      ...dto.table.columns.slice(colIndex + 1),
     ];
     this.etl_service.updateColumns(newColumns);
   }

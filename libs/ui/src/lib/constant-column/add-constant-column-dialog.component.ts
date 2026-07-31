@@ -2,6 +2,14 @@ import { Component, ElementRef, ViewChild, AfterViewInit, input, output } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+
+export interface ConstantColumnData {
+  colIndex:number;
+  columnName: string;
+  constantValue: string;
+}
+
+
 @Component({
   selector: 'app-add-constant-column-dialog',
   standalone: true,
@@ -10,8 +18,8 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./add-constant-column-dialog.component.scss'],
 })
 export class AddConstantColumnDialogComponent implements AfterViewInit {
-  readonly data = input<{ columnName: string; constantValue: string }>({ columnName: '', constantValue: '' });
-  readonly closed = output<{ columnName: string; constantValue: string } | null>();
+  colindex = input.required<number>();
+  closed = output<ConstantColumnData | null>();
 
   @ViewChild('dialogEl') dialogEl!: ElementRef<HTMLDialogElement>;
 
@@ -19,10 +27,10 @@ export class AddConstantColumnDialogComponent implements AfterViewInit {
   constantValue = '';
 
   ngOnInit() {
-    const initialData = this.data();
+    const initialData = this.colindex();
     if (initialData) {
-      this.columnName = initialData.columnName ?? '';
-      this.constantValue = initialData.constantValue ?? '';
+      this.columnName = '';
+      this.constantValue = '';
     }
   }
 
@@ -39,9 +47,11 @@ export class AddConstantColumnDialogComponent implements AfterViewInit {
 
   onSave(): void {
     this.dialogEl?.nativeElement.close();
-    this.closed.emit({
+    const data: ConstantColumnData = {
+      colIndex: this.colindex(),
       columnName: this.columnName,
-      constantValue: this.constantValue,
-    });
+      constantValue: this.constantValue
+    };
+    this.closed.emit(data);
   }
 }
