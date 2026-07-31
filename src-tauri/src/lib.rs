@@ -87,7 +87,7 @@ pub fn run() {
             validate_structural_variant,
             validate_template,    
         ])
-        .setup(|app| {
+        .setup(|_app| {
             Ok(())
         })
         .on_window_event(|window, event| {

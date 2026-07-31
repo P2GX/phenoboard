@@ -1,6 +1,12 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { map, Observable } from 'rxjs';
+import {
+  Injectable,
+  inject,
+  signal,
+  EnvironmentInjector,
+  ApplicationRef,
+  createComponent,
+} from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { HierarchyMapItem, HpoTwostepData, PolishedHpoAnnotation } from 'ng-hpo-uikit';
@@ -11,7 +17,8 @@ import { HpoTermData, toCellValue } from '@workspace/ui';
   providedIn: 'root',
 })
 export class HpoMiningDialogService {
-  private dialog = inject(MatDialog);
+  private environmentInjector = inject(EnvironmentInjector);
+  private appRef = inject(ApplicationRef);
   private configService = inject(ConfigService);
 
   protected hierarchyCache = signal<Record<string, HierarchyMapItem>>({});
@@ -38,26 +45,48 @@ export class HpoMiningDialogService {
       availableModifiers: () => this.configService.getHpoModifiers(),
     };
 
-    const dialogRef = this.dialog.open(HpoDialogWrapperComponent, {
-      width: '85vw',
-      maxWidth: '1200px',
-      height: '80vh',
-      disableClose: true,
-      data: dialogData,
+    return new Observable<HpoTermData[] | null>((subscriber) => {
+      const hostElement = document.createElement('div');
+      document.body.appendChild(hostElement);
+
+      const componentRef = createComponent(HpoDialogWrapperComponent, {
+        environmentInjector: this.environmentInjector,
+        hostElement,
+      });
+
+      componentRef.setInput('dialogData', dialogData);
+      this.appRef.attachView(componentRef.hostView);
+
+      const cleanup = () => {
+        this.appRef.detachView(componentRef.hostView);
+        componentRef.destroy();
+        hostElement.remove();
+      };
+
+      const subscription = componentRef.instance.result.subscribe(
+        (polishedAnnotations?: PolishedHpoAnnotation[]) => {
+          if (!polishedAnnotations) {
+            subscriber.next(null);
+          } else {
+            subscriber.next(
+              polishedAnnotations.map((pa) => ({
+                termDuplet: {
+                  hpoLabel: pa.label,
+                  hpoId: pa.termId,
+                },
+                entry: toCellValue(pa),
+              })),
+            );
+          }
+          subscriber.complete();
+          cleanup();
+        },
+      );
+
+      return () => {
+        subscription.unsubscribe();
+        cleanup();
+      };
     });
-
-    return dialogRef.afterClosed().pipe(
-      map((polishedAnnotations?: PolishedHpoAnnotation[]) => {
-        if (!polishedAnnotations) return null;
-
-        return polishedAnnotations.map((pa) => ({
-          termDuplet: {
-            hpoLabel: pa.label,
-            hpoId: pa.termId,
-          },
-          entry: toCellValue(pa),
-        }));
-      }),
-    );
   }
 }

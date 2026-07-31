@@ -41,7 +41,7 @@ import { PmidService } from '../services/pmid_service';
 @Component({
   selector: 'app-addcase',
   standalone: true,
-  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent, ConfirmDialogComponent, HpoDialogWrapperComponent, AddageComponent, AddVariantComponent],
+  imports: [FormsModule, HelpButtonComponent, AdddemoComponent, PubmedComponent, IconComponent, ConfirmDialogComponent, HpoDialogWrapperComponent, AddVariantComponent],
   templateUrl: './addcase.component.html',
   styleUrl: './addcase.component.scss',
 })
