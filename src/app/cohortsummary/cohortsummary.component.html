@@ -66,12 +66,7 @@
       
 
 @if (showPmid()) {
-  <div class="modal-overlay" (click)="togglePmidModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <app-pmid-dialog [citations]="citations()" />
-      <button class="btn-outline-cancel" (click)="togglePmidModal()">Close</button>
-    </div>
-  </div>
+  <app-pmid-dialog [citations]="citations()" [open]="showPmid()" (closed)="togglePmidModal()" />
 }
 
 @if (showMoiDialog()) {

@@ -33,6 +33,7 @@ import {
   PolishedHpoAnnotation,
 } from 'ng-hpo-uikit';
 import { HpoDialogWrapperComponent } from '../util/hpo-dialog-wrapper/hpo-dialog-wrapper.component';
+import { PmidService } from '../services/pmid_service';
 
 /**
  * Component to add a single case using text mining and HPO autocompletion.
@@ -49,6 +50,7 @@ export class AddcaseComponent {
   private configService = inject(ConfigService);
   public ageService = inject(AgeInputService);
   private cohortService = inject(CohortDtoService);
+  private pmidService = inject(PmidService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
   private ngZone = inject(NgZone);
@@ -412,8 +414,9 @@ onVariantEditorResult(result: VariantDto | undefined): void {
         this.pmidDto.set(result);
       });
       return;
+    } else {
+      this.pmidService.addPmid(result);
     }
-
     this.pmidDto.set(result);
   }
 

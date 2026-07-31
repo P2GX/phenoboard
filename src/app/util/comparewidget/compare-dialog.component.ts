@@ -1,7 +1,7 @@
 import { Component, inject, output, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { open } from '@tauri-apps/plugin-dialog';
-import { NotificationService, IconComponent } from 'ng-hpo-uikit';
+import { NotificationService } from 'ng-hpo-uikit';
 
 export interface CompareFiles {
   path1: string;

@@ -1,23 +1,29 @@
-<section class="pmid-modal">
-  <h3>PubMed Citations</h3>
+<dialog #nativeDialog (close)="close()" (click)="onBackdropClick($event)" class="phenoboard-dialog pmid-dialog">
+      <section class="pmid-dialog__content">
+        <h3 class="phenoboard-dialog__title">PubMed Citations</h3>
 
-  <div class="pmid-list">
-    @for (item of citations(); track item.pmid) {
-      <div class="pmid-item">
-        <div class="pmid-title">{{ item.title }}</div>
-        <div class="pmid-meta">
-          <a
-            [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmid(item)"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="pmid-link"
-          >
-            <strong>{{ item.pmid }}</strong> ↗
-          </a>
+        <div class="pmid-list">
+          @for (item of citations(); track item.pmid) {
+            <div class="pmid-item">
+              <div class="pmid-title">{{ item.title }}</div>
+              <div class="pmid-meta">
+                <a
+                  [href]="'https://pubmed.ncbi.nlm.nih.gov/' + getPmid(item)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="pmid-link"
+                >
+                  <strong>{{ item.pmid }}</strong> ↗
+                </a>
+              </div>
+            </div>
+          } @empty {
+            <p>No citations available.</p>
+          }
         </div>
+      </section>
+
+      <div class="phenoboard-dialog__footer">
+        <button class="btn-outline-cancel" (click)="close()">Close</button>
       </div>
-    } @empty {
-      <p>No citations available.</p>
-    }
-  </div>
-</section>
+    </dialog>
