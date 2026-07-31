@@ -20,7 +20,6 @@ import { IconComponent, NotificationService, OntologyAutocompleteComponent } fro
 import { HpoTermDuplet } from '@workspace/ui';
 import { AddVariantComponent, VariantKind } from '../addvariant/addvariant.component';
 import { FormsModule } from '@angular/forms';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CohortSummaryComponent } from '../cohortsummary/cohortsummary.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@workspace/ui';
 import { HelpButtonComponent } from 'ng-hpo-uikit';

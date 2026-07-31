@@ -27,8 +27,7 @@
           "src/assets"
         ],
         "styles": [
-          "src/styles.scss",
-          "node_modules/material-icons/iconfont/material-icons.css"
+          "src/styles.scss"
         ]
       },
       "configurations": {
