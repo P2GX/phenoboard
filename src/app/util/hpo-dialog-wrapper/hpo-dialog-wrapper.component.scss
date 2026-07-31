@@ -1,26 +1,8 @@
-.dialog {
+.hpo-mining-dialog {
   width: 85vw;
   max-width: 1200px;
   height: 80vh;
-  padding: 5px;
-  border: 2px solid var(--color-border, #d1d5db);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
 
-  // Native <dialog> centers itself in the top layer by default via UA styles,
-  // but we pin it explicitly so it's not dependent on that.
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-
-  &::backdrop {
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  // lib-hpo-twostep-mining needs to fill the dialog so its internal
-  // layout/scroll areas actually get the 85vw × 80vh box to work with.
   lib-hpo-twostep-mining {
     display: block;
     width: 100%;

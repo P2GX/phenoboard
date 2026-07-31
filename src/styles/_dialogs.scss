@@ -1,0 +1,40 @@
+// ============================================
+// phenoboard-dialog: shared chrome for all dialogs
+// ============================================
+
+.phenoboard-dialog {
+  border: 2px solid #94a3b8;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);  
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.phenoboard-dialog__title {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.phenoboard-dialog__body {
+  flex-grow: 1;
+  min-height: 0;        // required so overflow-y:auto actually kicks in
+  overflow-y: auto;
+  margin-bottom: 24px;
+}
+
+.phenoboard-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}

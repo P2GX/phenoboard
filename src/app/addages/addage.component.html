@@ -1,8 +1,8 @@
 
-<dialog #ageDialogElement class="age-wizard-container">
-  <h2 class="wizard-title">Set Age Value</h2>
+<dialog #ageDialogElement class="phenoboard-dialog age-wizard-container">
+  <h2 class="phenoboard-dialog__title">Set Age Value</h2>
 
-  <div class="wizard-body">
+  <div class="phenoboard-dialog__body wizard-body">
     <!-- Section A: Quick Select from previously used terms -->
     @if (existingAgeStrings().length > 0) {
       <div class="quick-select-section">
@@ -47,11 +47,11 @@
     </div>
   </div>
 
-  <div class="wizard-footer">
-    <button type="button" class="btn btn-outline" (click)="onCancel()">Cancel</button>
+  <div class="phenoboard-dialog__footer">
+    <button type="button" class="btn-outline-cancel" (click)="onCancel()">Cancel</button>
     <button
       type="button"
-      class="btn btn-primary"
+      class="btn-outline-primary"
       [disabled]="!customAge().trim()"
       (click)="createNewAge()"
     >

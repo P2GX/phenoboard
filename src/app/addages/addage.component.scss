@@ -1,24 +1,13 @@
 .age-wizard-container {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 8px;
-  width: 100%;
+  width: min(90vw, 480px); 
 }
 
-.wizard-title {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
-}
+
 
 .wizard-body {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  margin-bottom: 24px;
 }
 
 .section-label {
@@ -71,14 +60,6 @@
   color: #64748b;
   margin-top: 6px;
   line-height: 1.4;
-}
-
-.wizard-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 16px;
 }
 
 /* addage.component.css */

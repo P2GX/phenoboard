@@ -6,7 +6,7 @@ import { HpoTwostepMiningComponent, NotificationService, HpoTwostepData, Polishe
   standalone: true,
   imports: [HpoTwostepMiningComponent],
   template: `
-    <dialog #nativeDialog (close)="onNativeClose()" class="dialog">
+    <dialog #nativeDialog (close)="onNativeClose()" class="phenoboard-dialog hpo-mining-dialog">
       <lib-hpo-twostep-mining
         [config]="dialogData()"
         (curationComplete)="onCurationComplete($event)"

@@ -420,7 +420,6 @@ export class PtTemplateComponent {
   });
 
   confirmDialogData = signal<ConfirmDialogData | null>(null);
-  isConfirmDialogOpen = signal(false);
   private resolveConfirm?: (value: boolean) => void;
 
   /**
@@ -436,8 +435,6 @@ export class PtTemplateComponent {
       cancelText: 'Cancel',
     });
 
-    this.isConfirmDialogOpen.set(true);
-
     return new Promise((resolve) => {
       this.resolveConfirm = resolve;
     });
@@ -445,7 +442,7 @@ export class PtTemplateComponent {
 
   /* handle the user's response to the ontology sanitize dialog */
   handleConfirmResult(confirmed: boolean): void {
-    this.isConfirmDialogOpen.set(false);
+    this.confirmDialogData.set(null);
     this.resolveConfirm?.(confirmed); // Resolves the promise from openSanitizeDialog
   }
 
