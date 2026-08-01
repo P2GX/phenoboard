@@ -7,7 +7,9 @@ mod util;
 
 use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, factory::excel, repo::{ComparisonReport, repo_qc::RepoQc}, tauri::models::HierarchyMapItem};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
+use ga4ghphetools::tauri::{pick_file_and_process, load_ontology, OntologyLoadEvent};
 use ontolius::ontology::MetadataAware;
+use ontolius::ontology::OntologyTerms;
 use phenoboard::PhenoboardSingleton;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
@@ -101,94 +103,34 @@ pub fn run() {
 }
 
 
-/// Converts a `tauri_plugin_fs::FilePath` into a `String` representing the full path.
-///
-/// # Arguments
-///
-/// * `file_path` - The `FilePath` object returned by Tauri's file picker.
-///
-/// # Returns
-///
-/// * `Ok(String)` - The full path as a UTF-8 string (lossily converted if necessary).
-/// * `Err(String)` - An error message if the path is missing.
-///
-/// # Example
-///
-/// ```rust
-/// let full_path = get_hpo_json_full_path_as_str(file_path)?;
-/// println!("Selected file path: {}", full_path);
-/// ```
-fn get_hpo_json_full_path_as_str(file_path: tauri_plugin_fs::FilePath) -> Result<String, String> {
-    let path = file_path
-        .as_path()
-        .ok_or_else(|| "Failed to get path from FilePath".to_string())?;
 
-    Ok(path.to_string_lossy().to_string())
-}
-
-#[derive(serde::Serialize, Clone)]
-#[serde(rename_all = "camelCase")] // Keeps TS happy with camelCase
-struct HpoLoadEvent {
-    status: String, // "loading", "success", "error", "canceled"
-    message: Option<String>,
-    data: Option<StatusDto>, // Your existing status DTO
-}
-
-impl HpoLoadEvent {
-    pub fn loading() -> Self {
-        Self { status: "loading".to_string(), message: None, data: None }
-    }
-
-    pub fn success(dto: StatusDto) -> Self {
-        Self { status: "success".into(), message: None, data: Some(dto) }
-    }
-
-    pub fn error(msg: String) -> Self {
-        Self { status:"error".into(), message: Some(msg), data: None }
-    }
-
-    pub fn cancel() -> Self {
-        Self { status:"cancel".into(), message: Some("User canceled HPO loading".into()), data: None }
-    }
-}
-
-
-/// Load the HPO from hp.json
+/// Load the Human Phenotype Ontology (HPO)
 #[tauri::command]
 async fn load_hpo(
     app: AppHandle,
     state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<(), String> {
-    // 1. Clone the state reference for the thread
-    let state_handle = state.inner().clone(); 
-    let app_handle = app.clone();
-
-    let _ = app.emit("hpo-load-event", HpoLoadEvent::loading());
-
-    // 2. Use tauri::async_runtime to keep things integrated
-   tauri::async_runtime::spawn(async move {
-        // Now 'state_handle' is a 'static Arc, so the compiler is happy!
-        let file_path = app_handle.dialog().file().blocking_pick_file();
-        match file_path {
-            Some(file) => {
-                if let Ok(hp_json_path) = get_hpo_json_full_path_as_str(file) {
-                match ontology_loader::load_ontology(&hp_json_path) {
-                    Ok(ontology) => {
-                        let mut singleton = state_handle.phenoboard.lock().unwrap();
-                        singleton.set_hpo(Arc::new(ontology), &hp_json_path);
-                        let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::success(singleton.get_status()));
-                    },
-                    Err(_) => { 
-                        let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::cancel());
-                     }
-                }
+    let state_handle = state.inner().clone();
+    let _ = app.emit("hpo-load-event", OntologyLoadEvent::loading());
+    pick_file_and_process(app, "hpo-load-event", move |hpo_json_path, app_handle| async move {
+        match load_ontology(&hpo_json_path) {
+            Ok(ontology) => {
+                let mut singleton = state_handle.phenoboard.lock().unwrap();
+                let n_terms = ontology.len();
+                let hpo_clone = ontology.clone();
+                let hpo_version = hpo_clone.version();
+                singleton.set_hpo(ontology, &hpo_json_path);
+                let _ = app_handle.emit(
+                    "hpo-load-event", 
+                    OntologyLoadEvent::success(hpo_version, n_terms)
+                );
+            },
+            Err(e) => { 
+                let _ = app_handle.emit("hpo-load-event", OntologyLoadEvent::error(e.to_string()));
             }
-            },
-            None => {
-                let _ = app_handle.emit("hpo-load-event", HpoLoadEvent::error("User canceled HPO loading".to_string()));
-            },
-        };
+        }
     });
+
     Ok(())
 }
 
@@ -238,7 +180,7 @@ async fn load_phetools_excel_template(
 }
 
 
-/// Allow the user to choose an existing PheTools JOSN file from the file system and load it
+/// Allow the user to choose an existing PheTools JSON file from the file system and load it
 #[tauri::command]
 async fn load_ptools_json(
     app: AppHandle,

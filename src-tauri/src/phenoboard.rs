@@ -339,10 +339,19 @@ impl PhenoboardSingleton {
 
     pub fn get_phenopackets_output_dir(&self) -> Result<PathBuf, String> {
         let default_dir = self.get_default_dir()?;
-        FileDialog::new()
-            .set_directory(default_dir)
-            .set_title("Select Output Directory")
-            .pick_folder()
+        // If we are running inside a Tokio runtime context on Linux, 
+        // rfd's sync backend panics trying to talk to zbus. 
+        // We can shield it by running it on a fresh native thread or blocking section:
+        let dialog_task = std::thread::spawn(move || {
+            FileDialog::new()
+                .set_directory(default_dir)
+                .set_title("Select Output Directory")
+                .pick_folder()
+        });
+
+        dialog_task
+            .join()
+            .map_err(|_| "Dialog thread panicked".to_string())?
             .ok_or_else(|| "User canceled or dialog failed".to_string())
     }
 
