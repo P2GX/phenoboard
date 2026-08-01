@@ -40,7 +40,7 @@
           <table class="pt-table">
             <thead class="pt-table-head">
               <tr>
-                <th class="narrow-column bottom-align">Individual ID</th>
+                <th class="narrow-column bottom-align sticky-col">Individual ID</th>
 
                 <th class="narrow-column bottom-align">Alleles</th>
                 <!-- The following creates the series of headers for the HPO columns.
@@ -77,11 +77,7 @@
             <tbody>
               @for (row of tableVM(); track row.id; let rowIndex = $index) {
                 <tr [class.row-no-hpo]="!row.hasObservedHpo">
-                  <td
-                    class="relative narrow-column"
-                    (contextmenu)="onIndividualRightClick($event, row.id)"
-                    class="cursor-context-menu"
-                  >
+                  <td class="relative narrow-column sticky-col" (contextmenu)="onIndividualRightClick($event, row.id)">
                     {{ row.individualId }}
                     @if (!row.individualId) {
                       <span class="cell-error-label">[ID is null/empty]</span>

@@ -25,8 +25,8 @@ reqwest = { version = "0.13.3", features = ["json", "blocking"] }
 rfd = { version = "0.16.0", default-features = false}
 fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.2.15', features = ["serde"] }
 #fenominal = { path = '../../fenominal',features = ["serde"] }
-#ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', features= ["tauri"], tag = '0.6.20' }
-ga4ghphetools = { path = "../../ga4ghphetools", features= ["tauri"] }
+ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', features= ["tauri"], tag = '0.6.21' }
+#ga4ghphetools = { path = "../../ga4ghphetools", features= ["tauri"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.148"
 toml = "0.9.8"

@@ -1,7 +1,55 @@
+:host { display: block }
+
 .rotate-header {
   height: 80px; /* or less */
   vertical-align: bottom;
   position: relative;
+}
+
+.pt-table-container {
+  overflow-x: scroll;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  width: 95%;
+    min-width: 0;   
+}
+
+.pt-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  font-size: 12px;
+  min-width: max-content;
+  margin-left: 20px;
+  margin-right: 40px;
+}
+
+.pt-table th {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 5px;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #ffffff;
+  border-right: 1px solid #ccc;
+}
+
+.pt-table-head th.sticky-col {
+  top: 0;
+  left: 0;
+  z-index: 12;
+  background: #f1f5f9;
+}
+
+.pt-table td {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  padding: 5px;
 }
 
 .hpo-col {
@@ -113,6 +161,24 @@
   vertical-align: top;
 }
 
+.narrow-column:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2; 
+  background: #ffffff;
+  border-right: 1px solid #ccc; 
+}
+/*Header's first column needs BOTH stickiness axes, and must win
+// the z-index fight against every other sticky element (top-row headers,
+// left-column body cells, and their own overlap point)*/
+.pt-table-head th.narrow-column:first-child {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 12; 
+  background: #f1f5f9; 
+}
+
 .bottom-align {
   vertical-align: bottom;
   padding-bottom: 6px; /* optional: tweak to align perfectly */
@@ -158,11 +224,6 @@ button[mat-icon-button] {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-}
-
-.top-scroll-mirror {
-  height: 15px; /* Adjust height to match typical scrollbar height */
-  margin-right: 60px; /* Adjust if needed to clear the vertical scrollbar area */
 }
 
 /* Optional: Hide the visual scrollbar for a cleaner look on supported browsers */
@@ -374,9 +435,6 @@ button[mat-icon-button] {
 }
 
 .pt-table-scroll {
-  overflow-y: auto;
-  max-height: 600px;
-  max-width: 80rem;
 }
 
 .pt-table-head {
@@ -386,6 +444,12 @@ button[mat-icon-button] {
   background-color: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   border-bottom: 1px solid #e0e0e0;
+}
+
+.pt-table-head th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .table-spacer {

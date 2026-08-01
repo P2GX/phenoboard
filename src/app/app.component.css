@@ -1,16 +1,16 @@
-/* 2. Create the vertical stack */
+:host {
+  display: block;
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh; /* Takes at least the full window height */
 }
 
-/* 3. The magic: this expands to push the footer down */
+
 .content-area {
   flex: 1 0 auto;
-  /* If you want the dashboard main area to scroll 
-     while nav/footer stay static, use:
-     flex: 1;
-     overflow-y: auto;
-  */
+  min-width: 0;
+  overflow-y: auto; 
 }
