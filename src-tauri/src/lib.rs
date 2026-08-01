@@ -19,7 +19,7 @@ use tauri_plugin_fs::{init};
 use fenominal::OntologyMatch;
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}}, hpo::{MinedCell, MiningConcept, ontology_loader}, util::HgncBundle};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}}, hpo::{MinedCell, MiningConcept}, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,

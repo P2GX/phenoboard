@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use fenominal::OntologyMatch;
 
 pub mod hpo_etl;
-pub mod ontology_loader;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[serde(rename_all = "camelCase")]
