@@ -342,17 +342,42 @@ impl PhenoboardSingleton {
         // If we are running inside a Tokio runtime context on Linux, 
         // rfd's sync backend panics trying to talk to zbus. 
         // We can shield it by running it on a fresh native thread or blocking section:
-        let dialog_task = std::thread::spawn(move || {
+        #[cfg(target_os = "linux")]
+        {
+            // On Linux, rfd's sync backend can panic talking to zbus if called
+            // from within a Tokio runtime context. Shield it with a fresh thread.
+            let dialog_task = std::thread::spawn(move || {
+                FileDialog::new()
+                    .set_directory(default_dir)
+                    .set_title("Select Output Directory")
+                    .pick_folder()
+            });
+
+            dialog_task
+                .join()
+                .map_err(|_| "Dialog thread panicked".to_string())?
+                .ok_or_else(|| "User canceled or dialog failed".to_string())
+        }
+        // macOS/Windows: native dialogs must run on the calling (main) thread.
+        // Spawning + joining here deadlocks NSOpenPanel against the main run loop.
+        #[cfg(not(target_os = "linux"))]
+        {
+            // macOS/Windows: native dialogs must run on the calling (main) thread.
+            // Spawning + joining here deadlocks NSOpenPanel against the main run loop.
             FileDialog::new()
                 .set_directory(default_dir)
                 .set_title("Select Output Directory")
                 .pick_folder()
-        });
+                .ok_or_else(|| "User canceled or dialog failed".to_string())
+        }
+    }
 
-        dialog_task
-            .join()
-            .map_err(|_| "Dialog thread panicked".to_string())?
-            .ok_or_else(|| "User canceled or dialog failed".to_string())
+    pub fn get_orcid_id(&self) -> Result<String, String> {
+        let orcid = match self.settings.get_biocurator_orcid() {
+            Ok(orcid_id) => orcid_id,
+            Err(e) => { return Err(format!("Cannot save phenopackets without ORCID id: {}", e)); }
+        };
+        Ok(orcid)
     }
 
     /// Export a list of phenopackets derived from the cohort.

@@ -137,6 +137,7 @@ export class CohortDialogComponent {
     });
 
     this.showPasteArea.set(false);
+    this.pastedText.set(null);
   }
 
   togglePaste() {

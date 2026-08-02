@@ -484,9 +484,17 @@ fn export_ppkt(
     cohort: CohortData, 
     overwrite: bool
 ) -> Result<usize, String> {
-       let mut singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    singleton.export_ppkt(directory, cohort, overwrite)
+    // acquire lock only as long as needed
+    let (orcid, hpo) = {
+        let singleton = state.phenoboard.lock()
+            .map_err(|_| "Failed to acquire lock on phenoboard".to_string())?;
+        let orcid = singleton.get_orcid_id()?;
+        let hpo = singleton.get_hpo()
+            .ok_or_else(|| "could not retieve HPO".to_string())?;
+        (orcid, hpo)
+    };
+    let path = std::path::PathBuf::from(&directory);
+    ga4ghphetools::ppkt::write_phenopackets(cohort, path, orcid, hpo, overwrite)
 }
 
 #[tauri::command]

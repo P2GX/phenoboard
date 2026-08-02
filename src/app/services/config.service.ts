@@ -261,9 +261,20 @@ export class ConfigService {
 
     return this.savePhenopackets(checkResult.selected_dir, cohortDto, overwrite);
   }
-  async savePhenopackets(directory: string, cohort: any, overwrite: boolean): Promise<number> {
+  async savePhenopacketsOLD(directory: string, cohort: any, overwrite: boolean): Promise<number> {
     return invoke('export_ppkt', { directory, cohort, overwrite });
   }
+
+  async savePhenopackets(directory: string, cohort: any, overwrite: boolean): Promise<number> {
+    try {
+      const count = await invoke<number>('export_ppkt', { directory, cohort, overwrite });
+      return count;
+    } catch (error) {
+      console.error("Failed to export phenopackets:", error);
+      throw error;
+    }
+  }
+
 
   async exportHpoa(cohort_dto: CohortData): Promise<string> {
     return invoke<string>('export_hpoa', { cohortDto: cohort_dto });
