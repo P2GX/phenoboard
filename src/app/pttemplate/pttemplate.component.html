@@ -20,6 +20,17 @@
           <option [value]="groupKey">{{ groupKey }}</option>
         }
       </select>
+      <span class="hint-text">or single term:</span>
+          <hpo-ontology-autocomplete
+            #singleTermAutocomplete
+              placeholder="Select HPO term to display in table"
+              [autocompleteProvider]="localAutocompleteProvider"
+              [requireConfirmation]="false"
+              (selected)="onSingleTermSelected($event)"
+            />
+        @if (selectedSingleHpoId()) {
+          <button type="button" class="clear-btn" (click)="onSingleTermSelected(null)">clear</button>
+        }
       <hpo-help-button
         title="Filter HPO columns"
         [lines]="[

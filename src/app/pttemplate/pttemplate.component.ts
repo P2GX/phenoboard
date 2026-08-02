@@ -7,6 +7,7 @@ import {
   HostListener,
   inject,
   signal,
+  viewChild,
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -37,6 +38,7 @@ import { WorkflowError } from '../services/cohort-workflow.errors';
 import { CohortViewModel } from '../services/cohort-view-model.service';
 import { TableContext, TableInteractionService } from '../services/table-interaction.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
 interface Option {
   label: string;
@@ -221,6 +223,8 @@ export class PtTemplateComponent {
 
   /** e.g., show just terms that descend from a top level term such as Abnormality of the musculoskeletal system HP:0033127 */
   selectedTopLevelHpo = signal<string | null>(null);
+  /** If set, show only the single column matching this exact HPO ID */
+  selectedSingleHpoId = signal<string | null>(null);
 
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
@@ -758,6 +762,13 @@ export class PtTemplateComponent {
 
     const row1 = cohort.rows[0];
     const n_cols = row1.hpoData.length;
+    // Single-term filter takes priority when set
+    const singleId = this.selectedSingleHpoId();
+    if (singleId) {
+      return cohort.hpoHeaders
+        .map((header, i) => (header.hpoId === singleId ? i : -1))
+        .filter((i) => i !== -1);
+    }
     const selectedHpo = this.selectedTopLevelHpo();
     // if we have fewer than 20 columns, show all
     if (n_cols <= 20 || !selectedHpo) {
@@ -1088,4 +1099,37 @@ export class PtTemplateComponent {
   hasExtraInfo(cell: CellValue): boolean {
     return cell.type === 'OnsetAge' || !!cell.modifiers?.length;
   }
+
+  onTopLevelFilterChange(value: string) {
+    this.selectedSingleHpoId.set(null);
+    this.selectedTopLevelHpo.set(value || null);
+  }
+
+  private readonly ontologyAutocomplete = viewChild<OntologyAutocompleteComponent>('singleTermAutocomplete');
+
+  /* Set or clear the "single-term" column selection */
+  onSingleTermSelected(match: OntologyMatch | null) {
+    this.selectedTopLevelHpo.set(null);
+    this.selectedSingleHpoId.set(match ? match.id : null);
+    this.ontologyAutocomplete()?.clear();
+  }
+
+  /** Terms available for the single-term filter, derived from the current cohort's columns */
+  availableHpoTerms = computed(() => {
+    const cohort = this.cohortData();
+    if (!cohort) return [];
+    return cohort.hpoHeaders.map((h) => ({ hpoId: h.hpoId, label: h.hpoLabel }));
+  });
+  /* Just provide autocomplete for the terms that are already being used for curation. */
+  localAutocompleteProvider = (query: string): Observable<OntologyMatch[]> => {
+    const q = query.toLowerCase();
+    const matches = this.availableHpoTerms()
+      .filter((t) => t.label.toLowerCase().includes(q) || t.hpoId.toLowerCase().includes(q))
+      .map((t): OntologyMatch => ({
+        id: t.hpoId,
+        label: t.label,
+        matchedText: query
+      }));
+    return of(matches);
+  };
 }

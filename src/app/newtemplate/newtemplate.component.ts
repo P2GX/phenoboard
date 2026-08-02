@@ -17,6 +17,7 @@ import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { DisplayMendelianComponent } from './display-mendelian.component';
 import { DisplayMeldedComponent } from './display-melded.component';
 import { AppStatusService } from '../services/app_status_service';
+import { PmidService } from '../services/pmid_service';
 
 export interface CohortEntry {
   diseaseId: string;
@@ -43,10 +44,6 @@ export function toDiseaseData(entry: CohortEntry): DiseaseData {
   };
 }
 
-//export interface CohortDialogResult {
-//  entries: CohortEntry[];
-//}
-
 /**
  * Component for creating a Template for a new disease. This is the first thing we need to use
  * when we are creating a Template for a new OMIM entry etc.
@@ -72,6 +69,7 @@ export class NewTemplateComponent {
   private etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   public statusService = inject(AppStatusService);
+  private pmidService = inject(PmidService);
 
   cohortDialogRef = viewChild.required<CohortDialogComponent>('cohortDialog');
   dialogTitle = signal('');
@@ -147,6 +145,7 @@ export class NewTemplateComponent {
     } else {
       this.createMendelianTemplate();
     }
+    this.pmidService.clearAllPmids();
   }
 
   private async createMeldedTemplate(): Promise<void> {
