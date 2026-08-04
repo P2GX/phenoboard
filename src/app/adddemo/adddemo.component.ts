@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
   AbstractControl,
 } from '@angular/forms';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { AddageComponent } from '../addages/addage.component';
 import { defaultDemographDto, DemographDto } from '../models/demograph_dto';
 import { asciiValidator, IndividualCommentComponent } from '@workspace/ui';
@@ -30,7 +30,7 @@ import { IconComponent, HelpButtonComponent } from 'ng-hpo-uikit';
 })
 export class AdddemoComponent {
   private fb = inject(FormBuilder);
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
 
   readonly ageStrings = this.ageService.selectedTerms;
   demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();

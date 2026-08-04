@@ -80,12 +80,6 @@ export class CohortDialogComponent {
     this.cancel();
   }
 
-  onBackdropClick(event: MouseEvent) {
-    if (event.target === this.dialogEl().nativeElement) {
-      this.cancel();
-    }
-  }
-
   cancel() {
     this.closeDialog(true);
   }

@@ -60,7 +60,7 @@ import {
 } from '@workspace/ui';
 import { CellReviewComponent } from '../cellreview/cellreview.component';
 import { AppStatusService } from '../services/app_status_service';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { TableEditorHeader } from './table-editor-header';
 import {
   CellEditData,
@@ -110,7 +110,7 @@ export class TableEditorComponent {
   Object = Object;
 
   private configService = inject(ConfigService);
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
   public etl_service = inject(EtlSessionService);
   private notificationService = inject(NotificationService);
   private variantDialog = inject(VariantDialogService);

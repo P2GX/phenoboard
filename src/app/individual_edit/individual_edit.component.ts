@@ -1,7 +1,7 @@
 import { Component, ElementRef, afterNextRender, input, output, viewChild, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IndividualData } from '../../../libs/ui/src/lib/models/cohort_dto';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 
 @Component({
   selector: 'app-individual-edit',
@@ -14,7 +14,7 @@ export class IndividualEditComponent implements OnInit{
   saved = output<IndividualData | null>();
 
   private fb = inject(FormBuilder);
-  public ageInputService = inject(AgeInputService);
+  public ageInputService = inject(AgeService);
 
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('nativeDialog');
   private emitted = false;

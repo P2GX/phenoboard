@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HpoModifierMenuComponent } from '../modifier/hpo-modifier-menu';
 import { CellValue } from '../../../../libs/ui/src/lib/models/hpo_term_dto';
 import { NotificationService } from 'ng-hpo-uikit';
-import { AgeInputService } from '../../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { HpoModifierService } from 'src/app/services/hpo_modifier_service';
 
 @Component({
@@ -19,7 +19,7 @@ export class TableCellEditorComponent {
   columnTitle = input.required<string>();
   dataChanged = output<CellValue>();
   private notificationService = inject(NotificationService);
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
   protected modifierService = inject(HpoModifierService);
   // The parent component will open the new-onset dialog and update the CellValue
   // this avoids race condition with closing the dialog and transmitting a new CellValue

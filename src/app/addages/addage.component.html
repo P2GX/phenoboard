@@ -26,7 +26,7 @@
           type="text"
           class="form-control text-input-look"
           placeholder="e.g., P32Y, P25Y, G38w2d, Infantile onset"
-          [ngModel]="customAge"
+          [ngModel]="customAge()"
           (ngModelChange)="customAge.set($event)"
           (change)="onAgeSelected($event)"
           list="age-suggestions"

@@ -15,7 +15,7 @@ import { ConfigService } from '../services/config.service';
 import { IndividualData, CohortData, RowData, CellValue, ModeOfInheritance, GeneTranscriptData, DiseaseData, getRowId, PtContextMenuComponent, VariantDto } from '@workspace/ui';
 import { AddageComponent } from '../addages/addage.component';
 import { IndividualEditComponent } from '../individual_edit/individual_edit.component';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { CohortDtoService } from '../services/cohort_dto_service';
 import { IconComponent, NotificationService, OntologyAutocompleteComponent } from 'ng-hpo-uikit';
 import { HpoTermDuplet } from '@workspace/ui';
@@ -104,7 +104,7 @@ export class PtTemplateComponent {
   /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
   private configService = inject(ConfigService);
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
   private notificationService = inject(NotificationService);
   readonly ageEntries = this.ageService.selectedTerms;
   protected showAgeDialog = signal<boolean>(false);

@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { OrcidDialogComponent } from 'ng-hpo-uikit';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from 'ng-hpo-uikit';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { PmidService } from '../services/pmid_service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
 import { AppStatusService } from '../services/app_status_service';
@@ -28,7 +28,7 @@ import { IconComponent } from "ng-hpo-uikit";
 export class HomeComponent {
   protected cohortService = inject(CohortDtoService);
   private configService = inject(ConfigService);
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
   private pmidService = inject(PmidService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);

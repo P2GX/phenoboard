@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { ColumnDto, EtlCellStatus, EtlCellValue, EtlColumnType, EtlDto } from '@workspace/ui';
-import { AgeInputService } from './age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { PmidDto } from '../models/pmid_dto';
 
@@ -9,20 +9,14 @@ import { PmidDto } from '../models/pmid_dto';
   providedIn: 'root',
 })
 export class EtlSessionService {
-  // Root signal for ETL DTO
   private _etlDto = signal<EtlDto | null>(null);
-  // expose as computed for read-only access
   public etlDto = computed(() => this._etlDto());
-  private ageService = inject(AgeInputService);
-
-  // private etlDtoSubject = new BehaviorSubject<EtlDto | null>(null);
-  //etlDto$ = this.etlDtoSubject.asObservable();
+  private ageService = inject(AgeService);
 
   setEtlDto(dto: EtlDto) {
     this._etlDto.set(dto);
   }
 
-  // Optional computed signal for derived UI state
   // If a column is transformed, then we are finished with each and every cell
   transformedColumns = computed(() => {
     const dto = this._etlDto();

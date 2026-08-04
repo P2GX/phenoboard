@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output, signal, ElementRef, HostLis
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MinedCell, MappedTerm, ClinicalStatus } from '@workspace/ui';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { AddageComponent } from '../addages/addage.component';
 import { IconComponent } from 'ng-hpo-uikit';
 import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
@@ -26,7 +26,7 @@ export class MinedCellEditorComponent {
   excludeAll = output<void>();
   restoreTerm = output<MappedTerm>();
 
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
   private appRef = inject(ApplicationRef);
   private injector = inject(EnvironmentInjector);
   private elementRef = inject(ElementRef);

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, input, output, effect, ViewChild, ElementRef, AfterViewInit, viewChild, afterEveryRender, afterNextRender } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 
 @Component({
   selector: 'app-addage',
@@ -11,7 +11,7 @@ import { AgeInputService } from '../services/age_service';
 })
 export class AddageComponent {
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('ageDialogElement');
-  private ageService = inject(AgeInputService);
+  private ageService = inject(AgeService);
 
   current = input<string>('');
   saved = output<string>();

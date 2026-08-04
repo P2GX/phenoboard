@@ -3,9 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ConfigService } from '../services/config.service';
 import { defaultStatusDto, StatusDto } from '../models/status_dto';
 import { PubmedComponent } from '../pubmed/pubmed.component';
-import { AddageComponent } from '../addages/addage.component';
 import { AdddemoComponent } from '../adddemo/adddemo.component';
-import { AgeInputService } from '../services/age_service';
+import { AgeService } from 'ng-hpo-uikit';
 import { TextAnnotationDto } from '../models/text_annotation_dto';
 import {
   CohortData,
@@ -48,7 +47,7 @@ import { PmidService } from '../services/pmid_service';
 export class AddcaseComponent {
   @Input() annotations: TextAnnotationDto[] = [];
   private configService = inject(ConfigService);
-  public ageService = inject(AgeInputService);
+  public ageService = inject(AgeService);
   private cohortService = inject(CohortDtoService);
   private pmidService = inject(PmidService);
   private router = inject(Router);
