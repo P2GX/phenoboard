@@ -57,6 +57,11 @@ export class AddageComponent {
     }
   }
 
+  onAgeSelected(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.customAge.set(value);
+  }
+
   createNewAge(): void {
     const val = this.customAge().trim();
     if (!val) return;

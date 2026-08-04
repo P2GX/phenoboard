@@ -48,7 +48,7 @@ export class AdddemoComponent {
   demoForm: FormGroup = this.initForm();
 
   private initForm(): FormGroup {
-    const dto = defaultDemographDto(); // Handled completely internally now
+    const dto = defaultDemographDto();
 
     return this.fb.group({
       individualId: [dto.individualId, [Validators.required, asciiValidator()]],
@@ -69,7 +69,6 @@ export class AdddemoComponent {
     return !value || value === '' || value === 'na';
   }
 
-  /* Age Wizard State Machine Operations */
   openAgeWizard(controlName: string): void {
     const control = this.demoForm.get(controlName);
     if (control) {
@@ -93,7 +92,6 @@ export class AdddemoComponent {
     this.closeAgeWizard();
   }
 
-  /* Comment State Machine Operations */
   openCommentDialog(): void {
     this.existingComment.set(this.demoForm.get('comment')?.value ?? '');
     this.isCommentDialogOpen.set(true);
