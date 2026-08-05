@@ -7,6 +7,7 @@ import { HpoTwostepMiningComponent, NotificationService, HpoTwostepData, Polishe
   imports: [HpoTwostepMiningComponent],
   template: `
     <dialog #nativeDialog (close)="onNativeClose()" class="phenoboard-dialog hpo-mining-dialog">
+      <div class="dialog-content-wrapper">
       <lib-hpo-twostep-mining
         [config]="dialogData()"
         (curationComplete)="onCurationComplete($event)"
@@ -14,6 +15,7 @@ import { HpoTwostepMiningComponent, NotificationService, HpoTwostepData, Polishe
         (errorOccurred)="handleError($event)"
       >
       </lib-hpo-twostep-mining>
+      </div>
     </dialog>
   `,
   styleUrl: './hpo-dialog-wrapper.component.scss'
