@@ -129,7 +129,7 @@ export class NewTemplateComponent {
     this.collectedEntries.push(fullEntry);
   }
 
-  onDialogClosed(cancelled: boolean): void {
+  async onDialogClosed(cancelled: boolean): Promise<void> {
     if (cancelled) {
       this.collectedEntries = [];
       return;
@@ -138,14 +138,14 @@ export class NewTemplateComponent {
       this.notificationService.showError('Could not retrieve disease');
       return;
     }
+    this.pmidService.clearAllPmids();
     this.diseases.set(this.collectedEntries);
 
     if (this.collectedEntries.length > 1) {
-      this.createMeldedTemplate();
+      await this.createMeldedTemplate();
     } else {
-      this.createMendelianTemplate();
+      await this.createMendelianTemplate();
     }
-    this.pmidService.clearAllPmids();
   }
 
   private async createMeldedTemplate(): Promise<void> {
