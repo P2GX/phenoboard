@@ -110,7 +110,6 @@ export class PtTemplateComponent {
   protected showAgeDialog = signal<boolean>(false);
 
   @ViewChild(AddageComponent) addagesComponent!: AddageComponent;
-  // References to the HTML elements
   @ViewChild('tableWrapper') tableWrapper!: ElementRef<HTMLDivElement>;
   @ViewChild('topScrollMirror') topScrollMirror!: ElementRef<HTMLDivElement>;
   @ViewChild('tableWidthRef') tableElement!: ElementRef<HTMLTableElement>;
@@ -482,6 +481,11 @@ export class PtTemplateComponent {
       hpoId: selectedTerm.id,
     };
     await this.addHpoTermToCohort(duplet);
+    // After adding term to cohort, it is still not annotated. 
+    // Therefore, we focus the table on the new term so the curator can add annotation
+    this.selectedTopLevelHpo.set(null);
+    this.selectedSingleHpoId.set(duplet.hpoId);
+    this.ontologyAutocomplete()?.clear();
   }
 
   async addHpoTermToCohort(autocompletedTerm: HpoTermDuplet): Promise<void> {

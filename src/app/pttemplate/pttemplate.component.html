@@ -330,7 +330,7 @@
 
       <div class="action-group">
         <button class="tool-btn btn-workflow" (click)="validateCohort()">
-          <app-icon name="health_and_safety" [size]="20" /> Check & Fix
+          <app-icon name="health_and_safety" [size]="20" />Check & Fix
         </button>
 
         <div class="action-with-help">
@@ -416,8 +416,6 @@
       (close)="interactionService.close()"
       (confirm)="handleConfirm(ctx)"
     >
-      <!-- This div acts as an invisible backdrop and closes the dialog if we click elsewhere -->
-
       <div (click)="$event.stopPropagation()">
         <app-hpo-annotation-panel
           [cellData]="ctx.cell"
