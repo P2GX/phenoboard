@@ -604,7 +604,12 @@ export class PtTemplateComponent {
 
   async saveCohort(): Promise<void> {
     const cohort = this.cohortData();
-    this.workflowService.saveCohort(cohort);
+    try {
+      await this.workflowService.saveCohort(cohort);
+    } catch (error) {
+      this.notificationService.showError(`${error}`);
+    }
+ 
   }
 
   async exportPpkt(): Promise<void> {
