@@ -96,6 +96,7 @@
                     <!-- Info popup for this row -->
                     @if (activeInfoRow(); as currentRow) {
                       <div
+                        #rowInfoPopup
                         class="row-info-popup"
                         [style.left.px]="infoMenuPos()?.x"
                         [style.top.px]="infoMenuPos()?.y"

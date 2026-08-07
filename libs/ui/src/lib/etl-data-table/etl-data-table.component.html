@@ -5,7 +5,6 @@
     <table class="etl-grid">
     <thead>
         <tr>
-        <th class="row-index-header">#</th>
         @for (col of columns(); track col.id; let colIdx = $index) {
             <th 
             [class]="'clickable-header status-' + col.header.columnType.toLowerCase()"
@@ -27,8 +26,6 @@
     <tbody>
         @for (rowIndex of rowIndices(); track rowIndex) {
         <tr>
-  
-            <td class="row-counter-cell">{{ rowIndex + 1 }}</td>
             @for (col of columns(); track col.id; let colIdx = $index) {
             @let cell = col.values[rowIndex];
             @if (cell) {

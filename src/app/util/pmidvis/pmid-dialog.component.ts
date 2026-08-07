@@ -32,6 +32,7 @@ export class PmidDialogComponent {
   close(): void {
     const modal = this.dialogEl().nativeElement;
     if (modal.open) modal.close();
+    this.closed.emit();
   }
 
   onBackdropClick(event: MouseEvent): void {

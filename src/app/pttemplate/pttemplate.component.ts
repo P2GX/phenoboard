@@ -116,6 +116,7 @@ export class PtTemplateComponent {
   @ViewChild('contextMenu') contextMenuElement?: ElementRef<HTMLDivElement>;
   @ViewChild('individualContextMenu') individualContextMenuElement?: ElementRef<HTMLDivElement>;
   @ViewChild('hpoContextMenu') hpoContextMenu: ElementRef | undefined;
+  @ViewChild('rowInfoPopup') rowInfoPopupElement?: ElementRef<HTMLDivElement>;
   tableWidth = '100%';
   Object = Object; // expose global Object to template
   public readonly VariantKind = VariantKind;
@@ -581,19 +582,24 @@ export class PtTemplateComponent {
   @HostListener('document:click', ['$event'])
   @HostListener('document:contextmenu', ['$event'])
   closeContextMenu(event: MouseEvent): void {
+      console.log('[closeContextMenu] event type:', event.type, 'target:', event.target);
+
     const menu = this.contextMenuElement?.nativeElement;
     const individualMenu = this.individualContextMenuElement?.nativeElement;
     const hpoContextMenu = this.hpoContextMenu?.nativeElement;
+    const rowInfoPopup = this.rowInfoPopupElement?.nativeElement;
     const target = event.target as Node;
-    if (
+    const inside = 
       (menu && menu.contains(target)) ||
       (individualMenu && individualMenu.contains(target)) ||
-      (hpoContextMenu && hpoContextMenu.contains(target))
-    ) {
-      return;
-    }
+      (hpoContextMenu && hpoContextMenu.contains(target)) || 
+      (rowInfoPopup && rowInfoPopup.contains(target));
+    console.log('[closeContextMenu] inside a menu?', inside);
+    if (inside) return;
+    console.log('[closeContextMenu] resetting all menu visibility flags');
     this.contextMenuVisible = false;
     this.individualContextMenuVisible = false;
+    this.closeRowInfo();
   }
 
   async saveCohort(): Promise<void> {
@@ -803,11 +809,14 @@ export class PtTemplateComponent {
   onIndividualRightClick(event: MouseEvent, rowId: string): void {
     event.preventDefault(); // stop default menu of browser
     event.stopPropagation();
+    console.log('[individual-rclick] fired for row', rowId);
     this.contextRowId = rowId;
     const { x, y } = this.configService.calculateMenuPosition(event.clientX, event.clientY);
     this.individualMenuX = x;
     this.individualMenuY = y;
     this.individualContextMenuVisible = true;
+      console.log('[individual-rclick] set visible=true', { x, y });
+
   }
 
   // Just show the row that the user clicks on

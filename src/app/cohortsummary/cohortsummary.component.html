@@ -33,7 +33,7 @@
       observed.
     </p>
 
-    <hpo-document-button label="Show PMIDs" text="PMIDs" (clicked)="togglePmidModal()" />
+    <hpo-document-button label="Show PMIDs" text="PMIDs" (clicked)="openPmidModal()" />
 
     <span class="text-slate-500">Acronym:</span>
       @if (!showCohortAcronym()) {
@@ -66,7 +66,7 @@
       
 
 @if (showPmid()) {
-  <app-pmid-dialog [citations]="citations()" [open]="showPmid()" (closed)="togglePmidModal()" />
+  <app-pmid-dialog [citations]="citations()" [open]="showPmid()" (closed)="closePmidModal()" />
 }
 
 @if (showMoiDialog()) {

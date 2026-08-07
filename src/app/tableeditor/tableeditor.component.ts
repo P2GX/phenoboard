@@ -440,6 +440,7 @@ export class TableEditorComponent {
   onMappingCompleted(mapping: HpoMappingResult | undefined | null): void {
     if (!mapping) {
       this.notificationService.showError('Could not retrieve mappings for HPO column');
+      this.activeStep.set("NONE");
       return;
     }
     const colIndex = this.activeColIndex();

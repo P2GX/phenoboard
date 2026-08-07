@@ -75,8 +75,12 @@ export class CohortSummaryComponent {
     }));
   }
 
-  togglePmidModal() {
-    this.showPmid.update((v) => !v);
+  openPmidModal() {
+    this.showPmid.set(true);
+  }
+
+  closePmidModal() {
+    this.showPmid.set(false);
   }
 
   submitAcronym(): void {

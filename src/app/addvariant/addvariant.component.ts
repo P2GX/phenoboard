@@ -81,7 +81,6 @@ export class AddVariantComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.geneOptions = this.cohortService.getGeneTranscriptDataList();
-    console.log('gene Options', this.geneOptions);
     if (this.geneOptions && this.geneOptions.length === 1) {
       this.selectedGene = this.geneOptions[0];
     }

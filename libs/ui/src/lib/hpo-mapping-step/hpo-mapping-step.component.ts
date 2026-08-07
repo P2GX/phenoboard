@@ -61,8 +61,6 @@ export class HpoMappingStepComponent {
       const values = this.uniqueValues();
       for (const value of values) {
         if (!(value in this.valueToStateMap)) {
-          const inferred = this.inferStateFromRawValue(value);
-      console.log(`inferring "${value}" ->`, inferred);
           this.valueToStateMap[value] = this.inferStateFromRawValue(value);
         }
       }

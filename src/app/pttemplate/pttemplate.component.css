@@ -665,7 +665,7 @@ button[mat-icon-button] {
 }
 
 .context-menu {
-  position: absolute;
+  position: fixed;
   z-index: 50;
   background: #fff;
   border: 1px solid #bdbdbd;
