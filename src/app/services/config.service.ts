@@ -243,6 +243,10 @@ export class ConfigService {
     return invoke('check_existing_phenopackets');
   }
 
+  async remove_na_columns(cohort: CohortData) : Promise<CohortData> {
+    return invoke('remove_na_columns', { cohort });
+  }
+
   async exportCohortWorkflow(cohortDto: any): Promise<number> {
     const checkResult = await this.checkExistingPhenopackets();
     let overwrite = false;

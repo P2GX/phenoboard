@@ -19,7 +19,7 @@ use tauri_plugin_fs::{init};
 use fenominal::OntologyMatch;
 
 
-use crate::{dto::{pmid_dto::PmidDto, status_dto::{ProgressDto, StatusDto,PpktSaveCheckResult}}, hpo::{MinedCell, MiningConcept}, util::HgncBundle};
+use crate::{dto::{pmid_dto::PmidDto, status_dto::{StatusDto,PpktSaveCheckResult}}, hpo::{MinedCell, MiningConcept}, util::HgncBundle};
 
 struct AppState {
     phenoboard: Mutex<PhenoboardSingleton>,
@@ -68,7 +68,6 @@ pub fn run() {
             get_variant_analysis,
             load_external_excel,
             load_external_template_json,
-            load_phetools_excel_template,
             load_ptools_json,
             load_hpo,
             merge_cohort_data_from_etl_dto,
@@ -77,6 +76,7 @@ pub fn run() {
             perform_hpo_autocomplete,
             process_allele_column,
             reset_pt_template_path,
+            remove_na_columns,
             sanitize_cohort_data,
             save_biocurator_orcid,
             save_cohort_data,
@@ -132,51 +132,6 @@ async fn load_hpo(
     });
 
     Ok(())
-}
-
-
-/// Allow the user to choose an existing PheTools template file from the file system and load it
-#[deprecated="We have finish migration from excel pyphetools files"]
-#[tauri::command]
-async fn load_phetools_excel_template(
-    app: AppHandle,
-    state: tauri::State<'_, Arc<AppState>>,
-    update_labels: bool
-) -> Result<CohortData, String> {
-    //let phenoboard_arc: Arc::clone(&*singleton);
-    let state_handle = state.inner().clone(); 
-    let app_handle = app.clone();
-    
-    tokio::task::spawn_blocking(move || {
-        match app_handle.dialog().file().blocking_pick_file() {
-            Some(file) => {
-                let mut singleton = state_handle.phenoboard.lock().unwrap();
-                let path_str = file.to_string();
-                match singleton.load_excel_template(&path_str, update_labels,|p, q|{
-                    let _ = app_handle.emit("progress", ProgressDto::new(p, q));
-                }) {
-                    Ok(dto) => {
-                        let status = singleton.get_status();
-                        let _ = app_handle.emit("backend_status", &status);
-                        Ok(dto)
-                    },
-                    Err(e) => {
-                        let mut status = singleton.get_status();
-                        status.has_error = true;
-                        status.error_message = format!("{:?}", e);
-                        let _ = app_handle.emit("backend_status", &status);
-                        Err(e)
-                    },
-                }
-            },
-            None => {
-                let _ = app_handle.emit("templateLoaded", "failure");
-                Err("User cancelled file selection".to_string())
-            }
-        }
-    })
-    .await
-    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 
@@ -671,6 +626,15 @@ async fn load_external_template_json(
     })
     .await
     .map_err(|e| format!("Task join error: {}", e))?
+}
+
+
+/// Remove all columns from our CohortData that just have "na" values (these can accumulate during curation and are not needed)
+#[tauri::command]
+async fn remove_na_columns(
+    cohort: CohortData
+) -> Result<CohortData, String> {
+    cohort.remove_na_columns().map_err(|e|e.to_string())
 }
 
 

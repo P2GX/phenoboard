@@ -960,6 +960,25 @@ export class PtTemplateComponent {
     this.cohortService.setCohortData(sorted_dto);
   }
 
+  async removeNaRows(): Promise<void> {
+    const dto = this.cohortData();
+    if (! dto) return;
+    const n_rows_before = dto.hpoHeaders.length;
+    try {
+      const no_na_dto = await this.configService.remove_na_columns(dto);
+      const n_nows_after = no_na_dto.hpoHeaders.length;
+      this.cohortService.setCohortData(no_na_dto);
+      const diff = n_rows_before - n_nows_after;
+      if (diff === 0) {
+        this.notificationService.showWarning("No all-na rows to remove");
+      } else {
+        this.notificationService.showSuccess(`Removed ${diff} all-na rows.`);
+      }
+    } catch (error) {
+      this.notificationService.showError(`Cound not remove NA row: ${error}`);
+    }
+  }
+
   onHeaderMouseEnter(index: number): void {
     this.hoveredHpoHeader = index;
   }

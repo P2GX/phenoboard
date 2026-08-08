@@ -164,50 +164,6 @@ impl PhenoboardSingleton {
     }
 
 
-    /// Load an excel file containing a phetools template (version 1). Use this to initialize the Phetools backend
-    /// * Arguments
-    /// 
-    /// - `excel_file` - the template file
-    /// - `update_labels` - attempt to fix errors including outdated HPO ids or labels and stray-whitespace errors
-    /// 
-    /// * Returns
-    /// - Ok(()) if successful, list of errors (strings) otherwise
-    pub fn load_excel_template<F>(
-        &mut self, 
-        excel_file: &str,
-        update_labels: bool,
-         progress_cb: F) 
-    -> Result<CohortData, String> 
-    where F: FnMut(u32, u32) {
-        let hpo = match &self.ontology {
-            Some(onto) => onto.clone(),
-            None => { return Err("Could not load Excel because HPO was not initialized".to_string());}
-        };
-        let result =  ga4ghphetools::factory::load_pyphetools_excel_template(
-            excel_file, 
-                update_labels, 
-                hpo, 
-                progress_cb);
-        match result {
-            Ok(dto) => {
-                self.pt_template_path = Some(excel_file.to_string());
-                let project_dir = Self::get_grandparent_dir(excel_file);
-                if project_dir.is_none() {
-                    return Err(format!("Could not load project directory for {excel_file}"));
-                }
-                let project_dir = project_dir.unwrap();
-                let _ = Self::get_or_create_dir(project_dir)
-                    .map_err(|e| e.to_string())?; // creates the directory if needed, but
-                    // for import of existing projects there will also be a directory there, so this
-                    // is a sanity check
-                Ok(dto)
-            }
-            Err(msg) => {
-                return Err(msg);
-            }
-        }
-    }
-
     pub fn load_ptools_json(
         &mut self,
         json_file: &str,

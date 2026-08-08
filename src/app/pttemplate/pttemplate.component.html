@@ -351,6 +351,24 @@
             helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
           />
         </div>
+         <div class="action-with-help">
+          <button
+            class="tool-btn btn-workflow"
+            (click)="removeNaRows()"
+            matTooltip="Remove all-na rows"
+          >
+            <app-icon name="sort" [size]="20" /> Remove na
+          </button>
+          <hpo-help-button
+            title="Removing all-not/applicable columns"
+            [lines]="[
+              'Remove all columns that have no non-na entries',
+              'An entry is na if it is not observed or excluded',
+              'Columns that have only na entries can be safely removed without changing the phenopacket output',
+            ]"
+            helpUrl="https://p2gx.github.io/phenoboard/help/cohort-editor.html"
+          />
+        </div>
       </div>
 
       <div class="action-group">
