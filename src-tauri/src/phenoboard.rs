@@ -8,7 +8,7 @@ use std::{collections::HashSet, env, fs::File, io::Write, path::{Path, PathBuf},
 
 use ontolius::{io::OntologyLoaderBuilder, ontology::{MetadataAware, OntologyTerms, csr::FullCsrOntology}};
 use fenominal::{AutoCompleter, Fenominal, FenominalSentence, OntologyMatch};
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, RepoQc, HierarchyMapItem};
+use ga4ghphetools::{dto::{cohort_data::{CohortData, CohortType, DiseaseData}, etl_dto::EtlDto, hpo_term_dto::{ CellValueInner, HpoTermDuplet}, variant_dto::VariantDto}, hpoa, RepoQc, HierarchyMapItem};
 use ga4ghphetools;
 use rfd::FileDialog;
 use crate::dto::status_dto::StatusDto;
@@ -149,12 +149,6 @@ impl PhenoboardSingleton {
     }
 
 
-    /// The template files are located in a subsub directory of the project directory.
-    /// This function retrieves a PathBuf that points to the project directory.
-    fn get_grandparent_dir(file_path: &str) -> Option<PathBuf> {
-        let path = Path::new(file_path);
-        path.parent()?.parent().map(|p| p.to_path_buf())
-    }
 
      /// The JSON files are located in a sub directory of the project directory.
     /// This function retrieves a PathBuf that points to the project directory.
@@ -228,7 +222,7 @@ impl PhenoboardSingleton {
         text: &str
      ) -> Result<Vec<FenominalSentence>, String> {
         let hpo = self.ontology.as_ref().ok_or_else(|| "HPO not initialized".to_string())?;
-        let fenominal = Fenominal::new(hpo.clone());
+        let fenominal = Fenominal::new_hpo(hpo.clone());
         fenominal.mine_sentences(text).map_err(|e|e.to_string())
     }
 
@@ -335,6 +329,7 @@ impl PhenoboardSingleton {
     }
 
     /// Export a list of phenopackets derived from the cohort.
+    /* 
     pub fn export_ppkt(
         &mut self,
         directory: String, 
@@ -351,13 +346,12 @@ impl PhenoboardSingleton {
             Some(hpo) =>  ga4ghphetools::write_phenopackets(cohort, path, orcid, hpo.clone(), overwrite),
             None => Err("Cannot export phenopackets because HPO not initialized".to_string()),
         }
-    }
+    }*/
 
 
 
     pub fn get_repo_qc(&self) -> Result<RepoQc, String> {
         let out_dir = self.get_phenopackets_output_dir()?;
-        println!("get repo qc out={}", out_dir.to_string_lossy());
         let hpo = self.get_hpo().ok_or_else(|| "Could not get HPO".to_string())?;
         ga4ghphetools::get_repo_qc(&out_dir, hpo.clone())
     }
@@ -488,6 +482,7 @@ impl PhenoboardSingleton {
     /// # Errors
     ///
     /// Returns an `io::Error` if the directory cannot be created or canonicalized.
+    /* 
     pub fn get_or_create_dir<P: AsRef<Path>>(dir_path: P) -> std::io::Result<PathBuf> {
         let path = dir_path.as_ref();
 
@@ -504,7 +499,10 @@ impl PhenoboardSingleton {
 
         path.canonicalize()
     }
-///
+    */
+
+
+    ///
 /// This method traverses the `hpo_data` of every row in the [`CohortData`] 
 /// to find `OnsetAge` variants. It returns a deduplicated list of strings.
 ///

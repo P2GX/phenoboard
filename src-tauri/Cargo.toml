@@ -20,15 +20,15 @@ tauri-build = { version = "2.6.2", features = [] }
 [dependencies]
 dirs = "6.0"
 html-escape = "0.2.13"
-ontolius = "0.7.4" 
-reqwest = { version = "0.13.3", features = ["json", "blocking"] }
+ontolius = "0.8.1" 
+reqwest = { version = "0.13.5", features = ["json", "blocking"] }
 rfd = { version = "0.16.0", default-features = false}
-fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.2.15', features = ["serde"] }
+fenominal = { git = 'https://github.com/P2GX/fenominal.git',  tag = '0.3.4', features = ["serde"] }
 #fenominal = { path = '../../fenominal',features = ["serde"] }
-ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', features= ["tauri"], tag = '0.6.38' }
-#ga4ghphetools = { path = "../../ga4ghphetools", features= ["tauri"] }
+#ga4ghphetools = { git = 'https://github.com/P2GX/ga4ghphetools.git', features= ["tauri"], tag = '0.6.38' }
+ga4ghphetools = { path = "../../ga4ghphetools", features= ["tauri"] }
 serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.148"
+serde_json = "1.0.151"
 toml = "0.9.8"
 tauri = { version = "2.11.2", features = [] }
 tauri-plugin-dialog = { version = "2", default-features = false }

@@ -1,14 +1,18 @@
-export type RepoErrorType = 'unexpectedFile' | 'moiMismatch' | 'ppktExportError' | 'noHpoTermError';
+export type QcIssueDomain = 'Cohort' | 'Ontology' | 'Parse' | 'Annotation' | 'Message';
+
+export interface QcIssue {
+  domain: QcIssueDomain;
+  message: string;
+}
 
 export interface QcReport {
   cohortName: string;
-  message: string;
-  errorType: RepoErrorType;
+  sourcePath: string | null;
+  issues: QcIssue[];
 }
 
 export interface RepoQc {
   repoPath: string;
   cohortCount: number;
-  phenopacketCount: number;
   errors: QcReport[];
 }

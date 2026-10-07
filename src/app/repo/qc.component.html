@@ -56,7 +56,7 @@
         </div>
         <div class="stat-card">
           <span class="stat-label">Phenopackets</span>
-          <span class="stat-value">{{ repoQc.phenopacketCount }}</span>
+          <span class="stat-value">to do</span>
         </div>
         <div class="stat-card danger-accent">
           <span class="stat-label">Total Errors</span>
@@ -74,19 +74,22 @@
             </tr>
           </thead>
           <tbody>
-            @for (err of repoQc.errors; track err) {
-              <tr>
-                <td class="font-bold">{{ err.cohortName }}</td>
-                <td class="message-cell">"{{ err.message }}"</td>
-                <td class="text-center">
-                  <span class="status-pill" [ngClass]="errorTypeClass(err.errorType)">
-                    {{ errorTypeLabel(err.errorType) }}
-                  </span>
-                </td>
-              </tr>
+            @for (report of repoQc.errors; track report) {
+              @for (issue of report.issues; track issue) {
+                <tr>
+                  <td class="font-bold">{{ report.cohortName }}</td>
+                  <td class="message-cell">"{{ issue.message }}"</td>
+                  <td class="text-center">
+                    <span class="status-pill" [ngClass]="domainClass(issue.domain)">
+                      {{ issue.domain }}
+                    </span>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
+
       </div>
     </div>
   }

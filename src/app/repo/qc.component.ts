@@ -4,7 +4,7 @@ import { ConfigService } from '../services/config.service';
 import { DiseaseData } from '../../../libs/ui/src/lib/models/cohort_dto';
 import { RouterModule } from '@angular/router';
 import { SourcePmid } from '@workspace/ui';
-import { RepoErrorType, RepoQc } from '../models/repo_qc';
+import { QcIssueDomain, QcIssue, RepoQc } from '../models/repo_qc';
 import { NotificationService } from 'ng-hpo-uikit';
 import { HelpService } from '../services/help.service';
 import { HelpButtonComponent } from 'ng-hpo-uikit';
@@ -68,36 +68,6 @@ export class QcComponent implements OnInit {
     }
   }
 
-  errorTypeLabel(type: RepoErrorType): string {
-    switch (type) {
-      case 'unexpectedFile':
-        return 'Unexpected file';
-      case 'moiMismatch':
-        return 'MOI mismatch';
-      case 'ppktExportError':
-        return 'Export error';
-      case 'noHpoTermError':
-        return 'No HPO terms';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  errorTypeClass(type: RepoErrorType): string {
-    switch (type) {
-      case 'unexpectedFile':
-        return 'status-pill-warn';
-      case 'moiMismatch':
-        return 'status-pill-err';
-      case 'ppktExportError':
-        return 'status-pill-err';
-      case 'noHpoTermError':
-        return 'status-pill-warn';
-      default:
-        return 'status-pill-neutral';
-    }
-  }
-
   showCompareDialog = signal(false);
 
   openCompareDialog() {
@@ -145,5 +115,27 @@ export class QcComponent implements OnInit {
     } catch (err) {
       console.error('Failed to copy!', err);
     }
+  }
+
+  domainLabel(domain: QcIssueDomain): string {
+    const labels: Record<QcIssueDomain, string> = {
+      Cohort: 'Cohort',
+      Ontology: 'Ontology',
+      Parse: 'Parse',
+      Annotation: 'Annotation',
+      Message: 'General',
+    };
+    return labels[domain];
+  }
+
+  domainClass(domain: QcIssueDomain): string {
+    const classes: Record<QcIssueDomain, string> = {
+      Cohort: 'pill-cohort',
+      Ontology: 'pill-ontology',
+      Parse: 'pill-parse',
+      Annotation: 'pill-annotation',
+      Message: 'pill-message',
+    };
+    return classes[domain];
   }
 }

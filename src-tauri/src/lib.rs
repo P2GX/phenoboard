@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_dto::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, ComparisonReport, RepoQc, HierarchyMapItem};
+use ga4ghphetools::{dto::{cohort_data::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, ComparisonReport, RepoQc, HierarchyMapItem};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ga4ghphetools::{pick_file_and_process, load_ontology, OntologyLoadEvent};
 use ontolius::ontology::MetadataAware;
@@ -360,7 +360,7 @@ fn validate_template(
         .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
     let hpo = singleton.get_hpo()
         .ok_or_else(|| "Could not create CohortData because HPO was not initialized".to_string())?;
-    ga4ghphetools::qc_assessment(hpo.clone(), &cohort_dto).map_err(|e| e.to_string())
+    ga4ghphetools::validate_cohort_template(hpo.clone(), &cohort_dto).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
