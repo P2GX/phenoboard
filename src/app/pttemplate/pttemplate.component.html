@@ -93,49 +93,6 @@
                     @if (!row.individualId) {
                       <span class="cell-error-label">[ID is null/empty]</span>
                     }
-                    <!-- Info popup for this row -->
-                    @if (activeInfoRow(); as currentRow) {
-                      <div
-                        #rowInfoPopup
-                        class="row-info-popup"
-                        [style.left.px]="infoMenuPos()?.x"
-                        [style.top.px]="infoMenuPos()?.y"
-                      >
-                        <ul class="row-info-list">
-                          <li>
-                            <strong>{{ currentRow.individualData.individualId }}</strong>
-                          </li>
-                          <li>PMID: {{ currentRow.individualData.pmid }}</li>
-                          <li>{{ currentRow.individualData.title }}</li>
-                          @if (currentRow.individualData.comment; as comment) {
-                            <li><strong>Comment:</strong> {{ comment }}</li>
-                          }
-                          <li>Onset: {{ currentRow.individualData.ageOfOnset }}</li>
-                          <li>Age: {{ currentRow.individualData.ageAtLastEncounter }}</li>
-                          <li>Deceased: {{ currentRow.individualData.deceased }}</li>
-                          <li>Sex: {{ currentRow.individualData.sex }}</li>
-                        </ul>
-
-                        <div class="row-info-actions">
-                          <button
-                            class="btn-outline-primary"
-                            color="primary"
-                            class="text-xs"
-                            (click)="openIndividualEditDialog(row); closeRowInfo()"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            class="btn-outline-primary"
-                            color="warn"
-                            class="text-xs"
-                            (click)="closeRowInfo()"
-                          >
-                            ✖️ Close
-                          </button>
-                        </div>
-                      </div>
-                    }
                   </td>
 
                   <!-- Second column for gene/allele -->
@@ -492,4 +449,31 @@
       (result)="onVariantEditorResult($event)"
     ></app-addvariant>
   }
+
+
+@if (activeInfoRow(); as currentRow) {
+  <div #rowInfoPopup class="row-info-popup"
+       [style.left.px]="infoMenuPos()?.x"
+       [style.top.px]="infoMenuPos()?.y">
+    <ul class="row-info-list">
+      <li><strong>{{ currentRow.individualData.individualId }}</strong></li>
+      <li>PMID: {{ currentRow.individualData.pmid }}</li>
+      <li>{{ currentRow.individualData.title }}</li>
+      @if (currentRow.individualData.comment; as comment) {
+        <li><strong>Comment:</strong> {{ comment }}</li>
+      }
+      <li>Onset: {{ currentRow.individualData.ageOfOnset }}</li>
+      <li>Age: {{ currentRow.individualData.ageAtLastEncounter }}</li>
+      <li>Deceased: {{ currentRow.individualData.deceased }}</li>
+      <li>Sex: {{ currentRow.individualData.sex }}</li>
+    </ul>
+    <div class="row-info-actions">
+      <button class="btn-outline-primary text-xs"
+              (click)="openIndividualEditDialog(currentRow.individualData); closeRowInfo()">
+        ✏️ Edit
+      </button>
+      <button class="btn-outline-primary text-xs" (click)="closeRowInfo()">✖️ Close</button>
+    </div>
+  </div>
+}
 

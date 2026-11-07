@@ -260,19 +260,17 @@ export class PtTemplateComponent {
   }
 
   handleIndividualSaved(newIndividualData: IndividualData | null): void {
+    const original = this.editingIndividual();
+    this.editingIndividual.set(null);    
     if (newIndividualData === null) {
       this.notificationService.showError("Could not retrieve updated individual data");
       return;
     }
-    this.editingIndividual.set(null);
-    const row = this.activeInfoRow();
-    if (!row) return;
+    if (!original) return;
     const cohort = this.cohortData();
     if (!cohort) return; // safeguard, but should never happen
-    const rowId = getRowId(row.individualData);
-    const individualCopy = { ...row.individualData };
+    const rowId = getRowId(original);
     const updatedRows = cohort.rows.map((row) => {
-          // Use the stable rowId captured when the dialog opened
           if (getRowId(row.individualData) === rowId) {
             return {
               ...row,
@@ -283,7 +281,7 @@ export class PtTemplateComponent {
         });
     const newCohort = { ...cohort, rows: updatedRows };
     this.cohortService.setCohortData(newCohort);
-    // Update the info key (e.g., if the individual id was changed inthe dialog)
+    // Update the info key (e.g., if the individual id was changed in the dialog)
     this.rowInfoKey = getRowId(newIndividualData);
   }
 

@@ -43,15 +43,10 @@ export class IndividualEditComponent implements OnInit{
       sex: [d.sex, Validators.required],
     });
 
-    this.form.get('individualId')?.valueChanges.subscribe((value) => {
-      if (value !== value?.trim()) {
-        this.form.get('individualId')?.setValue(value.trim(), { emitEvent: false });
-      }
-    });
-
-    afterNextRender(() => {
-      this.dialogEl().nativeElement.showModal();
-    });
+    const v = this.form.get('individualId')?.value;
+    if (typeof v === 'string' && v !== v.trim()) {
+      this.form.get('individualId')?.setValue(v.trim(), { emitEvent: false });
+    }
   }
 
   save(): void {
