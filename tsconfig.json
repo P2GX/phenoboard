@@ -10,6 +10,8 @@
     "useDefineForClassFields": false,
     "types": ["@tauri-apps/api"],
     "rootDir": ".",
+    "module": "es2022",
+    "target": "es2022"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

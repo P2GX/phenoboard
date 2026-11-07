@@ -42,7 +42,7 @@ export class HpoMiningDialogService {
       mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
       autocompleteProvider: (query: string) => this.configService.performHpoAutocomplete(query),
       hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
-      availableModifiers: () => this.configService.getHpoModifiers(),
+      availableModifiers: () => this.configService.getModifiers(),
     };
 
     return new Observable<HpoTermData[] | null>((subscriber) => {

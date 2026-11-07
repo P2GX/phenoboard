@@ -25,7 +25,6 @@ import { ask } from '@tauri-apps/plugin-dialog';
 import {
   FenominalSentence,
   HierarchyMapItem,
-  HpoTermMinimal,
   NotificationService,
 } from 'ng-hpo-uikit';
 import { catchError, from, Observable, of } from 'rxjs';
@@ -155,15 +154,6 @@ export class ConfigService {
 
   async getHpoParentAndChildTerms(annotation: HpoAnnotationDto): Promise<ParentChildDto> {
     return await invoke('get_hpo_parent_and_children_terms', { annotation: annotation });
-  }
-
-  /*
-  async getAutocompleteHpo(value: string): Promise<OntologyMatch[]> {
-    return invoke<OntologyMatch[]>('get_hpo_autocomplete', { query: value });
-  }*/
-
-  async getHpoModifiers(): Promise<HpoTermMinimal[]> {
-    return invoke<HpoTermMinimal[]>('get_hpo_modifiers');
   }
 
   /**

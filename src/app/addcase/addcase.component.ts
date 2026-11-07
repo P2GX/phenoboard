@@ -457,7 +457,7 @@ onConfirmDialogResult(confirmed: boolean): void {
       mineTextProvider: (text: string) => this.configService.mineClinicalText(text),
       autocompleteProvider: (query: string) => this.performHpoAutocomplete(query),
       hierarchyProvider: (termId: string) => this.fetchHpoHierarchy(termId),
-      availableModifiers: () => this.configService.getHpoModifiers(),
+      availableModifiers: () => this.configService.getModifiers(),
     };
     this.showHpoTwoStepDialog.set(true);
   }

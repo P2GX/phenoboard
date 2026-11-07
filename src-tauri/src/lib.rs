@@ -11,7 +11,6 @@ use ga4ghphetools::{pick_file_and_process, load_ontology, OntologyLoadEvent};
 use ontolius::ontology::MetadataAware;
 use ontolius::ontology::OntologyTerms;
 use phenoboard::PhenoboardSingleton;
-use serde::Serialize;
 use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
 use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
@@ -59,7 +58,6 @@ pub fn run() {
             get_hp_json_path,
             get_hpo_parent_and_children_terms,
             get_hpo_terms_by_toplevel,
-            get_hpo_modifiers,
             get_modifiers,
             get_multi_hpo_strings,
             get_status_dto,
@@ -297,35 +295,6 @@ async fn get_hpo_parent_and_children_terms(
     let singleton = state.phenoboard.lock()
         .map_err(|_| "Failed to lock state".to_string())?;
     singleton.get_hpo_parent_and_children_terms(term_id)
-}
-
-
-/// format matching the TypeScript `HpoTermMinimal` interface in ng-hpo-uikit.
-#[deprecated="can we just subsitute HpoTermDuplet in the ng-hpo-uikit?"]
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HpoTermMinimalDto {
-    pub term_id: String,
-    pub label: String,
-}
-impl From<HpoTermDuplet> for HpoTermMinimalDto {
-    fn from(d: HpoTermDuplet) -> Self {
-        HpoTermMinimalDto {
-            term_id: d.hpo_id,
-            label: d.hpo_label,
-        }
-    }
-}
-
-#[tauri::command]
-async fn get_hpo_modifiers(
-    state: tauri::State<'_, Arc<AppState>>
-) -> Result<Vec<HpoTermMinimalDto>, String> {
-    let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to lock state".to_string())?;
-    let duplets = singleton.get_modifiers()?;
-
-    Ok(duplets.into_iter().map(HpoTermMinimalDto::from).collect())
 }
 
 

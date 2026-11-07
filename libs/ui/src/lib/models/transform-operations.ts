@@ -246,7 +246,7 @@ export const TransformPolishingElementsSet: Set<TransformType> = new Set([
 
 export function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
   const modifiers = annotation.modifiers.length > 0
-    ? annotation.modifiers.map(m => m.termId) // assumes HpoTermMinimal has a `termId` field
+    ? annotation.modifiers.map(m => m.hpoId) // assumes modifiers use HpoTermDuplet
     : undefined;
 
   const inner: CellValueInner = annotation.excluded
