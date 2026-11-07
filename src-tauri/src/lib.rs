@@ -605,7 +605,9 @@ async fn load_external_template_json(
                     .map_err(|e| format!("Failed to deserialize JSON: {}", e))?;
                 Ok(dto)
             }
-            None => todo!(),
+            None => {
+                Err("User cancelled file selection".to_string())
+            },
         }
     })
     .await
