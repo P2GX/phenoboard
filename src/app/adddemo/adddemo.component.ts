@@ -1,5 +1,5 @@
 // adddemo.component.ts
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, input, OnInit, output, signal } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -28,24 +28,31 @@ import { IconComponent, HelpButtonComponent } from 'ng-hpo-uikit';
   templateUrl: './adddemo.component.html',
   styleUrls: ['./adddemo.component.scss'],
 })
-export class AdddemoComponent {
+export class AdddemoComponent implements OnInit {
   private fb = inject(FormBuilder);
   private ageService = inject(AgeService);
+  
+  initialData = input<DemographDto|null>(null);
+  demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();
+  cancelled = output<void>();
 
   readonly ageStrings = this.ageService.selectedTerms;
-  demoSubmitted = output<{ dto: DemographDto; hideDemo: boolean }>();
-
   deceasedOptions: string[] = ['yes', 'no', 'na'];
   sexOptions: string[] = ['M', 'F', 'O', 'U'];
 
-  // Signals managing visibility state transitions
   isCommentDialogOpen = signal<boolean>(false);
   existingComment = signal<string>('');
-
   isAgeWizardOpen = signal<boolean>(false);
   activeAgeControl = signal<AbstractControl | null>(null);
 
   demoForm: FormGroup = this.initForm();
+
+  ngOnInit(): void {
+    const initial = this.initialData();
+    if (initial) {
+      this.demoForm.patchValue(initial);
+    }
+  }
 
   private initForm(): FormGroup {
     const dto = defaultDemographDto();
@@ -129,9 +136,6 @@ export class AdddemoComponent {
   }
 
   cancel(): void {
-    this.demoSubmitted.emit({
-      dto: this.demoForm.value as DemographDto,
-      hideDemo: true,
-    });
+    this.cancelled.emit();
   }
 }

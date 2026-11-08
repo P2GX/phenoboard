@@ -75,7 +75,7 @@
         [lines]="[
           'Enter the identifier of the original being curated (as used in the original publication)',
           'For instance, <i>Patient 1</i> or <i>Individual A</i>. If no identifier is provided and only one individual is described, use <i>proband</i> or the title of the clinical description section in the publication (e.g., <i>Case report</i>).',
-          'Enter age of onset and last encounter, sex, and desceased status from the original publication.',
+          'Enter age of onset and last encounter, sex, and deceased status from the original publication.',
         ]"
       />
     }
@@ -171,7 +171,11 @@
 @if (isDemoDialogOpen()) {
   <div class="modal-backdrop" (click)="closeAddDemoDialog()">
     <div class="modal-window demo-modal-dimensions" (click)="$event.stopPropagation()">
-      <app-adddemo (demoSubmitted)="onDemoFormSubmitted($event)"> </app-adddemo>
+      <app-adddemo 
+        [initialData]="demographData()"
+        (demoSubmitted)="onDemoFormSubmitted($event)"
+        (cancelled)="closeAddDemoDialog()"> 
+      </app-adddemo>
     </div>
   </div>
 }
