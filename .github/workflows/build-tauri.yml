@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -80,6 +80,7 @@ jobs:
           releaseName: 'v__VERSION__'
           releaseDraft: true
           prerelease: false
+          args: -- --locked
 
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
