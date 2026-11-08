@@ -361,7 +361,8 @@ impl PhenoboardSingleton {
         let out_dir =  self.get_phenopackets_output_dir()?;
         let hpo = self.get_hpo().ok_or_else(|| "Could not get HPO".to_string())?;
         //ga4ghphetools::repo::update_all_ppkt(&out_dir, hpo.clone())
-        eprint!("Needs to be wired!");
+        let msg = format!("ppkt dir: {} hpo version: {}", out_dir.to_string_lossy(), hpo.version());
+        eprint!("Needs to be wired-{}", msg);
         Ok(vec![])
     }
 

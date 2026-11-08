@@ -1,6 +1,6 @@
 [package]
 name = "phenoboard"
-version = "0.6.76"
+version = "0.6.77"
 description = "Curate cohorts of GA4GH Phenopackets"
 authors = ["Peter N Robinson"]
 edition = "2021"
@@ -40,10 +40,11 @@ tracing-subscriber = "0.3.22"
 regex = "1.13.1"
 
 
-[target.'cfg(target_os = "linux")'.dependencies]
-rfd = { version = "0.16.0", default-features = false, features = ["xdg-portal", "tokio"] }
+#[target.'cfg(target_os = "linux")'.dependencies]
+#rfd = { version = "0.16.0", default-features = false, features = ["xdg-portal", "tokio"] }
 # rfd buggy with version 0.17.2: package `phenoboard` depends on `rfd` with feature `tokio` but `rfd` does not have that feature.
-
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = { version = "0.16.0", default-features = false, features = ["gtk3"] }
 
 
 
