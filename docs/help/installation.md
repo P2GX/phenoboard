@@ -21,16 +21,7 @@ If you confirm, the app will be installed into your `Àpplications` folder and s
 
 **File to download (recommended):** `phenoboard_<version>_x64-setup.exe`
 > Installs for the current user, no administrator rights needed.
->
-> **Alternative:** `phenoboard_<version>_x64_en-US.msi` (for IT-managed deployment)
 
-1. Download the `.msi` installer from the [Releases](https://github.com/P2GX/phenoboard/releases) page
-2. Double-click to start the installer
-3. If Windows shows a blue SmartScreen dialog saying:  
-   *"Windows protected your PC"*
-4. Click **"More info"** → **"Run anyway"**
-
-> **Note:** Windows shows this for unsigned apps from new developers. Once you install and run it, the warning will not reappear.
 
 ## Installing on Linux
 

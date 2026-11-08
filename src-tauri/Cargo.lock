@@ -3497,7 +3497,7 @@ dependencies = [
 
 [[package]]
 name = "phenoboard"
-version = "0.6.79"
+version = "0.6.80"
 dependencies = [
  "dirs",
  "fenominal",
