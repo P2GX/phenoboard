@@ -88,7 +88,7 @@ jobs:
           name: installer-${{ matrix.platform }}
           path: |
             src-tauri/target/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
@@ -111,7 +111,7 @@ jobs:
         with:
           files: |
             dist/**/*.dmg
-            dist/**/*.msi
+            dist/**/*.exe
             dist/**/*.deb
             dist/**/*.rpm
         env:

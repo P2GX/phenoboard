@@ -63,10 +63,11 @@ export class AddageComponent {
   }
 
   createNewAge(): void {
-    const val = this.customAge().trim();
-    if (!val) return;
+    const raw = this.customAge().trim();
+    if (!raw) return;
+    const val = this.ageService.normalizeAgeInput(raw);
 
-    if (this.ageService.validateAgeInput(val)) {
+    if (val) {
       this.ageService.addSelectedTerm(val);
       this.close();
       this.saved.emit(val);
