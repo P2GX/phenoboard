@@ -1,4 +1,3 @@
-// docs/.vitepress/config.js
 export default {
   title: 'GA4GH Phenoboard',
   description: 'Documentation for GA4GH Phenoboard',
@@ -9,7 +8,7 @@ export default {
       { text: 'Home', link: '/' },
     ],
     sidebar: [
-      { text: 'Introduction', link: '/introduction' },
+      { text: 'Introduction', link: '/' },
       {
         text: 'Background',
         link: '/background/background',
