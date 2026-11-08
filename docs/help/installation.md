@@ -1,28 +1,30 @@
 # Installation
 
-Phenoboard is available as prepackaged installers for macOS, Windows, and Linux. Download the latest version from the [Releases](https://github.com/p2gx/phenoboard/releases) page.
+Phenoboard is available as prepackaged installers for macOS, Windows, and Linux. Download the latest version from the [Releases](https://github.com/P2GX/phenoboard/releases) page.
 
 ## Installing on macOS
 
 > **File to download:** `phenoboard_<version>_aarch64.dmg`  
 > This is the macOS installer for Apple Silicon (M1/M2/M3/M4 Macs)
 
-Because this application is open-source and distributed for free, it is not signed or notarized by Apple. macOS will warn you the first time you try to open it. Here's how to install:
+MacOS will warn you the first time you try to open it. Here's how to install:
 
-1. Download the `.dmg` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+1. Download the `.dmg` file from the [Releases](https://github.com/P2GX/phenoboard/releases) page
 2. Open the DMG and drag the app into your Applications folder
 3. When you try to open it, macOS will show the message:  
    *"'phenoboard' is an app downloaded from the Internet. Are you sure you want to open it?"*
  
-If you confirm, the app will be installed into your `Àpplications``folder and started. From now one you can open phenoboard like any other application (e.g., using the Spotlight searchbar).
+If you confirm, the app will be installed into your `Àpplications` folder and started. From now on you can open phenoboard like any other application (e.g., using the Spotlight searchbar).
 
 
 ## Installing on Windows
 
-> **File to download:** `phenoboard_<version>_x64_en-US.msi`  
-> Windows installer (MSI format)
+**File to download (recommended):** `phenoboard_<version>_x64-setup.exe`
+> Installs for the current user, no administrator rights needed.
+>
+> **Alternative:** `phenoboard_<version>_x64_en-US.msi` (for IT-managed deployment)
 
-1. Download the `.msi` installer from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+1. Download the `.msi` installer from the [Releases](https://github.com/P2GX/phenoboard/releases) page
 2. Double-click to start the installer
 3. If Windows shows a blue SmartScreen dialog saying:  
    *"Windows protected your PC"*
@@ -37,7 +39,7 @@ If you confirm, the app will be installed into your `Àpplications``folder and s
 > **File to download:** `phenoboard_<version>_amd64.deb`  
 > Debian/Ubuntu package
 
-1. Download the `.deb` package from the [Releases](https://github.com/p2gx/phenoboard/releases) page
+1. Download the `.deb` package from the [Releases](https://github.com/P2GX/phenoboard/releases) page
 2. Install using:
 ```bash
 sudo apt install ./phenoboard_<version>_amd64.deb
@@ -47,48 +49,27 @@ Or using dpkg:
 ```bash
 sudo dpkg -i phenoboard_<version>_amd64.deb
 ```
+### Fedora, RHEL, openSUSE
 
-### Other Linux Distributions
-
-> **File to download:** `phenoboard_<version>_amd64.AppImage`  
-> Universal Linux application (no installation needed)
-
-1. Download the `.AppImage` file from the [Releases](https://github.com/p2gx/phenoboard/releases) page
-2. Make it executable:
-```bash
-chmod +x phenoboard_<version>_amd64.AppImage
-```
-
-3. Run it:
-```bash
-./phenoboard_<version>_amd64.AppImage
-```
-
-**Note for Arch-based distributions (e.g. EndeavourOS, Manjaro, etc.):** The AppImage may not build/run correctly due to `linuxdeploy` compatibility issues. Use the `.deb` package instead (installable via `debtap`), or build from source and run the binary directly at `./src-tauri/target/release/phenoboard`.
-
-### Troubleshooting on Linux
-
-#### Crash on launch: `Failed to create GBM buffer` (hybrid GPU / Wayland)
-
-It seems that the Tauri/wry rendering stack on Linux goes through WebKit2GTK, which by default attempts GPU-accelerated compositing via EGL and GBM. On hybrid GPU systems with NVIDIA drivers under Wayland, GBM buffer allocation can fail because the NVIDIA proprietary driver's GBM support is incomplete or incompatible with how WebKit2GTK requests buffers. The workaround is to disable WebKit2GTK GPU compositing:
+> **File to download:** `phenoboard-<version>-1.x86_64.rpm`
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 ./src-tauri/target/release/phenoboard
+sudo dnf install ./phenoboard-<version>-1.x86_64.rpm
 ```
 
-#### Crash during cohort verification (no error message)
+### Arch-based distributions (EndeavourOS, Manjaro, etc.)
 
-A crash with no error message has been observed when verifying cohort data prior to Phenopacket export, after tabular data has been pasted successfully. The root cause is under investigation. If you encounter this, please report your steps in the [issue tracker](https://github.com/P2GX/phenoboard/issues).
+There is no native package. Either convert the `.deb` with `debtap`, or
+[build from source](#building-from-source) and run the binary directly.
 
----
 
 ## Building from Source
 
 This will work on any OS.
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+git clone https://github.com/P2GX/phenoboard.git
+cd phenoboard
 npm install
 npm run tauri build
 ```
