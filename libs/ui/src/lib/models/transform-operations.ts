@@ -245,14 +245,16 @@ export const TransformPolishingElementsSet: Set<TransformType> = new Set([
 
 
 export function toCellValue(annotation: PolishedHpoAnnotation): CellValue {
+  const onset = annotation.onsetString?.trim();
+  const hasOnset = !!onset && onset.toLowerCase() !== 'na';
   const modifiers = annotation.modifiers.length > 0
     ? annotation.modifiers.map(m => m.hpoId) // assumes modifiers use HpoTermDuplet
     : undefined;
 
   const inner: CellValueInner = annotation.excluded
     ? { type: "Excluded" }
-    : annotation.onsetString
-      ? { type: "OnsetAge", data: annotation.onsetString }
+    : hasOnset
+      ? { type: "OnsetAge", data: onset}
       : { type: "Observed" };
 
   return modifiers ? { ...inner, modifiers } : inner;

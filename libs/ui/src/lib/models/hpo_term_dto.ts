@@ -47,17 +47,32 @@ export function renderCellValue(cell: CellValue): string {
   }
 }
 
+/**
+ * Parse a cell string into a CellValue.
+ *
+ * Accepted forms (case-insensitive for the status keywords):
+ *   "observed" | "excluded" | "na"
+ *   "observed;HP:0012828"          -> status plus modifier(s), ';'-separated
+ *   "P10Y", "G20w3d", "Infantile onset"  -> OnsetAge (anything else non-empty)
+ */
 export function getCellValue(value: string): CellValue {
-    switch(value) {
-        case "observed":
-            return {type: "Observed"};
-        case "excluded":
-            return { type: "Excluded"}
-        case "na":
-            return { type: "Na"}
-        default:
-            return { type: "OnsetAge", data: value };
-    }
+  const [head, ...rest] = (value ?? '').split(';').map(s => s.trim());
+  const modifiers = rest.filter(s => s.length > 0);
+  const withMods = (inner: CellValueInner): CellValue =>
+    modifiers.length > 0 ? { ...inner, modifiers } : inner;
+
+  switch (head.toLowerCase()) {
+    case 'observed':
+      return withMods({ type: 'Observed' });
+    case 'excluded':
+      return withMods({ type: 'Excluded' });
+    case '':
+    case 'na':
+      return withMods({ type: 'Na' });
+    default:
+      // Not a status keyword, so treat the first segment as an onset age/label.
+      return withMods({ type: 'OnsetAge', data: head });
+  }
 }
 
 
