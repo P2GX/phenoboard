@@ -465,7 +465,12 @@ export class PtTemplateComponent {
         if (shouldSanitize) {
           try {
             await this.workflowService.sanitizeCohort(cohortData!);
-            this.notificationService.showSuccess('Sanitization complete. You can now re-validate.');
+            this.notificationService.showSuccess('Sanitization complete. Re-validating...');
+            try {
+              await this.workflowService.validateCohort(this.cohortData());   // fresh value, not the captured one
+            } catch {
+              // validateCohort already shows the remaining errors
+            }
           } catch (sanitError) {
             this.notificationService.showError('Sanitization failed: ' + sanitError);
           }

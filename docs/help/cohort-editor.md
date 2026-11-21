@@ -67,3 +67,48 @@ We also need to specify the **mode of inheritance**. We recommend consulting OMI
 
 
 
+### Sanitize reports "Cannot sanitize automatically"
+
+The ``Sanitize`` button resolves some redundancies. If an individual has both a
+general HPO term and a more specific descendant of it marked as observed (for example,
+*Abnormal heart morphology* and *Atrial septal defect*), the general term adds nothing to
+the phenopacket, so Sanitize changes it to ``na``.
+
+There is one case Sanitize will not resolve automatically. If the general term has an
+**age of onset** (for example ``P2Y``), changing it to ``na`` would throw that onset away.
+Instead, Sanitize stops, changes nothing, and shows a message like this:
+
+```
+Cannot sanitize automatically; fix these by hand (move the onset to the specific
+term or remove the redundant term):
+Patient 3 (PMID:12345678): 'Abnormal heart morphology' (HP:0001627) has onset 'P2Y'
+but is redundant with a more specific term
+```
+
+Each line gives the individual, the PMID, the redundant term and its onset. Your cohort
+has not been modified, so you can fix the listed cells and try again.
+
+**How to fix each case**
+
+1. Find the individual's row and the term named in the message.
+2. Compare it with the more specific (descendant) term in the same row. Decide which
+   onset is correct for the finding:
+   - **The onset on the general term is the one you want to keep** (for example, the
+     first heart problem appeared at 2 years, and the septal defect was diagnosed
+     later). Right-click the *specific* term's cell, choose the onset age (add it with
+     ``+ New`` if it is not in the list), and confirm with ``OK``.
+   - **The specific term already has the right onset**, or the general term's onset was
+     entered by mistake. No onset needs to be moved.
+3. Right-click the cell of the *general* term, choose ``na``, and confirm with ``OK``.
+   A cell set to ``na`` carries no onset or modifiers.
+4. Click ``Validate`` and then ``Sanitize`` again. Repeat for any other lines in the message.
+
+::: tip
+Sanitize lists every affected cell in one message, so you can fix them all before
+trying again.
+:::
+
+::: warning
+Check the source publication before deciding which onset to keep. Sanitize cannot tell
+which one is correct, which is why it leaves this decision to you.
+:::

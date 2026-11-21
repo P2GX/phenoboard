@@ -43,19 +43,36 @@
           {{ displayAcronym() }}
         </span>
         <button
+          type="button"
+          class="acronym-btn acronym-btn--edit"
+          title="Edit acronym"
+          aria-label="Edit acronym"
           (click)="showCohortAcronym.set(true); acronymInput.set(displayAcronym())"
-          class="hover:scale-110 transition-transform text-[10px]"
         >
           ✏️
         </button>
       } @else {
-        <div class="flex items-center gap-1">
+        <div class="acronym-edit">
           <input
-          [(ngModel)]="acronymInput"
+            [(ngModel)]="acronymInput"
             class="cohort-acronym-input"
+            (keydown.enter)="submitAcronym()"
+            (keydown.escape)="showCohortAcronym.set(false)"
           />
-          <button (click)="submitAcronym()" class="text-green-600 font-bold px-1">✓</button>
-          <button (click)="showCohortAcronym.set(false)" class="text-slate-400 px-1">✕</button>
+          <button
+            type="button"
+            class="acronym-btn acronym-btn--confirm"
+            title="Save acronym"
+            aria-label="Save acronym"
+            (click)="submitAcronym()"
+          >✓</button>
+          <button
+            type="button"
+            class="acronym-btn acronym-btn--cancel"
+            title="Cancel"
+            aria-label="Cancel"
+            (click)="showCohortAcronym.set(false)"
+          >✕</button>
         </div>
       }
       @if (! showMoiDialog()) {

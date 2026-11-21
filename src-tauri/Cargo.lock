@@ -1635,8 +1635,8 @@ dependencies = [
 
 [[package]]
 name = "ga4ghphetools"
-version = "0.8.2"
-source = "git+https://github.com/P2GX/ga4ghphetools.git?tag=0.8.2#37a7bbc999e27853d20eab337645e862e447051c"
+version = "0.8.4"
+source = "git+https://github.com/P2GX/ga4ghphetools.git?tag=0.8.4#f7b81507751b338d81e5f153cdbc545be613f33f"
 dependencies = [
  "calamine",
  "chrono",
@@ -2104,12 +2104,9 @@ dependencies = [
 
 [[package]]
 name = "html-escape"
-version = "0.2.13"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d1ad449764d627e22bfd7cd5e8868264fc9236e07c752972b4080cd351cb476"
-dependencies = [
- "utf8-width",
-]
+checksum = "d45ed4d99334da2a2f221504e8ffc8ad09baf2a452b154465a976bfde697b004"
 
 [[package]]
 name = "html5ever"
@@ -3497,7 +3494,7 @@ dependencies = [
 
 [[package]]
 name = "phenoboard"
-version = "0.6.84"
+version = "0.6.85"
 dependencies = [
  "dirs",
  "fenominal",
@@ -5958,12 +5955,6 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
-
-[[package]]
-name = "utf8-width"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1292c0d970b54115d14f2492fe0170adf21d68a1de108eebc51c1df4f346a091"
 
 [[package]]
 name = "utf8_iter"

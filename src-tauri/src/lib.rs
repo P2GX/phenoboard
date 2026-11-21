@@ -5,7 +5,7 @@ mod hpo;
 mod settings;
 mod util;
 
-use ga4ghphetools::{dto::{cohort_data::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}, ComparisonReport, RepoQc, HierarchyMapItem};
+use ga4ghphetools::{ComparisonReport, HierarchyMapItem, RepoQc, UpdateReport, dto::{cohort_data::{CohortData, CohortType, DiseaseData, IndividualData}, etl_dto::{ColumnTableDto, EtlDto}, hgvs_variant::HgvsVariant, hpo_term_dto::{HpoTermData, HpoTermDuplet}, structural_variant::StructuralVariant, variant_dto::VariantDto}};
 use ga4ghphetools::dto::intergenic_variant::IntergenicHgvsVariant;
 use ga4ghphetools::{pick_file_and_process, load_ontology, OntologyLoadEvent};
 use ontolius::ontology::MetadataAware;
@@ -13,7 +13,7 @@ use ontolius::ontology::OntologyTerms;
 use phenoboard::PhenoboardSingleton;
 use tauri::{AppHandle, Emitter, Runtime, WindowEvent};
 use tauri_plugin_dialog::{DialogExt};
-use std::{collections::HashMap, fs, sync::{Arc, Mutex}};
+use std::{collections::HashMap, fs, path::PathBuf, sync::{Arc, Mutex}};
 use tauri_plugin_fs::{init};
 use fenominal::OntologyMatch;
 
@@ -895,12 +895,21 @@ async fn compare_two_phenopackets(
 }
 
 #[tauri::command]
-async  fn update_all_ppkt(
+async fn update_all_ppkt(
     state: tauri::State<'_, Arc<AppState>>,
-) -> Result<Vec<String>, String> {
-    let singleton = state.phenoboard.lock()
-        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
-    singleton.update_all_ppkt()?;
-    Ok(vec![])
+    app: AppHandle,
+    dir: String,
+) -> Result<UpdateReport, String> {
+    // Take the HPO out and release the lock BEFORE the long-running work
+    let hpo = {
+        let singleton = state.phenoboard.lock().map_err(|_| "Failed to acquire lock".to_string())?;
+        singleton.get_hpo().ok_or_else(|| "HPO not initialized".to_string())?.clone()
+    };
+    tokio::task::spawn_blocking(move || {
+        ga4ghphetools::update_all_ppkt(&PathBuf::from(dir), hpo, |p| {
+            let _ = app.emit("update-progress", p);
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?   // task panicked
 }
-
