@@ -2,89 +2,50 @@
   <div class="moi-container">
     <h3 class="moi-title">Select Mode(s) of Inheritance</h3>
 
-    <!-- MOI checkboxes and PubMed inputs -->
     <div class="moi-grid">
       @for (moi of moiTerms(); track moi.id) {
-        <div class="moi-item">
-          <!-- Checkbox -->
-          <div class="moi-checkbox-row">
-            <input
-              type="checkbox"
-              [(ngModel)]="moi.selected"
-              id="{{ moi.id }}"
-              class="moi-checkbox"
-            />
-            <label [for]="moi.id" class="moi-label">
-              {{ moi.label }}
-            </label>
-          </div>
+        <div class="moi-item" [class.selected]="moi.selected">
+          <label class="moi-checkbox-row">
+            <input type="checkbox" class="moi-checkbox"
+                   [checked]="moi.selected"
+                   (change)="toggleMoi(moi.id, $any($event.target).checked)" />
+            <span class="moi-label">{{ moi.label }}</span>
+            <span class="moi-id">{{ moi.id }}</span>
+          </label>
 
           @if (moi.selected) {
             <div class="pmid-selection-zone">
-              <!-- Show existing PMIDs if available -->
               @if (existingPmids().length > 0) {
                 <span class="pmid-label">Reuse:</span>
                 @for (existing of existingPmids(); track existing) {
-                  <button
-                    type="button"
-                    (click)="selectExistingPmid(moi, existing)"
-                    class="btn-outline-primary"
-                  >
+                  <button type="button" class="btn-outline-primary"
+                          [class.active]="moi.pmid === existing"
+                          (click)="selectExistingPmid(moi, existing)">
                     {{ existing }}
                   </button>
                 }
               }
-
-              <!-- Always provide the Lookup option -->
-              <button
-                (click)="openPubmedDialog(moi)"
-                class="btn-outline-primary"
-                style="margin-left: 8px"
-              >
-                🔍 Lookup New PubMed
+              <button type="button" class="btn-outline-primary" (click)="openPubmedDialog(moi)">
+                🔍 Look up new PubMed
               </button>
             </div>
 
             @if (moi.pmid != null) {
-              <p class="moi-pmid">
-                Selected PMID: <strong>{{ moi.pmid }}</strong>
-              </p>
+              <p class="moi-pmid ok">PMID: <strong>{{ moi.pmid }}</strong></p>
             } @else {
-              <p class="moi-pmid text-danger">PMID (required)</p>
+              <p class="moi-pmid missing">PMID required</p>
             }
           }
         </div>
       }
     </div>
 
-    <!-- Confirm & Cancel buttons -->
     <div class="moi-actions">
+      <button class="btn-outline-cancel" (click)="cancelSelection()">Cancel</button>
       <button class="btn-outline-primary" [disabled]="confirmDisabled" (click)="confirmSelection()">
         Confirm
       </button>
-
-      <button class="btn-outline-cancel" (click)="cancelSelection()">Cancel</button>
     </div>
-  </div>
-
-  <!-- Selected summary -->
-  <div class="hint-text">
-    @if (selectedMoiWithPmids().length > 0) {
-      <p>
-        Selected:
-        @for (moi of selectedMoiWithPmids(); track moi.id; let last = $last) {
-          {{ moi.label }}
-          @if (moi.pmid) {
-            ({{ moi.pmid }})
-          }
-          {{ !last ? ', ' : '' }}
-        }
-      </p>
-    }
-
-    @if (selectedMoiWithPmids().length === 0) {
-      <p class="hint-text-empty">No inheritance mode selected</p>
-    }
   </div>
 }
 

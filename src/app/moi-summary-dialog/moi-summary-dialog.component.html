@@ -1,9 +1,12 @@
 @for (disease of diseases(); track disease.diseaseId; let i = $index) {
-  <div class="moi-row">
+  <section class="moi-row" [class.open]="showMoiIndex() === i">
     <div class="moi-row__header">
-      <span class="moi-row__label">{{ disease.diseaseLabel }}</span>
-      <button (click)="toggleMoi(i)" class="moi-row__toggle">
-        {{ showMoiIndex() === i ? 'close' : 'edit moi' }}
+      <div class="moi-row__info">
+        <span class="moi-row__label">{{ disease.diseaseLabel }}</span>
+        <span class="moi-row__id">{{ disease.diseaseId }}</span>
+      </div>
+      <button type="button" class="moi-row__toggle" (click)="toggleMoi(i)">
+        {{ showMoiIndex() === i ? 'Done' : '✎ Edit' }}
       </button>
     </div>
 
@@ -16,5 +19,5 @@
         ></app-moiselector>
       </div>
     }
-  </div>
+  </section>
 }

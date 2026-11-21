@@ -8,10 +8,9 @@ export const MOI_ABBREVIATIONS: Record<string, string> = {
   'HP:0001427': 'MI',   // Mitochondrial inheritance
   'HP:0001450': 'YL',   // Y-linked inheritance
   'HP:0010985': 'GD',   // Gonosomal dominant inheritance
-  'HP:0001452': 'SC',   // Somatic mutation
   'HP:0003745': 'SP',   // Sporadic
-  'HP:0001426': 'MF',   // Multifactorial inheritance
-  // add any others you curate against as you encounter them
+  'HP:0001426': 'NMI',   // "Non-Mendelian inheritance",
+  'HP:0001442': 'SM',   // Typified by somatic mosaicism
 };
 
 export function getMoiAbbreviation(hpoId: string): string {

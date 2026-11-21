@@ -1,7 +1,7 @@
 <div class="moi-badges">
   @for (moi of modeOfInheritanceList(); track moi.hpoId) {
     <span class="moi-badge" [title]="moi.hpoLabel">
-      {{ getMoiAbbreviation(moi.hpoId) }}
+      {{ moi.hpoLabel }}
     </span>
   } @empty {
     <span class="moi-badges__empty">No inheritance set</span>

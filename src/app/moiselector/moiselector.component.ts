@@ -26,6 +26,7 @@ interface MoiTerm {
 @Component({
   selector: 'app-moiselector',
   templateUrl: './moiselector.component.html',
+  styleUrl: './moiselector.component.css',
   standalone: true,
   imports: [FormsModule, PubmedComponent],
 })
@@ -49,6 +50,7 @@ export class MoiSelector {
     { id: 'HP:0001450', label: 'Y-linked inheritance', selected: false },
     { id: 'HP:0034340', label: 'Pseudoautosomal dominant inheritance', selected: false },
     { id: 'HP:0034341', label: 'Pseudoautosomal recessive inheritance', selected: false },
+    { id: 'HP:0001442', label: 'Typified by somatic mosaicism', selected: false },
   ]);
 
   existingPmids = computed(() => {
@@ -121,5 +123,12 @@ export class MoiSelector {
     this.moiTerms.update((current) =>
       current.map((m) => (m.id === moi.id ? { ...m, selected: true, pmid: dto.pmid } : m)),
     );
+  }
+
+  toggleMoi(id: string, checked: boolean): void {
+    this.moiTerms.update(cur =>
+      cur.map(m => m.id === id
+        ? { ...m, selected: checked, pmid: checked ? m.pmid : undefined }
+        : m));
   }
 }

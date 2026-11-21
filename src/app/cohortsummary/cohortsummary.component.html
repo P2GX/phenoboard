@@ -71,12 +71,22 @@
 
 @if (showMoiDialog()) {
   <div class="modal-overlay" (click)="toggleMoiDialog()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <app-moi-summary-dialog
-        [diseases]="cohort().diseaseList"
-        (updateMoi)="updateMoi.emit($event)"
-      ></app-moi-summary-dialog>
-    <button class="btn-outline-cancel" (click)="toggleMoiDialog()">Close</button>
+    <div class="modal-content moi-modal" (click)="$event.stopPropagation()">
+      <header class="moi-modal__header">
+        <h2 class="moi-modal__title">Modes of Inheritance</h2>
+        <button type="button" class="moi-modal__x" aria-label="Close" (click)="toggleMoiDialog()">✕</button>
+      </header>
+
+      <div class="moi-modal__body">
+        <app-moi-summary-dialog
+          [diseases]="cohort().diseaseList"
+          (updateMoi)="updateMoi.emit($event)"
+        ></app-moi-summary-dialog>
+      </div>
+
+      <footer class="moi-modal__footer">
+        <button class="btn-outline-cancel" (click)="toggleMoiDialog()">Close</button>
+      </footer>
     </div>
   </div>
 }
