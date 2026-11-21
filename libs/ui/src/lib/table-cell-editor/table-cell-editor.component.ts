@@ -20,9 +20,6 @@ export class TableCellEditorComponent {
   dataChanged = output<CellValue>();
   private notificationService = inject(NotificationService);
   private ageService = inject(AgeService);
-  //protected modifierService = inject(HpoModifierService);
-  //filterModifiers = (query: string) => this.modifierService.filterLocalTerms(query);
-  //initModifiers = () => this.modifierService.ensureModifiersLoaded();
   filterModifiersFn = input.required<(query: string) => HpoTermDuplet[]>();
   initModifiersFn = input<() => Promise<void>>(() => Promise.resolve());
   getModifierLabelFn = input.required<(modId: string) => string>();
@@ -43,6 +40,11 @@ export class TableCellEditorComponent {
   });
 
   showOnsetPicker = signal(false);
+  // do not show the modifiers section if the status is Na or Excluded!
+  showModifiers = computed(() => {
+    const t = this.cellType();
+    return t === 'Observed' || t === 'OnsetAge';
+  });
 
   constructor() {
     effect(() => {
@@ -72,9 +74,9 @@ export class TableCellEditorComponent {
       // 1. If we have a string, we commit the data
       if (onsetString) {
         this.dataChanged.emit({
-          ...currentData,
           type: 'OnsetAge',
           data: onsetString,
+          modifiers: currentData.modifiers
         });
         this.showOnsetPicker.set(false);
       } else {
@@ -82,11 +84,16 @@ export class TableCellEditorComponent {
         this.notificationService.showError('Please select an onset age.');
       }
     } else {
-      // 3. For Observed/Excluded/Na, we just commit and hide everything
-      this.dataChanged.emit({
-        ...currentData,
-        type: newStatus,
-      });
+      // For Excluded/Na, drop any existing onset/modifier data
+      if (newStatus === 'Na' || newStatus === 'Excluded') {
+        this.dataChanged.emit({type: newStatus});
+      } else {
+        // observed - keep modifiers, but drop any stale onset data
+        this.dataChanged.emit({
+          type: 'Observed',
+          modifiers: currentData.modifiers
+        });
+      }
       this.showOnsetPicker.set(false);
     }
   }

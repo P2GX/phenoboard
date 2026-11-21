@@ -1109,17 +1109,13 @@ export class PtTemplateComponent {
       this.notificationService.showError('Attempt to update age without active Age context');
       return;
     }
-    const cohort = this.cohortService.cohortData();
-    if (!cohort) {
-      return;
-    }
-    const { colIndex, rowId, cell } = ctx;
-    let updatedCell: CellValue = {
-      ...cell,
+    const live = this.interactionService.getActivateCell();
+    const updatedCell: CellValue = {
       type: 'OnsetAge',
       data: newOnset,
+      modifiers: live?.modifiers
     };
-    this.updateHpoCell(cohort, rowId, colIndex, updatedCell);
+  
     this.interactionService.updateActiveCell(updatedCell);
     this.notificationService.showSuccess(`Updated to ${newOnset}`);
     this.activeContextForAge.set(null);

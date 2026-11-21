@@ -69,6 +69,7 @@
       }
     </section>
 
+  @if (showModifiers()) {
     <section class="panel-section">
       <label class="section-label">
         Active Modifiers
@@ -102,5 +103,6 @@
         (modifierSelected)="addModifier($event)">
       </app-hpo-modifier-menu>
     </section>
+    }
   </div>
 </div>
