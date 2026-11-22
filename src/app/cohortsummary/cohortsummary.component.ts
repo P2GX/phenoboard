@@ -84,7 +84,9 @@ export class CohortSummaryComponent {
   }
 
   submitAcronym(): void {
-    this.updateAcronym.emit(this.acronymInput());
+    const acronym = this.acronymInput().replace(/\s+/g, '');
+    if (!acronym) { return; }  
+    this.updateAcronym.emit(acronym);
     this.showCohortAcronym.set(false);
   }
 
@@ -101,6 +103,19 @@ export class CohortSummaryComponent {
     const currentIndex = this.showMoiModalIndex();
     if (currentIndex !== null) {
       this.updateMoi.emit({ diseaseIndex: currentIndex, moi: selectedMoi });
+    }
+  }
+
+
+
+  stripWhitespace(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const cleaned = input.value.replace(/\s+/g, '');
+    if (cleaned !== input.value) {
+      const pos = (input.selectionStart ?? cleaned.length) - (input.value.length - cleaned.length);
+      input.value = cleaned;
+      input.setSelectionRange(pos, pos);   // keep the cursor where it was
+      input.dispatchEvent(new Event('input'));   // let ngModel pick up the cleaned value
     }
   }
 }

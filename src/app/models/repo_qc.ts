@@ -7,7 +7,6 @@ export interface QcIssue {
 
 export interface QcReport {
   cohortName: string;
-  sourcePath: string | null;
   issues: QcIssue[];
 }
 

@@ -1635,8 +1635,8 @@ dependencies = [
 
 [[package]]
 name = "ga4ghphetools"
-version = "0.8.4"
-source = "git+https://github.com/P2GX/ga4ghphetools.git?tag=0.8.4#f7b81507751b338d81e5f153cdbc545be613f33f"
+version = "0.8.7"
+source = "git+https://github.com/P2GX/ga4ghphetools.git?tag=0.8.7#e27dd2f0a226791d4f86333692904120296e5336"
 dependencies = [
  "calamine",
  "chrono",
@@ -3494,7 +3494,7 @@ dependencies = [
 
 [[package]]
 name = "phenoboard"
-version = "0.6.85"
+version = "0.6.87"
 dependencies = [
  "dirs",
  "fenominal",

@@ -972,9 +972,9 @@ export class PtTemplateComponent {
       this.cohortService.setCohortData(no_na_dto);
       const diff = n_rows_before - n_nows_after;
       if (diff === 0) {
-        this.notificationService.showWarning("No all-na rows to remove");
+        this.notificationService.showWarning("No all-na columns to remove");
       } else {
-        this.notificationService.showSuccess(`Removed ${diff} all-na rows.`);
+        this.notificationService.showSuccess(`Removed ${diff} all-na columns.`);
       }
     } catch (error) {
       this.notificationService.showError(`Cound not remove NA row: ${error}`);
