@@ -144,3 +144,16 @@
     font-size: 0.85rem;
   }
 }
+
+
+.transcript-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #64748b;
+
+  strong {
+    font-family: ui-monospace, monospace;
+    color: #0f172a;
+  }
+}

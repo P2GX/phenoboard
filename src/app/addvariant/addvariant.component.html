@@ -56,6 +56,11 @@
               <option [ngValue]="gene">{{ gene.geneSymbol }}</option>
             }
           </select>
+          @if (selectedGene) {
+            <span class="transcript-hint">
+              Transcript <strong>{{ selectedGene.transcript }}</strong>
+            </span>
+          }
         </div>
 
         <!-- Structural Variant Type Select Field -->
