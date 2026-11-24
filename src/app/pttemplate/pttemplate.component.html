@@ -3,7 +3,8 @@
     <app-cohort-summary 
     [cohort]="cohort"
     (updateAcronym)="handleAcronym($any($event))"
-    (updateMoi)="handleMoi($any($event))"/>
+    (updateMoi)="handleMoi($any($event))"
+    (updateDiseaseLabel)="handleDiseaseLabel($event)"/>
   } @else {
     <p>Cohort not initialized.</p>
   }

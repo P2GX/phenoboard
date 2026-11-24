@@ -158,3 +158,15 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
   }
 }
+
+.disease-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.disease-label-input {
+  min-width: 28rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.1rem;
+}

@@ -39,6 +39,10 @@ export class CohortSummaryComponent {
     this.showMoiDialog.update((v) => !v);
   }
 
+  updateDiseaseLabel = output<{ diseaseIndex: number; label: string }>();
+  editingDiseaseIndex = signal<number | null>(null);
+  diseaseLabelInput = signal('');
+
 
   /* return the total count of distinct variants */
   numVariants = computed((): number => {
@@ -117,5 +121,24 @@ export class CohortSummaryComponent {
       input.setSelectionRange(pos, pos);   // keep the cursor where it was
       input.dispatchEvent(new Event('input'));   // let ngModel pick up the cleaned value
     }
+  }
+
+  startEditLabel(index: number, currentLabel: string): void {
+    this.diseaseLabelInput.set(currentLabel);
+    this.editingDiseaseIndex.set(index);
+  }
+
+  cancelEditLabel(): void {
+    this.editingDiseaseIndex.set(null);
+  }
+
+  submitDiseaseLabel(): void {
+    const index = this.editingDiseaseIndex();
+    if (index === null) { return; }
+    // trim and collapse runs of whitespace, but keep single spaces ("Basal cell nevus syndrome 1")
+    const label = this.diseaseLabelInput().trim().replace(/\s+/g, ' ');
+    if (!label) { return; }
+    this.updateDiseaseLabel.emit({ diseaseIndex: index, label });
+    this.editingDiseaseIndex.set(null);
   }
 }

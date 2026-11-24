@@ -102,7 +102,7 @@ export class PtTemplateComponent {
     });
     this.helpService.setHelpContext('cohort-editor');
   }
-  /** Key: top-level term (represented in Cohort), value: all descendents of the term in our Cohort dataset */
+  /** Key: top-level term (represented in Cohort), value: all descendants of the term in our Cohort dataset */
   readonly hpoGroupKeys = computed(() => Array.from(this.hpoGroups().keys()));
   private configService = inject(ConfigService);
   private ageService = inject(AgeService);
@@ -145,7 +145,7 @@ export class PtTemplateComponent {
 
   // Tracks currently hovered HPO header
   hoveredHpoHeader: number | null = null;
-  // corresponds to the + sighn for adding a new allele on a row
+  // corresponds to the + sign for adding a new allele on a row
   openAddAlleleRowId: string | null = null;
 
   infoMenuPos = signal<{ x: number; y: number } | null>(null);
@@ -187,7 +187,7 @@ export class PtTemplateComponent {
     return map;
   });
 
-  /* Create a view model. The data obsejects are computed once upon change of filteredRows, 
+  /* Create a view model. The data objects are computed once upon change of filteredRows, 
     not for each change detection cycle in the GUI. */
   readonly tableVM = computed(() => {
     return CohortViewModel.create(
@@ -977,7 +977,7 @@ export class PtTemplateComponent {
         this.notificationService.showSuccess(`Removed ${diff} all-na columns.`);
       }
     } catch (error) {
-      this.notificationService.showError(`Cound not remove NA row: ${error}`);
+      this.notificationService.showError(`Could not remove NA column: ${error}`);
     }
   }
 
@@ -1033,7 +1033,7 @@ export class PtTemplateComponent {
     this.interactionService.close();
   }
 
-  /* reset of the Moi/acronym componet */
+  /* reset of the Moi/acronym component */
   handleReset(): void {
     const current = this.cohortData();
     if (!current) return;
@@ -1076,6 +1076,19 @@ export class PtTemplateComponent {
       }
       return d;
     });
+    this.cohortService.setCohortData({
+      ...current,
+      diseaseList: updatedDiseases,
+    });
+  }
+
+  /* Called when the user updates a disease name */
+  handleDiseaseLabel(event: { diseaseIndex: number; label: string }): void {
+    const current = this.cohortData();
+    if (!current) return;
+    const updatedDiseases = current.diseaseList.map((d, index) =>
+      index === event.diseaseIndex ? { ...d, diseaseLabel: event.label } : d,
+    );
     this.cohortService.setCohortData({
       ...current,
       diseaseList: updatedDiseases,

@@ -1,12 +1,40 @@
 <div class="disease-summary">
   <ul>
     @for (disease of cohort().diseaseList; track disease.diseaseId; let i = $index) {
-      <li>
-        <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" target="_blank">
-          <h2>
-            <strong>{{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong>
-          </h2>
-        </a>
+     <li>
+        @if (editingDiseaseIndex() !== i) {
+          <div class="disease-title-row">
+            <a [href]="'https://omim.org/entry/' + getOmimId(disease.diseaseId)" target="_blank">
+              <h2>
+                <strong>{{ disease.diseaseLabel }} ({{ disease.diseaseId }})</strong>
+              </h2>
+            </a>
+            <button
+              type="button"
+              class="acronym-btn acronym-btn--edit"
+              title="Edit disease name"
+              aria-label="Edit disease name"
+              (click)="startEditLabel(i, disease.diseaseLabel)"
+            >✏️</button>
+          </div>
+        } @else {
+          <div class="acronym-edit">
+            <input
+              [ngModel]="diseaseLabelInput()"
+              (ngModelChange)="diseaseLabelInput.set($event)"
+              class="disease-label-input"
+              (keydown.enter)="submitDiseaseLabel()"
+              (keydown.escape)="cancelEditLabel()"
+            />
+            <span class="text-slate-500">({{ disease.diseaseId }})</span>
+            <button type="button" class="acronym-btn acronym-btn--confirm"
+                    title="Save name" aria-label="Save name"
+                    (click)="submitDiseaseLabel()">✓</button>
+            <button type="button" class="acronym-btn acronym-btn--cancel"
+                    title="Cancel" aria-label="Cancel"
+                    (click)="cancelEditLabel()">✕</button>
+          </div>
+        }
         @if (disease.geneTranscriptList.length) {
           <span class="gene-links">
             (
