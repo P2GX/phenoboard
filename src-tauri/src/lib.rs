@@ -60,9 +60,10 @@ pub fn run() {
             get_hpo_terms_by_toplevel,
             get_modifiers,
             get_multi_hpo_strings,
-            get_status_dto,
+            get_onset_conflicts,
             get_ppkt_store_json,
             get_pt_template_path,
+            get_status_dto,
             get_variant_analysis,
             load_external_excel,
             load_external_template_json,
@@ -75,6 +76,7 @@ pub fn run() {
             process_allele_column,
             reset_pt_template_path,
             remove_na_columns,
+            resolve_onset_conflicts,
             sanitize_cohort_data,
             save_biocurator_orcid,
             save_cohort_data,
@@ -912,4 +914,26 @@ async fn update_all_ppkt(
     })
     .await
     .map_err(|e| e.to_string())?   // task panicked
+}
+
+
+#[tauri::command]
+fn get_onset_conflicts(
+    state: tauri::State<'_, Arc<AppState>>,
+    cohort_dto: CohortData) -> Result<Vec<ga4ghphetools::OnsetConflict>, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    let hpo = singleton.get_hpo().ok_or_else(|| "HPO not initialized".to_string())?;
+    ga4ghphetools::get_onset_conflicts(hpo.clone(), &cohort_dto)
+}
+
+#[tauri::command]
+fn resolve_onset_conflicts(
+    state: tauri::State<'_, Arc<AppState>>,
+    cohort_dto: CohortData,
+    resolutions: Vec<ga4ghphetools::OnsetResolution>) -> Result<CohortData, String> {
+    let singleton = state.phenoboard.lock()
+        .map_err(|_| "Failed to acquire lock on HPO State".to_string())?;
+    let hpo = singleton.get_hpo().ok_or_else(|| "HPO not initialized".to_string())?;
+    ga4ghphetools::resolve_onset_conflicts(hpo.clone(), &cohort_dto, &resolutions)
 }

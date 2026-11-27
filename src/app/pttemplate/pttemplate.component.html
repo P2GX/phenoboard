@@ -478,3 +478,10 @@
   </div>
 }
 
+@if (onsetConflicts(); as conflicts) {
+  <app-onset-conflict-dialog
+    [conflicts]="conflicts"
+    (resolved)="onOnsetResolved($event)"
+    (cancelled)="onsetConflicts.set(null)">
+  </app-onset-conflict-dialog>
+}

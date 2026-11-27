@@ -40,6 +40,8 @@ import { TableContext, TableInteractionService } from '../services/table-interac
 import { ChangeDetectorRef } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { HpoModifierService } from '../services/hpo_modifier_service';
+import { OnsetConflict, OnsetResolution } from '../models/repo_qc';
+import { OnsetConflictDialogComponent } from '../onset-conflict-dialog/onset-conflict-dialog.component';
 
 interface Option {
   label: string;
@@ -66,7 +68,8 @@ interface Option {
     ConfirmDialogComponent,
     IconComponent,
     IndividualEditComponent,
-    AddVariantComponent
+    AddVariantComponent,
+    OnsetConflictDialogComponent
 ],
   templateUrl: './pttemplate.component.html',
   styleUrls: ['./pttemplate.component.css'],
@@ -231,6 +234,8 @@ export class PtTemplateComponent {
   selectedTopLevelHpo = signal<string | null>(null);
   /** If set, show only the single column matching this exact HPO ID */
   selectedSingleHpoId = signal<string | null>(null);
+  /** if user enters term with ancestor with incompatible onsets */
+  onsetConflicts = signal<OnsetConflict[] | null>(null);
 
   /* Load the Phetools template from the backend only if the templateService 
     has not yet been initialized. */
@@ -472,10 +477,26 @@ export class PtTemplateComponent {
               // validateCohort already shows the remaining errors
             }
           } catch (sanitError) {
-            this.notificationService.showError('Sanitization failed: ' + sanitError);
+            const conflicts = await this.configService.getOnsetConflicts(cohortData!);
+            if (conflicts.length > 0) {
+              this.onsetConflicts.set(conflicts);   // opens the dialog
+            } else {
+              this.notificationService.showError('Sanitization failed: ' + sanitError);
+            }
           }
         }
       }
+    }
+  }
+
+  async onOnsetResolved(resolutions: OnsetResolution[]): Promise<void> {
+    this.onsetConflicts.set(null);
+    try {
+      const fixed = await this.configService.resolveOnsetConflicts(this.cohortData()!, resolutions);
+      this.cohortService.setCohortData(fixed);
+      await this.validateCohort();   // asks to sanitize again; this time it should succeed
+    } catch (e) {
+      this.notificationService.showError('Could not apply changes: ' + e);
     }
   }
 

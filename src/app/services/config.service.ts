@@ -18,7 +18,7 @@ import {
   VariantDto,
 } from '../../../libs/ui/src/lib/models/variant_dto';
 
-import { RepoQc } from '../models/repo_qc';
+import { OnsetConflict, OnsetResolution, RepoQc } from '../models/repo_qc';
 import { ComparisonReport } from '../models/comparison';
 import { PpktSaveCheckResult } from '../models/status_dto';
 import { ask } from '@tauri-apps/plugin-dialog';
@@ -226,6 +226,15 @@ export class ConfigService {
   async sanitizeCohort(cohort_data: CohortData): Promise<CohortData> {
     return invoke<CohortData>('sanitize_cohort_data', { cohortDto: cohort_data });
   }
+
+ 
+
+async getOnsetConflicts(cohort: CohortData): Promise<OnsetConflict[]> {
+  return invoke<OnsetConflict[]>('get_onset_conflicts', { cohortDto: cohort });
+}
+async resolveOnsetConflicts(cohort: CohortData, resolutions: OnsetResolution[]): Promise<CohortData> {
+  return invoke<CohortData>('resolve_onset_conflicts', { cohortDto: cohort, resolutions });
+}
 
   async checkExistingPhenopackets(): Promise<PpktSaveCheckResult> {
     return invoke('check_existing_phenopackets');

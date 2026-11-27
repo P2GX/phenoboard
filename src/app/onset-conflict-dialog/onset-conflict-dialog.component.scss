@@ -1,0 +1,65 @@
+.onset-dialog {
+  padding: 20px;
+  width: 720px;
+  max-width: 90vw;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.onset-dialog h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.intro {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.conflict-list {
+  max-height: 55vh;
+  overflow-y: auto;      // long lists scroll inside the dialog
+  padding-right: 4px;
+}
+
+.conflict {
+  padding: 12px;
+  margin-bottom: 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+.conflict__header { margin-bottom: 4px; }
+.conflict__pmid   { margin-left: 8px; font-size: 0.75rem; color: #666; }
+.conflict__term   { font-size: 14px; color: #374151; margin-bottom: 8px; }
+.conflict__note   { display: block; margin-top: 6px; color: #666; }
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.1);
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}

@@ -123,10 +123,17 @@ impl PhenoboardSingleton {
     /// We want to get the single best match of any HPO term label to the query string
     /// using the fenominal autocompletion functionality
     pub fn get_best_hpo_match(&self, query: String) -> Option<OntologyMatch> {
-        self.autocompleter
-            .as_ref()
-            .map(|ac| ac.get_best_hpo_match(query))
-            .unwrap_or_default()
+        let ac = self.autocompleter.as_ref()?;
+        // search_hpo returns the exact term when the text contains an HP:nnnnnnn id.
+        // Only trust the hit if its id actually appears in the query (otherwise it is just a fuzzy hit).
+        if let Some(hit) = ac.search_hpo(&query, 1).first() {
+            if query.contains(&hit.id) {
+                return Some(hit.clone());
+            }
+        }
+        // fallback - get the best text match to an HPO label/synonym
+        ac.get_best_hpo_match(query)
+   
     }
 
 

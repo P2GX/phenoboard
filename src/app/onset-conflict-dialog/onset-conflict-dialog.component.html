@@ -1,0 +1,44 @@
+<dialog class="onset-dialog" #onsetDialog (close)="onDialogClose()">
+  <h2>Redundant terms with onset</h2>
+  <p class="intro">
+    Each general term below has an onset, but a more specific term is also annotated.
+    Choose where the onset should go.
+  </p>
+
+  <div class="conflict-list">
+    @for (g of groups(); track g.key) {
+      <div class="conflict">
+        <div class="conflict__header">
+          <strong>{{ g.individualId }}</strong>
+          <span class="conflict__pmid">PMID:{{ g.pmid }}</span>
+        </div>
+        <div class="conflict__term">
+          {{ g.redundant.hpoLabel }} ({{ g.redundant.hpoId }}), onset <b>{{ g.onset }}</b>
+        </div>
+        <select class="form-control"
+                [value]="choice()[g.key] ?? ''"
+                (change)="pick(g.key, $any($event.target).value)">
+          <option value="" disabled>Choose…</option>
+          @for (c of g.candidates; track c.term.hpoId) {
+            @if (c.onset === null) {
+              <option [value]="c.term.hpoId">Move onset to {{ c.term.hpoLabel }}</option>
+            }
+          }
+          <option value="__discard__">Discard the onset</option>
+        </select>
+        @for (c of g.candidates; track c.term.hpoId) {
+          @if (c.onset !== null) {
+            <small class="conflict__note">
+              {{ c.term.hpoLabel }} already has onset {{ c.onset }}
+            </small>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <div class="dialog-actions">
+    <button (click)="apply()" [disabled]="!allChosen()" class="btn-outline-primary">Apply</button>
+    <button (click)="cancel()" class="btn-outline-cancel">Cancel</button>
+  </div>
+</dialog>
